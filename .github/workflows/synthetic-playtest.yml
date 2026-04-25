@@ -1,0 +1,44 @@
+name: Synthetic Playtest
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Every Monday 06:00 UTC
+  workflow_dispatch:        # On-demand manual trigger
+
+jobs:
+  playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app (required for Vite dev server)
+        run: npm run build:curriculum
+
+      - name: Start Vite dev server
+        run: npm run dev:app &
+      - name: Wait for server
+        run: npx wait-on http://localhost:5173 --timeout 30000
+
+      - name: Run synthetic playtest (quick mode)
+        run: npm run playtest:synthetic:quick
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthetic-playtest-results
+          path: tests/synthetic/results/
+          retention-days: 30

@@ -1,0 +1,87 @@
+/**
+ * PlacementInteraction — show BarModel, drag marker on NumberLine, commit snapped value.
+ * per activity-archetypes.md §10 (L8 primary, L9 secondary)
+ */
+
+import * as Phaser from 'phaser';
+import { CLR, HEX } from '../utils/colors';
+import { BarModel, NumberLine } from './utils';
+import type { Interaction, InteractionContext } from './types';
+
+interface PlacementPayload {
+  targetFracId?: string;
+  targetLabel?: string;
+  numerator?: number;
+  denominator?: number;
+  snapCount?: number;        // e.g. 8 → snap8
+  exactTolerance?: number;
+  closeTolerance?: number;
+}
+
+function parseFrac(s?: string): { n: number; d: number } {
+  if (!s) return { n: 1, d: 2 };
+  const [n, d] = s.split('/').map(Number);
+  return { n: n ?? 1, d: d ?? 1 };
+}
+
+function buildSnaps(count: number): number[] {
+  return Array.from({ length: count + 1 }, (_, i) => i / count);
+}
+
+export class PlacementInteraction implements Interaction {
+  readonly archetype = 'placement' as const;
+  private gameObjects: Phaser.GameObjects.GameObject[] = [];
+  private bar: BarModel | undefined = undefined;
+  private line: NumberLine | undefined = undefined;
+
+  mount(ctx: InteractionContext): void {
+    const { scene, template, centerX, centerY, width, onCommit } = ctx;
+    const payload = template.payload as PlacementPayload;
+    const label = payload.targetLabel ?? payload.targetFracId ?? '?';
+    const frac = payload.numerator !== undefined
+      ? { n: payload.numerator, d: payload.denominator ?? 1 }
+      : parseFrac(label);
+    const exactTol = payload.exactTolerance ?? 0.05;
+    const closeTol = payload.closeTolerance ?? 0.15;
+    const snapCount = payload.snapCount ?? 8;
+    const snaps = buildSnaps(snapCount);
+
+    // Fraction bar model at top
+    this.bar = new BarModel(scene, {
+      x: centerX, y: centerY - 150,
+      width: 240, height: 48,
+      numerator: frac.n, denominator: frac.d,
+      label,
+      fillColor: CLR.primary,
+    });
+
+    // Number line with snap positions
+    const lineW = Math.min(560, width - 80);
+    this.line = new NumberLine(scene, {
+      x: centerX, y: centerY - 20,
+      length: lineW,
+      tickFractions: [0.5],
+      snapPositions: snaps,
+    });
+    this.line.setMarker(0.5);
+    this.line.enableDrag((value) => {
+      onCommit({ placedDecimal: value, exactTolerance: exactTol, closeTolerance: closeTol });
+    });
+
+    // Instruction label
+    const instrTxt = scene.add.text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
+      fontSize: '15px', fontFamily: '"Nunito", system-ui, sans-serif',
+      color: HEX.neutral600, align: 'center',
+    }).setOrigin(0.5).setDepth(6);
+    this.gameObjects.push(instrTxt);
+  }
+
+  unmount(): void {
+    this.gameObjects.forEach((o) => o.destroy());
+    this.gameObjects = [];
+    this.bar?.destroy();
+    this.line?.destroy();
+    this.bar = undefined;
+    this.line = undefined;
+  }
+}

@@ -1,0 +1,31 @@
+name: Content Validation
+on:
+  pull_request:
+    paths:
+      - 'pipeline/output/**'
+      - 'public/curriculum/**'
+      - 'pipeline/schemas.py'
+      - 'pipeline/validators_py.py'
+  push:
+    branches: [main]
+    paths:
+      - 'pipeline/output/**'
+      - 'public/curriculum/**'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.13' }
+      - run: cd pipeline && pip install -r requirements.txt
+      - name: Verify each level
+        run: |
+          for f in pipeline/output/level_*/all.json; do
+            echo "::group::Verifying $f"
+            PYTHONPATH=. python -m pipeline.verify --in "$f" --strict --templates-only
+            echo "::endgroup::"
+          done
+      - name: Verify curriculum bundle
+        run: |
+          test -s public/curriculum/v1.json || (echo "Curriculum bundle missing or empty" && exit 1)

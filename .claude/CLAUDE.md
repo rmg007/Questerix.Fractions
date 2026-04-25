@@ -77,9 +77,9 @@
 - **prompts/**
 - **per_archetype/**
 - **playwright-report/**
-- **data/**
 - **public/** (static)
 - **curriculum/**
+- **fonts/**
 - **icons/**
 - **scripts/**
 - **src/** (source)
@@ -90,6 +90,7 @@
 - **systems/** (source)
 - **core/** (source)
 - **utils/** (source)
+- **audio/** (source)
 - **components/** (source)
 - **core/** (source)
 - **curriculum/** (source)
@@ -98,6 +99,8 @@
 - **persistence/** (source)
 - **repositories/** (source)
 - **scenes/** (source)
+- **interactions/** (source)
+- **utils/** (source)
 - **utils/** (source)
 - **styles/** (source)
 - **types/** (source)
@@ -108,6 +111,8 @@
 - **e2e/** (test)
 - **fixtures/** (test)
 - **integration/** (test)
+- **synthetic/** (test)
+- **results/** (test)
 - **unit/** (test)
 - **validators/** (test)
 - **validation/**

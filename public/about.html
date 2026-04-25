@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Questerix Fractions</title>
+  <style>
+    /* Design-language tokens: docs/20-mechanic/design-language.md */
+    :root {
+      --primary:      #2F6FED;
+      --primary-soft: #D9E5FB;
+      --neutral-0:    #FFFFFF;
+      --neutral-50:   #F7F8FA;
+      --neutral-300:  #C5CAD3;
+      --neutral-600:  #5B6478;
+      --neutral-900:  #101521;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--neutral-0);
+      color: var(--neutral-900);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    a:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 3px;
+      border-radius: 3px;
+    }
+    .skip-link {
+      position: absolute;
+      top: -9999px;
+      left: 1rem;
+      background: var(--primary);
+      color: var(--neutral-0);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 700;
+      z-index: 9999;
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 1rem; }
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1.25rem;
+    }
+    p { margin-bottom: 1rem; color: var(--neutral-900); }
+    nav {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--neutral-300);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    nav a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    nav a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.85rem;
+      color: var(--neutral-600);
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main id="main-content">
+    <h1>About Questerix Fractions</h1>
+    <p>
+      Questerix Fractions is a browser-based math game for children in Kindergarten through Grade 2
+      (ages 5–8). Players learn fraction concepts — halves, thirds, fourths, and how to compare them —
+      by dragging, snapping, and sorting colorful shapes with a magnetic mechanic that makes equal
+      partitioning feel tactile and intuitive.
+    </p>
+    <p>
+      There is nothing to install, no account to create, and no data leaves your device.
+      Progress is stored locally in your browser and can be exported as a JSON file at any time.
+      The game is designed for short sessions of 10–15 minutes and works on phones, tablets, and desktops.
+    </p>
+    <p>
+      The project is in active development (Phase 1 complete) with a research goal:
+      does the magnetic-drag mechanic help K–2 students improve fraction performance compared to a
+      standard paper pre/post test? Levels 1–9 cover the full Grade K–2 CCSS fraction strand.
+    </p>
+    <nav aria-label="Site links">
+      <a href="/">Play the game</a>
+      <a href="https://github.com/ryanmidogonzalez/questerix-fractions">GitHub</a>
+      <a href="/privacy.html">Privacy notice</a>
+    </nav>
+    <footer>
+      <p>Copyright &copy; 2026 ryanmidogonzalez. Released under the <a href="/LICENSE">MIT License</a>.</p>
+    </footer>
+  </main>
+</body>
+</html>

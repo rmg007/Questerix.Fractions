@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-04-25T17:50:01.845Z",
+  "totalSessions": 20,
+  "completedSessions": 8,
+  "abandonedSessions": 4,
+  "crashedSessions": 9,
+  "completionRate": 0.4,
+  "meanAttemptsPerSession": 2.3,
+  "meanSessionDurationMs": 30027.85,
+  "p95SessionDurationMs": 90000,
+  "feedbackLatencyPass": false,
+  "feedbackLatencyP95Ms": 2051,
+  "perPersona": {
+    "Eager-K": {
+      "sessions": 5,
+      "completed": 3,
+      "abandoned": 1,
+      "crashed": 1,
+      "meanAccuracy": 1,
+      "meanResponseTimeMs": 2511.951104350624
+    },
+    "Hesitant-K": {
+      "sessions": 5,
+      "completed": 2,
+      "abandoned": 0,
+      "crashed": 3,
+      "meanAccuracy": 1,
+      "meanResponseTimeMs": 6709.705873662986
+    },
+    "Confident-G1": {
+      "sessions": 5,
+      "completed": 2,
+      "abandoned": 0,
+      "crashed": 3,
+      "meanAccuracy": 1,
+      "meanResponseTimeMs": 4639.55940205783
+    },
+    "Distractible-G2": {
+      "sessions": 5,
+      "completed": 1,
+      "abandoned": 3,
+      "crashed": 2,
+      "meanAccuracy": 1,
+      "meanResponseTimeMs": 6056.772107997984
+    }
+  },
+  "passed": false,
+  "failReasons": [
+    "Completion rate 40.0% < 95% threshold",
+    "9 session(s) crashed (uncaught JS error)",
+    "Feedback latency p95=2051ms — <90% of attempts within 800ms budget"
+  ]
+}
