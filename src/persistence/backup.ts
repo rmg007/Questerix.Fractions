@@ -1,0 +1,156 @@
+/**
+ * JSON backup and restore for Questerix Fractions.
+ * User-controlled disaster recovery — per persistence-spec.md §6.
+ * Conflict policy: skip records with conflicting primary keys (don't overwrite).
+ */
+
+import Dexie, { type Table } from 'dexie';
+import { db } from './db';
+import { deviceMetaRepo } from './repositories/deviceMeta';
+import type {
+  Student,
+  Session,
+  Attempt,
+  HintEvent,
+  SkillMastery,
+  DeviceMeta,
+  Bookmark,
+  SessionTelemetry,
+} from '../types';
+
+// ── Backup envelope ────────────────────────────────────────────────────────
+
+const BACKUP_SCHEMA_VERSION = 1;
+
+interface BackupEnvelope {
+  version: number;
+  exportedAt: number;
+  tables: {
+    students: Student[];
+    sessions: Session[];
+    attempts: Attempt[];
+    skillMastery: SkillMastery[];
+    deviceMeta: DeviceMeta[];
+    bookmarks: Bookmark[];
+    sessionTelemetry: SessionTelemetry[];
+    hintEvents: HintEvent[];
+  };
+}
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────
+
+/**
+ * Dump all dynamic tables to a JSON Blob suitable for file download.
+ * Bumps deviceMeta.lastBackupAt on success.
+ * per persistence-spec.md §6
+ */
+export async function backupToFile(): Promise<Blob> {
+  const [students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents] =
+    await Promise.all([
+      db.students.toArray(),
+      db.sessions.toArray(),
+      db.attempts.toArray(),
+      db.skillMastery.toArray(),
+      db.deviceMeta.toArray(),
+      db.bookmarks.toArray(),
+      db.sessionTelemetry.toArray(),
+      db.hintEvents.toArray(),
+    ]);
+
+  const envelope: BackupEnvelope = {
+    version: BACKUP_SCHEMA_VERSION,
+    exportedAt: Date.now(),
+    tables: { students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents },
+  };
+
+  const json = JSON.stringify(envelope);
+  const blob = new Blob([json], { type: 'application/json' });
+
+  // Bump lastBackupAt — non-critical, don't throw if it fails
+  await deviceMetaRepo.update({ lastBackupAt: Date.now() });
+
+  // Trigger download (no-op in Node/test environments — jsdom lacks createObjectURL)
+  if (typeof document !== 'undefined' && typeof URL.createObjectURL === 'function') {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `questerix-${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return blob;
+}
+
+// ── Restore ────────────────────────────────────────────────────────────────
+
+interface RestoreResult {
+  added: number;
+  skipped: number;
+}
+
+/**
+ * Parse a backup JSON file and write all tables transactionally.
+ * Conflict policy: skip records with conflicting PKs — never overwrites existing data.
+ * Bumps deviceMeta.lastRestoredAt on success.
+ * per persistence-spec.md §6
+ */
+export async function restoreFromFile(file: File): Promise<RestoreResult> {
+  const text = await file.text();
+  let envelope: BackupEnvelope;
+
+  try {
+    envelope = JSON.parse(text) as BackupEnvelope;
+  } catch {
+    throw new Error('backup.restore: invalid JSON');
+  }
+
+  if (envelope.version !== BACKUP_SCHEMA_VERSION) {
+    throw new Error(
+      `backup.restore: unsupported schema version ${envelope.version} (expected ${BACKUP_SCHEMA_VERSION})`,
+    );
+  }
+
+  let added = 0;
+  let skipped = 0;
+
+  // Helper: try to add each record; if it conflicts with an existing PK, skip it.
+  async function tryAddAll<T>(table: Table<T>, rows: T[]): Promise<void> {
+    for (const row of rows) {
+      try {
+        await table.add(row);
+        added++;
+      } catch {
+        // Duplicate key = skip
+        skipped++;
+      }
+    }
+  }
+
+  const t = envelope.tables;
+  await db.transaction(
+    'rw',
+    [db.students, db.sessions, db.attempts, db.skillMastery, db.deviceMeta, db.bookmarks, db.sessionTelemetry, db.hintEvents],
+    async () => {
+      await tryAddAll(db.students, t.students ?? []);
+      await tryAddAll(db.sessions, t.sessions ?? []);
+      await tryAddAll(db.attempts, t.attempts ?? []);
+      await tryAddAll(db.skillMastery, t.skillMastery ?? []);
+      await tryAddAll(db.bookmarks, t.bookmarks ?? []);
+      await tryAddAll(db.sessionTelemetry, t.sessionTelemetry ?? []);
+      await tryAddAll(db.hintEvents, t.hintEvents ?? []);
+      // deviceMeta is a singleton — skip to avoid overwriting live preferences
+    },
+  );
+
+  await deviceMetaRepo.update({ lastRestoredAt: Date.now() });
+
+  return { added, skipped };
+}
+
+// Suppress unused-import warning — Dexie is referenced for Table generic above
+void (Dexie as unknown);

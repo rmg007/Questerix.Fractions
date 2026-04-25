@@ -1,0 +1,100 @@
+[
+  {
+    "id": "tpl-identify-half-circle",
+    "archetype": "identify.exactIndex",
+    "skillId": "SK-02",
+    "levelId": "L1",
+    "tier": 1,
+    "prompt": "Circle the shape that shows ONE HALF.",
+    "stimulus": {
+      "type": "multiple-choice-shapes",
+      "options": [
+        { "index": 0, "shape": "circle", "partitioned": true, "equalParts": 2, "shadedParts": 1, "correct": true },
+        { "index": 1, "shape": "circle", "partitioned": true, "equalParts": 3, "shadedParts": 1, "correct": false },
+        { "index": 2, "shape": "circle", "partitioned": false, "equalParts": 1, "shadedParts": 0, "correct": false }
+      ]
+    },
+    "validator": {
+      "type": "identify.exactIndex",
+      "correctIndex": 0
+    }
+  },
+  {
+    "id": "tpl-partition-half-rect",
+    "archetype": "partition.equalAreas",
+    "skillId": "SK-11",
+    "levelId": "L1",
+    "tier": 1,
+    "prompt": "Draw a line that splits this rectangle into TWO equal parts.",
+    "stimulus": {
+      "type": "drag-partition",
+      "shape": "rectangle",
+      "targetParts": 2,
+      "orientation": "any"
+    },
+    "validator": {
+      "type": "partition.equalAreas",
+      "targetParts": 2,
+      "areaTolerance": 0.10
+    }
+  },
+  {
+    "id": "tpl-partition-fourth-rect",
+    "archetype": "partition.equalAreas",
+    "skillId": "SK-15",
+    "levelId": "L4",
+    "tier": 2,
+    "prompt": "Draw lines that split this rectangle into FOUR equal parts.",
+    "stimulus": {
+      "type": "drag-partition",
+      "shape": "rectangle",
+      "targetParts": 4,
+      "orientation": "any"
+    },
+    "validator": {
+      "type": "partition.equalAreas",
+      "targetParts": 4,
+      "areaTolerance": 0.10
+    }
+  },
+  {
+    "id": "tpl-compare-half-fourth",
+    "archetype": "equal_or_not.areaTolerance",
+    "skillId": "SK-23",
+    "levelId": "L6",
+    "tier": 3,
+    "prompt": "Which is bigger? 1/2 or 1/4? Circle the bigger one.",
+    "stimulus": {
+      "type": "fraction-pair",
+      "fractions": [
+        { "numerator": 1, "denominator": 2, "label": "1/2" },
+        { "numerator": 1, "denominator": 4, "label": "1/4" }
+      ]
+    },
+    "validator": {
+      "type": "equal_or_not.areaTolerance",
+      "correctIndex": 0,
+      "relation": "greater"
+    }
+  },
+  {
+    "id": "tpl-placement-snap8-half",
+    "archetype": "placement.snap8",
+    "skillId": "SK-27",
+    "levelId": "L7",
+    "tier": 3,
+    "prompt": "Mark where 1/2 belongs on the number line from 0 to 1.",
+    "stimulus": {
+      "type": "number-line",
+      "rangeMin": 0,
+      "rangeMax": 1,
+      "snapPoints": 8,
+      "targetFraction": { "numerator": 1, "denominator": 2 }
+    },
+    "validator": {
+      "type": "placement.snap8",
+      "correctSnapIndex": 4,
+      "tolerance": 1
+    }
+  }
+]

@@ -1,0 +1,45 @@
+# Netlify deployment config — alternate to Vercel
+# per privacy-notice.md: no third-party scripts, no analytics
+# per performance-budget.md: 1.0 MB gzipped budget enforced in CI
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Disable Netlify Analytics (must also be turned off in the dashboard:
+# Site Settings → Analytics → disable)
+# Disable Netlify tracking snippet injection:
+[build.processing]
+  skip_processing = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+# ─── Security headers (all routes) ───────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000"
+    X-Content-Type-Options    = "nosniff"
+    X-Frame-Options           = "DENY"
+    Referrer-Policy           = "no-referrer"
+    # CSP: no third-party domains — per privacy-notice.md "no third parties"
+    Content-Security-Policy   = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'"
+
+# ─── Service worker: must not be cached by CDN ───────────────────────────────
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# ─── SPA fallback (Vite router) ──────────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

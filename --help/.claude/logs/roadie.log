@@ -1,0 +1,48 @@
+[2026-04-25T13:11:53.476Z] [INFO] [LearningDatabase] Migrating schema from v0 to v2
+[2026-04-25T13:11:53.483Z] [INFO] [LearningDatabase] Schema migrated to v2
+[2026-04-25T13:11:53.485Z] [INFO] Learning engine initialized and autonomous logging active (Syncing with Global Brain).
+[2026-04-25T13:11:53.540Z] [INFO] Starting autonomous synchronization cycle...
+[2026-04-25T13:11:53.650Z] [ERROR] Git Error: git status --porcelain | {"status":128,"signal":null,"output":[null,"","fatal: not a git repository (or any of the parent directories): .git\n"],"pid":36548,"stdout":"","stderr":"fatal: not a git repository (or any of the parent directories): .git\n"}
+[2026-04-25T13:11:53.745Z] [ERROR] Git Error: git tag roadie/checkpoint-2026-04-25T13-11-53-541Z | {"status":128,"signal":null,"output":[null,"","fatal: not a git repository (or any of the parent directories): .git\n"],"pid":29196,"stdout":"","stderr":"fatal: not a git repository (or any of the parent directories): .git\n"}
+[2026-04-25T13:11:53.747Z] [INFO] Safety Checkpoint Created: roadie/checkpoint-2026-04-25T13-11-53-541Z
+[2026-04-25T13:11:53.749Z] [INFO] Roadie MCP server running on stdio
+[2026-04-25T13:11:53.753Z] [INFO] ProjectAnalyzer: starting analysis of C:\dev\Questerix.Fractions\--help
+[2026-04-25T13:11:53.755Z] [DEBUG] ProjectAnalyzer: scanning dependencies…
+[2026-04-25T13:11:53.758Z] [INFO] ProjectAnalyzer: dependency scan complete — 0 tech entries, 0 commands
+[2026-04-25T13:11:53.759Z] [DEBUG] ProjectAnalyzer: scanning directories…
+[2026-04-25T13:11:53.778Z] [INFO] ProjectAnalyzer: directory scan complete — 1 entries
+[2026-04-25T13:11:53.779Z] [DEBUG] ProjectAnalyzer: parsing project conventions…
+[2026-04-25T13:11:53.785Z] [INFO] ProjectAnalyzer: no project conventions found (CLAUDE.md missing)
+[2026-04-25T13:11:53.786Z] [DEBUG] ProjectAnalyzer: deriving patterns…
+[2026-04-25T13:11:53.787Z] [INFO] ProjectAnalyzer: pattern derivation complete — 0 patterns
+[2026-04-25T13:11:53.787Z] [DEBUG] ProjectAnalyzer: enriching with regional and global knowledge…
+[2026-04-25T13:11:53.789Z] [INFO] ProjectAnalyzer: analysis complete
+[2026-04-25T13:11:53.794Z] [INFO] FileGenerator: created .claude/roadie/.gitignore
+[2026-04-25T13:11:53.796Z] [DEBUG] FileGenerator: generating roadie_instructions → .claude/roadie/instructions.md
+[2026-04-25T13:11:53.804Z] [INFO] FileGenerator: wrote .claude/roadie/instructions.md (0.5 KB, reason=new, hash=9571aab5…)
+[2026-04-25T13:11:53.806Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/instructions.md
+[2026-04-25T13:11:53.807Z] [DEBUG] FileGenerator: generating agents_md → .claude/AGENTS.md
+[2026-04-25T13:11:53.814Z] [INFO] FileGenerator: wrote .claude/AGENTS.md (3.6 KB, reason=new, hash=bc3b0619…)
+[2026-04-25T13:11:53.816Z] [DEBUG] FileGenerator: snapshot recorded for .claude/AGENTS.md
+[2026-04-25T13:11:53.817Z] [DEBUG] FileGenerator: generating claude_md → .claude/CLAUDE.md
+[2026-04-25T13:11:53.821Z] [INFO] FileGenerator: wrote .claude/CLAUDE.md (0.4 KB, reason=new, hash=74efdd83…)
+[2026-04-25T13:11:53.824Z] [DEBUG] FileGenerator: snapshot recorded for .claude/CLAUDE.md
+[2026-04-25T13:11:53.825Z] [DEBUG] FileGenerator: generating agent_operating_rules → .claude/roadie/AGENT_OPERATING_RULES.md
+[2026-04-25T13:11:53.830Z] [INFO] FileGenerator: wrote .claude/roadie/AGENT_OPERATING_RULES.md (12.4 KB, reason=new, hash=7a6ed1fc…)
+[2026-04-25T13:11:53.833Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/AGENT_OPERATING_RULES.md
+[2026-04-25T13:11:53.834Z] [DEBUG] FileGenerator: generating project_model_json → .claude/roadie/project-model.json
+[2026-04-25T13:11:53.840Z] [INFO] FileGenerator: wrote .claude/roadie/project-model.json (0.2 KB, reason=new, hash=889adc8b…)
+[2026-04-25T13:11:53.843Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/project-model.json
+[2026-04-25T13:11:53.844Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
+[2026-04-25T13:11:53.850Z] [INFO] FileGenerator: wrote .claude/roadie/PROMPTS.md (1.6 KB, reason=new, hash=d014118d…)
+[2026-04-25T13:11:53.852Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/PROMPTS.md
+[2026-04-25T13:11:53.856Z] [INFO] FileGenerator: wrote .claude/roadie/agents/strategist.agent.md (reason=new)
+[2026-04-25T13:11:53.864Z] [INFO] FileGenerator: wrote .claude/roadie/agents/builder.agent.md (reason=new)
+[2026-04-25T13:11:53.871Z] [INFO] FileGenerator: wrote .claude/roadie/agents/critic.agent.md (reason=new)
+[2026-04-25T13:11:53.879Z] [INFO] FileGenerator: wrote .claude/roadie/agents/diagnostician.agent.md (reason=new)
+[2026-04-25T13:11:53.884Z] [INFO] FileGenerator: wrote .claude/roadie/agents/reviewer.agent.md (reason=new)
+[2026-04-25T13:11:53.889Z] [INFO] FileGenerator: wrote .claude/roadie/agents/delivery.agent.md (reason=new)
+[2026-04-25T13:11:53.893Z] [INFO] FileGenerator: wrote .claude/roadie/agents/frontend-design.agent.md (reason=new)
+[2026-04-25T13:11:53.900Z] [INFO] FileGenerator: wrote skill .claude/roadie/skills/frontend-design.md (reason=new)
+[2026-04-25T13:11:53.904Z] [INFO] FileGenerator: wrote skill .claude/roadie/skills/engineering-rigor.md (reason=new)
+[2026-04-25T13:11:54.503Z] [INFO] Autonomous Sync Complete | Files Updated: 15/15

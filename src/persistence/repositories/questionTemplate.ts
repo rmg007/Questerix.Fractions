@@ -1,0 +1,77 @@
+/**
+ * QuestionTemplate repository — thin Dexie wrapper for static curriculum store.
+ * per persistence-spec.md §4 (static stores), runtime-architecture.md §4.1
+ */
+
+import { db } from '../db';
+import type { QuestionTemplate, QuestionTemplateId, ArchetypeId } from '../../types';
+
+/**
+ * Stored shape extends QuestionTemplate with a derived `levelGroup` field
+ * used for Dexie compound queries. per persistence-spec.md §4 (index: levelGroup)
+ */
+export interface StoredQuestionTemplate extends QuestionTemplate {
+  /** Derived from id format 'q:<arch>:L{N}:NNNN' — maps to Activity.levelGroup */
+  levelGroup: '01-02' | '03-05' | '06-09';
+}
+
+/** Derive levelGroup from canonical ID format 'q:<arch>:L{N}:NNNN'. */
+function deriveLevelGroup(id: string): StoredQuestionTemplate['levelGroup'] {
+  // Extract level number from 'q:pt:L1:0001' → 1
+  const match = /L(\d+):/i.exec(id);
+  const level = match ? parseInt(match[1]!, 10) : 1;
+  if (level <= 2) return '01-02';
+  if (level <= 5) return '03-05';
+  return '06-09';
+}
+
+export const questionTemplateRepo = {
+  /**
+   * Append-only upsert using primary key.
+   * per persistence-spec.md §4 — static stores replaced on contentVersion bump.
+   */
+  async bulkPut(templates: QuestionTemplate[]): Promise<void> {
+    const stored: StoredQuestionTemplate[] = templates.map((t) => ({
+      ...t,
+      levelGroup: deriveLevelGroup(t.id),
+    }));
+    await db.questionTemplates.bulkPut(stored as unknown as QuestionTemplate[]);
+  },
+
+  /**
+   * Return all templates whose ID matches 'q:*:L{level}:*'.
+   * per runtime-architecture.md §4.1 (CurriculumLoader.getQuestionsForLevel)
+   */
+  async getByLevel(level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<QuestionTemplate[]> {
+    const prefix = `:L${level}:`;
+    // IndexedDB doesn't support substring search; filter in JS after a levelGroup pre-filter.
+    const group = deriveLevelGroup(`q:x:L${level}:0001`) as StoredQuestionTemplate['levelGroup'];
+    const candidates = await db.questionTemplates.where('levelGroup').equals(group).toArray();
+    return candidates.filter((t) => t.id.includes(prefix));
+  },
+
+  /**
+   * Return templates filtered by archetype, difficultyTier, and levelGroup.
+   * per runtime-architecture.md §4.1 (question-selection)
+   */
+  async getByArchetypeAndTier(
+    archetype: ArchetypeId,
+    tier: 'easy' | 'medium' | 'hard',
+    levelGroup: StoredQuestionTemplate['levelGroup'],
+  ): Promise<QuestionTemplate[]> {
+    return db.questionTemplates
+      .where('[archetype+difficultyTier]')
+      .equals([archetype, tier])
+      .filter((t) => (t as StoredQuestionTemplate).levelGroup === levelGroup)
+      .toArray();
+  },
+
+  /** Row count — 0 signals first boot / seed needed. per seed.ts */
+  async count(): Promise<number> {
+    return db.questionTemplates.count();
+  },
+
+  async get(id: QuestionTemplateId): Promise<QuestionTemplate | undefined> {
+    return db.questionTemplates.get(id);
+  },
+};

@@ -1,0 +1,20 @@
+[
+  {
+    "validatorId": "validator.identify.exactIndex",
+    "input": { "selectedIndex": 0 },
+    "expected": { "targetIndex": 0, "distractorMisconceptions": {} },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.identify.exactIndex",
+    "input": { "selectedIndex": 2 },
+    "expected": { "targetIndex": 0, "distractorMisconceptions": { "2": "MC-WHB-01" } },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.identify.exactIndex",
+    "input": { "selectedIndex": 1 },
+    "expected": { "targetIndex": 0 },
+    "outcome": "incorrect"
+  }
+]

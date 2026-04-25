@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Production build
+        run: npm run build
+
+      # Hard gate — per docs/30-architecture/performance-budget.md §1
+      # 1.0 MB gzipped = 1,048,576 bytes
+      - name: Bundle size guard
+        run: |
+          GZ=$(find dist -name '*.js' -exec gzip -c {} \; | wc -c)
+          echo "Gzipped JS total: ${GZ} bytes (budget: 1048576)"
+          if [ "$GZ" -gt 1048576 ]; then
+            echo "ERROR: Bundle exceeds 1.0 MB gzipped budget (${GZ} > 1048576)"
+            echo "Run: npx vite-bundle-visualizer to identify the offending chunk."
+            exit 1
+          fi

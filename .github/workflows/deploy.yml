@@ -1,0 +1,61 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      # Bundle size gate before deploy — per docs/30-architecture/performance-budget.md §1
+      - name: Bundle size guard
+        run: |
+          GZ=$(find dist -name '*.js' -exec gzip -c {} \; | wc -c)
+          echo "Gzipped JS total: ${GZ} bytes (budget: 1048576)"
+          if [ "$GZ" -gt 1048576 ]; then
+            echo "ERROR: Bundle exceeds 1.0 MB gzipped — deploy blocked."
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=questerix-fractions --branch=main
+
+# ─── Required secrets (set in GitHub repo Settings → Secrets → Actions) ──────
+#
+#   CLOUDFLARE_API_TOKEN   — dash.cloudflare.com → My Profile → API Tokens →
+#                            Create Token → "Edit Cloudflare Workers" template
+#                            (or custom: Account.Cloudflare Pages: Edit)
+#   CLOUDFLARE_ACCOUNT_ID  — dash.cloudflare.com right sidebar on any zone /
+#                            Workers & Pages page
+#
+# ─── Analytics reminder ───────────────────────────────────────────────────────
+#
+# After first deploy, verify in the Cloudflare dashboard that:
+#   - Web Analytics is OFF (Workers & Pages → project → Settings → Web Analytics)
+# per docs/40-validation/privacy-notice.md "no third parties."
+#
+# ─── Alternate hosts ──────────────────────────────────────────────────────────
+#
+# Vercel and Netlify configs are kept in deploy/ as alternates. To switch
+# back, replace the "Deploy to Cloudflare Pages" step with the appropriate
+# host action and update the secrets.

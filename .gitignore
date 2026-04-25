@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Vite build output
+dist/
+.vite/
+
+# Environment variables — never commit
+.env
+.env.*
+!.env.example
+
+# Pipeline output — generated content, not source
+pipeline/output/
+
+# Test results
+playwright-report/
+test-results/
+.playwright/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+
+# Vercel deployment metadata (contains project/org IDs)
+.vercel/
+
+# Lighthouse reports
+lighthouse-report.html
+
+# Validation data — raw session exports (large, sensitive by context)
+# Uncommit if you intentionally want to track these
+validation-data/cycle-*/raw/

@@ -1,0 +1,13 @@
+# Runtime
+anthropic>=0.28.0      # used when LLM_PROVIDER=anthropic
+requests>=2.32.0       # used when LLM_PROVIDER=cloudflare (Workers AI REST)
+pydantic>=2.7.0
+jinja2>=3.1.4
+jsonschema>=4.22.0
+python-dotenv>=1.0.0   # auto-load pipeline/.env at startup
+
+# Dev / test
+pytest>=8.2.0
+pytest-asyncio>=0.23.0
+black>=24.4.0
+ruff>=0.4.0

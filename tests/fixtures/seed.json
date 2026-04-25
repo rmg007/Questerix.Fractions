@@ -1,0 +1,111 @@
+{
+  "students": [
+    {
+      "id": "stu-001",
+      "displayName": "Sparrow",
+      "createdAt": "2026-04-01T10:00:00.000Z",
+      "lastActiveAt": "2026-04-10T14:30:00.000Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "ses-001",
+      "studentId": "stu-001",
+      "startedAt": "2026-04-10T14:00:00.000Z",
+      "endedAt": "2026-04-10T14:15:00.000Z",
+      "levelId": "L1",
+      "completed": true
+    }
+  ],
+  "attempts": [
+    {
+      "id": "att-001",
+      "sessionId": "ses-001",
+      "studentId": "stu-001",
+      "templateId": "tpl-partition-half-rect",
+      "skillId": "SK-11",
+      "outcome": "EXACT",
+      "hintsUsed": 0,
+      "errorMagnitude": 0.02,
+      "attemptedAt": "2026-04-10T14:01:00.000Z",
+      "tier": 1
+    },
+    {
+      "id": "att-002",
+      "sessionId": "ses-001",
+      "studentId": "stu-001",
+      "templateId": "tpl-identify-half-circle",
+      "skillId": "SK-02",
+      "outcome": "WRONG",
+      "hintsUsed": 1,
+      "errorMagnitude": null,
+      "attemptedAt": "2026-04-10T14:03:00.000Z",
+      "tier": 1
+    },
+    {
+      "id": "att-003",
+      "sessionId": "ses-001",
+      "studentId": "stu-001",
+      "templateId": "tpl-identify-half-circle",
+      "skillId": "SK-02",
+      "outcome": "EXACT",
+      "hintsUsed": 0,
+      "errorMagnitude": null,
+      "attemptedAt": "2026-04-10T14:05:00.000Z",
+      "tier": 1
+    },
+    {
+      "id": "att-004",
+      "sessionId": "ses-001",
+      "studentId": "stu-001",
+      "templateId": "tpl-partition-half-rect",
+      "skillId": "SK-11",
+      "outcome": "EXACT",
+      "hintsUsed": 0,
+      "errorMagnitude": 0.05,
+      "attemptedAt": "2026-04-10T14:08:00.000Z",
+      "tier": 2
+    },
+    {
+      "id": "att-005",
+      "sessionId": "ses-001",
+      "studentId": "stu-001",
+      "templateId": "tpl-partition-fourth-rect",
+      "skillId": "SK-15",
+      "outcome": "WRONG",
+      "hintsUsed": 2,
+      "errorMagnitude": 0.18,
+      "attemptedAt": "2026-04-10T14:12:00.000Z",
+      "tier": 2
+    }
+  ],
+  "skillMastery": [
+    {
+      "id": "sm-001",
+      "studentId": "stu-001",
+      "skillId": "SK-02",
+      "state": "APPROACHING",
+      "bktPrior": 0.62,
+      "updatedAt": "2026-04-10T14:05:00.000Z"
+    },
+    {
+      "id": "sm-002",
+      "studentId": "stu-001",
+      "skillId": "SK-11",
+      "state": "MASTERED",
+      "bktPrior": 0.91,
+      "updatedAt": "2026-04-10T14:08:00.000Z"
+    }
+  ],
+  "deviceMeta": [
+    {
+      "id": "dev-001",
+      "createdAt": "2026-04-01T10:00:00.000Z",
+      "schemaVersion": 1,
+      "preferences": {
+        "reduceMotion": false,
+        "volume": 1.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "validatorId": "validator.label.matchTarget",
+    "input": {
+      "studentMappings": [
+        { "labelId": "1/2", "regionId": "r0" },
+        { "labelId": "1/2", "regionId": "r1" }
+      ]
+    },
+    "expected": {
+      "expectedLabelForRegion": { "r0": "1/2", "r1": "1/2" }
+    },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.label.matchTarget",
+    "input": {
+      "studentMappings": [
+        { "labelId": "1/4", "regionId": "r0" },
+        { "labelId": "1/2", "regionId": "r1" }
+      ]
+    },
+    "expected": {
+      "expectedLabelForRegion": { "r0": "1/2", "r1": "1/2" }
+    },
+    "outcome": "incorrect"
+  }
+]

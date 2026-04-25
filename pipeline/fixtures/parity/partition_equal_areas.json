@@ -1,0 +1,32 @@
+[
+  {
+    "validatorId": "validator.partition.equalAreas",
+    "input": { "regionAreas": [0.5, 0.5] },
+    "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.partition.equalAreas",
+    "input": { "regionAreas": [0.52, 0.48] },
+    "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.partition.equalAreas",
+    "input": { "regionAreas": [0.55, 0.45] },
+    "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.partition.equalAreas",
+    "input": { "regionAreas": [0.7, 0.3] },
+    "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.partition.equalAreas",
+    "input": { "regionAreas": [0.5, 0.5, 0.5] },
+    "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
+    "outcome": "incorrect"
+  }
+]

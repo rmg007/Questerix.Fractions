@@ -1,0 +1,18 @@
+# Icons to be generated separately.
+#
+# Required sizes (per public/manifest.json):
+#   - 192x192 px  (standard PWA icon)
+#   - 512x512 px  (PWA splash / install)
+#   - 512x512 px maskable (safe-zone crop for Android adaptive icons)
+#
+# Generation options:
+#   1. https://maskable.app/editor  — maskable variant
+#   2. https://realfavicongenerator.net — all sizes from one source SVG
+#   3. `npx pwa-asset-generator <source.svg> public/icons`
+#
+# File names expected by manifest.json:
+#   icon-192.png
+#   icon-512.png
+#   icon-512-maskable.png
+#
+# See public/manifest.json for the full icons array.

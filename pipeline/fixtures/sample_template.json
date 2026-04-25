@@ -1,0 +1,17 @@
+{
+  "id": "q:ms:L1:0001",
+  "archetype": "placement",
+  "prompt": {
+    "text": "Place one half on the number line.",
+    "ttsKey": "tts.ms.l1.0001"
+  },
+  "payload": {
+    "fractionId": "frac:1/2",
+    "targetDecimal": 0.5
+  },
+  "correctAnswer": 0.5,
+  "validatorId": "validator.placement.snap8",
+  "skillIds": ["SK-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
+  "difficultyTier": "easy"
+}

@@ -1,0 +1,51 @@
+{
+  "name": "questerix-fractions",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Phaser 4 + TypeScript educational game for K-2 fraction concepts. Validation-stage MVP.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node scripts/dev-with-roadie.mjs",
+    "dev:app": "vite",
+    "build:curriculum": "node scripts/build-curriculum.mjs",
+    "prebuild": "npm run build:curriculum",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "roadie": "roadie",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test --grep a11y",
+    "typecheck": "tsc --noEmit",
+    "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
+    "lint": "tsc --noEmit",
+    "measure-bundle": "node scripts/measure-bundle.mjs"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/vite": "^4.2.3",
+    "@types/node": "^25.6.0",
+    "axe-core": "^4.10.0",
+    "dexie": "^4.4.2",
+    "fake-indexeddb": "^6.2.5",
+    "fast-check": "^3.23.2",
+    "jsdom": "^29.0.2",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "tailwindcss": "^4.2.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.9",
+    "vite-plugin-pwa": "^0.21.0",
+    "vitest": "^1.0.0",
+    "workbox-build": "^7.4.0",
+    "workbox-window": "^7.4.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^4.0.0"
+  }
+}

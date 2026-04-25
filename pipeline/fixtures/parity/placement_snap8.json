@@ -1,0 +1,32 @@
+[
+  {
+    "validatorId": "validator.placement.snap8",
+    "input": { "placedDecimal": 0.5 },
+    "expected": { "targetDecimal": 0.5 },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.placement.snap8",
+    "input": { "placedDecimal": 0.55 },
+    "expected": { "targetDecimal": 0.5 },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.placement.snap8",
+    "input": { "placedDecimal": 0.62 },
+    "expected": { "targetDecimal": 0.5 },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.placement.snap8",
+    "input": { "placedDecimal": 0.75 },
+    "expected": { "targetDecimal": 0.5 },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.placement.snap8",
+    "input": { "placedDecimal": 0.25 },
+    "expected": { "targetDecimal": 0.5 },
+    "outcome": "incorrect"
+  }
+]
