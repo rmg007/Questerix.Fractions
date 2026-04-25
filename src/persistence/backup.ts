@@ -16,6 +16,8 @@ import type {
   DeviceMeta,
   Bookmark,
   SessionTelemetry,
+  MisconceptionFlag,
+  ProgressionStat,
 } from '../types';
 
 // ── Backup envelope ────────────────────────────────────────────────────────
@@ -34,6 +36,8 @@ interface BackupEnvelope {
     bookmarks: Bookmark[];
     sessionTelemetry: SessionTelemetry[];
     hintEvents: HintEvent[];
+    misconceptionFlags: MisconceptionFlag[];
+    progressionStat: ProgressionStat[];
   };
 }
 
@@ -49,7 +53,7 @@ function todayISO(): string {
  * per persistence-spec.md §6
  */
 export async function backupToFile(): Promise<Blob> {
-  const [students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents] =
+  const [students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents, misconceptionFlags, progressionStat] =
     await Promise.all([
       db.students.toArray(),
       db.sessions.toArray(),
@@ -59,12 +63,14 @@ export async function backupToFile(): Promise<Blob> {
       db.bookmarks.toArray(),
       db.sessionTelemetry.toArray(),
       db.hintEvents.toArray(),
+      db.misconceptionFlags.toArray(),
+      db.progressionStat.toArray(),
     ]);
 
   const envelope: BackupEnvelope = {
     version: BACKUP_SCHEMA_VERSION,
     exportedAt: Date.now(),
-    tables: { students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents },
+    tables: { students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents, misconceptionFlags, progressionStat },
   };
 
   const json = JSON.stringify(envelope);
@@ -134,7 +140,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
   const t = envelope.tables;
   await db.transaction(
     'rw',
-    [db.students, db.sessions, db.attempts, db.skillMastery, db.deviceMeta, db.bookmarks, db.sessionTelemetry, db.hintEvents],
+    [db.students, db.sessions, db.attempts, db.skillMastery, db.deviceMeta, db.bookmarks, db.sessionTelemetry, db.hintEvents, db.misconceptionFlags, db.progressionStat],
     async () => {
       await tryAddAll(db.students, t.students ?? []);
       await tryAddAll(db.sessions, t.sessions ?? []);
@@ -143,6 +149,8 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       await tryAddAll(db.bookmarks, t.bookmarks ?? []);
       await tryAddAll(db.sessionTelemetry, t.sessionTelemetry ?? []);
       await tryAddAll(db.hintEvents, t.hintEvents ?? []);
+      await tryAddAll(db.misconceptionFlags, t.misconceptionFlags ?? []);
+      await tryAddAll(db.progressionStat, t.progressionStat ?? []);
       // deviceMeta is a singleton — skip to avoid overwriting live preferences
     },
   );

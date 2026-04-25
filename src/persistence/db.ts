@@ -14,31 +14,43 @@ import type {
   Bookmark,
   SessionTelemetry,
   QuestionTemplate,
+  CurriculumPack,
+  StandardsItem,
+  Skill,
+  Activity,
+  ActivityLevel,
+  FractionBank,
+  Misconception,
+  HintTemplate,
+  MisconceptionFlag,
+  ProgressionStat,
 } from '../types';
-
-// ── Supplemental types not covered by runtime.ts ───────────────────────────
-
-/** Aggregate telemetry row written at session close. */
-export interface SessionTelemetryRow extends SessionTelemetry {
-  sessionId: import('../types').SessionId;
-}
 
 // ── DB class ───────────────────────────────────────────────────────────────
 
 export class QuesterixDB extends Dexie {
   // Static stores (curriculum) — per persistence-spec.md §4
+  curriculumPacks!: Table<CurriculumPack, string>;
+  standards!: Table<StandardsItem, string>;
+  skills!: Table<Skill, string>;
+  activities!: Table<Activity, string>;
+  activityLevels!: Table<ActivityLevel, string>;
+  fractionBank!: Table<FractionBank, string>;
   questionTemplates!: Table<QuestionTemplate, string>;
+  misconceptions!: Table<Misconception, string>;
+  hints!: Table<HintTemplate, string>;
 
   // Dynamic stores (student progress) — per persistence-spec.md §4
   students!: Table<Student, string>;
   sessions!: Table<Session, string>;
-  // ++id means auto-increment numeric PK; typed as number at the Dexie layer
   attempts!: Table<Attempt, number>;
   skillMastery!: Table<SkillMastery, [string, string]>;
   deviceMeta!: Table<DeviceMeta, string>;
   bookmarks!: Table<Bookmark, string>;
   sessionTelemetry!: Table<SessionTelemetry, string>;
   hintEvents!: Table<HintEvent, number>;
+  misconceptionFlags!: Table<MisconceptionFlag, string>;
+  progressionStat!: Table<ProgressionStat, [string, string]>;
 
   constructor() {
     super('questerix-fractions');
@@ -47,17 +59,15 @@ export class QuesterixDB extends Dexie {
     this.version(1).stores({
       students: 'id, displayName, createdAt',
       sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      // ++id = auto-increment PK; append-only per persistence-spec.md §4
       attempts: '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
       skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-      deviceMeta: '&installId', // singleton row, installId="device"
+      deviceMeta: '&installId',
       bookmarks: 'id, studentId',
       sessionTelemetry: 'sessionId, studentId',
       hintEvents: '++id, attemptId',
     });
 
     // Schema version 2 — adds questionTemplates static store. per persistence-spec.md §4
-    // levelGroup index allows db.questionTemplates.where('levelGroup').equals('01-02') queries.
     this.version(2).stores({
       students: 'id, displayName, createdAt',
       sessions: 'id, studentId, startedAt, [studentId+startedAt]',
@@ -67,8 +77,33 @@ export class QuesterixDB extends Dexie {
       bookmarks: 'id, studentId',
       sessionTelemetry: 'sessionId, studentId',
       hintEvents: '++id, attemptId',
-      // Static curriculum store — per persistence-spec.md §4
       questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
+    });
+
+    // Schema version 3 — adds full curriculum pack and new dynamic stores. per data-schema.md §6
+    this.version(3).stores({
+      // Static curriculum stores
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      // Dynamic stores (carry from v1/v2)
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      attempts: '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      hintEvents: '++id, attemptId',
+      // New dynamic stores
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
     });
   }
 }
