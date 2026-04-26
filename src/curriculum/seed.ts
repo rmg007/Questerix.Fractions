@@ -21,6 +21,15 @@ import type { DeviceMeta } from '../types';
  */
 const APP_CONTENT_VERSION = '1.0.0';
 
+// Derive levelGroup from template ID format 'q:<arch>:L{N}:NNNN'
+function deriveLevelGroup(id: string): '01-02' | '03-05' | '06-09' {
+  const match = /L(\d+):/i.exec(id);
+  const level = match ? parseInt(match[1]!, 10) : 1;
+  if (level <= 2) return '01-02';
+  if (level <= 5) return '03-05';
+  return '06-09';
+}
+
 export interface SeedResult {
   seeded: number;
   alreadySeeded: boolean;
@@ -160,6 +169,12 @@ async function wipeStaticStores(): Promise<void> {
 async function seedAllStores(bundle: ParsedBundle): Promise<number> {
   let total = 0;
 
+  // Pre-transform questionTemplates to add levelGroup before transaction
+  const templatesWithGroup = bundle.questionTemplates.map((t) => ({
+    ...t,
+    levelGroup: deriveLevelGroup(t.id) as '01-02' | '03-05' | '06-09',
+  }));
+
   // Transaction wraps all seeds in one atomic operation per persistence-spec.md §5
   await db.transaction('rw', [db.curriculumPacks, db.standards, db.skills, db.activities, db.activityLevels, db.fractionBank, db.questionTemplates, db.misconceptions, db.hints], async () => {
     if (bundle.curriculumPacks.length > 0) {
@@ -186,9 +201,9 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
       await db.fractionBank.bulkPut(bundle.fractionBank);
       total += bundle.fractionBank.length;
     }
-    if (bundle.questionTemplates.length > 0) {
-      await db.questionTemplates.bulkPut(bundle.questionTemplates);
-      total += bundle.questionTemplates.length;
+    if (templatesWithGroup.length > 0) {
+      await db.questionTemplates.bulkPut(templatesWithGroup as any);
+      total += templatesWithGroup.length;
     }
     if (bundle.misconceptions.length > 0) {
       await db.misconceptions.bulkPut(bundle.misconceptions);

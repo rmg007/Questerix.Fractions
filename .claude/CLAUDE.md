@@ -29,16 +29,6 @@
 ## Code Conventions
 - TypeScript project (v6.0.3)
 - Uses Vitest for testing (v1.0.0)
-
-## Hints System Integration
-- **Status**: Production-ready (100% validation pass rate)
-- **Source**: `pipeline/output/hints.json` (213 hints across 71 question templates)
-- **Structure**: 3-tier hint cascades (progressive disclosure: Tier 1 = questioning, Tier 2 = guided instruction, Tier 3 = explicit solution)
-- **Format**: Verbal hints with TTS keys; all hints ≤12 words (avg 9.2w)
-- **Zero cost**: All hints have pointCost=0.0 (gamification-neutral)
-- **Validation**: 100% pass rate (all 71 templates complete with 3 unique, ordered hints)
-- **See**: `.claude/HINTS_INTEGRATION.md` for architecture and maintenance guide
-
 [truncated]
 <!-- roadie:end:workspace-rules -->
 

@@ -52,3 +52,7 @@
 [WARNING] Rate limited. Waiting 5s (attempt 1/3)
 [WARNING] Connection error to Cloudflare (ReadTimeout); retry 1/5 in 3s
 [WARNING] Connection error to Cloudflare (ReadTimeout); retry 2/5 in 6s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 3/5 in 12s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 4/5 in 24s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 5/5 in 48s
+[WARNING] Rate limited. Waiting 30s (attempt 2/3)

@@ -127,6 +127,7 @@ export class LevelScene extends Phaser.Scene {
       const all = await questionTemplateRepo.getByLevel(
         this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
       );
+      console.info(`[LevelScene] getByLevel(${this.levelNumber}) returned ${all.length} templates`);
       // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
       const seen = new Set<string>();
       const picked: QuestionTemplate[] = [];
@@ -139,6 +140,8 @@ export class LevelScene extends Phaser.Scene {
       this.templatePool = picked;
       if (this.templatePool.length > 0) {
         console.info(`[LevelScene] Loaded ${this.templatePool.length} templates for level ${this.levelNumber}`);
+      } else {
+        console.warn(`[LevelScene] No templates found for level ${this.levelNumber} — using fallback`);
       }
     } catch (err) {
       console.warn('[LevelScene] Template fetch failed — volatile mode:', err);
