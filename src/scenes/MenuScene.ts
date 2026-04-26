@@ -1,14 +1,17 @@
 /**
- * MenuScene — top-level menu with the "Sunshine Split Horizon" K-2 design.
- * Sky-zone holds title + sun + clouds. A wavy horizon line crosses the canvas.
- * The fraction-face character straddles the horizon. 3D-shadow buttons sit
- * in the green action zone.
+ * MenuScene — top-level menu rendered with the "Number Line Quest" design.
+ *
+ * The composition itself enacts the math: a wavy number line travels from 0
+ * (Play) at the bottom through ½ (Continue) in the middle to 1 (Settings) at
+ * the top. Each station is a chunky kid-friendly button with a fraction
+ * badge above it. The dashed white path "marches" toward the destination,
+ * previewing the game as a journey from 0 to 1.
  *
  * per runtime-architecture.md §2 (MVP scene inventory)
- * per design-language.md §2 (palette), §3 (Nunito font), §6.2 (no ambient motion)
+ * per design-language.md §3 (Nunito body / Fredoka One display), §6.4 (motion)
  *
- * Note: Decorative ambient motion (sun spin, cloud drift, character bob) is
- * disabled when prefers-reduced-motion is set, satisfying §6.4.
+ * Note: ambient motion (marching dashes, settings-gear spin) is disabled
+ * when prefers-reduced-motion is set, satisfying §6.4.
  */
 
 import * as Phaser from 'phaser';
@@ -23,44 +26,71 @@ interface MenuData {
 const CW = 800;
 const CH = 1280;
 
-// ── Sunshine Split-Horizon palette (mockup-approved) ──────────────────────
-const SKY = 0x38bdf8;
-const GREEN = 0x4ade80;
-const GREEN_DARK = 0x16a34a;
-const SUN = 0xfcd34d;
-const SUN_HOVER = 0xf59e0b;
-const AMBER_DARK = 0xb45309;
-const AMBER_TEXT = '#78350F';
-const NAVY = 0x1e3a8a;
-const NAVY_HEX = '#1E3A8A';
-const SKY_HOVER = 0x0ea5e9;
+// ── Number Line Quest palette (mockup-approved) ───────────────────────────
+const SKY_BG = 0xe0f2fe; // #E0F2FE pale sky
+const PATH_BLUE = 0x93c5fd; // #93C5FD light blue path
 const WHITE = 0xffffff;
 const WHITE_HEX = '#FFFFFF';
-const CHEEK = 0xef4444;
+const NAVY = 0x1e3a8a;
+const NAVY_HEX = '#1E3A8A';
 
-// Layout
-const HORIZON_Y = Math.round(CH * 0.4); // 512
+const PLAY_FILL = 0xfcd34d; // amber-300
+const PLAY_HOVER = 0xf59e0b; // amber-500
+const PLAY_BORDER = 0xb45309; // amber-700
+const PLAY_TEXT = '#78350F'; // amber-900
+
+const CONT_FILL = 0x34d399; // emerald-400
+const CONT_HOVER = 0x10b981; // emerald-500
+const CONT_BORDER = 0x064e3b; // emerald-900
+const CONT_TEXT = '#FFFFFF';
+
+const SET_FILL = 0x60a5fa; // blue-400
+const SET_HOVER = 0x3b82f6; // blue-500
+const SET_BORDER = 0x1e3a8a; // blue-900
+const SET_TEXT = '#1E3A8A';
+
+const GLOW_EMERALD = 0x6ee7b7; // emerald-300
+const GLOW_BLUE = 0x93c5fd; // blue-300
+
 const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
 const BODY_FONT = '"Nunito", system-ui, sans-serif';
 
-interface BigButtonOpts {
+// Layout: stations sit on a wavy path from bottom (0) to top (1)
+const PLAY_Y = 1100;
+const CONT_Y = 700;
+const SET_Y = 420;
+const STATION_X = CW / 2;
+
+interface StationButtonOpts {
   x: number;
   y: number;
   w: number;
   h: number;
   label: string;
+  iconChar?: string;
   fillColor: number;
   hoverColor: number;
   borderColor: number;
   textColor: string;
   fontSize: number;
+  shadowOffset: number;
+  rounded: boolean; // true = pill, false = circle
   onTap: () => void;
+}
+
+interface FractionBadgeOpts {
+  x: number;
+  y: number;
+  text: string;
+  borderColor: number;
+  textColor: string;
 }
 
 export class MenuScene extends Phaser.Scene {
   private lastStudentId: string | null = null;
   private reduceMotion = false;
   private ambientTweens: Phaser.Tweens.Tween[] = [];
+  private dashTickHandler: (() => void) | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -69,6 +99,7 @@ export class MenuScene extends Phaser.Scene {
   init(data: MenuData): void {
     this.lastStudentId = data.lastStudentId ?? null;
     this.ambientTweens = [];
+    this.dashTickHandler = null;
   }
 
   create(): void {
@@ -86,15 +117,13 @@ export class MenuScene extends Phaser.Scene {
     // ── Test hooks (kept identical so e2e selectors still work) ────────────
     TestHooks.unmountAll();
     TestHooks.mountSentinel('menu-scene');
-    // Position test hook over the new Play! button location (~75% down).
-    // Percentages are viewport-based (position: fixed), so this is only a
-    // visual hint — Playwright should target by data-testid.
+    // Position test hook over the new Play! button location (~86% down).
     TestHooks.mountInteractive(
       'level-card-L1',
       () => {
         this.scene.start('Level01Scene', { studentId: this.lastStudentId });
       },
-      { width: '620px', height: '110px', top: '76%', left: '50%' }
+      { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
     TestHooks.mountInteractive(
       'level-card-L6',
@@ -111,194 +140,197 @@ export class MenuScene extends Phaser.Scene {
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
 
-    // ── Background zones ───────────────────────────────────────────────────
-    this.add.rectangle(CW / 2, HORIZON_Y / 2, CW, HORIZON_Y, SKY).setDepth(0);
+    // ── Background: pale sky + soft glow circles ──────────────────────────
+    this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);
+
+    // Decorative soft glows (multi-layer ellipses fake the blur)
+    this.drawSoftGlow(120, CH - 120, 280, GLOW_EMERALD, 0.45);
+    this.drawSoftGlow(CW - 80, 480, 320, GLOW_BLUE, 0.45);
+
+    // ── Title ─────────────────────────────────────────────────────────────
     this.add
-      .rectangle(CW / 2, HORIZON_Y + (CH - HORIZON_Y) / 2, CW, CH - HORIZON_Y, GREEN)
-      .setDepth(0);
-
-    // Wavy horizon — green path with curvy top edge bleeding into sky
-    this.drawWavyHorizon();
-
-    // ── Sky-zone decorations ───────────────────────────────────────────────
-    this.drawSun(120, 150, 60);
-    this.drawCloud(220, 1.2, this.reduceMotion ? 0 : 22);
-    this.drawCloud(360, 0.9, this.reduceMotion ? 0 : 28);
-
-    // ── Title in sky ───────────────────────────────────────────────────────
-    this.add
-      .text(CW / 2, 180, 'Questerix\nFractions', {
+      .text(CW / 2, 140, 'Questerix\nFractions', {
         fontFamily: TITLE_FONT,
-        fontSize: '92px',
+        fontSize: '76px',
         color: WHITE_HEX,
         align: 'center',
-        lineSpacing: 4,
+        lineSpacing: 2,
         stroke: NAVY_HEX,
-        strokeThickness: 8,
+        strokeThickness: 7,
         shadow: {
           offsetX: 0,
-          offsetY: 6,
-          color: '#000000',
-          blur: 8,
+          offsetY: 5,
+          color: NAVY_HEX,
+          blur: 0,
           fill: true,
         },
       })
       .setOrigin(0.5)
-      .setDepth(5);
+      .setDepth(20);
 
-    this.add
-      .text(CW / 2, 310, 'A math adventure! 🍕', {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '34px',
-        color: WHITE_HEX,
-        align: 'center',
-        shadow: {
-          offsetX: 0,
-          offsetY: 3,
-          color: '#000000',
-          blur: 4,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
+    // Tagline pill (rotated slightly like the mockup)
+    this.drawTaglinePill(CW / 2, 270, 'A math adventure! 🚀');
 
-    // ── Character at horizon ───────────────────────────────────────────────
-    const character = this.drawFractionCharacter(CW / 2, HORIZON_Y, 1.7);
-    character.setDepth(8);
+    // ── The number line path ──────────────────────────────────────────────
+    const pathPts = this.samplePath();
+    this.drawPath(pathPts);
 
-    if (!this.reduceMotion) {
-      const t = this.tweens.add({
-        targets: character,
-        y: HORIZON_Y - 18,
-        duration: 2000,
-        ease: 'Sine.easeInOut',
-        yoyo: true,
-        repeat: -1,
-      });
-      this.ambientTweens.push(t);
-    }
-
-    // ── Action buttons in green zone ───────────────────────────────────────
-    const btnW = 620;
-    const btnXC = CW / 2;
-    const playH = 110;
-    const subH = 92;
-    const gap = 24;
-
-    // Y layout from bottom up: leave ~70px below settings for grass tufts
-    const settingsY = CH - 70 - subH / 2;
-    const continueY = settingsY - subH / 2 - gap - subH / 2;
-    const playY = continueY - subH / 2 - gap - playH / 2;
-    const playYWhenNoContinue = settingsY - subH / 2 - gap - playH / 2;
-
-    // Has continue?
+    // ── Stations ──────────────────────────────────────────────────────────
     const hasContinue = !!this.lastStudentId;
 
-    // Play! (always shown)
-    this.createBigButton({
-      x: btnXC,
-      y: hasContinue ? playY : playYWhenNoContinue,
-      w: btnW,
-      h: playH,
-      label: 'Play!',
-      fillColor: SUN,
-      hoverColor: SUN_HOVER,
-      borderColor: AMBER_DARK,
-      textColor: AMBER_TEXT,
+    // Settings — top of the line, position 1
+    this.drawFractionBadge({
+      x: STATION_X,
+      y: SET_Y - 100,
+      text: '1',
+      borderColor: SET_BORDER,
+      textColor: SET_TEXT,
+    });
+    this.createStationButton({
+      x: STATION_X,
+      y: SET_Y,
+      w: 100,
+      h: 100,
+      label: '',
+      iconChar: '⚙',
+      fillColor: SET_FILL,
+      hoverColor: SET_HOVER,
+      borderColor: SET_BORDER,
+      textColor: SET_TEXT,
       fontSize: 56,
+      shadowOffset: 6,
+      rounded: false,
+      onTap: () => {
+        this.scene.launch('SettingsScene');
+      },
+    });
+    this.add
+      .text(STATION_X, SET_Y + 90, 'Settings', {
+        fontFamily: TITLE_FONT,
+        fontSize: '28px',
+        color: NAVY_HEX,
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        padding: { x: 18, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setDepth(22);
+
+    // Continue — middle of the line, position ½ (only if returning student)
+    if (hasContinue) {
+      this.drawFractionBadge({
+        x: STATION_X,
+        y: CONT_Y - 90,
+        text: '½',
+        borderColor: CONT_BORDER,
+        textColor: CONT_TEXT,
+        // emerald variant
+      });
+      this.createStationButton({
+        x: STATION_X,
+        y: CONT_Y,
+        w: 360,
+        h: 90,
+        label: 'Continue',
+        iconChar: '📍',
+        fillColor: CONT_FILL,
+        hoverColor: CONT_HOVER,
+        borderColor: CONT_BORDER,
+        textColor: CONT_TEXT,
+        fontSize: 42,
+        shadowOffset: 6,
+        rounded: true,
+        onTap: () => {
+          this.scene.start('Level01Scene', {
+            studentId: this.lastStudentId,
+            resume: true,
+          });
+        },
+      });
+    }
+
+    // Play — bottom of the line, position 0 (always shown)
+    this.drawFractionBadge({
+      x: STATION_X,
+      y: PLAY_Y - 100,
+      text: '0',
+      borderColor: PLAY_BORDER,
+      textColor: PLAY_TEXT,
+    });
+    this.createStationButton({
+      x: STATION_X,
+      y: PLAY_Y,
+      w: 440,
+      h: 110,
+      label: 'Play!',
+      iconChar: '▶',
+      fillColor: PLAY_FILL,
+      hoverColor: PLAY_HOVER,
+      borderColor: PLAY_BORDER,
+      textColor: PLAY_TEXT,
+      fontSize: 56,
+      shadowOffset: 8,
+      rounded: true,
       onTap: () => {
         this.scene.start('Level01Scene', { studentId: this.lastStudentId });
       },
     });
 
-    // Continue (if returning student)
-    if (hasContinue) {
-      this.createBigButton({
-        x: btnXC,
-        y: continueY,
-        w: btnW,
-        h: subH,
-        label: 'Continue',
-        fillColor: SKY,
-        hoverColor: SKY_HOVER,
-        borderColor: NAVY,
-        textColor: WHITE_HEX,
-        fontSize: 42,
-        onTap: () => {
-          this.scene.start('Level01Scene', { studentId: this.lastStudentId, resume: true });
-        },
-      });
-    }
-
-    // Settings (always shown, anchored to bottom)
-    this.createBigButton({
-      x: btnXC,
-      y: settingsY,
-      w: btnW,
-      h: subH,
-      label: 'Settings',
-      fillColor: WHITE,
-      hoverColor: 0xeef0f4,
-      borderColor: NAVY,
-      textColor: NAVY_HEX,
-      fontSize: 42,
-      onTap: () => {
-        this.scene.launch('SettingsScene');
-      },
-    });
-
-    // Grass tufts along bottom edge
-    this.drawGrassTufts();
-
-    // Stop tweens on shutdown so we don't leak
+    // Stop tweens / handlers on shutdown so we don't leak
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       for (const t of this.ambientTweens) t.stop();
       this.ambientTweens = [];
+      if (this.dashTickHandler) {
+        this.events.off('update', this.dashTickHandler);
+        this.dashTickHandler = null;
+      }
     });
 
     // One-time storage warning banner (dev mode only)
     void this._showStorageBannerIfNeeded();
   }
 
-  // ── Decorative drawing helpers ────────────────────────────────────────────
+  // ── Drawing helpers ───────────────────────────────────────────────────────
 
   /**
-   * Sample the wavy horizon profile into an array of {x,y} points so we can
-   * use the same curve for both the green fill and the lighter highlight band.
-   * Phaser 4's Graphics doesn't expose bezierCurveTo, so we approximate manually.
+   * Approximate a CSS-style blur by stacking translucent ellipses. Faster and
+   * more reliable across browsers than Phaser blur shaders.
    */
-  private sampleHorizonWave(yOffset = 0): { x: number; y: number }[] {
-    const waveAmp = 28;
-    const pts: { x: number; y: number }[] = [];
+  private drawSoftGlow(
+    cx: number,
+    cy: number,
+    radius: number,
+    color: number,
+    alpha: number
+  ): void {
+    const g = this.add.graphics().setDepth(1);
+    const layers = 5;
+    for (let i = 0; i < layers; i++) {
+      const t = (i + 1) / layers;
+      g.fillStyle(color, alpha * (1 - t * 0.6));
+      g.fillCircle(cx, cy, radius * t);
+    }
+  }
+
+  /**
+   * Sample the snake-like number-line path into points so we can draw both
+   * the wide colored line AND the marching white dashes from one source of
+   * truth. Phaser 4 Graphics has no bezierCurveTo, so we sample manually.
+   *
+   * Path mirrors the SVG from the approved mockup:
+   *   start at PLAY (bottom)
+   *   curve LEFT up to CONTINUE (middle)
+   *   curve RIGHT up to SETTINGS (top)
+   */
+  private samplePath(): { x: number; y: number }[] {
     const segments: [number, number, number, number, number, number, number, number][] = [
-      [
-        0,
-        HORIZON_Y + waveAmp * 0.4 + yOffset,
-        CW * 0.2,
-        HORIZON_Y - waveAmp + yOffset,
-        CW * 0.35,
-        HORIZON_Y + waveAmp + yOffset,
-        CW * 0.5,
-        HORIZON_Y - waveAmp * 0.2 + yOffset,
-      ],
-      [
-        CW * 0.5,
-        HORIZON_Y - waveAmp * 0.2 + yOffset,
-        CW * 0.65,
-        HORIZON_Y - waveAmp + yOffset,
-        CW * 0.85,
-        HORIZON_Y + waveAmp * 0.6 + yOffset,
-        CW,
-        HORIZON_Y - waveAmp * 0.4 + yOffset,
-      ],
+      // start, ctrl1, ctrl2, end
+      [STATION_X, PLAY_Y, 200, PLAY_Y - 100, 200, CONT_Y + 100, STATION_X, CONT_Y],
+      [STATION_X, CONT_Y, 600, CONT_Y - 100, 600, SET_Y + 100, STATION_X, SET_Y],
     ];
+    const pts: { x: number; y: number }[] = [];
     pts.push({ x: segments[0][0], y: segments[0][1] });
-    for (const [, , cx1, cy1, cx2, cy2, x1, y1] of segments) {
-      const x0 = pts[pts.length - 1].x;
-      const y0 = pts[pts.length - 1].y;
-      const steps = 24;
+    for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1] of segments) {
+      const steps = 48;
       for (let i = 1; i <= steps; i++) {
         const t = i / steps;
         const u = 1 - t;
@@ -310,364 +342,271 @@ export class MenuScene extends Phaser.Scene {
     return pts;
   }
 
-  private drawWavyHorizon(): void {
-    const wavePts = this.sampleHorizonWave();
+  private drawPath(pathPts: { x: number; y: number }[]): void {
+    // Wide light-blue base stroke
+    const base = this.add.graphics().setDepth(2);
+    base.lineStyle(28, PATH_BLUE, 1);
+    base.beginPath();
+    base.moveTo(pathPts[0].x, pathPts[0].y);
+    for (let i = 1; i < pathPts.length; i++) base.lineTo(pathPts[i].x, pathPts[i].y);
+    base.strokePath();
+    // Round caps via filled circles at endpoints
+    base.fillStyle(PATH_BLUE, 1);
+    base.fillCircle(pathPts[0].x, pathPts[0].y, 14);
+    base.fillCircle(pathPts[pathPts.length - 1].x, pathPts[pathPts.length - 1].y, 14);
 
-    // Green hill: wave on top, full width fill down to canvas bottom
-    const g = this.add.graphics().setDepth(2);
-    g.fillStyle(GREEN, 1);
-    g.beginPath();
-    g.moveTo(0, CH);
-    g.lineTo(0, wavePts[0].y);
-    for (const p of wavePts) g.lineTo(p.x, p.y);
-    g.lineTo(CW, CH);
-    g.closePath();
-    g.fillPath();
+    // Marching white dashes on top
+    const dashG = this.add.graphics().setDepth(3);
+    const dashLen = 14;
+    const gapLen = 14;
+    const cycle = dashLen + gapLen;
 
-    // Lighter highlight band hugging the top of the wave
-    const hlPtsTop = wavePts;
-    const hlPtsBottom = this.sampleHorizonWave(10);
-    const hl = this.add.graphics().setDepth(3);
-    hl.fillStyle(0x86efac, 0.55);
-    hl.beginPath();
-    hl.moveTo(hlPtsTop[0].x, hlPtsTop[0].y);
-    for (const p of hlPtsTop) hl.lineTo(p.x, p.y);
-    for (let i = hlPtsBottom.length - 1; i >= 0; i--) {
-      hl.lineTo(hlPtsBottom[i].x, hlPtsBottom[i].y);
-    }
-    hl.closePath();
-    hl.fillPath();
-  }
+    const drawDashes = (offset: number) => {
+      dashG.clear();
+      dashG.lineStyle(10, WHITE, 1);
+      let traveled = -offset;
+      for (let i = 1; i < pathPts.length; i++) {
+        const a = pathPts[i - 1];
+        const b = pathPts[i];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const segLen = Math.hypot(dx, dy);
+        if (segLen === 0) continue;
+        const ux = dx / segLen;
+        const uy = dy / segLen;
+        // Find the first dash start in this segment
+        let local = -traveled;
+        // Snap to cycle so dashes are continuous across segments
+        while (local < 0) local += cycle;
+        while (local < segLen) {
+          const dashStart = local;
+          const dashEnd = Math.min(segLen, local + dashLen);
+          if (dashEnd > dashStart) {
+            dashG.lineBetween(
+              a.x + ux * dashStart,
+              a.y + uy * dashStart,
+              a.x + ux * dashEnd,
+              a.y + uy * dashEnd
+            );
+          }
+          local += cycle;
+        }
+        traveled += segLen;
+      }
+    };
 
-  private drawSun(cx: number, cy: number, radius: number): void {
-    const container = this.add.container(cx, cy).setDepth(4);
-
-    const rays = this.add.graphics();
-    rays.lineStyle(8, SUN, 1);
-    const rayInner = radius * 1.15;
-    const rayOuter = radius * 1.7;
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      rays.lineBetween(
-        Math.cos(angle) * rayInner,
-        Math.sin(angle) * rayInner,
-        Math.cos(angle) * rayOuter,
-        Math.sin(angle) * rayOuter
-      );
-    }
-    container.add(rays);
-
-    const disc = this.add.graphics();
-    disc.fillStyle(SUN, 1);
-    disc.fillCircle(0, 0, radius);
-    container.add(disc);
+    drawDashes(0);
 
     if (!this.reduceMotion) {
-      const t = this.tweens.add({
-        targets: rays,
-        rotation: Math.PI * 2,
-        duration: 18000,
-        repeat: -1,
-        ease: 'Linear',
-      });
-      this.ambientTweens.push(t);
+      let phase = 0;
+      const tick = () => {
+        phase = (phase + 0.6) % cycle;
+        drawDashes(phase);
+      };
+      this.events.on('update', tick);
+      this.dashTickHandler = tick;
     }
   }
 
-  private drawCloud(yPos: number, scale: number, durationSec: number): void {
-    const startX = -160;
-    const endX = CW + 160;
+  private drawTaglinePill(cx: number, cy: number, text: string): void {
+    const padX = 22;
+    const padY = 12;
+    const txt = this.add
+      .text(0, 0, text, {
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        fontSize: '30px',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5);
+    const w = txt.width + padX * 2;
+    const h = txt.height + padY * 2;
 
-    const g = this.add.graphics().setDepth(4);
-    g.fillStyle(WHITE, 0.9);
-    // Cloud silhouette = overlapping circles + base rectangle
-    g.fillCircle(0, 0, 28 * scale);
-    g.fillCircle(28 * scale, -10 * scale, 32 * scale);
-    g.fillCircle(60 * scale, 0, 26 * scale);
-    g.fillCircle(80 * scale, 12 * scale, 22 * scale);
-    g.fillRoundedRect(0, 0, 80 * scale, 24 * scale, 12 * scale);
+    const bg = this.add.graphics();
+    bg.fillStyle(WHITE, 0.95);
+    bg.fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
+    bg.lineStyle(4, NAVY, 1);
+    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, h / 2);
 
-    g.x = startX;
-    g.y = yPos;
+    const container = this.add.container(cx, cy, [bg, txt]).setDepth(20);
+    container.setAngle(-2.5); // slight rotation, matches the mockup vibe
+  }
 
-    if (durationSec > 0) {
-      const t = this.tweens.add({
-        targets: g,
-        x: endX,
-        duration: durationSec * 1000,
-        repeat: -1,
-        ease: 'Linear',
-        delay: scale > 1 ? 0 : 4000,
-      });
-      this.ambientTweens.push(t);
-    } else {
-      g.x = CW * 0.7; // static placement under reduced-motion
-    }
+  private drawFractionBadge(opts: FractionBadgeOpts): void {
+    const padX = 14;
+    const padY = 6;
+    const txt = this.add
+      .text(0, 0, opts.text, {
+        fontFamily: TITLE_FONT,
+        fontSize: '34px',
+        color: opts.textColor,
+      })
+      .setOrigin(0.5);
+    const w = Math.max(56, txt.width + padX * 2);
+    const h = txt.height + padY * 2;
+
+    const bg = this.add.graphics();
+    bg.fillStyle(WHITE, 1);
+    bg.fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+    bg.lineStyle(4, opts.borderColor, 1);
+    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
+    // 3D shadow
+    const shadow = this.add.graphics();
+    shadow.fillStyle(opts.borderColor, 1);
+    shadow.fillRoundedRect(-w / 2, -h / 2 + 4, w, h, 12);
+
+    this.add.container(opts.x, opts.y, [shadow, bg, txt]).setDepth(21);
   }
 
   /**
-   * The yellow fraction-face mascot — circle split by a dashed vertical line
-   * with cartoon eyes, rosy cheeks, and a toothy grin.
+   * A station on the number line — either a pill (Play, Continue) or a
+   * circle (Settings). All buttons share the same chunky 3D-shadow look
+   * with hover/press states.
    */
-  private drawFractionCharacter(
-    cx: number,
-    cy: number,
-    s: number
-  ): Phaser.GameObjects.Container {
-    const c = this.add.container(cx, cy);
-
-    // ── Disc with thick amber stroke ─────────────────────────────────────
-    const disc = this.add.graphics();
-    disc.fillStyle(SUN, 1);
-    disc.fillCircle(0, 0, 90 * s);
-    disc.lineStyle(10 * s, AMBER_DARK, 1);
-    disc.strokeCircle(0, 0, 90 * s);
-    c.add(disc);
-
-    // ── Dashed vertical "halves" line ────────────────────────────────────
-    const dash = this.add.graphics();
-    dash.lineStyle(7 * s, AMBER_DARK, 1);
-    const dashLen = 10 * s;
-    const gap = 8 * s;
-    for (let y = -85 * s; y < 85 * s; y += dashLen + gap) {
-      dash.lineBetween(0, y, 0, Math.min(y + dashLen, 85 * s));
-    }
-    c.add(dash);
-
-    // ── Eyes (white ovals with amber outline) ────────────────────────────
-    const eyes = this.add.graphics();
-    eyes.fillStyle(WHITE, 1);
-    eyes.fillEllipse(-35 * s, -25 * s, 30 * s, 50 * s);
-    eyes.fillEllipse(35 * s, -25 * s, 30 * s, 50 * s);
-    eyes.lineStyle(5 * s, AMBER_DARK, 1);
-    eyes.strokeEllipse(-35 * s, -25 * s, 30 * s, 50 * s);
-    eyes.strokeEllipse(35 * s, -25 * s, 30 * s, 50 * s);
-    c.add(eyes);
-
-    // ── Pupils (navy dots with white sparkle) ────────────────────────────
-    const pupils = this.add.graphics();
-    pupils.fillStyle(NAVY, 1);
-    pupils.fillCircle(-30 * s, -20 * s, 8 * s);
-    pupils.fillCircle(30 * s, -20 * s, 8 * s);
-    pupils.fillStyle(WHITE, 1);
-    pupils.fillCircle(-32 * s, -23 * s, 3 * s);
-    pupils.fillCircle(28 * s, -23 * s, 3 * s);
-    c.add(pupils);
-
-    // ── Eyebrows (small amber arcs) ──────────────────────────────────────
-    const brows = this.add.graphics();
-    brows.lineStyle(6 * s, AMBER_DARK, 1);
-    brows.beginPath();
-    brows.arc(-35 * s, -55 * s, 18 * s, Math.PI, Math.PI * 2 - 0.2, false);
-    brows.strokePath();
-    brows.beginPath();
-    brows.arc(35 * s, -55 * s, 18 * s, Math.PI + 0.2, Math.PI * 2, false);
-    brows.strokePath();
-    c.add(brows);
-
-    // ── Rosy cheeks ──────────────────────────────────────────────────────
-    const cheeks = this.add.graphics();
-    cheeks.fillStyle(CHEEK, 0.45);
-    cheeks.fillCircle(-55 * s, 15 * s, 14 * s);
-    cheeks.fillCircle(55 * s, 15 * s, 14 * s);
-    c.add(cheeks);
-
-    // ── Toothy grin: filled mouth shape + tooth divider ──────────────────
-    const mouth = this.add.graphics();
-    mouth.fillStyle(WHITE, 1);
-    mouth.beginPath();
-    const x1 = -50 * s;
-    const x2 = 50 * s;
-    const yLip = 20 * s;
-    const yBulge = 78 * s; // how far the smile dips
-    mouth.moveTo(x1, yLip);
-    const steps = 24;
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps;
-      const px = x1 * (1 - t) * (1 - t) + 2 * 0 * (1 - t) * t + x2 * t * t;
-      const py = yLip * (1 - t) * (1 - t) + 2 * yBulge * (1 - t) * t + yLip * t * t;
-      mouth.lineTo(px, py);
-    }
-    mouth.closePath();
-    mouth.fillPath();
-    mouth.lineStyle(6 * s, AMBER_DARK, 1);
-    mouth.strokePath();
-
-    // Upper-lip line across the mouth
-    mouth.beginPath();
-    mouth.moveTo(x1, yLip);
-    const upperBulge = 38 * s;
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps;
-      const px = x1 * (1 - t) * (1 - t) + 2 * 0 * (1 - t) * t + x2 * t * t;
-      const py = yLip * (1 - t) * (1 - t) + 2 * upperBulge * (1 - t) * t + yLip * t * t;
-      mouth.lineTo(px, py);
-    }
-    mouth.lineStyle(6 * s, AMBER_DARK, 1);
-    mouth.strokePath();
-    c.add(mouth);
-
-    return c;
-  }
-
-  private drawGrassTufts(): void {
-    const tufts = this.add.graphics().setDepth(6);
-    tufts.lineStyle(5, GREEN_DARK, 0.8);
-    const positions = [
-      { x: 60, h: 30 },
-      { x: 220, h: 22 },
-      { x: 360, h: 28 },
-      { x: 480, h: 20 },
-      { x: 600, h: 32 },
-      { x: 740, h: 24 },
-    ];
-    for (const p of positions) {
-      const baseY = CH - 8;
-      tufts.lineBetween(p.x, baseY, p.x, baseY - p.h);
-      tufts.lineBetween(p.x, baseY, p.x - p.h * 0.5, baseY - p.h * 0.6);
-      tufts.lineBetween(p.x, baseY, p.x + p.h * 0.5, baseY - p.h * 0.6);
-    }
-  }
-
-  // ── Big chunky pill button with 3D shadow ────────────────────────────────
-
-  private createBigButton(opts: BigButtonOpts): void {
-    const { x, y, w, h, label, fillColor, hoverColor, borderColor, textColor, fontSize, onTap } =
+  private createStationButton(opts: StationButtonOpts): void {
+    const { x, y, w, h, fillColor, hoverColor, borderColor, textColor, shadowOffset, rounded } =
       opts;
-    const radius = h / 2;
-    const shadowOffset = 8;
 
-    // Shadow plate (drawn under everything else for this button)
-    const shadow = this.add.graphics().setDepth(10);
-    shadow.fillStyle(borderColor, 1);
-    shadow.fillRoundedRect(x - w / 2, y - h / 2 + shadowOffset, w, h, radius);
+    const container = this.add.container(x, y).setDepth(15);
+    const radius = rounded ? h / 2 : Math.min(w, h) / 2;
+    const half = { w: w / 2, h: h / 2 };
 
-    // Top plate (button face)
-    const face = this.add.graphics().setDepth(11);
-    let pressedDy = 0;
-
-    const drawFace = (fill: number, dy: number) => {
+    const draw = (color: number, dy: number) => {
       face.clear();
-      face.fillStyle(fill, 1);
-      face.fillRoundedRect(x - w / 2, y - h / 2 + dy, w, h, radius);
-      face.lineStyle(4, borderColor, 1);
-      face.strokeRoundedRect(x - w / 2, y - h / 2 + dy, w, h, radius);
+      // Shadow stays put; we move the face down on press
+      face.fillStyle(color, 1);
+      if (rounded) {
+        face.fillRoundedRect(-half.w, -half.h + dy, w, h, radius);
+      } else {
+        face.fillCircle(0, dy, radius);
+      }
+      face.lineStyle(5, borderColor, 1);
+      if (rounded) {
+        face.strokeRoundedRect(-half.w, -half.h + dy, w, h, radius);
+      } else {
+        face.strokeCircle(0, dy, radius);
+      }
     };
-    drawFace(fillColor, pressedDy);
 
-    const text = this.add
-      .text(x, y, label, {
+    // Shadow layer (behind, doesn't move)
+    const shadow = this.add.graphics();
+    shadow.fillStyle(borderColor, 1);
+    if (rounded) {
+      shadow.fillRoundedRect(-half.w, -half.h + shadowOffset, w, h, radius);
+    } else {
+      shadow.fillCircle(0, shadowOffset, radius);
+    }
+    container.add(shadow);
+
+    const face = this.add.graphics();
+    container.add(face);
+    draw(fillColor, 0);
+
+    // Icon + label as a single text (icon on left)
+    const display = opts.iconChar
+      ? opts.label
+        ? `${opts.iconChar}  ${opts.label}`
+        : opts.iconChar
+      : opts.label;
+    const txt = this.add
+      .text(0, 0, display, {
         fontFamily: TITLE_FONT,
-        fontSize: `${fontSize}px`,
+        fontSize: `${opts.fontSize}px`,
         color: textColor,
       })
-      .setOrigin(0.5)
-      .setDepth(12);
+      .setOrigin(0.5);
+    container.add(txt);
 
-    const hit = this.add
-      .rectangle(x, y + shadowOffset / 2, w + 4, h + shadowOffset + 4, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(13);
+    // Hit area covers the full button
+    container.setSize(w, h + shadowOffset);
+    container.setInteractive(
+      new Phaser.Geom.Rectangle(-half.w, -half.h, w, h + shadowOffset),
+      Phaser.Geom.Rectangle.Contains
+    );
+    container.input!.cursor = 'pointer';
 
     let isHovering = false;
-
-    const press = () => {
-      pressedDy = shadowOffset;
-      drawFace(isHovering ? hoverColor : fillColor, pressedDy);
-      text.setY(y + shadowOffset);
-      shadow.setVisible(false);
-    };
-    const release = () => {
-      pressedDy = 0;
-      drawFace(isHovering ? hoverColor : fillColor, pressedDy);
-      text.setY(y);
-      shadow.setVisible(true);
+    let isPressed = false;
+    const update = () => {
+      const dy = isPressed ? shadowOffset : 0;
+      const color = isHovering ? hoverColor : fillColor;
+      draw(color, dy);
+      txt.setY(dy);
     };
 
-    hit.on('pointerover', () => {
+    container.on('pointerover', () => {
       isHovering = true;
-      drawFace(hoverColor, pressedDy);
+      update();
     });
-    hit.on('pointerout', () => {
+    container.on('pointerout', () => {
       isHovering = false;
-      release();
+      isPressed = false;
+      update();
     });
-    hit.on('pointerdown', () => {
-      press();
+    container.on('pointerdown', () => {
+      isPressed = true;
+      update();
     });
-    hit.on('pointerup', () => {
-      release();
-      onTap();
+    container.on('pointerup', () => {
+      isPressed = false;
+      update();
+      opts.onTap();
     });
   }
 
-  // ── Storage banner (preserved) ───────────────────────────────────────────
-
-  private static readonly STORAGE_NOTICE_KEY = 'qf.storageNoticeShown';
+  // ── Storage banner (dev only) ─────────────────────────────────────────────
 
   private async _showStorageBannerIfNeeded(): Promise<void> {
     if (!import.meta.env.DEV) return;
-
+    if (typeof navigator === 'undefined' || !navigator.storage?.persisted) return;
     try {
-      const alreadyShown = sessionStorage.getItem(MenuScene.STORAGE_NOTICE_KEY) === '1';
+      const alreadyShown = sessionStorage.getItem('menu:storage-banner-shown');
       if (alreadyShown) return;
-
-      const persisted = await navigator.storage?.persisted?.();
+      const persisted = await navigator.storage.persisted();
       if (persisted) return;
-
-      sessionStorage.setItem(MenuScene.STORAGE_NOTICE_KEY, '1');
+      sessionStorage.setItem('menu:storage-banner-shown', '1');
+      this._renderStorageBanner();
     } catch {
-      return;
+      // ignore — best effort dev-only UX
     }
-
-    this._renderStorageBanner();
   }
 
   private _renderStorageBanner(): void {
-    // Compact toast at the very top of the canvas — minimises intrusion on
-    // the menu artwork while still being visible and dismissable.
-    const bannerW = CW;
-    const bannerH = 56;
-    const bannerY = bannerH / 2;
-    const cx = CW / 2;
-
-    const bg = this.add.graphics().setDepth(20);
-    bg.fillStyle(0xfef3c7, 0.96);
-    bg.fillRect(0, 0, bannerW, bannerH);
-    bg.lineStyle(2, 0xd97706, 1);
-    bg.lineBetween(0, bannerH, bannerW, bannerH);
-
-    const msg = this.add
-      .text(cx, bannerY, '⚠ Preview mode — progress may not be saved. (Settings → Export Backup)', {
-        fontSize: '15px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: '#92400E',
-        align: 'center',
-        wordWrap: { width: bannerW - 80 },
-      })
-      .setOrigin(0.5)
-      .setDepth(21);
-
-    const dismissBtn = this.add
-      .text(bannerW - 24, bannerY, '✕', {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: '#92400E',
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(22);
-
-    dismissBtn.on('pointerup', () => {
-      bg.destroy();
-      msg.destroy();
-      dismissBtn.destroy();
-    });
+    if (typeof document === 'undefined') return;
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('role', 'status');
+    wrapper.setAttribute('aria-live', 'polite');
+    wrapper.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'right:0',
+      'min-height:56px',
+      'padding:10px 16px',
+      'box-sizing:border-box',
+      'background:#fff7ed',
+      'color:#7c2d12',
+      'font:600 14px/1.3 Nunito, system-ui, sans-serif',
+      'border-bottom:2px solid #fb923c',
+      'z-index:2147483646',
+      'display:flex',
+      'align-items:center',
+      'justify-content:space-between',
+      'gap:12px',
+    ].join(';');
+    wrapper.innerHTML = `
+      <span>⚠️ Preview mode — progress may not be saved. (Settings → Export Backup)</span>
+      <button type="button" aria-label="Dismiss" style="background:none;border:0;font:700 18px sans-serif;color:#7c2d12;cursor:pointer">×</button>
+    `;
+    const dismiss = wrapper.querySelector('button');
+    dismiss?.addEventListener('click', () => wrapper.remove());
+    document.body.appendChild(wrapper);
   }
 
+  // ── Reduced motion + font ready helpers ───────────────────────────────────
+
   private checkReduceMotion(): boolean {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     } catch {
@@ -676,30 +615,33 @@ export class MenuScene extends Phaser.Scene {
   }
 
   /**
-   * Wait for the Fredoka One webfont to load, then force every existing Text
-   * object to re-render so the title/buttons pick up the chunky display font
-   * instead of the system fallback that was used at first paint.
+   * Phaser caches text glyph textures on first paint. If our custom display
+   * font (Fredoka One) hasn't loaded yet, the title bakes in a fallback font
+   * forever. After document.fonts becomes ready we walk all Text objects in
+   * the scene and force a restyle so they re-rasterize with the right font.
    */
   private async _renderAfterFontsReady(): Promise<void> {
     try {
-      const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+      const fonts = (document as Document).fonts;
       if (!fonts) return;
-      // Force-load Fredoka One at the sizes we use, then wait for ready.
       await Promise.all([
-        fonts.load('400 92px "Fredoka One"'),
-        fonts.load('400 56px "Fredoka One"'),
-        fonts.load('400 42px "Fredoka One"'),
+        fonts.load('700 88px "Fredoka One"'),
+        fonts.load('700 30px "Nunito"'),
+        fonts.load('400 30px "Nunito"'),
       ]).catch(() => undefined);
-      await fonts.ready.catch(() => undefined);
-      // Re-render all text objects in the scene with the now-loaded font.
+      await fonts.ready;
       this.children.list.forEach((obj) => {
-        if (obj instanceof Phaser.GameObjects.Text) {
-          obj.setStyle(obj.style.toJSON());
-        }
+        const recurse = (o: Phaser.GameObjects.GameObject) => {
+          if (o instanceof Phaser.GameObjects.Text) {
+            o.setStyle(o.style.toJSON());
+          } else if (o instanceof Phaser.GameObjects.Container) {
+            o.list.forEach(recurse);
+          }
+        };
+        recurse(obj);
       });
     } catch {
-      // ignore — we tried our best, fallback font will display
+      // ignore — fallback font will display
     }
   }
-
 }
