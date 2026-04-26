@@ -29,11 +29,6 @@
 
 ## Code Conventions
 - TypeScript project (v6.0.3)
-- Uses Vitest for testing (v1.0.0)
-- Uses Vite as build tool (v8.0.9)
-- Uses npm as package manager
-- Runs on Node.js
-- Source code organised under src/
 [truncated]
 <!-- roadie:end:workspace-rules -->
 
@@ -116,6 +111,11 @@
 - **validation/**
 - **validation-data/**
 - **cycle-a/**
+- **pseudonym-A/**
+- **pseudonym-B/**
+- **pseudonym-C/**
+- **pseudonym-D/**
+- **pseudonym-E/**
 - **cycle-b/**
 - **scripts/**
 - **phase-2/**
