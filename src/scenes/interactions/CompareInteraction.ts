@@ -6,6 +6,7 @@
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
+import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
 import type { Interaction, InteractionContext } from './types';
 
 interface ComparePayload {
@@ -25,6 +26,7 @@ export class CompareInteraction implements Interaction {
   readonly archetype = 'compare' as const;
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private bars: BarModel[] = [];
+  private fractionDisplays: SymbolicFractionDisplay[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -66,6 +68,30 @@ export class CompareInteraction implements Interaction {
       fillColor: CLR.accentB,
     });
     this.bars.push(bBar);
+
+    // Symbolic notation below bars
+    const aDisplay = new SymbolicFractionDisplay(
+      scene,
+      centerX,
+      centerY - 80 + barH + 30,
+      aFrac.n,
+      aFrac.d,
+      {
+        fontSize: '20px',
+        color: HEX.neutral900,
+      }
+    );
+    this.fractionDisplays.push(aDisplay);
+
+    const bDisplay = new SymbolicFractionDisplay(
+      scene,
+      centerX,
+      centerY - 80 + barH + gap + barH + 30,
+      bFrac.n,
+      bFrac.d,
+      { fontSize: '20px', color: HEX.neutral900 }
+    );
+    this.fractionDisplays.push(bDisplay);
 
     // Relation buttons
     const btnY = centerY + 120;
@@ -112,5 +138,7 @@ export class CompareInteraction implements Interaction {
     this.gameObjects = [];
     this.bars.forEach((b) => b.destroy());
     this.bars = [];
+    this.fractionDisplays.forEach((d) => d.destroy());
+    this.fractionDisplays = [];
   }
 }

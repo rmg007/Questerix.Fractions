@@ -42,6 +42,14 @@ async function boot(): Promise<void> {
   };
 
   new Phaser.Game(config);
+
+  // Request persistent storage for IndexedDB (per C5 / PWA requirements)
+  if (navigator.storage?.persist) {
+    navigator.storage.persist().catch(() => {
+      // User may deny persistent storage; app continues in volatile mode
+      console.warn('[main] Persistent storage not granted');
+    });
+  }
 }
 
 boot().catch((err: unknown) => {
