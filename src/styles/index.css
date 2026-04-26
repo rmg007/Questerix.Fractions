@@ -65,9 +65,14 @@ body {
 #app {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Phaser's Scale.CENTER_BOTH sets margin-left/top on the canvas to center it.
+     Using flex-centering here compounds those margins and shifts the canvas off-center.
+     overflow: hidden creates a block formatting context and prevents margin collapse. */
+  overflow: hidden;
+}
+
+#app > canvas {
+  display: block;
 }
 
 /* Reduced motion — design-language §6.4 */
