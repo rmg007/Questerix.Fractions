@@ -53,6 +53,32 @@ package.json           Phaser 4 + TypeScript + Vite + Tailwind v4
 - `curriculum-source/levels-3-5_pedagogy/` — philosophical & activity blueprints for Levels 3–5
 - `curriculum-source/levels-6-9_pedagogy/` — philosophical & activity blueprints for Levels 6–9
 
+## Development
+
+### Running locally
+
+```bash
+npm install
+npm run dev:app   # starts Vite dev server on port 5000
+```
+
+### Curriculum build
+
+Curriculum content lives in two places that must always stay in sync:
+
+| File | Purpose |
+|------|---------|
+| `public/curriculum/v1.json` | Served at runtime (fetch path) |
+| `src/curriculum/bundle.json` | Static import fallback used in dev/Replit environments where fetch is unavailable |
+
+**Both files are written together** by a single command — never edit them manually:
+
+```bash
+npm run build:curriculum
+```
+
+This is also run automatically as part of `npm run build` (via `prebuild`). If you regenerate curriculum content from `pipeline/output/`, always run `npm run build:curriculum` afterwards so the bundled copy stays current.
+
 ## Contributing
 
 This is a solo validation project in Phase 1 build. The goal is to test whether magnetic-drag mechanics teach K–1 fractions better than traditional methods.
