@@ -24,17 +24,22 @@
 - **typecheck**: `npm run typecheck`
 - **build:analyze**: `npm run build:analyze`
 - **lint**: `npm run lint`
+- **lint:fix**: `npm run lint:fix`
 - **measure-bundle**: `npm run measure-bundle`
 
 ## Code Conventions
 - TypeScript project (v6.0.3)
+- Uses Vitest for testing (v1.0.0)
+- Uses Vite as build tool (v8.0.9)
+- Uses npm as package manager
+- Runs on Node.js
+- Source code organised under src/
 [truncated]
 <!-- roadie:end:workspace-rules -->
 
 <!-- roadie:start:repo-map -->
 ## Repository Map
 
-- **--help/**
 - **PLANS/**
 - **curriculum-source/**
 - **levels-3-5_pedagogy/**
@@ -54,6 +59,7 @@
 - **levels/**
 - **20-mechanic/**
 - **30-architecture/**
+- **hint-system/**
 - **40-validation/**
 - **50-roadmap/**
 - **install/**
@@ -80,19 +86,13 @@
 - **icons/**
 - **scripts/**
 - **src/** (source)
-- **_legacy/** (source)
-- **data/** (source)
-- **entities/** (source)
-- **scenes/** (source)
-- **systems/** (source)
-- **core/** (source)
-- **utils/** (source)
 - **audio/** (source)
 - **components/** (source)
 - **core/** (source)
 - **curriculum/** (source)
 - **engine/** (source)
 - **fractions/** (source)
+- **lib/** (source)
 - **persistence/** (source)
 - **repositories/** (source)
 - **scenes/** (source)

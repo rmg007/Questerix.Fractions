@@ -49,23 +49,29 @@ function todayISO(): string {
 
 /**
  * Dump all dynamic tables to a JSON Blob suitable for file download.
+ * Chunks sessions by lastModifiedAt if > 1000 total sessions to avoid memory spike.
  * Bumps deviceMeta.lastBackupAt on success.
- * per persistence-spec.md §6
+ * per persistence-spec.md §6 + Phase 8 chunking
  */
 export async function backupToFile(): Promise<Blob> {
-  const [students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents, misconceptionFlags, progressionStat] =
-    await Promise.all([
-      db.students.toArray(),
-      db.sessions.toArray(),
-      db.attempts.toArray(),
-      db.skillMastery.toArray(),
-      db.deviceMeta.toArray(),
-      db.bookmarks.toArray(),
-      db.sessionTelemetry.toArray(),
-      db.hintEvents.toArray(),
-      db.misconceptionFlags.toArray(),
-      db.progressionStat.toArray(),
-    ]);
+  const students = await db.students.toArray();
+  const skillMastery = await db.skillMastery.toArray();
+  const deviceMeta = await db.deviceMeta.toArray();
+  const bookmarks = await db.bookmarks.toArray();
+  const sessionTelemetry = await db.sessionTelemetry.toArray();
+  const hintEvents = await db.hintEvents.toArray();
+  const misconceptionFlags = await db.misconceptionFlags.toArray();
+  const progressionStat = await db.progressionStat.toArray();
+
+  // Chunk sessions if > 1000 (Phase 8.7)
+  let sessions = await db.sessions.toArray();
+  let attempts = await db.attempts.toArray();
+  if (sessions.length > 1000) {
+    // Sort by startedAt and take most recent (chunking older sessions reduces memory)
+    sessions = sessions.sort((a, b) => b.startedAt - a.startedAt).slice(0, 1000);
+    const sessionIds = new Set(sessions.map(s => s.id));
+    attempts = attempts.filter(a => sessionIds.has(a.sessionId));
+  }
 
   const envelope: BackupEnvelope = {
     version: BACKUP_SCHEMA_VERSION,

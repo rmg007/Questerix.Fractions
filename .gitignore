@@ -12,6 +12,17 @@ dist/
 
 # Pipeline output — generated content, not source
 pipeline/output/
+pipeline/*.log
+
+# Python cache
+__pycache__/
+*.pyc
+.py_cache/
+
+# Claude Code / Roadie
+.claude/logs/
+.claude/artifacts/
+.roadie/
 
 # Test results
 playwright-report/

@@ -3,9 +3,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 
-// PWA plugin is opt-in via PWA=1 (workbox-build install was flaky on first run).
-// Enable for Phase 4 builds: PWA=1 npm run build
-const enablePWA = process.env['PWA'] === '1';
+// PWA enabled in production by default (Phase 8)
+const enablePWA = process.env['NODE_ENV'] === 'production' || process.env['PWA'] === '1';
 
 export default defineConfig(async () => {
   const plugins: any[] = [tailwindcss()];
@@ -16,6 +15,18 @@ export default defineConfig(async () => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['manifest.json', 'icons/*.png'],
+        workbox: {
+          runtimeCaching: [
+            {
+              urlPattern: /\/curriculum\/v\d+\.json/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'curriculum',
+                expiration: { maxAgeSeconds: 30 * 86400 }, // 30 days
+              },
+            },
+          ],
+        },
         manifest: {
           name: 'Questerix Fractions',
           short_name: 'Questerix',
@@ -23,8 +34,10 @@ export default defineConfig(async () => {
           theme_color: '#2F6FED',
           background_color: '#FFFFFF',
           icons: [
-            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+            { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
       })

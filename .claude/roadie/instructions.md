@@ -31,5 +31,6 @@ Maintain a high-quality TypeScript codebase following the WISC framework.
 - **typecheck**: `npm run typecheck`
 - **build:analyze**: `npm run build:analyze`
 - **lint**: `npm run lint`
+- **lint:fix**: `npm run lint:fix`
 - **measure-bundle**: `npm run measure-bundle`
 <!-- roadie:end:core-commands -->

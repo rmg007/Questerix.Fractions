@@ -116,13 +116,21 @@ export const db = new QuesterixDB();
  * Request durable IndexedDB storage to survive iOS Safari ITP eviction.
  * per persistence-spec.md §3.2
  * Returns false if the API is unavailable or the request is denied.
+ * Logs warning in DEV if persistence not granted.
  */
 export async function ensurePersistenceGranted(): Promise<boolean> {
-  if (!('storage' in navigator) || !('persist' in navigator.storage)) return false;
+  const isDev = import.meta.env.DEV;
+  if (!('storage' in navigator) || !('persist' in navigator.storage)) {
+    if (isDev) console.warn('StorageManager API unavailable — data may be evicted by browser policy');
+    return false;
+  }
   try {
     if (await navigator.storage.persisted()) return true;
-    return navigator.storage.persist();
-  } catch {
+    const granted = await navigator.storage.persist();
+    if (!granted && isDev) console.warn('Persistent storage not granted — data may be evicted');
+    return granted;
+  } catch (err) {
+    if (isDev) console.warn('StorageManager.persist() failed:', err);
     return false;
   }
 }

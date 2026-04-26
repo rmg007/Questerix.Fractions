@@ -21,6 +21,9 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
+    /* Phase 10.1: stricter checks — deferred to Phase 12 pending codebase refactoring */
+    /* "noUncheckedIndexedAccess": true, */
+    /* "noPropertyAccessFromIndexSignature": true, */
 
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",

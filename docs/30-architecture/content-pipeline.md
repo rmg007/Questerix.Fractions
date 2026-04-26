@@ -50,7 +50,7 @@ No `.txt` topic files in `input/`. The level docs are the input.
 
 ### 2.2 Output: Curriculum Seed File
 
-The pipeline emits **one file**: `src/assets/curriculum/v{n}.json`.
+The pipeline emits **one file**: `public/curriculum/v{n}.json`.
 
 Shape: a single object with each top-level key matching a Dexie static-store name from `data-schema.md §6`:
 
@@ -221,14 +221,14 @@ tools/content-pipeline/         ← NEW directory, NOT in src/
     ...
   schema_check.py               ← jsonschema for QuestionTemplate
   llm_client.py                 ← Anthropic SDK wrapper, retries, rate limit
-  emit.py                       ← writes src/assets/curriculum/v{n}.json
+  emit.py                       ← writes public/curriculum/v{n}.json
   test/
     fixtures/                   ← golden-set: 30 hand-authored templates
     test_validators_match_ts.py
     test_pipeline_smoke.py
 ```
 
-This lives **outside `src/`** because it's a build tool, not part of the runtime. It can use Python (faster to write) without polluting the TS toolchain. The output it produces (`src/assets/curriculum/v{n}.json`) is the only handoff to the runtime.
+This lives **outside `src/`** because it's a build tool, not part of the runtime. It can use Python (faster to write) without polluting the TS toolchain. The output it produces (`public/curriculum/v{n}.json`) is the only handoff to the runtime.
 
 ### 6.2 Why Python and not TypeScript?
 
@@ -291,7 +291,7 @@ Generates without writing the seed file. Outputs to stdout. Used when iterating 
 
 CI runs only the verifier (`python -m pipeline verify`) to catch drift. Generation is a deliberate, audited operation triggered by the developer.
 
-The output `src/assets/curriculum/v{n}.json` is **committed to the repo**. The seed file is the source of truth for what ships; the pipeline is the *means* of producing it. A reviewer reads the JSON, not the prompts, when reviewing curriculum changes.
+The output `public/curriculum/v{n}.json` is **committed to the repo**. The seed file is the source of truth for what ships; the pipeline is the *means* of producing it. A reviewer reads the JSON, not the prompts, when reviewing curriculum changes.
 
 ---
 

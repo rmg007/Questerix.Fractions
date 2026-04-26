@@ -801,3 +801,38 @@ fatal: Could not reset index file to revision 'HEAD'.
 [2026-04-26T17:01:51.880Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
 [2026-04-26T17:01:51.886Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
 [2026-04-26T17:01:51.967Z] [ERROR] Autonomous synchronization cycle failed | Error: lance error: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33  Caused by: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33
+[2026-04-26T17:31:48.850Z] [INFO] Starting autonomous synchronization cycle...
+[2026-04-26T17:31:52.221Z] [INFO] Safety Checkpoint Created: roadie/checkpoint-2026-04-26T17-31-49-101Z
+[2026-04-26T17:31:52.233Z] [INFO] ProjectAnalyzer: starting analysis of C:\dev\Questerix.Fractions
+[2026-04-26T17:31:52.234Z] [DEBUG] ProjectAnalyzer: scanning dependencies…
+[2026-04-26T17:31:52.238Z] [INFO] ProjectAnalyzer: dependency scan complete — 5 tech entries, 17 commands
+[2026-04-26T17:31:52.238Z] [DEBUG] ProjectAnalyzer: scanning directories…
+[2026-04-26T17:31:52.325Z] [INFO] ProjectAnalyzer: directory scan complete — 81 entries
+[2026-04-26T17:31:52.325Z] [DEBUG] ProjectAnalyzer: parsing project conventions…
+[2026-04-26T17:31:52.330Z] [INFO] ProjectAnalyzer: no project conventions found (CLAUDE.md missing)
+[2026-04-26T17:31:52.331Z] [DEBUG] ProjectAnalyzer: deriving patterns…
+[2026-04-26T17:31:52.333Z] [INFO] ProjectAnalyzer: pattern derivation complete — 7 patterns
+[2026-04-26T17:31:52.334Z] [DEBUG] ProjectAnalyzer: enriching with regional and global knowledge…
+[2026-04-26T17:31:52.335Z] [DEBUG] Enriching knowledge for TypeScript…
+[2026-04-26T17:31:52.654Z] [DEBUG] Enriching knowledge for Node.js…
+[2026-04-26T17:31:52.937Z] [DEBUG] Enriching knowledge for Vitest…
+[2026-04-26T17:31:53.021Z] [DEBUG] Enriching knowledge for Vite…
+[2026-04-26T17:31:53.114Z] [INFO] ProjectAnalyzer: analysis complete
+[2026-04-26T17:31:53.120Z] [DEBUG] FileGenerator: .claude/roadie/.gitignore already exists
+[2026-04-26T17:31:53.121Z] [DEBUG] FileGenerator: generating roadie_instructions → .claude/roadie/instructions.md
+[2026-04-26T17:31:53.127Z] [INFO] FileGenerator: wrote .claude/roadie/instructions.md (1.2 KB, reason=updated, hash=c53b6a70…)
+[2026-04-26T17:31:53.132Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/instructions.md
+[2026-04-26T17:31:53.133Z] [DEBUG] FileGenerator: generating agents_md → .claude/AGENTS.md
+[2026-04-26T17:31:53.141Z] [INFO] FileGenerator: wrote .claude/AGENTS.md (4.8 KB, reason=updated, hash=ba61d1e1…)
+[2026-04-26T17:31:53.146Z] [DEBUG] FileGenerator: snapshot recorded for .claude/AGENTS.md
+[2026-04-26T17:31:53.147Z] [DEBUG] FileGenerator: generating claude_md → .claude/CLAUDE.md
+[2026-04-26T17:31:53.157Z] [INFO] FileGenerator: wrote .claude/CLAUDE.md (2.9 KB, reason=updated, hash=07c64783…)
+[2026-04-26T17:31:53.164Z] [DEBUG] FileGenerator: snapshot recorded for .claude/CLAUDE.md
+[2026-04-26T17:31:53.164Z] [DEBUG] FileGenerator: generating agent_operating_rules → .claude/roadie/AGENT_OPERATING_RULES.md
+[2026-04-26T17:31:53.166Z] [DEBUG] FileGenerator: agent_operating_rules unchanged (hash=29072abe…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:31:53.167Z] [DEBUG] FileGenerator: generating project_model_json → .claude/roadie/project-model.json
+[2026-04-26T17:31:53.173Z] [INFO] FileGenerator: wrote .claude/roadie/project-model.json (4.8 KB, reason=updated, hash=03575c90…)
+[2026-04-26T17:31:53.176Z] [DEBUG] FileGenerator: snapshot recorded for .claude/roadie/project-model.json
+[2026-04-26T17:31:53.179Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
+[2026-04-26T17:31:53.182Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:31:53.437Z] [ERROR] Autonomous synchronization cycle failed | Error: lance error: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33  Caused by: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33

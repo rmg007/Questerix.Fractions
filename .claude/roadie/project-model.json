@@ -208,12 +208,18 @@
       "type": "lint"
     },
     {
+      "name": "lint:fix",
+      "command": "npm run lint:fix",
+      "sourceFile": "package.json",
+      "type": "other"
+    },
+    {
       "name": "measure-bundle",
       "command": "npm run measure-bundle",
       "sourceFile": "package.json",
       "type": "other"
     }
   ],
-  "overview": "Project: Questerix.Fractions | Stack: npm, TypeScript, Node.js, Vitest, Vite | Commands: 16 | Patterns: 7"
+  "overview": "Project: Questerix.Fractions | Stack: npm, TypeScript, Node.js, Vitest, Vite | Commands: 17 | Patterns: 7"
 }
 <!-- roadie:end:project-model-json -->
