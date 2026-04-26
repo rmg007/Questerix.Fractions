@@ -13,7 +13,7 @@ interface PlacementPayload {
   targetLabel?: string;
   numerator?: number;
   denominator?: number;
-  snapCount?: number;        // e.g. 8 → snap8
+  snapCount?: number; // e.g. 8 → snap8
   exactTolerance?: number;
   closeTolerance?: number;
 }
@@ -38,9 +38,10 @@ export class PlacementInteraction implements Interaction {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as PlacementPayload;
     const label = payload.targetLabel ?? payload.targetFracId ?? '?';
-    const frac = payload.numerator !== undefined
-      ? { n: payload.numerator, d: payload.denominator ?? 1 }
-      : parseFrac(label);
+    const frac =
+      payload.numerator !== undefined
+        ? { n: payload.numerator, d: payload.denominator ?? 1 }
+        : parseFrac(label);
     const exactTol = payload.exactTolerance ?? 0.05;
     const closeTol = payload.closeTolerance ?? 0.15;
     const snapCount = payload.snapCount ?? 8;
@@ -48,9 +49,12 @@ export class PlacementInteraction implements Interaction {
 
     // Fraction bar model at top
     this.bar = new BarModel(scene, {
-      x: centerX, y: centerY - 150,
-      width: 240, height: 48,
-      numerator: frac.n, denominator: frac.d,
+      x: centerX,
+      y: centerY - 150,
+      width: 240,
+      height: 48,
+      numerator: frac.n,
+      denominator: frac.d,
       label,
       fillColor: CLR.primary,
     });
@@ -58,7 +62,8 @@ export class PlacementInteraction implements Interaction {
     // Number line with snap positions
     const lineW = Math.min(560, width - 80);
     this.line = new NumberLine(scene, {
-      x: centerX, y: centerY - 20,
+      x: centerX,
+      y: centerY - 20,
       length: lineW,
       tickFractions: [0.5],
       snapPositions: snaps,
@@ -69,10 +74,15 @@ export class PlacementInteraction implements Interaction {
     });
 
     // Instruction label
-    const instrTxt = scene.add.text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
-      fontSize: '15px', fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral600, align: 'center',
-    }).setOrigin(0.5).setDepth(6);
+    const instrTxt = scene.add
+      .text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
+        fontSize: '15px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
     this.gameObjects.push(instrTxt);
   }
 

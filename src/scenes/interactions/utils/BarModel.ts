@@ -23,8 +23,12 @@ export class BarModel {
   private labelText?: Phaser.GameObjects.Text;
   constructor(scene: Phaser.Scene, opts: BarModelOpts) {
     const {
-      x, y, width, height,
-      numerator, denominator,
+      x,
+      y,
+      width,
+      height,
+      numerator,
+      denominator,
       label,
       fillColor = CLR.primary,
       showDividers = true,
@@ -65,12 +69,15 @@ export class BarModel {
 
     // Label above bar
     if (label) {
-      this.labelText = scene.add.text(x, top - 10, label, {
-        fontSize: '20px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: HEX.neutral900,
-      }).setOrigin(0.5, 1).setDepth(6);
+      this.labelText = scene.add
+        .text(x, top - 10, label, {
+          fontSize: '20px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontStyle: 'bold',
+          color: HEX.neutral900,
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(6);
     }
   }
 

@@ -65,12 +65,12 @@ export class LevelScene extends Phaser.Scene {
   }
 
   init(data: LevelSceneData): void {
-    this.levelNumber  = data.levelNumber ?? 1;
-    this.studentId    = data.studentId ?? null;
+    this.levelNumber = data.levelNumber ?? 1;
+    this.studentId = data.studentId ?? null;
     this.questionIndex = 0;
-    this.attemptCount  = 0;
-    this.wrongCount    = 0;
-    this.inputLocked   = false;
+    this.attemptCount = 0;
+    this.wrongCount = 0;
+    this.inputLocked = false;
     this.activeInteraction = null;
   }
 
@@ -109,9 +109,13 @@ export class LevelScene extends Phaser.Scene {
     TestHooks.mountSentinel(levelId);
 
     // hint-btn interactive overlay (upper-right ~y=160)
-    TestHooks.mountInteractive('hint-btn', () => {
-      this.onHintRequest();
-    }, { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' });
+    TestHooks.mountInteractive(
+      'hint-btn',
+      () => {
+        this.onHintRequest();
+      },
+      { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' }
+    );
 
     // hint-text sentinel (hidden until text set)
     TestHooks.mountSentinel('hint-text');
@@ -125,7 +129,7 @@ export class LevelScene extends Phaser.Scene {
     try {
       const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
       const all = await questionTemplateRepo.getByLevel(
-        this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+        this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
       );
       console.info(`[LevelScene] getByLevel(${this.levelNumber}) returned ${all.length} templates`);
       // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
@@ -139,9 +143,13 @@ export class LevelScene extends Phaser.Scene {
       }
       this.templatePool = picked;
       if (this.templatePool.length > 0) {
-        console.info(`[LevelScene] Loaded ${this.templatePool.length} templates for level ${this.levelNumber}`);
+        console.info(
+          `[LevelScene] Loaded ${this.templatePool.length} templates for level ${this.levelNumber}`
+        );
       } else {
-        console.warn(`[LevelScene] No templates found for level ${this.levelNumber} — using fallback`);
+        console.warn(
+          `[LevelScene] No templates found for level ${this.levelNumber} — using fallback`
+        );
       }
     } catch (err) {
       console.warn('[LevelScene] Template fetch failed — volatile mode:', err);
@@ -191,7 +199,12 @@ export class LevelScene extends Phaser.Scene {
       id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
       archetype: 'partition',
       prompt: { text: 'Cut this shape into two equal parts.', ttsKey: '' },
-      payload: { shapeType: 'rectangle', targetPartitions: 2, snapMode: 'axis', areaTolerance: 0.05 },
+      payload: {
+        shapeType: 'rectangle',
+        targetPartitions: 2,
+        snapMode: 'axis',
+        areaTolerance: 0.05,
+      },
       correctAnswer: null,
       validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
       skillIds: [],
@@ -203,18 +216,22 @@ export class LevelScene extends Phaser.Scene {
   // ── Header / chrome ─────────────────────────────────────────────────────────
 
   private createHeader(): void {
-    this.add.text(CW / 2, 60, `Level ${this.levelNumber}`, {
-      fontSize: '28px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral900,
-    }).setOrigin(0.5).setDepth(5);
+    this.add
+      .text(CW / 2, 60, `Level ${this.levelNumber}`, {
+        fontSize: '28px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
 
-    const backBtn = this.add.text(48, 60, '← Menu', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral600,
-    })
+    const backBtn = this.add
+      .text(48, 60, '← Menu', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+      })
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({
@@ -229,40 +246,54 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private createPromptArea(): void {
-    this.promptText = this.add.text(CW / 2, 160, '', {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral900,
-      align: 'center',
-      wordWrap: { width: 640 },
-    }).setOrigin(0.5).setDepth(5);
+    this.promptText = this.add
+      .text(CW / 2, 160, '', {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral900,
+        align: 'center',
+        wordWrap: { width: 640 },
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
   }
 
   private createHintArea(): void {
-    this.hintTextGO = this.add.text(CW / 2, CH - 280, '', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.primary,
-      align: 'center',
-      wordWrap: { width: 600 },
-      backgroundColor: HEX.primarySoft,
-      padding: { x: 16, y: 12 },
-    }).setOrigin(0.5).setDepth(5).setVisible(false);
+    this.hintTextGO = this.add
+      .text(CW / 2, CH - 280, '', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.primary,
+        align: 'center',
+        wordWrap: { width: 600 },
+        backgroundColor: HEX.primarySoft,
+        padding: { x: 16, y: 12 },
+      })
+      .setOrigin(0.5)
+      .setDepth(5)
+      .setVisible(false);
   }
 
   private createHintButton(): void {
     const x = CW - 80;
     const y = 160;
     const bg = this.add.rectangle(x, y, 80, 48, CLR.primarySoft).setDepth(5);
-    const label = this.add.text(x, y, '?', {
-      fontSize: '24px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.primary,
-    }).setOrigin(0.5).setDepth(6);
-    const hit = this.add.rectangle(x, y, 80, 48, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(7);
+    const label = this.add
+      .text(x, y, '?', {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.primary,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
+    const hit = this.add
+      .rectangle(x, y, 80, 48, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(7);
     hit.on('pointerup', () => this.onHintRequest());
     hit.on('pointerover', () => bg.setFillStyle(CLR.primary));
-    hit.on('pointerout',  () => bg.setFillStyle(CLR.primarySoft));
+    hit.on('pointerout', () => bg.setFillStyle(CLR.primarySoft));
     this.hintButton = this.add.container(0, 0, [bg, label, hit]);
   }
 
@@ -278,20 +309,30 @@ export class LevelScene extends Phaser.Scene {
     drawIdle();
     bg.setDepth(10);
 
-    const lbl = this.add.text(x, y, 'Check', {
-      fontSize: '24px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.neutral0,
-    }).setOrigin(0.5).setDepth(11);
+    const lbl = this.add
+      .text(x, y, 'Check', {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral0,
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
 
-    const hit = this.add.rectangle(x, y, 320, 64, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(12);
+    const hit = this.add
+      .rectangle(x, y, 320, 64, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
     hit.on('pointerdown', () => {
       bg.clear();
       bg.fillStyle(CLR.primaryStrong, 1);
       bg.fillRoundedRect(x - 160, y - 32, 320, 64, 12);
     });
-    hit.on('pointerout',  () => drawIdle());
-    hit.on('pointerup',   () => { drawIdle(); void this.onSubmit(); });
+    hit.on('pointerout', () => drawIdle());
+    hit.on('pointerup', () => {
+      drawIdle();
+      void this.onSubmit();
+    });
 
     this.submitButtonContainer = this.add.container(0, 0, [bg, lbl, hit]);
   }
@@ -323,14 +364,16 @@ export class LevelScene extends Phaser.Scene {
       const validator = getValidator(this.currentTemplate.validatorId);
       if (validator) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = (validator as { fn: (i: any, p: any) => ValidatorResult })
-          .fn(this.lastPayload, this.currentTemplate.payload);
+        result = (validator as { fn: (i: any, p: any) => ValidatorResult }).fn(
+          this.lastPayload,
+          this.currentTemplate.payload
+        );
       } else {
         // Fallback: partition validator
         const { partitionEqualAreas } = await import('../validators/partition');
         result = partitionEqualAreas.fn(
           this.lastPayload as import('../validators/partition').PartitionInput,
-          this.currentTemplate.payload as import('../validators/partition').PartitionPayload,
+          this.currentTemplate.payload as import('../validators/partition').PartitionPayload
         );
       }
     } catch (err) {
@@ -344,9 +387,12 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private showOutcome(result: ValidatorResult): void {
-    const kind = result.outcome === 'correct'  ? 'correct'
-      : result.outcome === 'partial'  ? 'close'
-      : 'incorrect';
+    const kind =
+      result.outcome === 'correct'
+        ? 'correct'
+        : result.outcome === 'partial'
+          ? 'close'
+          : 'incorrect';
 
     if (kind === 'correct') {
       this.progressBar.setProgress(this.attemptCount + 1);
@@ -362,9 +408,12 @@ export class LevelScene extends Phaser.Scene {
       }
     });
 
-    const announcement = kind === 'correct'   ? 'Correct! Great work.'
-      : kind === 'close'      ? 'Almost! Try a tiny adjustment.'
-      : 'Not quite — try again.';
+    const announcement =
+      kind === 'correct'
+        ? 'Correct! Great work.'
+        : kind === 'close'
+          ? 'Almost! Try a tiny adjustment.'
+          : 'Not quite — try again.';
     AccessibilityAnnouncer.announce(announcement);
   }
 
@@ -443,8 +492,11 @@ export class LevelScene extends Phaser.Scene {
     if (this.checkReduceMotion()) return;
     this.tweens.add({
       targets: this.hintButton,
-      scaleX: 1.1, scaleY: 1.1,
-      duration: 200, yoyo: true, repeat: 2,
+      scaleX: 1.1,
+      scaleY: 1.1,
+      duration: 200,
+      yoyo: true,
+      repeat: 2,
     });
   }
 
@@ -475,7 +527,10 @@ export class LevelScene extends Phaser.Scene {
         xpEarned: 0,
         scaffoldRecommendation: null,
         endLevel: this.levelNumber,
-        device: { type: 'unknown', viewport: { width: window.innerWidth, height: window.innerHeight } },
+        device: {
+          type: 'unknown',
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+        },
         syncState: 'local',
       });
       this.sessionId = session.id;
@@ -517,7 +572,7 @@ export class LevelScene extends Phaser.Scene {
       // C7.2: Run misconception detectors and upsert flags
       try {
         const recentAttempts = await attemptRepo.listForStudent(
-          this.studentId as import('@/types').StudentId,
+          this.studentId as import('@/types').StudentId
         );
         // Limit to recent 10 for performance
         const limitedAttempts = recentAttempts.slice(-10);
@@ -525,7 +580,8 @@ export class LevelScene extends Phaser.Scene {
         const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
 
         if (flags.length > 0) {
-          const { misconceptionFlagRepo } = await import('../persistence/repositories/misconceptionFlag');
+          const { misconceptionFlagRepo } =
+            await import('../persistence/repositories/misconceptionFlag');
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
@@ -547,19 +603,28 @@ export class LevelScene extends Phaser.Scene {
     this.add.rectangle(CW / 2, CH / 2, CW, CH, CLR.neutral900, 0.5).setDepth(50);
     this.add.rectangle(CW / 2, CH / 2, 560, 400, CLR.neutral50).setDepth(51);
 
-    this.add.text(CW / 2, CH / 2 - 120, 'Session complete!', {
-      fontSize: '36px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.success,
-    }).setOrigin(0.5).setDepth(52);
+    this.add
+      .text(CW / 2, CH / 2 - 120, 'Session complete!', {
+        fontSize: '36px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.success,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
 
-    this.add.text(CW / 2, CH / 2 - 40, `You completed ${this.attemptCount} problems.`, {
-      fontSize: '22px', fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral900,
-    }).setOrigin(0.5).setDepth(52);
+    this.add
+      .text(CW / 2, CH / 2 - 40, `You completed ${this.attemptCount} problems.`, {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
 
     this.makeModalBtn(CW / 2, CH / 2 + 80, 'Keep going', CLR.primary, HEX.neutral0, () => {
       this.attemptCount = 0;
-      this.inputLocked  = false;
+      this.inputLocked = false;
       this.loadQuestion(this.questionIndex + 1);
     });
 
@@ -567,22 +632,36 @@ export class LevelScene extends Phaser.Scene {
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
 
-    AccessibilityAnnouncer.announce(`Session complete! You finished ${this.attemptCount} problems.`);
+    AccessibilityAnnouncer.announce(
+      `Session complete! You finished ${this.attemptCount} problems.`
+    );
     void this.closeSession();
   }
 
   private makeModalBtn(
-    x: number, y: number, label: string, bg: number, textColor: string, onTap: () => void,
+    x: number,
+    y: number,
+    label: string,
+    bg: number,
+    textColor: string,
+    onTap: () => void
   ): void {
     const g = this.add.graphics().setDepth(52);
     g.fillStyle(bg, 1);
     g.fillRoundedRect(x - 160, y - 28, 320, 56, 10);
-    this.add.text(x, y, label, {
-      fontSize: '20px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: textColor,
-    }).setOrigin(0.5).setDepth(53);
-    this.add.rectangle(x, y, 320, 56, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(54)
+    this.add
+      .text(x, y, label, {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: textColor,
+      })
+      .setOrigin(0.5)
+      .setDepth(53);
+    this.add
+      .rectangle(x, y, 320, 56, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(54)
       .on('pointerup', onTap);
   }
 
@@ -608,7 +687,11 @@ export class LevelScene extends Phaser.Scene {
   // ── Utilities ────────────────────────────────────────────────────────────────
 
   private checkReduceMotion(): boolean {
-    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
   }
 
   preDestroy(): void {

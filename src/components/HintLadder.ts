@@ -9,9 +9,9 @@ import type { HintTier } from '@/types';
 
 /** Which tiers are available for a given difficulty tier. per interaction-model.md §4.2 */
 const TIER_BUDGETS: Record<'easy' | 'medium' | 'hard', HintTier[]> = {
-  easy:   ['verbal', 'visual_overlay', 'worked_example'],
+  easy: ['verbal', 'visual_overlay', 'worked_example'],
   medium: ['verbal', 'visual_overlay'],
-  hard:   ['verbal'],
+  hard: ['verbal'],
 };
 
 export interface HintLadderState {
@@ -53,8 +53,8 @@ export class HintLadder {
   get state(): HintLadderState {
     return {
       currentIndex: this.index,
-      activeTier:   this.index >= 0 ? (this.tiers[this.index] ?? null) : null,
-      exhausted:    this.index >= this.tiers.length - 1 && this.index >= 0,
+      activeTier: this.index >= 0 ? (this.tiers[this.index] ?? null) : null,
+      exhausted: this.index >= this.tiers.length - 1 && this.index >= 0,
     };
   }
 

@@ -53,7 +53,7 @@ export interface CalibrationState {
 export function startCalibration(
   prevSession: Session | null,
   prevSessionSkillIds: SkillId[],
-  currentSessionId: SessionId,
+  currentSessionId: SessionId
 ): CalibrationState | null {
   // First session ever — nothing to calibrate, per H-04 spec
   if (prevSession === null) return null;

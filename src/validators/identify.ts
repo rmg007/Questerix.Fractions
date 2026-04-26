@@ -4,7 +4,9 @@
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
-export interface IdentifyInput { selectedIndex: number }
+export interface IdentifyInput {
+  selectedIndex: number;
+}
 
 export interface IdentifyExpected {
   targetIndex: number;

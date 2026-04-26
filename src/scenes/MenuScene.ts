@@ -43,17 +43,29 @@ export class MenuScene extends Phaser.Scene {
     TestHooks.unmountAll();
     TestHooks.mountSentinel('menu-scene');
     // level-card-L1: interactive overlay positioned over the Start button (~y=580)
-    TestHooks.mountInteractive('level-card-L1', () => {
-      this.scene.start('Level01Scene', { studentId: this.lastStudentId });
-    }, { width: '360px', height: '72px', top: '45%', left: '50%' });
+    TestHooks.mountInteractive(
+      'level-card-L1',
+      () => {
+        this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+      },
+      { width: '360px', height: '72px', top: '45%', left: '50%' }
+    );
     // level-card-L6: test hook for level 6 (compare same-denominator)
-    TestHooks.mountInteractive('level-card-L6', () => {
-      this.scene.start('LevelScene', { levelNumber: 6, studentId: this.lastStudentId });
-    }, { width: '100px', height: '40px', top: '50%', left: '10%' });
+    TestHooks.mountInteractive(
+      'level-card-L6',
+      () => {
+        this.scene.start('LevelScene', { levelNumber: 6, studentId: this.lastStudentId });
+      },
+      { width: '100px', height: '40px', top: '50%', left: '10%' }
+    );
     // level-card-L7: test hook for level 7 (compare same-numerator)
-    TestHooks.mountInteractive('level-card-L7', () => {
-      this.scene.start('LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
-    }, { width: '100px', height: '40px', top: '55%', left: '10%' });
+    TestHooks.mountInteractive(
+      'level-card-L7',
+      () => {
+        this.scene.start('LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
+      },
+      { width: '100px', height: '40px', top: '55%', left: '10%' }
+    );
 
     const cx = CW / 2;
 
@@ -62,22 +74,26 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Title ──────────────────────────────────────────────────────────────
     // per design-language.md §3.3 text-2xl = 40px on md+
-    this.add.text(cx, 280, 'Questerix\nFractions', {
-      fontSize: '48px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.primary,
-      align: 'center',
-      lineSpacing: 8,
-    }).setOrigin(0.5);
+    this.add
+      .text(cx, 280, 'Questerix\nFractions', {
+        fontSize: '48px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.primary,
+        align: 'center',
+        lineSpacing: 8,
+      })
+      .setOrigin(0.5);
 
     // Subtitle
-    this.add.text(cx, 420, 'Learning halves, one piece at a time', {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral600,
-      align: 'center',
-    }).setOrigin(0.5);
+    this.add
+      .text(cx, 420, 'Learning halves, one piece at a time', {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+        align: 'center',
+      })
+      .setOrigin(0.5);
 
     // ── Buttons ────────────────────────────────────────────────────────────
 
@@ -95,9 +111,16 @@ export class MenuScene extends Phaser.Scene {
     }
 
     // "Settings" — per runtime-architecture.md §2 (SettingsScene overlay)
-    this.createButton(cx, this.lastStudentId ? 780 : 680, 'Settings', CLR.neutral100, HEX.neutral600, () => {
-      this.scene.launch('SettingsScene');
-    });
+    this.createButton(
+      cx,
+      this.lastStudentId ? 780 : 680,
+      'Settings',
+      CLR.neutral100,
+      HEX.neutral600,
+      () => {
+        this.scene.launch('SettingsScene');
+      }
+    );
   }
 
   /**
@@ -111,7 +134,7 @@ export class MenuScene extends Phaser.Scene {
     label: string,
     bgColor: number,
     textColor: string,
-    onTap: () => void,
+    onTap: () => void
   ): void {
     const g = this.add.graphics();
 
@@ -130,15 +153,18 @@ export class MenuScene extends Phaser.Scene {
 
     drawIdle();
 
-    const text = this.add.text(x, y, label, {
-      fontSize: '24px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: textColor,
-    }).setOrigin(0.5);
+    const text = this.add
+      .text(x, y, label, {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: textColor,
+      })
+      .setOrigin(0.5);
 
     // Hit zone — ≥44×44 per design-language.md §5
-    const hitZone = this.add.rectangle(x, y, BTN_W, BTN_H, 0x000000, 0)
+    const hitZone = this.add
+      .rectangle(x, y, BTN_W, BTN_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true });
 
     hitZone.on('pointerdown', () => {

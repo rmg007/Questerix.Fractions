@@ -70,7 +70,9 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.warn(`[loadCurriculumBundle] Fetch returned ${response.status} for ${url} — skipping seed`);
+      console.warn(
+        `[loadCurriculumBundle] Fetch returned ${response.status} for ${url} — skipping seed`
+      );
       return empty;
     }
 

@@ -7,9 +7,7 @@ import * as Phaser from 'phaser';
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   const message = reason instanceof Error ? reason.message : String(reason ?? '');
-  if (
-    /storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i.test(message)
-  ) {
+  if (/storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i.test(message)) {
     console.warn('[main] Suppressed storage-restricted error:', message);
     event.preventDefault();
   }
@@ -22,7 +20,8 @@ async function boot(): Promise<void> {
 
   try {
     // Registration order matters: first scene auto-starts, others are lookup-able by key.
-    const { BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene } = await import('./scenes');
+    const { BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene } =
+      await import('./scenes');
     scenes = [BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene];
   } catch (err) {
     console.error('[main] Failed to load scenes:', err);

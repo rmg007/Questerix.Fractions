@@ -55,11 +55,7 @@ export const MASTERY_THRESHOLD = 0.85;
  * @param params  BKT parameters for this skill
  * @returns       Updated P(L_t) clamped to [0, 1]
  */
-export function updatePKnown(
-  pKnown: number,
-  correct: boolean,
-  params: BktParams,
-): number {
+export function updatePKnown(pKnown: number, correct: boolean, params: BktParams): number {
   validateBktParams(params);
   const { pSlip, pGuess, pTransit } = params;
 
@@ -91,13 +87,11 @@ export function updatePKnown(
 export function updateMastery(
   prev: SkillMastery,
   correct: boolean,
-  params: BktParams = DEFAULT_PRIORS,
+  params: BktParams = DEFAULT_PRIORS
 ): SkillMastery {
   const newEstimate = updatePKnown(prev.masteryEstimate, correct, params);
 
-  const nextConsecutiveCorrect = correct
-    ? prev.consecutiveCorrectUnassisted + 1
-    : 0;
+  const nextConsecutiveCorrect = correct ? prev.consecutiveCorrectUnassisted + 1 : 0;
 
   const newState = deriveState(newEstimate, nextConsecutiveCorrect);
 
@@ -117,7 +111,7 @@ export function updateMastery(
  */
 export function predictCorrect(
   masteryEstimate: number,
-  params: BktParams = DEFAULT_PRIORS,
+  params: BktParams = DEFAULT_PRIORS
 ): number {
   const { pSlip, pGuess } = params;
   return masteryEstimate * (1 - pSlip) + (1 - masteryEstimate) * pGuess;
@@ -127,10 +121,7 @@ export function predictCorrect(
  * Derive qualitative state from quantitative estimate.
  * Thresholds chosen to align with the three-session mastery arc (C9).
  */
-export function deriveState(
-  estimate: number,
-  consecutiveCorrect: number,
-): SkillMastery['state'] {
+export function deriveState(estimate: number, consecutiveCorrect: number): SkillMastery['state'] {
   if (estimate >= MASTERY_THRESHOLD && consecutiveCorrect >= 3) return 'MASTERED';
   if (estimate >= 0.65) return 'APPROACHING';
   if (estimate > 0) return 'LEARNING';

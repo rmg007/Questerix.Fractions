@@ -121,9 +121,7 @@ export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: Math.floor(hardAttempts.length * (1 - accuracy)),
       resolvedAt: null,
-      evidenceAttemptIds: hardAttempts
-        .filter((_, i) => i < 3)
-        .map((a) => a.id),
+      evidenceAttemptIds: hardAttempts.filter((_, i) => i < 3).map((a) => a.id),
       syncState: 'local',
     };
   }
@@ -148,22 +146,13 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
     // Pattern: zones for benchmark_sort are 0, 0.25, 0.5, 0.75, 1
     // "almost_one" should go in zone 4 (3/4–1)
     // Student places in zone 2 (1/4–1/2) or zone 3 (1/2–3/4)
-    if (
-      attempt.outcome === 'WRONG' &&
-      attempt.studentAnswerRaw &&
-      attempt.correctAnswerRaw
-    ) {
-      const studentZone = (attempt.studentAnswerRaw as Record<string, unknown>)
-        .zoneIndex;
-      const correctZone = (attempt.correctAnswerRaw as Record<string, unknown>)
-        .zoneIndex;
+    if (attempt.outcome === 'WRONG' && attempt.studentAnswerRaw && attempt.correctAnswerRaw) {
+      const studentZone = (attempt.studentAnswerRaw as Record<string, unknown>).zoneIndex;
+      const correctZone = (attempt.correctAnswerRaw as Record<string, unknown>).zoneIndex;
 
       // "almost_one" correct zone is typically 3 (0.75–1)
       // Confusion: placed in zone 1 (0.25–0.5) or zone 2 (0.5–0.75)
-      if (
-        (studentZone === 1 || studentZone === 2) &&
-        (correctZone === 3 || correctZone === 4)
-      ) {
+      if ((studentZone === 1 || studentZone === 2) && (correctZone === 3 || correctZone === 4)) {
         evidenceIds.push(attempt.id);
       }
     }

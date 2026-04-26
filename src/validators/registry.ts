@@ -16,6 +16,7 @@ import equalOrNotValidators from './equal_or_not';
 import placementValidators from './placement';
 
 // Variance escape: registry values are heterogeneous; callers narrow at use site.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyValidatorRegistration = ValidatorRegistration<any, any>;
 
 const allValidators: AnyValidatorRegistration[] = [
@@ -32,7 +33,7 @@ const allValidators: AnyValidatorRegistration[] = [
 ];
 
 export const validatorRegistry = new Map<string, AnyValidatorRegistration>(
-  allValidators.map(v => [v.id, v])
+  allValidators.map((v) => [v.id, v])
 );
 
 export function getValidator(id: string): AnyValidatorRegistration | undefined {

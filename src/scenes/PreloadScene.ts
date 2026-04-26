@@ -34,7 +34,7 @@ export class PreloadScene extends Phaser.Scene {
 
     // Wire Phaser load progress events
     this.load.on('progress', (value: number) => {
-      this.progressBar.width = (CW * 0.6) * value;
+      this.progressBar.width = CW * 0.6 * value;
       this.loadingText.setText(`Loading… ${Math.floor(value * 100)}%`);
     });
 
@@ -62,40 +62,45 @@ export class PreloadScene extends Phaser.Scene {
     this.add.rectangle(cx, cy, CW, CH, CLR.neutral0);
 
     // Title
-    this.add.text(cx, cy - 120, 'Questerix Fractions', {
-      fontSize: '40px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral900,
-    }).setOrigin(0.5);
+    this.add
+      .text(cx, cy - 120, 'Questerix Fractions', {
+        fontSize: '40px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0.5);
 
     // Track — per design-language.md §2.4 neutral-100
     const trackW = CW * 0.6;
     this.add.rectangle(cx, cy, trackW, 16, CLR.neutral100).setOrigin(0.5);
 
     // Fill — per design-language.md §2.1 primary
-    this.progressBar = this.add.rectangle(cx - trackW / 2, cy, 0, 16, CLR.primary)
+    this.progressBar = this.add
+      .rectangle(cx - trackW / 2, cy, 0, 16, CLR.primary)
       .setOrigin(0, 0.5);
 
     // Status text
-    this.loadingText = this.add.text(cx, cy + 40, 'Loading…', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral600,
-    }).setOrigin(0.5);
+    this.loadingText = this.add
+      .text(cx, cy + 40, 'Loading…', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+      })
+      .setOrigin(0.5);
   }
 
   /** Create 1×1 Phaser textures for each palette token (used by shapes later). */
   private createPaletteTextures(): void {
     const palette: Record<string, number> = {
-      'clr-primary':      CLR.primary,
-      'clr-success':      CLR.success,
-      'clr-successSoft':  CLR.successSoft,
-      'clr-error':        CLR.error,
-      'clr-neutral100':   CLR.neutral100,
-      'clr-neutral300':   CLR.neutral300,
-      'clr-neutral50':    CLR.neutral50,
-      'clr-accentA':      CLR.accentA,
+      'clr-primary': CLR.primary,
+      'clr-success': CLR.success,
+      'clr-successSoft': CLR.successSoft,
+      'clr-error': CLR.error,
+      'clr-neutral100': CLR.neutral100,
+      'clr-neutral300': CLR.neutral300,
+      'clr-neutral50': CLR.neutral50,
+      'clr-accentA': CLR.accentA,
     };
 
     for (const [key, color] of Object.entries(palette)) {

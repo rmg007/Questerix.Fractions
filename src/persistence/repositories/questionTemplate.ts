@@ -57,7 +57,7 @@ export const questionTemplateRepo = {
   async getByArchetypeAndTier(
     archetype: ArchetypeId,
     tier: 'easy' | 'medium' | 'hard',
-    levelGroup: StoredQuestionTemplate['levelGroup'],
+    levelGroup: StoredQuestionTemplate['levelGroup']
   ): Promise<QuestionTemplate[]> {
     return db.questionTemplates
       .where('[archetype+difficultyTier]')

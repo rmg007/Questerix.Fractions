@@ -40,9 +40,7 @@ export const snapMatchAllPairs: ValidatorRegistration<SnapMatchInput, SnapMatchE
       return { outcome: 'incorrect', score: 0, feedback: 'incomplete' };
     }
 
-    const expectedKeys = new Set(
-      expectedPairs.map(([a, b]) => pairKey(a, b))
-    );
+    const expectedKeys = new Set(expectedPairs.map(([a, b]) => pairKey(a, b)));
 
     for (const [a, b] of studentPairs) {
       const k = pairKey(a, b);

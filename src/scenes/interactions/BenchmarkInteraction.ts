@@ -33,15 +33,19 @@ export class BenchmarkInteraction implements Interaction {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as BenchmarkPayload;
     const label = payload.targetLabel ?? payload.targetFracId ?? '1/4';
-    const frac = payload.numerator !== undefined
-      ? { n: payload.numerator, d: payload.denominator ?? 1 }
-      : parseFrac(label);
+    const frac =
+      payload.numerator !== undefined
+        ? { n: payload.numerator, d: payload.denominator ?? 1 }
+        : parseFrac(label);
 
     // Target bar model at top
     this.bar = new BarModel(scene, {
-      x: centerX, y: centerY - 160,
-      width: 240, height: 48,
-      numerator: frac.n, denominator: frac.d,
+      x: centerX,
+      y: centerY - 160,
+      width: 240,
+      height: 48,
+      numerator: frac.n,
+      denominator: frac.d,
       label,
       fillColor: CLR.primary,
     });
@@ -49,7 +53,8 @@ export class BenchmarkInteraction implements Interaction {
     // Number line 0..1 with ½ tick
     const lineW = Math.min(560, width - 80);
     this.line = new NumberLine(scene, {
-      x: centerX, y: centerY - 40,
+      x: centerX,
+      y: centerY - 40,
       length: lineW,
       tickFractions: [0.5],
     });
@@ -66,15 +71,24 @@ export class BenchmarkInteraction implements Interaction {
 
     zones.forEach(({ key, label: zl }, i) => {
       const bx = centerX - spread + i * spread;
-      const bg = scene.add.rectangle(bx, zoneY, zoneW, 64, CLR.neutral50)
-        .setStrokeStyle(2, CLR.neutral300).setDepth(5);
-      scene.add.text(bx, zoneY, zl, {
-        fontSize: '14px', fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral900, align: 'center',
-        wordWrap: { width: zoneW - 12 },
-      }).setOrigin(0.5).setDepth(6);
-      const hit = scene.add.rectangle(bx, zoneY, zoneW, 64, 0, 0)
-        .setInteractive({ useHandCursor: true }).setDepth(7);
+      const bg = scene.add
+        .rectangle(bx, zoneY, zoneW, 64, CLR.neutral50)
+        .setStrokeStyle(2, CLR.neutral300)
+        .setDepth(5);
+      scene.add
+        .text(bx, zoneY, zl, {
+          fontSize: '14px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: HEX.neutral900,
+          align: 'center',
+          wordWrap: { width: zoneW - 12 },
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
+      const hit = scene.add
+        .rectangle(bx, zoneY, zoneW, 64, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(7);
       hit.on('pointerup', () => onCommit({ zone: key }));
       this.gameObjects.push(bg, hit);
     });

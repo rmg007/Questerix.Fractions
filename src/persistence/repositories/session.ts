@@ -44,7 +44,17 @@ export const sessionRepo = {
 
   async close(
     id: SessionId,
-    summary: Pick<Session, 'endedAt' | 'totalAttempts' | 'correctAttempts' | 'accuracy' | 'avgResponseMs' | 'xpEarned' | 'scaffoldRecommendation' | 'endLevel'>,
+    summary: Pick<
+      Session,
+      | 'endedAt'
+      | 'totalAttempts'
+      | 'correctAttempts'
+      | 'accuracy'
+      | 'avgResponseMs'
+      | 'xpEarned'
+      | 'scaffoldRecommendation'
+      | 'endLevel'
+    >
   ): Promise<boolean> {
     return sessionRepo.update(id, summary);
   },

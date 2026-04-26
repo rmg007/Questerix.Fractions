@@ -3,9 +3,9 @@
  * Import scenes from here; main.ts does a single lazy import of BootScene.
  */
 
-export { BootScene }    from './BootScene';
+export { BootScene } from './BootScene';
 export { PreloadScene } from './PreloadScene';
-export { MenuScene }    from './MenuScene';
+export { MenuScene } from './MenuScene';
 export { Level01Scene } from './Level01Scene';
-export { LevelScene }   from './LevelScene';
+export { LevelScene } from './LevelScene';
 export { SettingsScene } from './SettingsScene';

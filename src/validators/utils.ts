@@ -4,7 +4,10 @@
  * per activity-archetypes.md §11
  */
 
-export interface Point { x: number; y: number }
+export interface Point {
+  x: number;
+  y: number;
+}
 
 /** Clamp value to [min, max]. */
 export function clamp(value: number, min: number, max: number): number {
@@ -60,7 +63,7 @@ export function mean(values: number[]): number {
  */
 export function kendallTauDistance(a: string[], b: string[]): number {
   const pos = new Map<string, number>(b.map((v, i) => [v, i]));
-  const ranked = a.map(v => pos.get(v) ?? 0);
+  const ranked = a.map((v) => pos.get(v) ?? 0);
   let swaps = 0;
   for (let i = 0; i < ranked.length; i++) {
     for (let j = i + 1; j < ranked.length; j++) {

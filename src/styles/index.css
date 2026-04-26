@@ -1,35 +1,35 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Design-language §2 — CSS custom properties */
 :root {
   /* Primary */
-  --color-primary: #2F6FED;
-  --color-primary-soft: #D9E5FB;
-  --color-primary-strong: #1A4FBF;
+  --color-primary: #2f6fed;
+  --color-primary-soft: #d9e5fb;
+  --color-primary-strong: #1a4fbf;
 
   /* Accents */
-  --color-accent-a: #FFB400;
-  --color-accent-b: #7B2CBF;
-  --color-accent-c: #0FA968;
+  --color-accent-a: #ffb400;
+  --color-accent-b: #7b2cbf;
+  --color-accent-c: #0fa968;
 
   /* Semantic */
-  --color-success: #1FAA59;
-  --color-success-soft: #D6F1E0;
-  --color-error: #E5484D;
-  --color-error-soft: #FBE3E4;
-  --color-warning: #F2A93B;
+  --color-success: #1faa59;
+  --color-success-soft: #d6f1e0;
+  --color-error: #e5484d;
+  --color-error-soft: #fbe3e4;
+  --color-warning: #f2a93b;
 
   /* Neutrals */
-  --color-neutral-0: #FFFFFF;
-  --color-neutral-50: #F7F8FA;
-  --color-neutral-100: #EEF0F4;
-  --color-neutral-300: #C5CAD3;
-  --color-neutral-600: #5B6478;
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f7f8fa;
+  --color-neutral-100: #eef0f4;
+  --color-neutral-300: #c5cad3;
+  --color-neutral-600: #5b6478;
   --color-neutral-900: #101521;
 
   /* Typography — system font stack to avoid third-party fonts (privacy-notice.md).
      If a self-hosted Nunito woff2 is added later, prepend "Nunito" here. */
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* Animation — design-language §6.3 */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -40,11 +40,14 @@
 }
 
 /* Base reset — no scroll, full viewport */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -69,7 +72,9 @@ html, body {
 
 /* Reduced motion — design-language §6.4 */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 80ms !important;
     transition-duration: 80ms !important;
   }

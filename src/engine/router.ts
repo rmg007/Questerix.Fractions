@@ -50,12 +50,7 @@ export interface RouterArgs {
  * // Q19 fix — calibration freeze prevents H-04 data pollution
  */
 export function decideNextLevel(args: RouterArgs): LevelId {
-  const {
-    currentLevel,
-    prereqsMet,
-    inCalibration,
-    recentOutcomes = [],
-  } = args;
+  const { currentLevel, prereqsMet, inCalibration, recentOutcomes = [] } = args;
 
   // Rule 1: Never route during calibration (Q19 fix)
   // per learning-hypotheses.md H-04 — retention measurement requires

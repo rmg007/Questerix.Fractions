@@ -9,7 +9,12 @@ import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
 
-interface MatchItem { id: string; label: string; numerator?: number; denominator?: number }
+interface MatchItem {
+  id: string;
+  label: string;
+  numerator?: number;
+  denominator?: number;
+}
 interface SnapMatchPayload {
   leftItems?: MatchItem[];
   rightItems?: MatchItem[];
@@ -46,34 +51,47 @@ export class SnapMatchInteraction implements Interaction {
     // Right column — BarModels
     right.forEach((item, i) => {
       const ry = startY + i * rowH;
-      const { n, d } = item.numerator !== undefined
-        ? { n: item.numerator, d: item.denominator ?? 1 }
-        : parseFrac(item.label);
+      const { n, d } =
+        item.numerator !== undefined
+          ? { n: item.numerator, d: item.denominator ?? 1 }
+          : parseFrac(item.label);
       const bar = new BarModel(scene, {
-        x: colRight + barW / 2, y: ry,
-        width: barW, height: barH,
-        numerator: n, denominator: d,
+        x: colRight + barW / 2,
+        y: ry,
+        width: barW,
+        height: barH,
+        numerator: n,
+        denominator: d,
         fillColor: CLR.accentC,
       });
       this.bars.push(bar);
       this.rightPositions.set(item.id, { x: colRight + barW / 2, y: ry });
 
       // Right slot outline (behind bar)
-      const slotBox = scene.add.rectangle(colRight + barW / 2, ry, barW + 8, barH + 8, CLR.neutral50)
-        .setStrokeStyle(2, CLR.neutral300).setDepth(4);
+      const slotBox = scene.add
+        .rectangle(colRight + barW / 2, ry, barW + 8, barH + 8, CLR.neutral50)
+        .setStrokeStyle(2, CLR.neutral300)
+        .setDepth(4);
       this.gameObjects.push(slotBox);
     });
 
     // Left column — draggable text cards
     left.forEach((item, i) => {
       const ly = startY + i * rowH;
-      const card = scene.add.rectangle(colLeft, ly, 120, 48, CLR.primarySoft)
-        .setStrokeStyle(2, CLR.primary).setDepth(7)
+      const card = scene.add
+        .rectangle(colLeft, ly, 120, 48, CLR.primarySoft)
+        .setStrokeStyle(2, CLR.primary)
+        .setDepth(7)
         .setInteractive({ draggable: true, useHandCursor: true });
-      const txt = scene.add.text(colLeft, ly, item.label, {
-        fontSize: '18px', fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold', color: HEX.primary,
-      }).setOrigin(0.5).setDepth(8);
+      const txt = scene.add
+        .text(colLeft, ly, item.label, {
+          fontSize: '18px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontStyle: 'bold',
+          color: HEX.primary,
+        })
+        .setOrigin(0.5)
+        .setDepth(8);
       card.setData('id', item.id);
       card.setData('originX', colLeft);
       card.setData('originY', ly);
@@ -89,7 +107,10 @@ export class SnapMatchInteraction implements Interaction {
         let bestDist = Infinity;
         this.rightPositions.forEach(({ x, y }, id) => {
           const d = Math.hypot(card.x - x, card.y - y);
-          if (d < bestDist) { bestDist = d; bestId = id; }
+          if (d < bestDist) {
+            bestDist = d;
+            bestId = id;
+          }
         });
 
         if (bestDist <= 80 && bestId) {
@@ -114,12 +135,19 @@ export class SnapMatchInteraction implements Interaction {
     // Submit
     const sy = startY + rows * rowH + 32;
     const sbg = scene.add.rectangle(centerX, sy, 200, 52, CLR.primary).setDepth(7);
-    const stxt = scene.add.text(centerX, sy, 'Check', {
-      fontSize: '18px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.neutral0,
-    }).setOrigin(0.5).setDepth(8);
-    const shit = scene.add.rectangle(centerX, sy, 200, 52, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(9);
+    const stxt = scene.add
+      .text(centerX, sy, 'Check', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral0,
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
+    const shit = scene.add
+      .rectangle(centerX, sy, 200, 52, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(9);
     shit.on('pointerup', () => onCommit({ pairs: this.pairs }));
     this.gameObjects.push(sbg, stxt, shit);
   }

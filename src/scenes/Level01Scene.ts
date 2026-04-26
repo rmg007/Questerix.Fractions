@@ -27,8 +27,8 @@ const CH = 1280;
 // Shape rendering region — centre of canvas
 const SHAPE_CX = CW / 2;
 const SHAPE_CY = CH / 2 - 80;
-const SHAPE_W  = 340;
-const SHAPE_H  = 260;
+const SHAPE_W = 340;
+const SHAPE_H = 260;
 
 // Session goal per C9
 const SESSION_GOAL = 5;
@@ -49,11 +49,46 @@ interface L01Question {
 }
 
 const QUESTIONS: L01Question[] = [
-  { id: 'q:ph:L1:0001', shapeType: 'rectangle', difficultyTier: 'easy',   areaTolerance: 0.05, snapMode: 'axis', promptText: 'Cut this shape into two equal parts.' },
-  { id: 'q:ph:L1:0002', shapeType: 'rectangle', difficultyTier: 'easy',   areaTolerance: 0.05, snapMode: 'axis', promptText: 'Drag the line to make two equal parts.' },
-  { id: 'q:ph:L1:0003', shapeType: 'rectangle', difficultyTier: 'medium', areaTolerance: 0.05, snapMode: 'free', promptText: 'Split the rectangle in half.' },
-  { id: 'q:ph:L1:0004', shapeType: 'circle',    difficultyTier: 'medium', areaTolerance: 0.05, snapMode: 'free', promptText: 'Cut this circle into two equal parts.' },
-  { id: 'q:ph:L1:0008', shapeType: 'circle',    difficultyTier: 'hard',   areaTolerance: 0.03, snapMode: 'free', promptText: 'Cut this circle into two equal parts.' },
+  {
+    id: 'q:ph:L1:0001',
+    shapeType: 'rectangle',
+    difficultyTier: 'easy',
+    areaTolerance: 0.05,
+    snapMode: 'axis',
+    promptText: 'Cut this shape into two equal parts.',
+  },
+  {
+    id: 'q:ph:L1:0002',
+    shapeType: 'rectangle',
+    difficultyTier: 'easy',
+    areaTolerance: 0.05,
+    snapMode: 'axis',
+    promptText: 'Drag the line to make two equal parts.',
+  },
+  {
+    id: 'q:ph:L1:0003',
+    shapeType: 'rectangle',
+    difficultyTier: 'medium',
+    areaTolerance: 0.05,
+    snapMode: 'free',
+    promptText: 'Split the rectangle in half.',
+  },
+  {
+    id: 'q:ph:L1:0004',
+    shapeType: 'circle',
+    difficultyTier: 'medium',
+    areaTolerance: 0.05,
+    snapMode: 'free',
+    promptText: 'Cut this circle into two equal parts.',
+  },
+  {
+    id: 'q:ph:L1:0008',
+    shapeType: 'circle',
+    difficultyTier: 'hard',
+    areaTolerance: 0.03,
+    snapMode: 'free',
+    promptText: 'Cut this circle into two equal parts.',
+  },
 ];
 
 // ── Scene ──────────────────────────────────────────────────────────────────
@@ -68,8 +103,8 @@ export class Level01Scene extends Phaser.Scene {
   private studentId: string | null = null;
   private sessionId: string | null = null;
   private questionIndex: number = 0;
-  private attemptCount: number = 0;   // total across session
-  private wrongCount: number = 0;     // wrong attempts on current question
+  private attemptCount: number = 0; // total across session
+  private wrongCount: number = 0; // wrong attempts on current question
   private inputLocked: boolean = false;
   private resume: boolean = false;
 
@@ -101,12 +136,12 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   init(data: Level01Data): void {
-    this.studentId  = data.studentId ?? null;
+    this.studentId = data.studentId ?? null;
     this.resume = data.resume ?? false;
     this.questionIndex = 0;
-    this.attemptCount  = 0;
-    this.wrongCount    = 0;
-    this.inputLocked   = false;
+    this.attemptCount = 0;
+    this.wrongCount = 0;
+    this.inputLocked = false;
   }
 
   async create(): Promise<void> {
@@ -122,9 +157,9 @@ export class Level01Scene extends Phaser.Scene {
       const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
       const all = await questionTemplateRepo.getByLevel(1);
       // Filter to archetypes expected for L1: partition, identify
-      this.templatePool = all.filter(
-        (t) => t.archetype === 'partition' || t.archetype === 'identify',
-      ).slice(0, 5); // first 5 distinct templates for the session
+      this.templatePool = all
+        .filter((t) => t.archetype === 'partition' || t.archetype === 'identify')
+        .slice(0, 5); // first 5 distinct templates for the session
       if (this.templatePool.length > 0) {
         console.info(`[Level01Scene] Loaded ${this.templatePool.length} real templates from Dexie`);
       } else {
@@ -161,19 +196,27 @@ export class Level01Scene extends Phaser.Scene {
 
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);
-    this.partitionLine  = this.add.graphics().setDepth(6);
+    this.partitionLine = this.add.graphics().setDepth(6);
 
     // ── Test hooks ─────────────────────────────────────────────────────────
     // NOTE: must run AFTER ProgressBar construction so progress-bar sentinel is not wiped
     TestHooks.mountSentinel('level01-scene');
     // partition-target: transparent button over canvas centre — clicking it submits
-    TestHooks.mountInteractive('partition-target', () => {
-      void this.onSubmit();
-    }, { width: '120px', height: '120px', top: '50%', left: '50%' });
+    TestHooks.mountInteractive(
+      'partition-target',
+      () => {
+        void this.onSubmit();
+      },
+      { width: '120px', height: '120px', top: '50%', left: '50%' }
+    );
     // hint-btn: transparent button over the ? button (upper-right)
-    TestHooks.mountInteractive('hint-btn', () => {
-      this.onHintRequest();
-    }, { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' });
+    TestHooks.mountInteractive(
+      'hint-btn',
+      () => {
+        this.onHintRequest();
+      },
+      { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' }
+    );
     // hint-text: starts hidden (no text). showHintForTier makes it visible.
     // Sentinel is a span with role=status; visibility toggled by data-visible attr.
     this.mountHintTextSentinel();
@@ -201,7 +244,9 @@ export class Level01Scene extends Phaser.Scene {
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
         const { sessionRepo } = await import('../persistence/repositories/session');
-        const sessions = await sessionRepo.listForStudent(this.studentId as import('@/types').StudentId);
+        const sessions = await sessionRepo.listForStudent(
+          this.studentId as import('@/types').StudentId
+        );
 
         if (sessions.length > 0) {
           const lastSession = sessions[0]!;
@@ -218,7 +263,7 @@ export class Level01Scene extends Phaser.Scene {
           }
 
           console.info(
-            `[Level01Scene] Session resumed: ${this.sessionId} with ${this.attemptCount} prior attempts`,
+            `[Level01Scene] Session resumed: ${this.sessionId} with ${this.attemptCount} prior attempts`
           );
           return;
         }
@@ -262,19 +307,23 @@ export class Level01Scene extends Phaser.Scene {
 
   private createHeader(): void {
     // Level title — per design-language.md §3.3 text-xl = 28px
-    this.add.text(CW / 2, 60, 'Level 1 — Halves', {
-      fontSize: '28px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral900,
-    }).setOrigin(0.5).setDepth(5);
+    this.add
+      .text(CW / 2, 60, 'Level 1 — Halves', {
+        fontSize: '28px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
 
     // Back button (home icon text — per design-language.md §7.2)
-    const backBtn = this.add.text(48, 60, '← Menu', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral600,
-    })
+    const backBtn = this.add
+      .text(48, 60, '← Menu', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+      })
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({
@@ -290,26 +339,33 @@ export class Level01Scene extends Phaser.Scene {
 
   private createPromptArea(): void {
     // per design-language.md §3.3 text-lg = 22px for question prompts
-    this.promptText = this.add.text(CW / 2, 160, '', {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral900,
-      align: 'center',
-      wordWrap: { width: 640 },
-    }).setOrigin(0.5).setDepth(5);
+    this.promptText = this.add
+      .text(CW / 2, 160, '', {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral900,
+        align: 'center',
+        wordWrap: { width: 640 },
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
   }
 
   private createHintArea(): void {
     // Hint text box — hidden until a hint is triggered
-    this.hintText = this.add.text(CW / 2, CH - 280, '', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.primary,
-      align: 'center',
-      wordWrap: { width: 600 },
-      backgroundColor: HEX.primarySoft,
-      padding: { x: 16, y: 12 },
-    }).setOrigin(0.5).setDepth(5).setVisible(false);
+    this.hintText = this.add
+      .text(CW / 2, CH - 280, '', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.primary,
+        align: 'center',
+        wordWrap: { width: 600 },
+        backgroundColor: HEX.primarySoft,
+        padding: { x: 16, y: 12 },
+      })
+      .setOrigin(0.5)
+      .setDepth(5)
+      .setVisible(false);
   }
 
   /** Hint button — per interaction-model.md §4.1 (always present). */
@@ -318,19 +374,24 @@ export class Level01Scene extends Phaser.Scene {
     const y = 160;
 
     const bg = this.add.rectangle(x, y, 80, 48, CLR.primarySoft).setDepth(5);
-    const label = this.add.text(x, y, '?', {
-      fontSize: '24px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.primary,
-    }).setOrigin(0.5).setDepth(6);
+    const label = this.add
+      .text(x, y, '?', {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.primary,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
 
-    const hit = this.add.rectangle(x, y, 80, 48, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(7);
+    const hit = this.add
+      .rectangle(x, y, 80, 48, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(7);
 
     hit.on('pointerup', () => this.onHintRequest());
     hit.on('pointerover', () => bg.setFillStyle(CLR.primary));
-    hit.on('pointerout',  () => bg.setFillStyle(CLR.primarySoft));
+    hit.on('pointerout', () => bg.setFillStyle(CLR.primarySoft));
 
     this.hintButton = this.add.container(0, 0, [bg, label, hit]);
   }
@@ -349,23 +410,31 @@ export class Level01Scene extends Phaser.Scene {
     drawIdle();
     bg.setDepth(10);
 
-    const label = this.add.text(x, y, 'Check', {
-      fontSize: '24px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral0,
-    }).setOrigin(0.5).setDepth(11);
+    const label = this.add
+      .text(x, y, 'Check', {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral0,
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
 
-    const hit = this.add.rectangle(x, y, 320, 64, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(12);
+    const hit = this.add
+      .rectangle(x, y, 320, 64, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
 
     hit.on('pointerdown', () => {
       bg.clear();
       bg.fillStyle(CLR.primaryStrong, 1); // pressed per design-language.md §2.1
       bg.fillRoundedRect(x - 160, y - 32, 320, 64, 12);
     });
-    hit.on('pointerout',  () => drawIdle());
-    hit.on('pointerup',   () => { drawIdle(); this.onSubmit(); });
+    hit.on('pointerout', () => drawIdle());
+    hit.on('pointerup', () => {
+      drawIdle();
+      this.onSubmit();
+    });
 
     this.submitButtonContainer = this.add.container(0, 0, [bg, label, hit]);
   }
@@ -378,7 +447,9 @@ export class Level01Scene extends Phaser.Scene {
     if (this.templatePool.length > 0) {
       // Use real template from Dexie pool — map to L01Question shape for this scene
       const tmpl = this.templatePool[this.questionIndex % this.templatePool.length]!;
-      const payload = tmpl.payload as Partial<PartitionPayload> & { shapeType?: 'rectangle' | 'circle' };
+      const payload = tmpl.payload as Partial<PartitionPayload> & {
+        shapeType?: 'rectangle' | 'circle';
+      };
       this.currentQuestion = {
         id: tmpl.id,
         shapeType: payload.shapeType ?? 'rectangle',
@@ -450,7 +521,7 @@ export class Level01Scene extends Phaser.Scene {
     this.partitionLine.clear();
     this.partitionLine.lineStyle(4, CLR.primary, 1);
 
-    const top    = SHAPE_CY - SHAPE_H / 2;
+    const top = SHAPE_CY - SHAPE_H / 2;
     const bottom = SHAPE_CY + SHAPE_H / 2;
 
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
@@ -505,10 +576,10 @@ export class Level01Scene extends Phaser.Scene {
 
     // Compute areas from handle position
     // Horizontal line splits rectangle by X position
-    const leftArea  = this.handlePos - (SHAPE_CX - SHAPE_W / 2);
-    const rightArea = (SHAPE_CX + SHAPE_W / 2) - this.handlePos;
+    const leftArea = this.handlePos - (SHAPE_CX - SHAPE_W / 2);
+    const rightArea = SHAPE_CX + SHAPE_W / 2 - this.handlePos;
 
-    const input: PartitionInput  = { regionAreas: [leftArea, rightArea] };
+    const input: PartitionInput = { regionAreas: [leftArea, rightArea] };
     const payload: PartitionPayload = {
       targetPartitions: 2,
       areaTolerance: this.currentQuestion.areaTolerance,
@@ -545,9 +616,12 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private showOutcome(result: ValidatorResult): void {
-    const kind = result.outcome === 'correct'  ? 'correct'
-      : result.outcome === 'partial'   ? 'close'
-      : 'incorrect';
+    const kind =
+      result.outcome === 'correct'
+        ? 'correct'
+        : result.outcome === 'partial'
+          ? 'close'
+          : 'incorrect';
 
     // Update progress bar immediately on correct so tests can check aria-valuenow
     // before the feedback overlay is dismissed.
@@ -568,9 +642,12 @@ export class Level01Scene extends Phaser.Scene {
 
     // ARIA live announcement — per interaction-model.md §9
     // per interaction-model.md §5.1 — never say "wrong"
-    const announcement = kind === 'correct'   ? 'Correct! Great work.'
-      : kind === 'close'      ? 'Almost! Try a tiny adjustment.'
-      : 'Not quite — try again.';
+    const announcement =
+      kind === 'correct'
+        ? 'Correct! Great work.'
+        : kind === 'close'
+          ? 'Almost! Try a tiny adjustment.'
+          : 'Not quite — try again.';
     AccessibilityAnnouncer.announce(announcement);
   }
 
@@ -649,12 +726,19 @@ export class Level01Scene extends Phaser.Scene {
     const overlay = this.add.graphics().setDepth(8).setAlpha(0.4);
     overlay.lineStyle(3, CLR.neutral600, 1);
     overlay.lineBetween(
-      SHAPE_CX, SHAPE_CY - SHAPE_H / 2 - 20,
-      SHAPE_CX, SHAPE_CY + SHAPE_H / 2 + 20,
+      SHAPE_CX,
+      SHAPE_CY - SHAPE_H / 2 - 20,
+      SHAPE_CX,
+      SHAPE_CY + SHAPE_H / 2 + 20
     );
     // Fade out after 3 seconds
     this.time.delayedCall(3000, () => {
-      this.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      this.tweens.add({
+        targets: overlay,
+        alpha: 0,
+        duration: 400,
+        onComplete: () => overlay.destroy(),
+      });
     });
   }
 
@@ -714,7 +798,7 @@ export class Level01Scene extends Phaser.Scene {
   private async recordAttempt(
     result: ValidatorResult,
     responseMs: number,
-    input: PartitionInput,
+    input: PartitionInput
   ): Promise<void> {
     if (!this.studentId || !this.sessionId) return;
 
@@ -723,9 +807,7 @@ export class Level01Scene extends Phaser.Scene {
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `a-${Date.now()}` }));
 
       const outcome: import('@/types').AttemptOutcome =
-        result.outcome === 'correct'  ? 'EXACT'
-        : result.outcome === 'partial'  ? 'CLOSE'
-        : 'WRONG';
+        result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
       await attemptRepo.record({
         id: nanoid() as import('@/types').AttemptId,
@@ -768,61 +850,91 @@ export class Level01Scene extends Phaser.Scene {
     // Card — per design-language.md §2.4 neutral-50
     const card = this.add.rectangle(CW / 2, CH / 2, 560, 400, CLR.neutral50).setDepth(51);
 
-    this.add.text(CW / 2, CH / 2 - 120, 'Session complete!', {
-      fontSize: '36px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.success,
-    }).setOrigin(0.5).setDepth(52);
+    this.add
+      .text(CW / 2, CH / 2 - 120, 'Session complete!', {
+        fontSize: '36px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.success,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
 
-    this.add.text(CW / 2, CH / 2 - 40, `You completed ${this.attemptCount} problems.`, {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.neutral900,
-    }).setOrigin(0.5).setDepth(52);
+    this.add
+      .text(CW / 2, CH / 2 - 40, `You completed ${this.attemptCount} problems.`, {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
 
     // Continue button — per interaction-model.md §6.2
-    this.createModalButton(CW / 2, CH / 2 + 80, 'Keep going', CLR.primary, HEX.neutral0, () => {
-      overlay.destroy();
-      card.destroy();
-      this.attemptCount = 0;
-      this.inputLocked  = false;
-      this.loadQuestion(this.questionIndex + 1);
-    }, 52);
+    this.createModalButton(
+      CW / 2,
+      CH / 2 + 80,
+      'Keep going',
+      CLR.primary,
+      HEX.neutral0,
+      () => {
+        overlay.destroy();
+        card.destroy();
+        this.attemptCount = 0;
+        this.inputLocked = false;
+        this.loadQuestion(this.questionIndex + 1);
+      },
+      52
+    );
 
     // Back to menu
-    this.createModalButton(CW / 2, CH / 2 + 170, 'Back to menu', CLR.neutral100, HEX.neutral900, () => {
-      this.time.delayedCall(200, () => {
-        this.scene.start('MenuScene', { lastStudentId: this.studentId });
-      });
-    }, 52);
+    this.createModalButton(
+      CW / 2,
+      CH / 2 + 170,
+      'Back to menu',
+      CLR.neutral100,
+      HEX.neutral900,
+      () => {
+        this.time.delayedCall(200, () => {
+          this.scene.start('MenuScene', { lastStudentId: this.studentId });
+        });
+      },
+      52
+    );
 
     // ARIA announcement
-    AccessibilityAnnouncer.announce(`Session complete! You finished ${this.attemptCount} problems.`);
+    AccessibilityAnnouncer.announce(
+      `Session complete! You finished ${this.attemptCount} problems.`
+    );
 
     // Close session in persistence
     await this.closeSession();
   }
 
   private createModalButton(
-    x: number, y: number,
+    x: number,
+    y: number,
     label: string,
-    bg: number, textColor: string,
+    bg: number,
+    textColor: string,
     onTap: () => void,
-    depth: number,
+    depth: number
   ): void {
     const g = this.add.graphics().setDepth(depth);
     g.fillStyle(bg, 1);
     g.fillRoundedRect(x - 160, y - 28, 320, 56, 10);
 
-    this.add.text(x, y, label, {
-      fontSize: '20px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: textColor,
-    }).setOrigin(0.5).setDepth(depth + 1);
+    this.add
+      .text(x, y, label, {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: textColor,
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 1);
 
-    this.add.rectangle(x, y, 320, 56, 0, 0)
+    this.add
+      .rectangle(x, y, 320, 56, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(depth + 2)
       .on('pointerup', onTap);
@@ -832,19 +944,16 @@ export class Level01Scene extends Phaser.Scene {
     if (!this.sessionId) return;
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
-      await sessionRepo.close(
-        this.sessionId as import('@/types').SessionId,
-        {
-          endedAt: Date.now(),
-          totalAttempts: this.attemptCount,
-          correctAttempts: this.attemptCount, // all counted correct in session-complete branch
-          accuracy: 1,
-          avgResponseMs: null,
-          xpEarned: this.attemptCount * 10,
-          scaffoldRecommendation: 'stay',
-          endLevel: 1,
-        },
-      );
+      await sessionRepo.close(this.sessionId as import('@/types').SessionId, {
+        endedAt: Date.now(),
+        totalAttempts: this.attemptCount,
+        correctAttempts: this.attemptCount, // all counted correct in session-complete branch
+        accuracy: 1,
+        avgResponseMs: null,
+        xpEarned: this.attemptCount * 10,
+        scaffoldRecommendation: 'stay',
+        endLevel: 1,
+      });
     } catch (err) {
       console.warn('[Level01Scene] Could not close session:', err);
     }

@@ -33,9 +33,9 @@ export interface DragHandleConfig {
   onCommit?: (pos: number) => void;
 }
 
-const HANDLE_VISIBLE  = 8;   // stroke width of the visible line
-const HIT_TARGET      = 44;  // per design-language.md §5 — WCAG 2.5.5 minimum
-const KBD_STEP        = 8;   // per interaction-model.md §9 — 8 px increments
+const HANDLE_VISIBLE = 8; // stroke width of the visible line
+const HIT_TARGET = 44; // per design-language.md §5 — WCAG 2.5.5 minimum
+const KBD_STEP = 8; // per interaction-model.md §9 — 8 px increments
 
 export class DragHandle {
   private hitZone: Phaser.GameObjects.Rectangle;
@@ -51,20 +51,22 @@ export class DragHandle {
     const { scene, x, y, trackLength, axis, depth = 20 } = config;
 
     this.scene = scene;
-    this.cfg   = config;
-    this._pos  = axis === 'horizontal' ? x : y;
+    this.cfg = config;
+    this._pos = axis === 'horizontal' ? x : y;
 
     // Visible handle line — thin stroke per design-language.md §7.1 (2px stroke)
     const lineW = axis === 'horizontal' ? HANDLE_VISIBLE : trackLength;
-    const lineH = axis === 'horizontal' ? trackLength    : HANDLE_VISIBLE;
-    this.visibleLine = scene.add.rectangle(x, y, lineW, lineH, CLR.primary)
+    const lineH = axis === 'horizontal' ? trackLength : HANDLE_VISIBLE;
+    this.visibleLine = scene.add
+      .rectangle(x, y, lineW, lineH, CLR.primary)
       .setOrigin(0.5)
       .setDepth(depth);
 
     // Hit zone — invisible but ≥44×44 per design-language.md §5
     const hitW = axis === 'horizontal' ? HIT_TARGET : Math.max(trackLength, HIT_TARGET);
     const hitH = axis === 'horizontal' ? Math.max(trackLength, HIT_TARGET) : HIT_TARGET;
-    this.hitZone = scene.add.rectangle(x, y, hitW, hitH, 0x000000, 0)
+    this.hitZone = scene.add
+      .rectangle(x, y, hitW, hitH, 0x000000, 0)
       .setOrigin(0.5)
       .setDepth(depth + 1)
       .setInteractive({ draggable: true });
@@ -90,11 +92,11 @@ export class DragHandle {
 
       this.visibleLine.setPosition(
         isHoriz ? clamped : this.visibleLine.x,
-        isHoriz ? this.visibleLine.y : clamped,
+        isHoriz ? this.visibleLine.y : clamped
       );
       this.hitZone.setPosition(
         isHoriz ? clamped : this.hitZone.x,
-        isHoriz ? this.hitZone.y : clamped,
+        isHoriz ? this.hitZone.y : clamped
       );
 
       onMove?.(clamped);
@@ -123,11 +125,11 @@ export class DragHandle {
 
       let delta = 0;
       if (isHoriz) {
-        if (event.key === 'ArrowLeft')  delta = -KBD_STEP;
-        if (event.key === 'ArrowRight') delta =  KBD_STEP;
+        if (event.key === 'ArrowLeft') delta = -KBD_STEP;
+        if (event.key === 'ArrowRight') delta = KBD_STEP;
       } else {
-        if (event.key === 'ArrowUp')    delta = -KBD_STEP;
-        if (event.key === 'ArrowDown')  delta =  KBD_STEP;
+        if (event.key === 'ArrowUp') delta = -KBD_STEP;
+        if (event.key === 'ArrowDown') delta = KBD_STEP;
       }
 
       if (delta !== 0) {
@@ -151,12 +153,9 @@ export class DragHandle {
     const isHoriz = this.cfg.axis === 'horizontal';
     this.visibleLine.setPosition(
       isHoriz ? pos : this.visibleLine.x,
-      isHoriz ? this.visibleLine.y : pos,
+      isHoriz ? this.visibleLine.y : pos
     );
-    this.hitZone.setPosition(
-      isHoriz ? pos : this.hitZone.x,
-      isHoriz ? this.hitZone.y : pos,
-    );
+    this.hitZone.setPosition(isHoriz ? pos : this.hitZone.x, isHoriz ? this.hitZone.y : pos);
   }
 
   /** Returns the nearest snap target if within threshold, else null. */
@@ -174,7 +173,9 @@ export class DragHandle {
   }
 
   /** Current handle position (axis-relative logical px). */
-  get pos(): number { return this._pos; }
+  get pos(): number {
+    return this._pos;
+  }
 
   /**
    * Programmatically move handle (e.g., for worked_example hint animation).

@@ -23,9 +23,7 @@ export const fractionBankRepo = {
     }
   },
 
-  async getByDenominatorFamily(
-    family: FractionBank['denominatorFamily'],
-  ): Promise<FractionBank[]> {
+  async getByDenominatorFamily(family: FractionBank['denominatorFamily']): Promise<FractionBank[]> {
     try {
       return await db.fractionBank.where('denominatorFamily').equals(family).toArray();
     } catch {

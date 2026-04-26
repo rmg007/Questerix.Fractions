@@ -54,8 +54,12 @@ export const partitionEqualAreas: ValidatorRegistration<PartitionInput, Partitio
 
 // ── validator.partition.equalCount ─────────────────────────────────────────
 
-export interface EqualCountInput { regionCount: number }
-export interface EqualCountExpected { targetPartitions: number }
+export interface EqualCountInput {
+  regionCount: number;
+}
+export interface EqualCountExpected {
+  targetPartitions: number;
+}
 
 /**
  * Returns EXACT if region count matches target, else WRONG.

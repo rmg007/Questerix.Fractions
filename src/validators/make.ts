@@ -41,8 +41,12 @@ export const makeFoldAndShade: ValidatorRegistration<MakeInput, MakeExpected> = 
 
 // ── validator.make.halvingByLine ───────────────────────────────────────────
 
-export interface HalvingInput { regionAreas: number[] }
-export interface HalvingExpected { areaTolerance: number }
+export interface HalvingInput {
+  regionAreas: number[];
+}
+export interface HalvingExpected {
+  areaTolerance: number;
+}
 
 /**
  * Specialised halves-only variant with fixed targetPartitions=2.

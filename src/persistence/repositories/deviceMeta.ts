@@ -57,9 +57,7 @@ export const deviceMetaRepo = {
     }
   },
 
-  async updatePreferences(
-    prefPatch: Partial<DeviceMeta['preferences']>,
-  ): Promise<boolean> {
+  async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
       const current = await deviceMetaRepo.get();
       return deviceMetaRepo.update({

@@ -32,12 +32,8 @@ export class CompareInteraction implements Interaction {
 
     const rawA = payload.fractionA;
     const rawB = payload.fractionB;
-    const aFrac = rawA
-      ? { n: rawA.numerator, d: rawA.denominator }
-      : parseFrac(payload.leftLabel);
-    const bFrac = rawB
-      ? { n: rawB.numerator, d: rawB.denominator }
-      : parseFrac(payload.rightLabel);
+    const aFrac = rawA ? { n: rawA.numerator, d: rawA.denominator } : parseFrac(payload.leftLabel);
+    const bFrac = rawB ? { n: rawB.numerator, d: rawB.denominator } : parseFrac(payload.rightLabel);
     const aLabel = rawA?.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
     const bLabel = rawB?.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
 
@@ -47,9 +43,12 @@ export class CompareInteraction implements Interaction {
 
     // Top bar — fraction A (accent-a yellow)
     const aBar = new BarModel(scene, {
-      x: centerX, y: centerY - 80,
-      width: barW, height: barH,
-      numerator: aFrac.n, denominator: aFrac.d,
+      x: centerX,
+      y: centerY - 80,
+      width: barW,
+      height: barH,
+      numerator: aFrac.n,
+      denominator: aFrac.d,
       label: aLabel,
       fillColor: CLR.accentA,
     });
@@ -57,9 +56,12 @@ export class CompareInteraction implements Interaction {
 
     // Bottom bar — fraction B (accent-b purple)
     const bBar = new BarModel(scene, {
-      x: centerX, y: centerY - 80 + barH + gap,
-      width: barW, height: barH,
-      numerator: bFrac.n, denominator: bFrac.d,
+      x: centerX,
+      y: centerY - 80 + barH + gap,
+      width: barW,
+      height: barH,
+      numerator: bFrac.n,
+      denominator: bFrac.d,
       label: bLabel,
       fillColor: CLR.accentB,
     });
@@ -75,15 +77,25 @@ export class CompareInteraction implements Interaction {
 
     defs.forEach(({ label, val }, i) => {
       const bx = centerX - 220 + i * 220;
-      const bg = scene.add.rectangle(bx, btnY, 180, 56, CLR.primarySoft)
-        .setStrokeStyle(2, CLR.primary).setDepth(6);
-      scene.add.text(bx, btnY, label, {
-        fontSize: '14px', fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold', color: HEX.primary, align: 'center',
-        wordWrap: { width: 168 },
-      }).setOrigin(0.5).setDepth(7);
-      const hit = scene.add.rectangle(bx, btnY, 180, 56, 0, 0)
-        .setInteractive({ useHandCursor: true }).setDepth(8);
+      const bg = scene.add
+        .rectangle(bx, btnY, 180, 56, CLR.primarySoft)
+        .setStrokeStyle(2, CLR.primary)
+        .setDepth(6);
+      scene.add
+        .text(bx, btnY, label, {
+          fontSize: '14px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontStyle: 'bold',
+          color: HEX.primary,
+          align: 'center',
+          wordWrap: { width: 168 },
+        })
+        .setOrigin(0.5)
+        .setDepth(7);
+      const hit = scene.add
+        .rectangle(bx, btnY, 180, 56, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(8);
       // Compute relation for onCommit
       const aVal = aFrac.n / aFrac.d;
       const bVal = bFrac.n / bFrac.d;

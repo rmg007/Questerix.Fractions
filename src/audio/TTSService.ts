@@ -25,10 +25,10 @@ export class TTSService {
     try {
       if (this.synth.speaking) this.synth.cancel(); // never overlap
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = opts.rate ?? 0.95;  // slightly slower for K-2
+      u.rate = opts.rate ?? 0.95; // slightly slower for K-2
       u.pitch = opts.pitch ?? 1.05;
       if (opts.voice) {
-        const v = this.synth.getVoices().find(v => v.name === opts.voice);
+        const v = this.synth.getVoices().find((v) => v.name === opts.voice);
         if (v) u.voice = v;
       }
       this.synth.speak(u);

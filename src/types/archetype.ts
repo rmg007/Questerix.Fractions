@@ -17,7 +17,7 @@ export const ARCHETYPES = [
   'placement',
 ] as const;
 
-export type ArchetypeId = typeof ARCHETYPES[number];
+export type ArchetypeId = (typeof ARCHETYPES)[number];
 
 export const isArchetype = (s: string): s is ArchetypeId =>
   (ARCHETYPES as readonly string[]).includes(s);

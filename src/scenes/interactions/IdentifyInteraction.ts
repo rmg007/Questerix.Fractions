@@ -43,21 +43,29 @@ export class IdentifyInteraction implements Interaction {
       const x = startX + i * (cardW + spacing) + cardW / 2;
       const bg = scene.add.rectangle(x, cardY, cardW, cardH, CLR.neutral50).setDepth(5);
       bg.setStrokeStyle(2, CLR.neutral300);
-      const label = scene.add.text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
-        fontSize: '14px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral900,
-        align: 'center',
-        wordWrap: { width: cardW - 16 },
-      }).setOrigin(0.5).setDepth(6);
+      const label = scene.add
+        .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
+          fontSize: '14px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: HEX.neutral900,
+          align: 'center',
+          wordWrap: { width: cardW - 16 },
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
 
-      const hit = scene.add.rectangle(x, cardY, cardW, cardH, 0, 0)
-        .setInteractive({ useHandCursor: true }).setDepth(7);
+      const hit = scene.add
+        .rectangle(x, cardY, cardW, cardH, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(7);
 
       hit.on('pointerup', () => {
         // Deselect all
         this.gameObjects
-          .filter((o): o is Phaser.GameObjects.Rectangle => o instanceof Phaser.GameObjects.Rectangle && o !== hit)
+          .filter(
+            (o): o is Phaser.GameObjects.Rectangle =>
+              o instanceof Phaser.GameObjects.Rectangle && o !== hit
+          )
           .forEach((r) => r.setFillStyle(CLR.neutral50));
         bg.setFillStyle(CLR.primarySoft);
         this.selectedIndex = i;
@@ -73,14 +81,19 @@ export class IdentifyInteraction implements Interaction {
     // Submit button
     const submitY = cardY + cardH / 2 + 60;
     const sbg = scene.add.rectangle(centerX, submitY, 280, 56, CLR.neutral100).setDepth(5);
-    const slbl = scene.add.text(centerX, submitY, 'Check', {
-      fontSize: '20px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral600,
-    }).setOrigin(0.5).setDepth(6);
-    const shit = scene.add.rectangle(centerX, submitY, 280, 56, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(7);
+    const slbl = scene.add
+      .text(centerX, submitY, 'Check', {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral600,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
+    const shit = scene.add
+      .rectangle(centerX, submitY, 280, 56, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(7);
     shit.on('pointerup', () => {
       if (this.selectedIndex >= 0) {
         onCommit({ selectedIndex: this.selectedIndex });

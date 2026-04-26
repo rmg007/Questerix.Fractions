@@ -8,7 +8,7 @@ import type { Student, StudentId } from '../../types';
 
 export const studentRepo = {
   async create(
-    input: Omit<Student, 'id' | 'createdAt' | 'syncState'> & { id: StudentId },
+    input: Omit<Student, 'id' | 'createdAt' | 'syncState'> & { id: StudentId }
   ): Promise<Student> {
     const record: Student = {
       ...input,

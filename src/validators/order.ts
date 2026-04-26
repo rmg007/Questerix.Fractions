@@ -5,7 +5,9 @@
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 import { kendallTauDistance } from './utils';
 
-export interface OrderInput { studentSequence: string[] }
+export interface OrderInput {
+  studentSequence: string[];
+}
 
 export interface OrderExpected {
   /** Correct sorted sequence of fraction IDs. */

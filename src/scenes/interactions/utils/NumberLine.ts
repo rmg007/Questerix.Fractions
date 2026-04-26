@@ -60,11 +60,14 @@ export class NumberLine {
       this.gfx.lineStyle(2, CLR.neutral600, 1);
       this.gfx.lineBetween(tx, y - 12, tx, y + 12);
       const lbl = v === 0.5 ? '½' : v === 0 ? '0' : v === 1 ? '1' : String(v);
-      const t = this.scene.add.text(tx, y + 20, lbl, {
-        fontSize: '14px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
-      }).setOrigin(0.5, 0).setDepth(6);
+      const t = this.scene.add
+        .text(tx, y + 20, lbl, {
+          fontSize: '14px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: HEX.neutral600,
+        })
+        .setOrigin(0.5, 0)
+        .setDepth(6);
       this.tickTexts.push(t);
     });
   }
@@ -106,7 +109,10 @@ export class NumberLine {
           const spx = left + ((sp - minValue) / range) * length;
           const mx2 = left + ((this.currentValue - minValue) / range) * length;
           const d = Math.abs(mx2 - spx);
-          if (d < bestDist) { bestDist = d; best = sp; }
+          if (d < bestDist) {
+            bestDist = d;
+            best = sp;
+          }
         }
         if (bestDist <= SNAP_THRESHOLD) snapped = best;
       }

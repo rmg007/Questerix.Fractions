@@ -27,9 +27,13 @@ export class BootScene extends Phaser.Scene {
     TestHooks.unmountAll();
     TestHooks.mountSentinel('boot-scene');
     // boot-start-btn: interactive overlay that forwards to PreloadScene transition
-    TestHooks.mountInteractive('boot-start-btn', () => {
-      void this.advanceToPreload();
-    }, { width: '200px', height: '60px', top: '50%', left: '50%' });
+    TestHooks.mountInteractive(
+      'boot-start-btn',
+      () => {
+        void this.advanceToPreload();
+      },
+      { width: '200px', height: '60px', top: '50%', left: '50%' }
+    );
 
     // ── Step 1: Request durable IndexedDB storage ──────────────────────────
     // per runtime-architecture.md §5.3e — called after first engagement signal

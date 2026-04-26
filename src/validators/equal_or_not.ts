@@ -4,7 +4,9 @@
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
-export interface EqualOrNotInput { studentAnswer: boolean }
+export interface EqualOrNotInput {
+  studentAnswer: boolean;
+}
 
 export interface EqualOrNotExpected {
   /**
@@ -39,9 +41,7 @@ export const equalOrNotAreaTolerance: ValidatorRegistration<EqualOrNotInput, Equ
     // per misconceptions.md §3.2 MC-EOL-01
     const mc =
       expected.misconceptionOnWrong ??
-      (input.studentAnswer === true && expected.correctAnswer === false
-        ? 'MC-EOL-01'
-        : undefined);
+      (input.studentAnswer === true && expected.correctAnswer === false ? 'MC-EOL-01' : undefined);
 
     return {
       outcome: 'incorrect',

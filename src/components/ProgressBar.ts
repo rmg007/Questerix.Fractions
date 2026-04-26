@@ -19,13 +19,13 @@ export interface ProgressBarConfig {
   depth?: number;
 }
 
-const DEFAULT_GOAL   = 5;   // per C9 — minimum 5 problems per session
-const BAR_HEIGHT     = 16;
-const TRACK_COLOR    = CLR.neutral100;
-const FILL_COLOR     = CLR.primary;
-const FILL_COLOR_MID = CLR.accentC;   // hints green progress at milestone
+const DEFAULT_GOAL = 5; // per C9 — minimum 5 problems per session
+const BAR_HEIGHT = 16;
+const TRACK_COLOR = CLR.neutral100;
+const FILL_COLOR = CLR.primary;
+const FILL_COLOR_MID = CLR.accentC; // hints green progress at milestone
 const COMPLETE_COLOR = CLR.success;
-const ANIMATE_MS     = 240; // per design-language.md §6.1 (snap pulse 180–240ms)
+const ANIMATE_MS = 240; // per design-language.md §6.1 (snap pulse 180–240ms)
 
 export class ProgressBar extends Phaser.GameObjects.Container {
   private track: Phaser.GameObjects.Rectangle;
@@ -37,34 +37,27 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private readonly barWidth: number;
 
   constructor(config: ProgressBarConfig) {
-    const {
-      scene,
-      x, y,
-      width,
-      height  = BAR_HEIGHT,
-      goal    = DEFAULT_GOAL,
-      depth   = 10,
-    } = config;
+    const { scene, x, y, width, height = BAR_HEIGHT, goal = DEFAULT_GOAL, depth = 10 } = config;
 
     super(scene, x, y);
 
-    this.goal     = goal;
+    this.goal = goal;
     this.barWidth = width;
 
     // Track background — per design-language.md §2.4 neutral-100
-    this.track = scene.add.rectangle(0, 0, width, height, TRACK_COLOR)
-      .setOrigin(0, 0.5);
+    this.track = scene.add.rectangle(0, 0, width, height, TRACK_COLOR).setOrigin(0, 0.5);
 
     // Filled portion
-    this.fill = scene.add.rectangle(0, 0, 0, height, FILL_COLOR)
-      .setOrigin(0, 0.5);
+    this.fill = scene.add.rectangle(0, 0, 0, height, FILL_COLOR).setOrigin(0, 0.5);
 
     // Count label — e.g. "2 / 5"
-    this.countText = scene.add.text(width + 12, 0, `0 / ${goal}`, {
-      fontSize: '14px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: '#5B6478', // neutral-600 per design-language.md §2.4
-    }).setOrigin(0, 0.5);
+    this.countText = scene.add
+      .text(width + 12, 0, `0 / ${goal}`, {
+        fontSize: '14px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: '#5B6478', // neutral-600 per design-language.md §2.4
+      })
+      .setOrigin(0, 0.5);
 
     this.add([this.track, this.fill, this.countText]);
     this.setDepth(depth);
@@ -86,13 +79,15 @@ export class ProgressBar extends Phaser.GameObjects.Container {
    */
   setProgress(value: number): void {
     this.currentValue = Math.min(Math.max(0, value), this.goal);
-    const ratio      = this.currentValue / this.goal;
-    const targetW    = this.barWidth * ratio;
-    const complete   = this.currentValue >= this.goal;
+    const ratio = this.currentValue / this.goal;
+    const targetW = this.barWidth * ratio;
+    const complete = this.currentValue >= this.goal;
 
-    const fillColor  = complete ? COMPLETE_COLOR
-      : this.currentValue >= Math.ceil(this.goal / 2) ? FILL_COLOR_MID
-      : FILL_COLOR;
+    const fillColor = complete
+      ? COMPLETE_COLOR
+      : this.currentValue >= Math.ceil(this.goal / 2)
+        ? FILL_COLOR_MID
+        : FILL_COLOR;
 
     this.fill.setFillStyle(fillColor);
     this.countText.setText(`${this.currentValue} / ${this.goal}`);
@@ -114,8 +109,12 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     }
   }
 
-  get value(): number { return this.currentValue; }
-  get isComplete(): boolean { return this.currentValue >= this.goal; }
+  get value(): number {
+    return this.currentValue;
+  }
+  get isComplete(): boolean {
+    return this.currentValue >= this.goal;
+  }
 
   private checkReduceMotion(): boolean {
     try {

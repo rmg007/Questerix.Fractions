@@ -6,7 +6,9 @@ import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
 export type Relation = '<' | '=' | '>';
 
-export interface CompareInput { studentRelation: Relation }
+export interface CompareInput {
+  studentRelation: Relation;
+}
 
 export interface CompareExpected {
   leftDecimal: number;
@@ -41,9 +43,7 @@ export const compareRelation: ValidatorRegistration<CompareInput, CompareExpecte
     // "bigger denominator = bigger fraction" pattern.
     // per misconceptions.md §3.1 MC-WHB-02
     const denominatorBias =
-      trueRelation === '<' &&
-      studentRelation === '>' &&
-      leftDecimal < rightDecimal;
+      trueRelation === '<' && studentRelation === '>' && leftDecimal < rightDecimal;
 
     return {
       outcome: 'incorrect',

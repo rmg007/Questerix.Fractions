@@ -28,10 +28,10 @@ export class EqualOrNotInteraction implements Interaction {
     const payload = ctx.template.payload as { partitionLines?: number[][][]; rotation?: number };
     (payload.partitionLines ?? []).forEach((line) => {
       if (line.length >= 2) {
-        const x1 = centerX - 170 + (line[0]![0]! * 340);
-        const y1 = centerY - 130 + (line[0]![1]! * 260);
-        const x2 = centerX - 170 + (line[1]![0]! * 340);
-        const y2 = centerY - 130 + (line[1]![1]! * 260);
+        const x1 = centerX - 170 + line[0]![0]! * 340;
+        const y1 = centerY - 130 + line[0]![1]! * 260;
+        const x2 = centerX - 170 + line[1]![0]! * 340;
+        const y2 = centerY - 130 + line[1]![1]! * 260;
         shapeG.lineStyle(3, CLR.primary, 1);
         shapeG.lineBetween(x1, y1, x2, y2);
       }
@@ -40,14 +40,19 @@ export class EqualOrNotInteraction implements Interaction {
 
     const makeBtn = (x: number, label: string, answer: boolean, color: number) => {
       const bg = scene.add.rectangle(x, y, btnW, btnH, color).setDepth(5);
-      const lbl = scene.add.text(x, y, label, {
-        fontSize: '22px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: HEX.neutral0,
-      }).setOrigin(0.5).setDepth(6);
-      const hit = scene.add.rectangle(x, y, btnW, btnH, 0, 0)
-        .setInteractive({ useHandCursor: true }).setDepth(7);
+      const lbl = scene.add
+        .text(x, y, label, {
+          fontSize: '22px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontStyle: 'bold',
+          color: HEX.neutral0,
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
+      const hit = scene.add
+        .rectangle(x, y, btnW, btnH, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(7);
       hit.on('pointerup', () => onCommit({ answer }));
       this.gameObjects.push(bg, lbl, hit);
     };

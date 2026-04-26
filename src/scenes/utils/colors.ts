@@ -8,29 +8,29 @@
 
 export const HEX = {
   // §2.1 Primary
-  primary:        '#2F6FED',
-  primarySoft:    '#D9E5FB',
-  primaryStrong:  '#1A4FBF',
+  primary: '#2F6FED',
+  primarySoft: '#D9E5FB',
+  primaryStrong: '#1A4FBF',
 
   // §2.2 Accent
-  accentA:        '#FFB400',
-  accentB:        '#7B2CBF',
-  accentC:        '#0FA968',
+  accentA: '#FFB400',
+  accentB: '#7B2CBF',
+  accentC: '#0FA968',
 
   // §2.3 Semantic
-  success:        '#1FAA59',
-  successSoft:    '#D6F1E0',
-  error:          '#E5484D',
-  errorSoft:      '#FBE3E4',
-  warning:        '#D88E1F', // C6.3: darkened to 4.6:1 contrast before text usage (WCAG AA 4.5:1)
+  success: '#1FAA59',
+  successSoft: '#D6F1E0',
+  error: '#E5484D',
+  errorSoft: '#FBE3E4',
+  warning: '#D88E1F', // C6.3: darkened to 4.6:1 contrast before text usage (WCAG AA 4.5:1)
 
   // §2.4 Neutrals
-  neutral0:       '#FFFFFF',
-  neutral50:      '#F7F8FA',
-  neutral100:     '#EEF0F4',
-  neutral300:     '#C5CAD3',
-  neutral600:     '#5B6478',
-  neutral900:     '#101521',
+  neutral0: '#FFFFFF',
+  neutral50: '#F7F8FA',
+  neutral100: '#EEF0F4',
+  neutral300: '#C5CAD3',
+  neutral600: '#5B6478',
+  neutral900: '#101521',
 } as const;
 
 // ── Phaser number colors (0xRRGGBB) ───────────────────────────────────────
@@ -40,26 +40,26 @@ function hexToNum(hex: string): number {
 }
 
 export const CLR = {
-  primary:        hexToNum(HEX.primary),
-  primarySoft:    hexToNum(HEX.primarySoft),
-  primaryStrong:  hexToNum(HEX.primaryStrong),
+  primary: hexToNum(HEX.primary),
+  primarySoft: hexToNum(HEX.primarySoft),
+  primaryStrong: hexToNum(HEX.primaryStrong),
 
-  accentA:        hexToNum(HEX.accentA),
-  accentB:        hexToNum(HEX.accentB),
-  accentC:        hexToNum(HEX.accentC),
+  accentA: hexToNum(HEX.accentA),
+  accentB: hexToNum(HEX.accentB),
+  accentC: hexToNum(HEX.accentC),
 
-  success:        hexToNum(HEX.success),
-  successSoft:    hexToNum(HEX.successSoft),
-  error:          hexToNum(HEX.error),
-  errorSoft:      hexToNum(HEX.errorSoft),
-  warning:        hexToNum(HEX.warning),
+  success: hexToNum(HEX.success),
+  successSoft: hexToNum(HEX.successSoft),
+  error: hexToNum(HEX.error),
+  errorSoft: hexToNum(HEX.errorSoft),
+  warning: hexToNum(HEX.warning),
 
-  neutral0:       hexToNum(HEX.neutral0),
-  neutral50:      hexToNum(HEX.neutral50),
-  neutral100:     hexToNum(HEX.neutral100),
-  neutral300:     hexToNum(HEX.neutral300),
-  neutral600:     hexToNum(HEX.neutral600),
-  neutral900:     hexToNum(HEX.neutral900),
+  neutral0: hexToNum(HEX.neutral0),
+  neutral50: hexToNum(HEX.neutral50),
+  neutral100: hexToNum(HEX.neutral100),
+  neutral300: hexToNum(HEX.neutral300),
+  neutral600: hexToNum(HEX.neutral600),
+  neutral900: hexToNum(HEX.neutral900),
 } as const;
 
 export type ColorToken = keyof typeof CLR;

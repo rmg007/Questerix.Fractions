@@ -26,12 +26,20 @@ export interface FeedbackOverlayConfig {
 }
 
 const DISPLAY_MS = 600; // per interaction-model.md §2 — <800ms total
-const FADE_MS    = 120;
+const FADE_MS = 120;
 
-const KIND_CONFIG: Record<FeedbackKind, { bg: number; textColor: string; text: string; icon: string }> = {
-  correct:   { bg: CLR.successSoft, textColor: HEX.success,  text: 'Correct!',                   icon: '✓' },
-  incorrect: { bg: CLR.errorSoft,   textColor: HEX.error,    text: 'Not quite — try again!',      icon: '✗' },
-  close:     { bg: CLR.warning,     textColor: HEX.neutral900, text: 'Almost! Adjust a little.',  icon: '~' },
+const KIND_CONFIG: Record<
+  FeedbackKind,
+  { bg: number; textColor: string; text: string; icon: string }
+> = {
+  correct: { bg: CLR.successSoft, textColor: HEX.success, text: 'Correct!', icon: '✓' },
+  incorrect: { bg: CLR.errorSoft, textColor: HEX.error, text: 'Not quite — try again!', icon: '✗' },
+  close: {
+    bg: CLR.warning,
+    textColor: HEX.neutral900,
+    text: 'Almost! Adjust a little.',
+    icon: '~',
+  },
 };
 
 /** Emitted when the overlay has fully dismissed. */
@@ -48,38 +56,42 @@ export class FeedbackOverlay {
   readonly events: Phaser.Events.EventEmitter;
 
   constructor(config: FeedbackOverlayConfig) {
-    const {
-      scene,
-      width  = 800,
-      height = 1280,
-      depth  = 100,
-    } = config;
+    const { scene, width = 800, height = 1280, depth = 100 } = config;
 
-    this.scene  = scene;
+    this.scene = scene;
     this.events = new Phaser.Events.EventEmitter();
 
     const cx = width / 2;
     const cy = height / 2;
 
     // Background panel — spans full width, 200px tall
-    this.bg = scene.add.rectangle(cx, cy, width, 200, CLR.successSoft, 0.97)
+    this.bg = scene.add
+      .rectangle(cx, cy, width, 200, CLR.successSoft, 0.97)
       .setDepth(depth)
       .setVisible(false);
 
     // Icon
-    this.iconGO = scene.add.text(cx - 220, cy, '✓', {
-      fontSize: '48px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: HEX.success,
-    }).setOrigin(0.5).setDepth(depth + 1).setVisible(false);
+    this.iconGO = scene.add
+      .text(cx - 220, cy, '✓', {
+        fontSize: '48px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.success,
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 1)
+      .setVisible(false);
 
     // Label — per interaction-model.md §5.1: never say "wrong"
-    this.label = scene.add.text(cx + 20, cy, '', {
-      fontSize: '28px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral900,
-    }).setOrigin(0, 0.5).setDepth(depth + 1).setVisible(false);
+    this.label = scene.add
+      .text(cx + 20, cy, '', {
+        fontSize: '28px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral900,
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(depth + 1)
+      .setVisible(false);
   }
 
   /**
@@ -102,15 +114,19 @@ export class FeedbackOverlay {
     // ── Test hooks ─────────────────────────────────────────────────────────
     TestHooks.mountSentinel('feedback-overlay');
     // feedback-next-btn: interactive button; clicking it immediately dismisses overlay
-    TestHooks.mountInteractive('feedback-next-btn', () => {
-      this.dismissTimer?.remove(false);
-      this.dismissTimer = null;
-      this.hide();
-      TestHooks.unmount('feedback-overlay');
-      TestHooks.unmount('feedback-next-btn');
-      this.events.emit(FEEDBACK_DISMISSED_EVENT);
-      onDismiss?.();
-    }, { width: '200px', height: '60px', top: '55%', left: '50%' });
+    TestHooks.mountInteractive(
+      'feedback-next-btn',
+      () => {
+        this.dismissTimer?.remove(false);
+        this.dismissTimer = null;
+        this.hide();
+        TestHooks.unmount('feedback-overlay');
+        TestHooks.unmount('feedback-next-btn');
+        this.events.emit(FEEDBACK_DISMISSED_EVENT);
+        onDismiss?.();
+      },
+      { width: '200px', height: '60px', top: '55%', left: '50%' }
+    );
 
     const dismiss = () => {
       this.hide();

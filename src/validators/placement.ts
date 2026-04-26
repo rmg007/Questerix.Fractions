@@ -4,20 +4,19 @@
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
-export interface PlacementInput { studentPlacedDecimal: number }
+export interface PlacementInput {
+  studentPlacedDecimal: number;
+}
 
 export interface PlacementExpected {
   targetDecimal: number;
-  exactTolerance: number;  // typically 0.05
-  closeTolerance: number;  // typically 0.15
+  exactTolerance: number; // typically 0.05
+  closeTolerance: number; // typically 0.15
 }
 
 // ── shared placement check ────────────────────────────────────────────────
 
-function runPlacement(
-  input: PlacementInput,
-  expected: PlacementExpected
-): ValidatorResult {
+function runPlacement(input: PlacementInput, expected: PlacementExpected): ValidatorResult {
   const errorMagnitude = Math.abs(input.studentPlacedDecimal - expected.targetDecimal);
 
   if (errorMagnitude <= expected.exactTolerance) {
@@ -30,8 +29,7 @@ function runPlacement(
 
   // Detect MC-PRX-02: "all fractions < 0.5" — student places >0.5 target below 0.5.
   // per misconceptions.md §3.4 MC-PRX-02
-  const prx02 =
-    expected.targetDecimal > 0.5 && input.studentPlacedDecimal < 0.5;
+  const prx02 = expected.targetDecimal > 0.5 && input.studentPlacedDecimal < 0.5;
 
   return {
     outcome: 'incorrect',

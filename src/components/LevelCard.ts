@@ -13,8 +13,12 @@ const CARD_H = 160;
 const CARD_RADIUS = 14;
 
 export interface LevelCardOptions {
-  scene: Phaser.Scene; x: number; y: number;
-  meta: LevelMeta; unlocked: boolean; suggested: boolean;
+  scene: Phaser.Scene;
+  x: number;
+  y: number;
+  meta: LevelMeta;
+  unlocked: boolean;
+  suggested: boolean;
   onTap: (levelNumber: number) => void;
 }
 
@@ -30,14 +34,17 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.meta = opts.meta;
     this.unlocked = opts.unlocked;
     this.onTap = opts.onTap;
-    this.reducedMotion = typeof window !== 'undefined' &&
+    this.reducedMotion =
+      typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     this.build(opts.suggested);
     opts.scene.add.existing(this);
     // per test-strategy.md §1.3 — interactive testid overlay per card
-    TestHooks.mountInteractive(`level-card-L${opts.meta.number}`,
+    TestHooks.mountInteractive(
+      `level-card-L${opts.meta.number}`,
       () => opts.onTap(opts.meta.number),
-      { width: `${CARD_W}px`, height: `${CARD_H}px` });
+      { width: `${CARD_W}px`, height: `${CARD_H}px` }
+    );
   }
 
   private build(suggested: boolean): void {
@@ -53,28 +60,49 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.add(this.bg);
 
     // Level number
-    this.add(s.add.text(-CARD_W / 2 + 16, -CARD_H / 2 + 14, `L${this.meta.number}`, {
-      fontSize: '20px', fontFamily: '"Nunito", system-ui, sans-serif', fontStyle: 'bold',
-      color: this.unlocked ? HEX.primary : HEX.neutral600,
-    }));
+    this.add(
+      s.add.text(-CARD_W / 2 + 16, -CARD_H / 2 + 14, `L${this.meta.number}`, {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: this.unlocked ? HEX.primary : HEX.neutral600,
+      })
+    );
     // Name
-    this.add(s.add.text(0, -14, this.meta.name, {
-      fontSize: '18px', fontFamily: '"Nunito", system-ui, sans-serif', fontStyle: 'bold',
-      color: this.unlocked ? HEX.neutral900 : HEX.neutral600,
-      align: 'center', wordWrap: { width: CARD_W - 24 },
-    }).setOrigin(0.5));
+    this.add(
+      s.add
+        .text(0, -14, this.meta.name, {
+          fontSize: '18px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontStyle: 'bold',
+          color: this.unlocked ? HEX.neutral900 : HEX.neutral600,
+          align: 'center',
+          wordWrap: { width: CARD_W - 24 },
+        })
+        .setOrigin(0.5)
+    );
     // Concept
-    this.add(s.add.text(0, 24, this.meta.concept, {
-      fontSize: '13px', fontFamily: '"Nunito", system-ui, sans-serif',
-      color: this.unlocked ? HEX.neutral600 : HEX.neutral300,
-      align: 'center', wordWrap: { width: CARD_W - 24 },
-    }).setOrigin(0.5));
+    this.add(
+      s.add
+        .text(0, 24, this.meta.concept, {
+          fontSize: '13px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: this.unlocked ? HEX.neutral600 : HEX.neutral300,
+          align: 'center',
+          wordWrap: { width: CARD_W - 24 },
+        })
+        .setOrigin(0.5)
+    );
 
     // Grade band + optional "Suggested next" badge
     // per runtime-architecture.md §11 routing rules
-    const gradeText = s.add.text(CARD_W / 2 - 12, -CARD_H / 2 + 14, `Gr ${this.meta.gradeBand}`, {
-      fontSize: '11px', fontFamily: '"Nunito", system-ui, sans-serif', color: HEX.neutral600,
-    }).setOrigin(1, 0);
+    const gradeText = s.add
+      .text(CARD_W / 2 - 12, -CARD_H / 2 + 14, `Gr ${this.meta.gradeBand}`, {
+        fontSize: '11px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: HEX.neutral600,
+      })
+      .setOrigin(1, 0);
     this.add(gradeText);
 
     if (suggested) {
@@ -82,14 +110,21 @@ export class LevelCard extends Phaser.GameObjects.Container {
       badgeBg.fillStyle(CLR.accentA, 1);
       badgeBg.fillRoundedRect(-54, CARD_H / 2 - 28, 108, 22, 8);
       this.add(badgeBg);
-      this.add(s.add.text(0, CARD_H / 2 - 17, 'Suggested next', {
-        fontSize: '11px', fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold', color: HEX.neutral900,
-      }).setOrigin(0.5));
+      this.add(
+        s.add
+          .text(0, CARD_H / 2 - 17, 'Suggested next', {
+            fontSize: '11px',
+            fontFamily: '"Nunito", system-ui, sans-serif',
+            fontStyle: 'bold',
+            color: HEX.neutral900,
+          })
+          .setOrigin(0.5)
+      );
     }
 
     // Hit zone — ≥44×44 per accessibility.md
-    const hit = s.add.rectangle(0, 0, CARD_W, CARD_H, 0x000000, 0)
+    const hit = s.add
+      .rectangle(0, 0, CARD_W, CARD_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true });
     this.add(hit);
 

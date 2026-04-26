@@ -17,16 +17,16 @@ import { EqualOrNotInteraction } from '../interactions/EqualOrNotInteraction';
 import { PlacementInteraction } from '../interactions/PlacementInteraction';
 
 const interactionRegistry = new Map<ArchetypeId, () => Interaction>([
-  ['partition',    () => new PartitionInteraction()],
-  ['identify',     () => new IdentifyInteraction()],
-  ['label',        () => new LabelInteraction()],
-  ['make',         () => new MakeInteraction()],
-  ['compare',      () => new CompareInteraction()],
-  ['benchmark',    () => new BenchmarkInteraction()],
-  ['order',        () => new OrderInteraction()],
-  ['snap_match',   () => new SnapMatchInteraction()],
+  ['partition', () => new PartitionInteraction()],
+  ['identify', () => new IdentifyInteraction()],
+  ['label', () => new LabelInteraction()],
+  ['make', () => new MakeInteraction()],
+  ['compare', () => new CompareInteraction()],
+  ['benchmark', () => new BenchmarkInteraction()],
+  ['order', () => new OrderInteraction()],
+  ['snap_match', () => new SnapMatchInteraction()],
   ['equal_or_not', () => new EqualOrNotInteraction()],
-  ['placement',    () => new PlacementInteraction()],
+  ['placement', () => new PlacementInteraction()],
 ]);
 
 /**

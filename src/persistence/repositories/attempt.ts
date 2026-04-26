@@ -59,7 +59,7 @@ export const attemptRepo = {
 
   async listForStudentTemplate(
     studentId: StudentId,
-    questionTemplateId: QuestionTemplateId,
+    questionTemplateId: QuestionTemplateId
   ): Promise<Attempt[]> {
     try {
       return await db.attempts
@@ -74,7 +74,7 @@ export const attemptRepo = {
   async getByArchetype(
     archetype: string,
     _level: number,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<Attempt[]> {
     try {
       let results = await db.attempts

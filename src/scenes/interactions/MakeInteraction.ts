@@ -65,33 +65,46 @@ export class MakeInteraction implements Interaction {
       maxPos: maxX,
       snapThreshold: SHAPE_W * SNAP_PCT,
       snapTargets,
-      onMove: (pos) => { this.handlePos = pos; this.updateLine(pos, centerY); },
-      onCommit: (pos) => { this.handlePos = pos; this.updateLine(pos, centerY); },
+      onMove: (pos) => {
+        this.handlePos = pos;
+        this.updateLine(pos, centerY);
+      },
+      onCommit: (pos) => {
+        this.handlePos = pos;
+        this.updateLine(pos, centerY);
+      },
     });
 
     // Confirm partition button
     const btnY = centerY + SHAPE_H / 2 + 60;
     const bbg = scene.add.rectangle(centerX, btnY, 240, 52, CLR.primary).setDepth(7);
-    const blbl = scene.add.text(centerX, btnY, 'Confirm Fold', {
-      fontSize: '18px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.neutral0,
-    }).setOrigin(0.5).setDepth(8);
-    const bhit = scene.add.rectangle(centerX, btnY, 240, 52, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(9);
+    const blbl = scene.add
+      .text(centerX, btnY, 'Confirm Fold', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral0,
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
+    const bhit = scene.add
+      .rectangle(centerX, btnY, 240, 52, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(9);
 
     bhit.on('pointerup', () => {
       if (this.phase !== 'partition') return;
       this.phase = 'shade';
       blbl.setText(`Tap ${targetNumerator} region(s) to shade`);
       // Create tappable regions
-      const left = scene.add.rectangle(
-        (minX + this.handlePos) / 2, centerY,
-        this.handlePos - minX, SHAPE_H, 0, 0,
-      ).setInteractive({ useHandCursor: true }).setDepth(10);
-      const right = scene.add.rectangle(
-        (this.handlePos + maxX) / 2, centerY,
-        maxX - this.handlePos, SHAPE_H, 0, 0,
-      ).setInteractive({ useHandCursor: true }).setDepth(10);
+      const left = scene.add
+        .rectangle((minX + this.handlePos) / 2, centerY, this.handlePos - minX, SHAPE_H, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(10);
+      const right = scene.add
+        .rectangle((this.handlePos + maxX) / 2, centerY, maxX - this.handlePos, SHAPE_H, 0, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(10);
 
       [left, right].forEach((r, i) => {
         r.on('pointerup', () => {
@@ -111,12 +124,19 @@ export class MakeInteraction implements Interaction {
     // Submit
     const sy = btnY + 70;
     const sbg = scene.add.rectangle(centerX, sy, 240, 52, CLR.accentC).setDepth(7);
-    scene.add.text(centerX, sy, 'Check', {
-      fontSize: '18px', fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold', color: HEX.neutral0,
-    }).setOrigin(0.5).setDepth(8);
-    const shit = scene.add.rectangle(centerX, sy, 240, 52, 0, 0)
-      .setInteractive({ useHandCursor: true }).setDepth(9);
+    scene.add
+      .text(centerX, sy, 'Check', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral0,
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
+    const shit = scene.add
+      .rectangle(centerX, sy, 240, 52, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(9);
     shit.on('pointerup', () => {
       const leftArea = this.handlePos - minX;
       const rightArea = maxX - this.handlePos;
@@ -138,7 +158,12 @@ export class MakeInteraction implements Interaction {
     (this.dragHandle as DragHandle | undefined)?.destroy();
   }
 
-  private drawShape(g: Phaser.GameObjects.Graphics, shapeType: string, cx: number, cy: number): void {
+  private drawShape(
+    g: Phaser.GameObjects.Graphics,
+    shapeType: string,
+    cx: number,
+    cy: number
+  ): void {
     g.fillStyle(CLR.neutral50, 1);
     if (shapeType === 'circle') {
       g.fillCircle(cx, cy, SHAPE_W / 2);

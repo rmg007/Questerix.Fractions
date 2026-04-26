@@ -24,7 +24,10 @@ export const misconceptionFlagRepo = {
     }
   },
 
-  async getForStudent(studentId: StudentId, misconceptionId: MisconceptionId): Promise<MisconceptionFlag | undefined> {
+  async getForStudent(
+    studentId: StudentId,
+    misconceptionId: MisconceptionId
+  ): Promise<MisconceptionFlag | undefined> {
     try {
       const rows = await db.misconceptionFlags
         .where('[studentId+misconceptionId]')

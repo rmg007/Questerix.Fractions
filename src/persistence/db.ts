@@ -59,7 +59,8 @@ export class QuesterixDB extends Dexie {
     this.version(1).stores({
       students: 'id, displayName, createdAt',
       sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts: '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
       skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
       deviceMeta: '&installId',
       bookmarks: 'id, studentId',
@@ -71,7 +72,8 @@ export class QuesterixDB extends Dexie {
     this.version(2).stores({
       students: 'id, displayName, createdAt',
       sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts: '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
       skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
       deviceMeta: '&installId',
       bookmarks: 'id, studentId',
@@ -95,7 +97,8 @@ export class QuesterixDB extends Dexie {
       // Dynamic stores (carry from v1/v2)
       students: 'id, displayName, createdAt',
       sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts: '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
       skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
       deviceMeta: '&installId',
       bookmarks: 'id, studentId',
@@ -121,7 +124,8 @@ export const db = new QuesterixDB();
 export async function ensurePersistenceGranted(): Promise<boolean> {
   const isDev = import.meta.env.DEV;
   if (!('storage' in navigator) || !('persist' in navigator.storage)) {
-    if (isDev) console.warn('StorageManager API unavailable — data may be evicted by browser policy');
+    if (isDev)
+      console.warn('StorageManager API unavailable — data may be evicted by browser policy');
     return false;
   }
   try {

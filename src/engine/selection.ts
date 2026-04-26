@@ -72,20 +72,14 @@ function getMastery(skillId: SkillId, mastery: Map<SkillId, SkillMastery>): numb
   return mastery.get(skillId)?.masteryEstimate ?? 0;
 }
 
-function hasSkillInZPD(
-  q: QuestionTemplate,
-  mastery: Map<SkillId, SkillMastery>,
-): boolean {
+function hasSkillInZPD(q: QuestionTemplate, mastery: Map<SkillId, SkillMastery>): boolean {
   return q.skillIds.some((sid) => {
     const p = getMastery(sid, mastery);
     return p >= ZPD_LOW && p < ZPD_HIGH;
   });
 }
 
-function hasSkillBelowZPD(
-  q: QuestionTemplate,
-  mastery: Map<SkillId, SkillMastery>,
-): boolean {
+function hasSkillBelowZPD(q: QuestionTemplate, mastery: Map<SkillId, SkillMastery>): boolean {
   return q.skillIds.some((sid) => getMastery(sid, mastery) <= ZPD_LOW);
 }
 

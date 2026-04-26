@@ -69,14 +69,25 @@ export async function backupToFile(): Promise<Blob> {
   if (sessions.length > 1000) {
     // Sort by startedAt and take most recent (chunking older sessions reduces memory)
     sessions = sessions.sort((a, b) => b.startedAt - a.startedAt).slice(0, 1000);
-    const sessionIds = new Set(sessions.map(s => s.id));
-    attempts = attempts.filter(a => sessionIds.has(a.sessionId));
+    const sessionIds = new Set(sessions.map((s) => s.id));
+    attempts = attempts.filter((a) => sessionIds.has(a.sessionId));
   }
 
   const envelope: BackupEnvelope = {
     version: BACKUP_SCHEMA_VERSION,
     exportedAt: Date.now(),
-    tables: { students, sessions, attempts, skillMastery, deviceMeta, bookmarks, sessionTelemetry, hintEvents, misconceptionFlags, progressionStat },
+    tables: {
+      students,
+      sessions,
+      attempts,
+      skillMastery,
+      deviceMeta,
+      bookmarks,
+      sessionTelemetry,
+      hintEvents,
+      misconceptionFlags,
+      progressionStat,
+    },
   };
 
   const json = JSON.stringify(envelope);
@@ -123,7 +134,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
   if (envelope.version !== BACKUP_SCHEMA_VERSION) {
     throw new Error(
-      `backup.restore: unsupported schema version ${envelope.version} (expected ${BACKUP_SCHEMA_VERSION})`,
+      `backup.restore: unsupported schema version ${envelope.version} (expected ${BACKUP_SCHEMA_VERSION})`
     );
   }
 
@@ -152,7 +163,18 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
   const t = envelope.tables;
   await db.transaction(
     'rw',
-    [db.students, db.sessions, db.attempts, db.skillMastery, db.deviceMeta, db.bookmarks, db.sessionTelemetry, db.hintEvents, db.misconceptionFlags, db.progressionStat],
+    [
+      db.students,
+      db.sessions,
+      db.attempts,
+      db.skillMastery,
+      db.deviceMeta,
+      db.bookmarks,
+      db.sessionTelemetry,
+      db.hintEvents,
+      db.misconceptionFlags,
+      db.progressionStat,
+    ],
     async () => {
       await tryAddAll(db.students, t.students ?? []);
       await tryAddAll(db.sessions, t.sessions ?? []);
@@ -177,7 +199,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
           }
         }
       }
-    },
+    }
   );
 
   await deviceMetaRepo.update({ lastRestoredAt: Date.now() });

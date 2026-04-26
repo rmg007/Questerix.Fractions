@@ -22,12 +22,11 @@ export const bookmarkRepo = {
 
   async getLatestForStudent(studentId: StudentId): Promise<Bookmark | undefined> {
     try {
-      const rows = await db.bookmarks
-        .where('studentId')
-        .equals(studentId)
-        .toArray();
+      const rows = await db.bookmarks.where('studentId').equals(studentId).toArray();
       if (rows.length === 0) return undefined;
-      return rows.reduce((latest: Bookmark, b: Bookmark) => b.savedAt > latest.savedAt ? b : latest);
+      return rows.reduce((latest: Bookmark, b: Bookmark) =>
+        b.savedAt > latest.savedAt ? b : latest
+      );
     } catch {
       return undefined;
     }

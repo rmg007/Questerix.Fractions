@@ -67,12 +67,16 @@ export class PartitionInteraction implements Interaction {
     });
 
     // partition-target: transparent button that triggers submit
-    TestHooks.mountInteractive('partition-target', () => {
-      const leftArea = this.handlePos - (centerX - SHAPE_W / 2);
-      const rightArea = (centerX + SHAPE_W / 2) - this.handlePos;
-      const input: PartitionInput = { regionAreas: [leftArea, rightArea] };
-      ctx.onCommit(input);
-    }, { width: '120px', height: '120px', top: '50%', left: '50%' });
+    TestHooks.mountInteractive(
+      'partition-target',
+      () => {
+        const leftArea = this.handlePos - (centerX - SHAPE_W / 2);
+        const rightArea = centerX + SHAPE_W / 2 - this.handlePos;
+        const input: PartitionInput = { regionAreas: [leftArea, rightArea] };
+        ctx.onCommit(input);
+      },
+      { width: '120px', height: '120px', top: '50%', left: '50%' }
+    );
   }
 
   unmount(): void {

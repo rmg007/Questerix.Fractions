@@ -160,12 +160,7 @@ export interface MisconceptionFlag {
 
 // ── §3.6 SkillMastery ──────────────────────────────────────────────────────
 
-export type MasteryState =
-  | 'NOT_STARTED'
-  | 'LEARNING'
-  | 'APPROACHING'
-  | 'MASTERED'
-  | 'DECAYED';
+export type MasteryState = 'NOT_STARTED' | 'LEARNING' | 'APPROACHING' | 'MASTERED' | 'DECAYED';
 
 /**
  * One row per (studentId, skillId) composite key.

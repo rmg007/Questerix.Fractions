@@ -17,7 +17,8 @@ function getOrCreateContainer(): HTMLElement | null {
     el = document.createElement('div');
     el.id = CONTAINER_ID;
     el.setAttribute('aria-hidden', 'true');
-    el.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;';
+    el.style.cssText =
+      'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;';
     document.body?.appendChild(el);
   }
   return el;
@@ -56,7 +57,7 @@ export const TestHooks = {
   mountInteractive(
     testid: string,
     onClick: () => void,
-    opts?: { top?: string; left?: string; width?: string; height?: string },
+    opts?: { top?: string; left?: string; width?: string; height?: string }
   ): HTMLElement | null {
     if (typeof document === 'undefined') return null;
     // Remove stale button if it exists

@@ -202,7 +202,9 @@ export class PreferenceToggle {
     const current = meta.preferences[this.key];
     if (typeof current !== 'boolean') return;
     const next = !current;
-    await deviceMetaRepo.updatePreferences({ [this.key]: next } as Partial<DeviceMeta['preferences']>);
+    await deviceMetaRepo.updatePreferences({ [this.key]: next } as Partial<
+      DeviceMeta['preferences']
+    >);
     this.setChecked(next, next);
     this.onChange?.(next);
   }

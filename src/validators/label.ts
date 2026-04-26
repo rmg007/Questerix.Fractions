@@ -4,9 +4,14 @@
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
-export interface LabelMapping { labelId: string; regionId: string }
+export interface LabelMapping {
+  labelId: string;
+  regionId: string;
+}
 
-export interface LabelInput { studentMappings: LabelMapping[] }
+export interface LabelInput {
+  studentMappings: LabelMapping[];
+}
 
 export interface LabelExpected {
   /** regionId → expected labelId */

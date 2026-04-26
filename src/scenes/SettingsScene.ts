@@ -38,12 +38,14 @@ export class SettingsScene extends Phaser.Scene {
     this.add.rectangle(cx, CH / 2, CW, CH, CLR.neutral0);
 
     // Heading
-    this.add.text(cx, 100, 'Settings', {
-      fontSize: '40px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.primary,
-    }).setOrigin(0.5);
+    this.add
+      .text(cx, 100, 'Settings', {
+        fontSize: '40px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.primary,
+      })
+      .setOrigin(0.5);
 
     // ── Section labels ─────────────────────────────────────────────────────
     this.sectionLabel(cx, 190, 'Preferences');
@@ -56,24 +58,23 @@ export class SettingsScene extends Phaser.Scene {
     const canvasTop = this.sys.game.canvas.getBoundingClientRect?.().top ?? 0;
     const scaleY = this.sys.game.canvas.clientHeight / CH;
 
-    const toViewport = (canvasY: number) =>
-      `${canvasTop + canvasY * scaleY}px`;
+    const toViewport = (canvasY: number) => `${canvasTop + canvasY * scaleY}px`;
 
     const halfCanvas = `${(this.sys.game.canvas.getBoundingClientRect?.().left ?? 0) + this.sys.game.canvas.clientWidth / 2}px`;
 
     this.toggles.push(
       new PreferenceToggle(
         { key: 'reduceMotion', label: 'Reduced Motion' },
-        { top: toViewport(250), left: halfCanvas },
+        { top: toViewport(250), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'audio', label: 'TTS Enabled' },
-        { top: toViewport(330), left: halfCanvas },
+        { top: toViewport(330), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
-        { top: toViewport(410), left: halfCanvas },
-      ),
+        { top: toViewport(410), left: halfCanvas }
+      )
     );
 
     // ── Export button ──────────────────────────────────────────────────────
@@ -83,8 +84,13 @@ export class SettingsScene extends Phaser.Scene {
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(cx, 630, 'Export My Backup', CLR.primary, HEX.neutral0, () =>
-      void this.doExport(),
+    this.createButton(
+      cx,
+      630,
+      'Export My Backup',
+      CLR.primary,
+      HEX.neutral0,
+      () => void this.doExport()
     );
 
     // ── Reset button ───────────────────────────────────────────────────────
@@ -129,12 +135,15 @@ export class SettingsScene extends Phaser.Scene {
     this.resetGraphics = this.add.graphics();
     this.drawResetIdle(cx, y);
 
-    const resetText = this.add.text(cx, y, 'Reset Device', {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: '#DC2626',
-    }).setOrigin(0.5).setDepth(2);
+    const resetText = this.add
+      .text(cx, y, 'Reset Device', {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: '#DC2626',
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
 
     const hitZone = this.add
       .rectangle(cx, y, BTN_W, BTN_H, 0x000000, 0)
@@ -157,7 +166,7 @@ export class SettingsScene extends Phaser.Scene {
   private drawResetIdle(cx: number, y: number): void {
     if (!this.resetGraphics) return;
     this.resetGraphics.clear();
-    this.resetGraphics.fillStyle(0xFEE2E2, 1);
+    this.resetGraphics.fillStyle(0xfee2e2, 1);
     this.resetGraphics.fillRoundedRect(cx - BTN_W / 2, y - BTN_H / 2, BTN_W, BTN_H, BTN_RADIUS);
     this.resetGraphics.setDepth(1);
   }
@@ -168,25 +177,31 @@ export class SettingsScene extends Phaser.Scene {
 
   private showConfirmUI(cx: number, baseY: number): void {
     // Confirmation label
-    const label = this.add.text(cx, baseY - 20, 'Reset Device — are you sure?\nThis deletes everything.', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: '#DC2626',
-      align: 'center',
-    }).setOrigin(0.5).setDepth(2);
+    const label = this.add
+      .text(cx, baseY - 20, 'Reset Device — are you sure?\nThis deletes everything.', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: '#DC2626',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
 
     // "Yes, reset" button
     const yesG = this.add.graphics();
-    yesG.fillStyle(0xDC2626, 1);
+    yesG.fillStyle(0xdc2626, 1);
     yesG.fillRoundedRect(cx - 170, baseY + 50, 150, 48, 8);
     yesG.setDepth(1);
 
-    const yesText = this.add.text(cx - 95, baseY + 74, 'Yes, reset', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: '#FFFFFF',
-    }).setOrigin(0.5).setDepth(2);
+    const yesText = this.add
+      .text(cx - 95, baseY + 74, 'Yes, reset', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: '#FFFFFF',
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
 
     const yesHit = this.add
       .rectangle(cx - 95, baseY + 74, 150, 48, 0x000000, 0)
@@ -197,16 +212,19 @@ export class SettingsScene extends Phaser.Scene {
 
     // "Cancel" button
     const cancelG = this.add.graphics();
-    cancelG.fillStyle(0xE5E7EB, 1);
+    cancelG.fillStyle(0xe5e7eb, 1);
     cancelG.fillRoundedRect(cx + 20, baseY + 50, 150, 48, 8);
     cancelG.setDepth(1);
 
-    const cancelText = this.add.text(cx + 95, baseY + 74, 'Cancel', {
-      fontSize: '18px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: '#374151',
-    }).setOrigin(0.5).setDepth(2);
+    const cancelText = this.add
+      .text(cx + 95, baseY + 74, 'Cancel', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: '#374151',
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
 
     const cancelHit = this.add
       .rectangle(cx + 95, baseY + 74, 150, 48, 0x000000, 0)
@@ -280,11 +298,12 @@ export class SettingsScene extends Phaser.Scene {
 
   // ── Privacy link ───────────────────────────────────────────────────────────
   private createPrivacyLink(cx: number, y: number): void {
-    const text = this.add.text(cx, y, 'Privacy Notice →', {
-      fontSize: '16px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
-    })
+    const text = this.add
+      .text(cx, y, 'Privacy Notice →', {
+        fontSize: '16px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
+      })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
@@ -298,12 +317,14 @@ export class SettingsScene extends Phaser.Scene {
 
   // ── Section label ──────────────────────────────────────────────────────────
   private sectionLabel(cx: number, y: number, label: string): void {
-    this.add.text(cx, y, label, {
-      fontSize: '22px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral600,
-    }).setOrigin(0.5);
+    this.add
+      .text(cx, y, label, {
+        fontSize: '22px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: HEX.neutral600,
+      })
+      .setOrigin(0.5);
   }
 
   // ── Generic button ─────────────────────────────────────────────────────────
@@ -313,7 +334,7 @@ export class SettingsScene extends Phaser.Scene {
     label: string,
     bgColor: number,
     textColor: string,
-    onTap: () => void,
+    onTap: () => void
   ): void {
     const g = this.add.graphics();
     const draw = (alpha = 1) => {
@@ -339,7 +360,10 @@ export class SettingsScene extends Phaser.Scene {
       .setDepth(3);
 
     hitZone.on('pointerdown', () => draw(0.75));
-    hitZone.on('pointerup', () => { draw(); onTap(); });
+    hitZone.on('pointerup', () => {
+      draw();
+      onTap();
+    });
     hitZone.on('pointerout', () => draw());
 
     g.setDepth(1);

@@ -26,7 +26,9 @@ function deriveLevelGroup(id: string): '01-02' | '03-05' | '06-09' {
   const match = /L(\d+):/i.exec(id);
   const matched = match?.[1];
   if (!matched) {
-    console.warn(`[deriveLevelGroup] Failed to extract level from template ID "${id}", defaulting to 01-02`);
+    console.warn(
+      `[deriveLevelGroup] Failed to extract level from template ID "${id}", defaulting to 01-02`
+    );
     return '01-02';
   }
   const level = parseInt(matched, 10);
@@ -92,7 +94,7 @@ export async function seedIfEmpty(): Promise<SeedResult> {
     if (!versionMatch && !isFirstBoot) {
       // Version mismatch → wipe all static stores
       console.info(
-        `[seedIfEmpty] Content version mismatch: ${deviceMeta.contentVersion} → ${APP_CONTENT_VERSION} (wiping static stores)`,
+        `[seedIfEmpty] Content version mismatch: ${deviceMeta.contentVersion} → ${APP_CONTENT_VERSION} (wiping static stores)`
       );
       await wipeStaticStores();
       wiped = true;
@@ -124,7 +126,9 @@ export async function seedIfEmpty(): Promise<SeedResult> {
       });
     }
 
-    console.info(`[seedIfEmpty] Seeded ${seeded} total records (contentVersion: ${bundle.contentVersion || APP_CONTENT_VERSION})`);
+    console.info(
+      `[seedIfEmpty] Seeded ${seeded} total records (contentVersion: ${bundle.contentVersion || APP_CONTENT_VERSION})`
+    );
 
     return {
       seeded,
@@ -181,44 +185,59 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
   }));
 
   // Transaction wraps all seeds in one atomic operation per persistence-spec.md §5
-  await db.transaction('rw', [db.curriculumPacks, db.standards, db.skills, db.activities, db.activityLevels, db.fractionBank, db.questionTemplates, db.misconceptions, db.hints], async () => {
-    if (bundle.curriculumPacks.length > 0) {
-      await db.curriculumPacks.bulkPut(bundle.curriculumPacks);
-      total += bundle.curriculumPacks.length;
+  await db.transaction(
+    'rw',
+    [
+      db.curriculumPacks,
+      db.standards,
+      db.skills,
+      db.activities,
+      db.activityLevels,
+      db.fractionBank,
+      db.questionTemplates,
+      db.misconceptions,
+      db.hints,
+    ],
+    async () => {
+      if (bundle.curriculumPacks.length > 0) {
+        await db.curriculumPacks.bulkPut(bundle.curriculumPacks);
+        total += bundle.curriculumPacks.length;
+      }
+      if (bundle.standards.length > 0) {
+        await db.standards.bulkPut(bundle.standards);
+        total += bundle.standards.length;
+      }
+      if (bundle.skills.length > 0) {
+        await db.skills.bulkPut(bundle.skills);
+        total += bundle.skills.length;
+      }
+      if (bundle.activities.length > 0) {
+        await db.activities.bulkPut(bundle.activities);
+        total += bundle.activities.length;
+      }
+      if (bundle.activityLevels.length > 0) {
+        await db.activityLevels.bulkPut(bundle.activityLevels);
+        total += bundle.activityLevels.length;
+      }
+      if (bundle.fractionBank.length > 0) {
+        await db.fractionBank.bulkPut(bundle.fractionBank);
+        total += bundle.fractionBank.length;
+      }
+      if (templatesWithGroup.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await db.questionTemplates.bulkPut(templatesWithGroup as any);
+        total += templatesWithGroup.length;
+      }
+      if (bundle.misconceptions.length > 0) {
+        await db.misconceptions.bulkPut(bundle.misconceptions);
+        total += bundle.misconceptions.length;
+      }
+      if (bundle.hints.length > 0) {
+        await db.hints.bulkPut(bundle.hints);
+        total += bundle.hints.length;
+      }
     }
-    if (bundle.standards.length > 0) {
-      await db.standards.bulkPut(bundle.standards);
-      total += bundle.standards.length;
-    }
-    if (bundle.skills.length > 0) {
-      await db.skills.bulkPut(bundle.skills);
-      total += bundle.skills.length;
-    }
-    if (bundle.activities.length > 0) {
-      await db.activities.bulkPut(bundle.activities);
-      total += bundle.activities.length;
-    }
-    if (bundle.activityLevels.length > 0) {
-      await db.activityLevels.bulkPut(bundle.activityLevels);
-      total += bundle.activityLevels.length;
-    }
-    if (bundle.fractionBank.length > 0) {
-      await db.fractionBank.bulkPut(bundle.fractionBank);
-      total += bundle.fractionBank.length;
-    }
-    if (templatesWithGroup.length > 0) {
-      await db.questionTemplates.bulkPut(templatesWithGroup as any);
-      total += templatesWithGroup.length;
-    }
-    if (bundle.misconceptions.length > 0) {
-      await db.misconceptions.bulkPut(bundle.misconceptions);
-      total += bundle.misconceptions.length;
-    }
-    if (bundle.hints.length > 0) {
-      await db.hints.bulkPut(bundle.hints);
-      total += bundle.hints.length;
-    }
-  });
+  );
 
   return total;
 }
