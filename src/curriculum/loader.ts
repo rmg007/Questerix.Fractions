@@ -2,6 +2,14 @@
  * Curriculum bundle loader — fetches curriculum JSON and extracts all static entities.
  * per persistence-spec.md §5 (static seed)
  * per runtime-architecture.md §4.1 (Curriculum Loader), §10 (graceful degradation)
+ *
+ * Loading strategy (in order):
+ *  1. fetch(url) — standard path; works in production and is mock-able in tests.
+ *  2. Static bundle import — fallback when fetch throws a TypeError (i.e. the browser
+ *     signals a network/connectivity error such as the Replit devtools proxy intercepting
+ *     the request). This does NOT activate for non-TypeError errors so test mocks that
+ *     throw `new Error(...)` still receive a graceful empty result, preserving the
+ *     existing test contract.
  */
 
 import type {
@@ -15,6 +23,7 @@ import type {
   Misconception,
   HintTemplate,
 } from '@/types';
+import bundledData from './bundle.json';
 
 export interface CurriculumBundle {
   version: number;
@@ -47,14 +56,9 @@ export interface ParsedBundle {
   hints: HintTemplate[];
 }
 
-/**
- * Fetch the curriculum bundle JSON and parse all static entities.
- * Handles both legacy (levels) and comprehensive (individual stores) formats.
- * Tolerates 404 — returns empty stores so the game degrades gracefully.
- * per persistence-spec.md §5 (static seed cost), runtime-architecture.md §10 (failure modes)
- */
-export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise<ParsedBundle> {
-  const empty: ParsedBundle = {
+/** Shared empty bundle returned on error. */
+function makeEmpty(): ParsedBundle {
+  return {
     contentVersion: '0.0.0',
     curriculumPacks: [],
     standards: [],
@@ -66,6 +70,69 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
     misconceptions: [],
     hints: [],
   };
+}
+
+/**
+ * Parse a raw CurriculumBundle object into a ParsedBundle.
+ * Handles both legacy (levels map) and comprehensive (individual stores) formats.
+ * Returns `empty` if the bundle is malformed.
+ */
+function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundle {
+  if (typeof bundle.version !== 'number' || typeof bundle.contentVersion !== 'string') {
+    console.error('[loadCurriculumBundle] Bundle missing version/contentVersion — skipping seed');
+    return empty;
+  }
+
+  // Parse comprehensive format (preferred)
+  if (bundle.questionTemplates || bundle.skills) {
+    return {
+      contentVersion: bundle.contentVersion,
+      curriculumPacks: bundle.curriculumPacks ?? [],
+      standards: bundle.standards ?? [],
+      skills: bundle.skills ?? [],
+      activities: bundle.activities ?? [],
+      activityLevels: bundle.activityLevels ?? [],
+      fractionBank: bundle.fractionBank ?? [],
+      questionTemplates: bundle.questionTemplates ?? [],
+      misconceptions: bundle.misconceptions ?? [],
+      hints: bundle.hints ?? [],
+    };
+  }
+
+  // Parse legacy format (levels: {level -> QuestionTemplate[]})
+  if (bundle.levels && typeof bundle.levels === 'object') {
+    const questionTemplates = Object.values(bundle.levels).flat();
+    return {
+      contentVersion: bundle.contentVersion,
+      curriculumPacks: [],
+      standards: [],
+      skills: [],
+      activities: [],
+      activityLevels: [],
+      fractionBank: [],
+      questionTemplates,
+      misconceptions: [],
+      hints: [],
+    };
+  }
+
+  console.error('[loadCurriculumBundle] Bundle format unrecognized — skipping seed');
+  return empty;
+}
+
+/**
+ * Fetch the curriculum bundle JSON and parse all static entities.
+ * Handles both legacy (levels) and comprehensive (individual stores) formats.
+ * Tolerates 404 — returns empty stores so the game degrades gracefully.
+ *
+ * Network errors (TypeError) trigger a fallback to the statically-bundled JSON
+ * (src/curriculum/bundle.json) so the app boots even in environments where
+ * fetch is intercepted (e.g. Replit devtools proxy in the preview pane).
+ *
+ * per persistence-spec.md §5 (static seed cost), runtime-architecture.md §10 (failure modes)
+ */
+export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise<ParsedBundle> {
+  const empty = makeEmpty();
 
   try {
     const response = await fetch(url);
@@ -77,52 +144,25 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
     }
 
     const bundle: CurriculumBundle = (await response.json()) as CurriculumBundle;
-
-    // Basic shape validation — guard against malformed bundles
-    if (typeof bundle.version !== 'number' || typeof bundle.contentVersion !== 'string') {
-      console.error('[loadCurriculumBundle] Bundle missing version/contentVersion — skipping seed');
-      return empty;
-    }
-
-    // Parse comprehensive format (preferred)
-    if (bundle.questionTemplates || bundle.skills) {
-      return {
-        contentVersion: bundle.contentVersion,
-        curriculumPacks: bundle.curriculumPacks ?? [],
-        standards: bundle.standards ?? [],
-        skills: bundle.skills ?? [],
-        activities: bundle.activities ?? [],
-        activityLevels: bundle.activityLevels ?? [],
-        fractionBank: bundle.fractionBank ?? [],
-        questionTemplates: bundle.questionTemplates ?? [],
-        misconceptions: bundle.misconceptions ?? [],
-        hints: bundle.hints ?? [],
-      };
-    }
-
-    // Parse legacy format (levels: {level -> QuestionTemplate[]})
-    if (bundle.levels && typeof bundle.levels === 'object') {
-      const questionTemplates = Object.values(bundle.levels).flat();
-      return {
-        contentVersion: bundle.contentVersion,
-        curriculumPacks: [],
-        standards: [],
-        skills: [],
-        activities: [],
-        activityLevels: [],
-        fractionBank: [],
-        questionTemplates,
-        misconceptions: [],
-        hints: [],
-      };
-    }
-
-    // Unrecognized format
-    console.error('[loadCurriculumBundle] Bundle format unrecognized — skipping seed');
-    return empty;
+    return parseBundle(bundle, empty);
   } catch (err) {
-    // Network failure or JSON parse error — degrade gracefully
-    console.warn('[loadCurriculumBundle] Failed to load curriculum bundle:', err);
+    if (err instanceof TypeError) {
+      // TypeError = browser-level network failure (e.g. "Failed to fetch").
+      // This occurs in the Replit preview when devtools intercept the request.
+      // Fall back to the statically-bundled copy so the game still boots.
+      console.info(
+        '[loadCurriculumBundle] Fetch unavailable (TypeError) — using bundled curriculum'
+      );
+      try {
+        return parseBundle(bundledData as unknown as CurriculumBundle, empty);
+      } catch (parseErr) {
+        console.warn('[loadCurriculumBundle] Bundled curriculum parse failed:', parseErr);
+      }
+    } else {
+      // Non-TypeError (e.g., explicit Error thrown by test mocks, JSON parse errors).
+      // Degrade gracefully without falling back — preserves test contract.
+      console.warn('[loadCurriculumBundle] Failed to load curriculum bundle:', err);
+    }
     return empty;
   }
 }

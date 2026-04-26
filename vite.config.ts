@@ -59,6 +59,21 @@ export default defineConfig(async () => {
     port: 5000,
     host: '0.0.0.0',
     allowedHosts: true,
+    watch: {
+      // Ignore non-source directories to prevent Replit's internal writes
+      // (e.g. .roadie/project-model.db-wal) from triggering spurious HMR reloads.
+      ignored: [
+        '**/.roadie/**',
+        '**/.local/**',
+        '**/.git/**',
+        '**/.claude/**',
+        '**/validation-data/**',
+        '**/PLANS/**',
+        '**/*.db',
+        '**/*.db-wal',
+        '**/*.db-shm',
+      ],
+    },
   },
   build: {
     target: 'es2022',

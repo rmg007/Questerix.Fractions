@@ -89,9 +89,16 @@ function buildBundle() {
   mkdirSync(outDir, { recursive: true });
 
   const outPath = join(outDir, 'v1.json');
-  writeFileSync(outPath, JSON.stringify(bundle));
+  const bundleJson = JSON.stringify(bundle);
+  writeFileSync(outPath, bundleJson);
 
-  console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json (${totalSkipped} skipped)`);
+  // Keep src/curriculum/bundle.json in sync so the static-import fallback in
+  // loader.ts (used when fetch is unavailable in dev/Replit environments) always
+  // reflects the latest curriculum build.
+  const srcBundlePath = join(ROOT, 'src', 'curriculum', 'bundle.json');
+  writeFileSync(srcBundlePath, bundleJson);
+
+  console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json and src/curriculum/bundle.json (${totalSkipped} skipped)`);
   return totalIncluded;
 }
 

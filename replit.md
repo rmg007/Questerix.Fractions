@@ -21,7 +21,8 @@ An educational browser-based math game for K-2 students focused on fraction conc
   - `persistence/` — Dexie database schemas/repositories
   - `validators/` — Answer validators for activity archetypes
   - `types/` — TypeScript type definitions
-- `public/` — Static assets including `curriculum/v1.json`
+- `public/` — Static assets including `curriculum/v1.json` (served for PWA cache)
+- `src/curriculum/bundle.json` — Static copy of curriculum bundled at build time (avoids network fetch)
 - `docs/` — Project documentation and curriculum specs
 - `tests/` — Vitest unit tests and Playwright e2e tests
 - `scripts/` — Build utilities

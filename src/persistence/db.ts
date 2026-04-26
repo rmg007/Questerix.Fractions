@@ -115,26 +115,56 @@ export const db = new QuesterixDB();
 
 // ── Persistence grant helper ───────────────────────────────────────────────
 
+/** sessionStorage key used to suppress repeated persistence warnings across page reloads. */
+const PERSIST_WARN_KEY = 'qf.persistWarnShown';
+
 /**
  * Request durable IndexedDB storage to survive iOS Safari ITP eviction.
  * per persistence-spec.md §3.2
  * Returns false if the API is unavailable or the request is denied.
- * Logs warning in DEV if persistence not granted.
+ * Logs a warning in DEV if persistence not granted — at most once per browser session
+ * (uses sessionStorage so the flag survives page reloads in the same tab).
  */
 export async function ensurePersistenceGranted(): Promise<boolean> {
   const isDev = import.meta.env.DEV;
+
+  // Check if we've already warned in this browser session (survives page reloads).
+  const alreadyWarned = (() => {
+    try {
+      return sessionStorage.getItem(PERSIST_WARN_KEY) === '1';
+    } catch {
+      return false;
+    }
+  })();
+
+  const markWarned = () => {
+    try {
+      sessionStorage.setItem(PERSIST_WARN_KEY, '1');
+    } catch {
+      // sessionStorage unavailable — ignore
+    }
+  };
+
   if (!('storage' in navigator) || !('persist' in navigator.storage)) {
-    if (isDev)
+    if (isDev && !alreadyWarned) {
+      markWarned();
       console.warn('StorageManager API unavailable — data may be evicted by browser policy');
+    }
     return false;
   }
   try {
     if (await navigator.storage.persisted()) return true;
     const granted = await navigator.storage.persist();
-    if (!granted && isDev) console.warn('Persistent storage not granted — data may be evicted');
+    if (!granted && isDev && !alreadyWarned) {
+      markWarned();
+      console.warn('Persistent storage not granted — data may be evicted');
+    }
     return granted;
   } catch (err) {
-    if (isDev) console.warn('StorageManager.persist() failed:', err);
+    if (isDev && !alreadyWarned) {
+      markWarned();
+      console.warn('StorageManager.persist() failed:', err);
+    }
     return false;
   }
 }
