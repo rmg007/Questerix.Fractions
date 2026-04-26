@@ -35,3 +35,22 @@ The app runs as a pure frontend (no backend). Use `npm run dev:app` to start the
 
 Configured as a static site. Build with `npm run build` (output goes to `dist/`).
 The `prebuild` step runs `build:curriculum` to generate `public/curriculum/v1.json`.
+
+## Menu UI — Sunshine Split-Horizon
+
+`MenuScene.ts` uses an illustrated "split-horizon" layout designed for ages 5–8:
+sky-blue top zone with a chunky title and spinning sun, drifting clouds, a
+yellow fraction-face mascot straddling a wavy horizon line, and big chunky
+3D-shadow buttons (`Play!`, optional `Continue`, `Settings`) in the green
+action zone.
+
+- Title font is **Fredoka One** (self-hosted in `public/fonts/`); body text
+  uses **Nunito** (400/700, also self-hosted). Per the privacy notice no
+  third-party font services are called at runtime.
+- All decoration (sun spin, cloud drift, character bob) is gated on
+  `prefers-reduced-motion: reduce` and stops on scene shutdown.
+- The original mockup lives at
+  `artifacts/mockup-sandbox/src/components/mockups/menu-variants/Layout2Horizon.tsx`
+  (kept for reference; safe to delete once design is locked).
+- Test hooks (`level-card-L1`, `L6`, `L7`) are unchanged so existing
+  Playwright selectors keep working.

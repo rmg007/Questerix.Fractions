@@ -1,5 +1,32 @@
 @import 'tailwindcss';
 
+/* ── Self-hosted fonts ────────────────────────────────────────────────────
+   Per docs/40-validation/privacy-notice.md ("no third parties") and
+   CSP `font-src 'self' data:` — fonts are bundled in /public/fonts/.
+   Nunito woff2 files are licensed under SIL OFL (see LICENSE-Nunito.txt).
+   Fredoka One woff2 is from Google Fonts (Apache License 2.0). */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/nunito-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/nunito-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Fredoka One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/fredoka-one-400.woff2') format('woff2');
+}
+
 /* Design-language §2 — CSS custom properties */
 :root {
   /* Primary */
