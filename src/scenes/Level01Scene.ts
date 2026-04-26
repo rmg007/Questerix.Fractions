@@ -9,7 +9,17 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from './utils/colors';
+import { CLR } from './utils/colors';
+import {
+  drawAdventureBackground,
+  createActionButton,
+  createHintCircleButton,
+  HINT_TEXT_STYLE,
+  TITLE_FONT,
+  BODY_FONT,
+  NAVY_HEX,
+  PATH_BLUE,
+} from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { DragHandle } from '../components/DragHandle';
 import { FeedbackOverlay } from '../components/FeedbackOverlay';
@@ -148,8 +158,8 @@ export class Level01Scene extends Phaser.Scene {
     // Clear any stale sentinels from prior scenes
     TestHooks.unmountAll();
 
-    // White background per design-language.md §2.4 neutral-0
-    this.add.rectangle(CW / 2, CH / 2, CW, CH, CLR.neutral0);
+    // Adventure sky background — matches the MenuScene world
+    drawAdventureBackground(this, CW, CH);
 
     // ── Load real templates from Dexie (partition + identify pool for L1) ──
     // per runtime-architecture.md §4.1 — ActivityScene loads QuestionTemplates via repo
@@ -306,28 +316,32 @@ export class Level01Scene extends Phaser.Scene {
   // ── UI construction ──────────────────────────────────────────────────────
 
   private createHeader(): void {
-    // Level title — per design-language.md §3.3 text-xl = 28px
+    // Level title — Fredoka One display font, matching MenuScene station labels
     this.add
       .text(CW / 2, 60, 'Level 1 — Halves', {
-        fontSize: '28px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontSize: '32px',
+        fontFamily: TITLE_FONT,
         fontStyle: 'bold',
-        color: HEX.neutral900,
+        color: NAVY_HEX,
+        stroke: '#FFFFFF',
+        strokeThickness: 3,
       })
       .setOrigin(0.5)
       .setDepth(5);
 
-    // Back button (home icon text — per design-language.md §7.2)
     const backBtn = this.add
-      .text(48, 60, '← Menu', {
+      .text(52, 60, '← Menu', {
         fontSize: '18px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+        backgroundColor: 'rgba(255,255,255,0.75)',
+        padding: { x: 10, y: 6 },
       })
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({
-        hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), // C6.2: explicit 44×44 hit area per C7
+        hitArea: new Phaser.Geom.Rectangle(-28, -20, 56, 40),
         hitAreaCallback: Phaser.Geom.Rectangle.Contains,
         useHandCursor: true,
       });
@@ -338,105 +352,48 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private createPromptArea(): void {
-    // per design-language.md §3.3 text-lg = 22px for question prompts
     this.promptText = this.add
       .text(CW / 2, 160, '', {
         fontSize: '22px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral900,
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
         align: 'center',
         wordWrap: { width: 640 },
+        backgroundColor: 'rgba(255,255,255,0.75)',
+        padding: { x: 14, y: 8 },
       })
       .setOrigin(0.5)
       .setDepth(5);
   }
 
   private createHintArea(): void {
-    // Hint text box — hidden until a hint is triggered
     this.hintText = this.add
-      .text(CW / 2, CH - 280, '', {
-        fontSize: '18px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.primary,
-        align: 'center',
-        wordWrap: { width: 600 },
-        backgroundColor: HEX.primarySoft,
-        padding: { x: 16, y: 12 },
-      })
+      .text(CW / 2, CH - 280, '', HINT_TEXT_STYLE)
       .setOrigin(0.5)
       .setDepth(5)
       .setVisible(false);
   }
 
-  /** Hint button — per interaction-model.md §4.1 (always present). */
   private createHintButton(): void {
-    const x = CW - 80;
-    const y = 160;
-
-    const bg = this.add.rectangle(x, y, 80, 48, CLR.primarySoft).setDepth(5);
-    const label = this.add
-      .text(x, y, '?', {
-        fontSize: '24px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: HEX.primary,
-      })
-      .setOrigin(0.5)
-      .setDepth(6);
-
-    const hit = this.add
-      .rectangle(x, y, 80, 48, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(7);
-
-    hit.on('pointerup', () => this.onHintRequest());
-    hit.on('pointerover', () => bg.setFillStyle(CLR.primary));
-    hit.on('pointerout', () => bg.setFillStyle(CLR.primarySoft));
-
-    this.hintButton = this.add.container(0, 0, [bg, label, hit]);
+    this.hintButton = createHintCircleButton(
+      this,
+      CW - 60,
+      160,
+      () => this.onHintRequest(),
+      10,
+    );
   }
 
-  /** Submit / "Check" button. */
   private createSubmitButton(): void {
-    const x = CW / 2;
-    const y = CH - 180;
-
-    const bg = this.add.graphics();
-    const drawIdle = () => {
-      bg.clear();
-      bg.fillStyle(CLR.primary, 1);
-      bg.fillRoundedRect(x - 160, y - 32, 320, 64, 12);
-    };
-    drawIdle();
-    bg.setDepth(10);
-
-    const label = this.add
-      .text(x, y, 'Check', {
-        fontSize: '24px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: HEX.neutral0,
-      })
-      .setOrigin(0.5)
-      .setDepth(11);
-
-    const hit = this.add
-      .rectangle(x, y, 320, 64, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(12);
-
-    hit.on('pointerdown', () => {
-      bg.clear();
-      bg.fillStyle(CLR.primaryStrong, 1); // pressed per design-language.md §2.1
-      bg.fillRoundedRect(x - 160, y - 32, 320, 64, 12);
-    });
-    hit.on('pointerout', () => drawIdle());
-    hit.on('pointerup', () => {
-      drawIdle();
-      this.onSubmit();
-    });
-
-    this.submitButtonContainer = this.add.container(0, 0, [bg, label, hit]);
+    this.submitButtonContainer = createActionButton(
+      this,
+      CW / 2,
+      CH - 180,
+      'Check ✓',
+      () => { this.onSubmit(); },
+      10,
+    );
   }
 
   // ── Question loading ──────────────────────────────────────────────────────
@@ -498,33 +455,52 @@ export class Level01Scene extends Phaser.Scene {
     const x = SHAPE_CX - SHAPE_W / 2;
     const y = SHAPE_CY - SHAPE_H / 2;
 
-    // Fill — neutral-50 per design-language.md §2.4
-    g.fillStyle(CLR.neutral50, 1);
+    // Soft white fill with a light navy border — lives in the adventure world
+    g.fillStyle(0xffffff, 0.9);
     g.fillRect(x, y, SHAPE_W, SHAPE_H);
-
-    // Border — neutral-300 per design-language.md §2.4
-    g.lineStyle(3, CLR.neutral300, 1);
+    g.lineStyle(3, 0x1e3a8a, 0.35);
     g.strokeRect(x, y, SHAPE_W, SHAPE_H);
   }
 
   private drawCircleShape(): void {
     const g = this.shapeGraphics;
 
-    g.fillStyle(CLR.neutral50, 1);
+    g.fillStyle(0xffffff, 0.9);
     g.fillCircle(SHAPE_CX, SHAPE_CY, SHAPE_W / 2);
-
-    g.lineStyle(3, CLR.neutral300, 1);
+    g.lineStyle(3, 0x1e3a8a, 0.35);
     g.strokeCircle(SHAPE_CX, SHAPE_CY, SHAPE_W / 2);
   }
 
+  /**
+   * Draw the partition line as a dashed path — the same visual language
+   * as the marching-dash number line on the MenuScene.
+   *
+   * Renders: thick PATH_BLUE background rail + white dashes on top.
+   */
   private updatePartitionLine(handleX: number): void {
-    this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, CLR.primary, 1);
+    const g = this.partitionLine;
+    g.clear();
 
-    const top = SHAPE_CY - SHAPE_H / 2;
-    const bottom = SHAPE_CY + SHAPE_H / 2;
+    const top    = SHAPE_CY - SHAPE_H / 2 - 20;
+    const bottom = SHAPE_CY + SHAPE_H / 2 + 20;
+    const len    = bottom - top;
 
-    this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
+    // Background rail (light-blue, matching the path)
+    g.lineStyle(12, PATH_BLUE, 1);
+    g.lineBetween(handleX, top, handleX, bottom);
+
+    // White dashes
+    const dashLen = 14;
+    const gapLen  = 10;
+    const cycle   = dashLen + gapLen;
+    g.lineStyle(6, 0xffffff, 1);
+
+    let pos = 0;
+    while (pos < len) {
+      const segEnd = Math.min(len, pos + dashLen);
+      g.lineBetween(handleX, top + pos, handleX, top + segEnd);
+      pos += cycle;
+    }
   }
 
   // ── Drag handle creation ──────────────────────────────────────────────────
@@ -845,54 +821,58 @@ export class Level01Scene extends Phaser.Scene {
     TestHooks.mountSentinel('completion-screen');
 
     // Dim background
-    const overlay = this.add.rectangle(CW / 2, CH / 2, CW, CH, CLR.neutral900, 0.5).setDepth(50);
+    const overlay = this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
 
-    // Card — per design-language.md §2.4 neutral-50
-    const card = this.add.rectangle(CW / 2, CH / 2, 560, 400, CLR.neutral50).setDepth(51);
+    // Card — white rounded card matching the adventure theme
+    const cardG = this.add.graphics().setDepth(51);
+    cardG.fillStyle(0xe0f2fe, 1);
+    cardG.fillRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
+    cardG.lineStyle(5, 0x1e3a8a, 1);
+    cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
 
     this.add
-      .text(CW / 2, CH / 2 - 120, 'Session complete!', {
+      .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
         fontSize: '36px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontFamily: TITLE_FONT,
         fontStyle: 'bold',
-        color: HEX.success,
+        color: NAVY_HEX,
       })
       .setOrigin(0.5)
       .setDepth(52);
 
     this.add
-      .text(CW / 2, CH / 2 - 40, `You completed ${this.attemptCount} problems.`, {
+      .text(CW / 2, CH / 2 - 60, `You finished ${this.attemptCount} problems!`, {
         fontSize: '22px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral900,
+        fontFamily: BODY_FONT,
+        color: NAVY_HEX,
       })
       .setOrigin(0.5)
       .setDepth(52);
 
-    // Continue button — per interaction-model.md §6.2
-    this.createModalButton(
+    // "Keep going" — amber action button
+    const keepBtn = createActionButton(
+      this,
       CW / 2,
-      CH / 2 + 80,
-      'Keep going',
-      CLR.primary,
-      HEX.neutral0,
+      CH / 2 + 60,
+      'Keep going ▶',
       () => {
         overlay.destroy();
-        card.destroy();
+        cardG.destroy();
+        keepBtn.destroy();
         this.attemptCount = 0;
         this.inputLocked = false;
         this.loadQuestion(this.questionIndex + 1);
       },
-      52
+      52,
     );
 
-    // Back to menu
+    // "Back to menu" — secondary button
     this.createModalButton(
       CW / 2,
-      CH / 2 + 170,
+      CH / 2 + 160,
       'Back to menu',
-      CLR.neutral100,
-      HEX.neutral900,
+      0xffffff,
+      NAVY_HEX,
       () => {
         this.time.delayedCall(200, () => {
           this.scene.start('MenuScene', { lastStudentId: this.studentId });
@@ -921,12 +901,14 @@ export class Level01Scene extends Phaser.Scene {
   ): void {
     const g = this.add.graphics().setDepth(depth);
     g.fillStyle(bg, 1);
-    g.fillRoundedRect(x - 160, y - 28, 320, 56, 10);
+    g.fillRoundedRect(x - 160, y - 28, 320, 56, 28);
+    g.lineStyle(4, 0x1e3a8a, 1);
+    g.strokeRoundedRect(x - 160, y - 28, 320, 56, 28);
 
     this.add
       .text(x, y, label, {
         fontSize: '20px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: textColor,
       })

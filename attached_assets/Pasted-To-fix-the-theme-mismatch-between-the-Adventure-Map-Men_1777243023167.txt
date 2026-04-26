@@ -1,0 +1,19 @@
+To fix the theme mismatch between the Adventure Map (Menu) and the Gameplay (Level 1), you need to synchronize their "Visual Language." Currently, the Menu feels like a high-fidelity "Adventure Game," while the Level feels like a "Minimalist Quiz."
+
+Here is the high-level idea to unify them:
+
+1. Synchronize the "Design Tokens"
+The Menu uses a custom palette and font set that isn't being carried over to the levels.
+
+Fonts: The Level should adopt the "Fredoka One" font for titles and the "Check" button to match the playful, bubbly feel of the "Play!" button.
+Colors: Replace the "Royal Blue" check button and markers in the level with the Amber/Orange theme from the Play button. This creates a consistent "action color" for the student.
+2. Carry the "Adventure" Environment
+The Backdrop: Instead of a stark white background in levels, use the Pale Sky Blue gradient from the menu.
+Soft Glows: Add the subtle "glow circles" (the blurred green/blue spots) from the menu to the background of the levels. This makes the level feel like it's taking place on the map you just clicked.
+3. Unify the "UI Component" Style
+The "Chunky" Look: The Menu uses "3D" buttons with thick borders and drop-shadows. The Level uses flat rectangles. You should update the Level's Check button and Hint button to use the same 3D "chunky" style as the menu stations.
+The "Path" Aesthetic: The partition line (the blue line the student drags) should look like the Dashed Path from the map. It reinforces the idea that the student is "building the path" as they solve the math.
+4. Shared "Scene Framework"
+The Concept: Instead of each scene defining its own colors/fonts, you need a shared Theme Provider or UI Utility. This would allow you to say UI.createActionButton(this, "Check") and have it automatically inherit the correct shadow, font, and amber color used in the Menu.
+In short: The level needs to "live inside" the world established by the menu. If the menu is a journey from 0 to 1, the level should feel like a stop along that same sunny, blue-sky path.
+
