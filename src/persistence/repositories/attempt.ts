@@ -70,4 +70,25 @@ export const attemptRepo = {
       return [];
     }
   },
+
+  async getByArchetype(
+    archetype: string,
+    _level: number,
+    options?: { limit?: number },
+  ): Promise<Attempt[]> {
+    try {
+      let results = await db.attempts
+        .where('[archetype+submittedAt]')
+        .between([archetype, Dexie.minKey], [archetype, Dexie.maxKey])
+        .reverse()
+        .toArray();
+
+      if (options?.limit) {
+        results = results.slice(0, options.limit);
+      }
+      return results;
+    } catch {
+      return [];
+    }
+  },
 };

@@ -766,3 +766,38 @@ fatal: Could not reset index file to revision 'HEAD'.
 [2026-04-26T16:01:59.502Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
 [2026-04-26T16:01:59.538Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
 [2026-04-26T16:01:59.711Z] [ERROR] Autonomous synchronization cycle failed | Error: lance error: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33  Caused by: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33
+[2026-04-26T17:01:49.905Z] [ERROR] Git Error: git stash push -m "Roadie Auto-Checkpoint" | {"status":1,"signal":null,"output":[null,"Saved working directory and index state On main: Roadie Auto-Checkpoint\n","warning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.roadie/audit/2026-04-26.jsonl', LF will be replaced by CRLF the next time Git touches it\nerror: unable to unlink old '.roadie/project-model.db-wal': Invalid argument\nfatal: Could not reset index file to revision 'HEAD'.\n"],"pid":3116,"stdout":"Saved working directory and index state On main: Roadie Auto-Checkpoint\n","stderr":"warning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.roadie/audit/2026-04-26.jsonl', LF will be replaced by CRLF the next time Git touches it\nerror: unable to unlink old '.roadie/project-model.db-wal': Invalid argument\nfatal: Could not reset index file to revision 'HEAD'.\n"}
+[2026-04-26T17:01:49.906Z] [WARN] Safety Checkpoint Skipped: warning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.roadie/audit/2026-04-26.jsonl', LF will be replaced by CRLF the next time Git touches it
+error: unable to unlink old '.roadie/project-model.db-wal': Invalid argument
+fatal: Could not reset index file to revision 'HEAD'.
+[2026-04-26T17:01:49.941Z] [INFO] ProjectAnalyzer: starting analysis of C:\dev\Questerix.Fractions
+[2026-04-26T17:01:49.944Z] [DEBUG] ProjectAnalyzer: scanning dependencies…
+[2026-04-26T17:01:49.969Z] [INFO] ProjectAnalyzer: dependency scan complete — 5 tech entries, 16 commands
+[2026-04-26T17:01:49.970Z] [DEBUG] ProjectAnalyzer: scanning directories…
+[2026-04-26T17:01:50.017Z] [INFO] ProjectAnalyzer: directory scan complete — 87 entries
+[2026-04-26T17:01:50.018Z] [DEBUG] ProjectAnalyzer: parsing project conventions…
+[2026-04-26T17:01:50.024Z] [INFO] ProjectAnalyzer: no project conventions found (CLAUDE.md missing)
+[2026-04-26T17:01:50.025Z] [DEBUG] ProjectAnalyzer: deriving patterns…
+[2026-04-26T17:01:50.028Z] [INFO] ProjectAnalyzer: pattern derivation complete — 7 patterns
+[2026-04-26T17:01:50.029Z] [DEBUG] ProjectAnalyzer: enriching with regional and global knowledge…
+[2026-04-26T17:01:50.031Z] [DEBUG] Enriching knowledge for TypeScript…
+[2026-04-26T17:01:51.348Z] [DEBUG] Enriching knowledge for Node.js…
+[2026-04-26T17:01:51.628Z] [DEBUG] Enriching knowledge for Vitest…
+[2026-04-26T17:01:51.722Z] [DEBUG] Enriching knowledge for Vite…
+[2026-04-26T17:01:51.823Z] [INFO] ProjectAnalyzer: analysis complete
+[2026-04-26T17:01:51.828Z] [DEBUG] FileGenerator: .claude/roadie/.gitignore already exists
+[2026-04-26T17:01:51.829Z] [DEBUG] FileGenerator: generating roadie_instructions → .claude/roadie/instructions.md
+[2026-04-26T17:01:51.831Z] [DEBUG] FileGenerator: roadie_instructions unchanged (hash=c3d0f143…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:01:51.833Z] [DEBUG] FileGenerator: generating agents_md → .claude/AGENTS.md
+[2026-04-26T17:01:51.836Z] [DEBUG] FileGenerator: agents_md unchanged (hash=46955003…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:01:51.837Z] [DEBUG] FileGenerator: generating claude_md → .claude/CLAUDE.md
+[2026-04-26T17:01:51.851Z] [INFO] FileGenerator: wrote .claude/CLAUDE.md (2.8 KB, reason=updated, hash=6c43a484…)
+[2026-04-26T17:01:51.863Z] [DEBUG] FileGenerator: snapshot recorded for .claude/CLAUDE.md
+[2026-04-26T17:01:51.865Z] [DEBUG] FileGenerator: generating agent_operating_rules → .claude/roadie/AGENT_OPERATING_RULES.md
+[2026-04-26T17:01:51.871Z] [DEBUG] FileGenerator: agent_operating_rules unchanged (hash=29072abe…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:01:51.872Z] [DEBUG] FileGenerator: generating project_model_json → .claude/roadie/project-model.json
+[2026-04-26T17:01:51.875Z] [DEBUG] FileGenerator: project_model_json unchanged (hash=0b3a6c93…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:01:51.880Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
+[2026-04-26T17:01:51.886Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T17:01:51.967Z] [ERROR] Autonomous synchronization cycle failed | Error: lance error: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33  Caused by: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33

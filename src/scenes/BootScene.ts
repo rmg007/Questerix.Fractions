@@ -9,7 +9,7 @@
 import * as Phaser from 'phaser';
 import { TestHooks } from './utils/TestHooks';
 
-const LAST_STUDENT_KEY = 'lastUsedStudentId'; // per runtime-architecture.md §4.4, C5
+const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId'; // per lastUsedStudent.ts + C5
 
 export class BootScene extends Phaser.Scene {
   private lastStudentId: string | null = null;

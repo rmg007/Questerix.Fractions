@@ -194,6 +194,10 @@ export class Level01Scene extends Phaser.Scene {
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
     try {
+      // C7.5-C7.6: Record lastUsedStudentId for session resumption
+      const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
+      lastUsedStudent.set(this.studentId as import('@/types').StudentId);
+
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
         const { sessionRepo } = await import('../persistence/repositories/session');
@@ -270,7 +274,14 @@ export class Level01Scene extends Phaser.Scene {
       fontSize: '18px',
       fontFamily: '"Nunito", system-ui, sans-serif',
       color: HEX.neutral600,
-    }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true });
+    })
+      .setOrigin(0.5)
+      .setDepth(5)
+      .setInteractive({
+        hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), // C6.2: explicit 44×44 hit area per C7
+        hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+        useHandCursor: true,
+      });
 
     backBtn.on('pointerup', () => {
       this.scene.start('MenuScene', { lastStudentId: this.studentId });

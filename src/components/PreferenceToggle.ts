@@ -86,7 +86,19 @@ export class PreferenceToggle {
       minWidth: '180px',
     });
 
-    // Toggle button
+    // Toggle button wrapper — 44×44 outer hit area per C7, visual unchanged
+    const btnWrapper = document.createElement('div');
+    Object.assign(btnWrapper.style, {
+      position: 'relative',
+      width: '44px',
+      height: '44px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: '0',
+    });
+
+    // Toggle button (visual: 52×28 inner)
     this.btn = document.createElement('button');
     this.btn.setAttribute('role', 'switch');
     this.btn.setAttribute('aria-checked', 'false');
@@ -105,7 +117,6 @@ export class PreferenceToggle {
       cursor: this.readOnly ? 'default' : 'pointer',
       position: 'relative',
       transition: 'background 0.2s, border-color 0.2s',
-      flexShrink: '0',
     });
 
     // Thumb
@@ -132,8 +143,10 @@ export class PreferenceToggle {
       color: '#6B7280',
     });
 
+    btnWrapper.appendChild(this.btn);
+
     this.wrapper.appendChild(this.labelEl);
-    this.wrapper.appendChild(this.btn);
+    this.wrapper.appendChild(btnWrapper); // C6.7: wrapped in 44×44 container
     this.wrapper.appendChild(this.valueEl);
     container.appendChild(this.wrapper);
 

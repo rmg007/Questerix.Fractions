@@ -34,6 +34,7 @@ function getOrCreateRegion(): HTMLElement {
 /**
  * Singleton announcer. Safe to import and call from any scene.
  * per interaction-model.md §9 — ARIA live for outcomes
+ * C6.9: destroy() is idempotent; safe to call multiple times.
  */
 export const AccessibilityAnnouncer = {
   /**
@@ -56,8 +57,16 @@ export const AccessibilityAnnouncer = {
     }
   },
 
-  /** Remove the live region from the DOM (call on game destroy). */
+  /**
+   * Remove the live region from the DOM.
+   * Idempotent: safe to call multiple times or from multiple scenes.
+   * C6.9: Uses optional chaining (?.) so no-op if already removed.
+   */
   destroy(): void {
-    document.getElementById(REGION_ID)?.remove();
+    const el = document.getElementById(REGION_ID);
+    if (el) {
+      el.remove();
+    }
+    // If already destroyed, no-op (no error thrown)
   },
 };

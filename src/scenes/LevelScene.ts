@@ -214,7 +214,14 @@ export class LevelScene extends Phaser.Scene {
       fontSize: '18px',
       fontFamily: '"Nunito", system-ui, sans-serif',
       color: HEX.neutral600,
-    }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true });
+    })
+      .setOrigin(0.5)
+      .setDepth(5)
+      .setInteractive({
+        hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), // C6.2: explicit 44×44 hit area per C7
+        hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+        useHandCursor: true,
+      });
 
     backBtn.on('pointerup', () => {
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
@@ -391,10 +398,10 @@ export class LevelScene extends Phaser.Scene {
 
   private onHintRequest(): void {
     const tier = this.hintLadder.next();
-    this.showHintForTier(tier);
+    void this.showHintForTier(tier);
   }
 
-  private showHintForTier(tier: import('@/types').HintTier): void {
+  private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
     this.hintTextGO.setVisible(true);
     let msg = '';
     switch (tier) {
@@ -410,6 +417,26 @@ export class LevelScene extends Phaser.Scene {
     }
     this.hintTextGO.setText(msg);
     TestHooks.setText('hint-text', msg);
+
+    // C7.8: Record hint event with score penalty per interaction-model.md §4.1
+    // Penalty: 5 pts (T1), 15 pts (T2), 30 pts (T3)
+    if (this.sessionId) {
+      try {
+        const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
+        const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
+        await hintEventRepo.record({
+          attemptId: '' as unknown as import('@/types').AttemptId, // Will be linked post-submission
+          hintId: `hint.${this.currentTemplate.archetype}.${tier}`,
+          tier,
+          shownAt: Date.now(),
+          acceptedByStudent: true,
+          pointCostApplied: pointCost,
+          syncState: 'local',
+        });
+      } catch (err) {
+        console.warn('[LevelScene] Could not record hint event:', err);
+      }
+    }
   }
 
   private pulseHintButton(): void {
@@ -426,6 +453,10 @@ export class LevelScene extends Phaser.Scene {
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
     try {
+      // C7.5-C7.6: Record lastUsedStudentId for session resumption
+      const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
+      lastUsedStudent.set(this.studentId as import('@/types').StudentId);
+
       const { sessionRepo } = await import('../persistence/repositories/session');
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
       const id = nanoid() as import('@/types').SessionId;
@@ -482,6 +513,26 @@ export class LevelScene extends Phaser.Scene {
         validatorPayload: result,
         syncState: 'local',
       });
+
+      // C7.2: Run misconception detectors and upsert flags
+      try {
+        const recentAttempts = await attemptRepo.listForStudent(
+          this.studentId as import('@/types').StudentId,
+        );
+        // Limit to recent 10 for performance
+        const limitedAttempts = recentAttempts.slice(-10);
+        const { runAllDetectors } = await import('../engine/misconceptionDetectors');
+        const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
+
+        if (flags.length > 0) {
+          const { misconceptionFlagRepo } = await import('../persistence/repositories/misconceptionFlag');
+          for (const flag of flags) {
+            await misconceptionFlagRepo.upsert(flag);
+          }
+        }
+      } catch (err) {
+        console.warn('[LevelScene] Misconception detection error:', err);
+      }
     } catch (err) {
       console.warn('[LevelScene] Could not record attempt:', err);
     }

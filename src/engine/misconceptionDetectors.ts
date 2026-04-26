@@ -18,7 +18,7 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
   if (compareAttempts.length < 5) return null;
 
-  const evidenceIds: string[] = [];
+  const evidenceIds: import('@/types').AttemptId[] = [];
   for (const attempt of compareAttempts) {
     // WHB-01 trap: student picks the option with the larger numerator
     // This occurs when correct answer is NOT '>' (i.e., top is NOT bigger)
@@ -61,7 +61,7 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
   if (compareAttempts.length < 5) return null;
 
-  const evidenceIds: string[] = [];
+  const evidenceIds: import('@/types').AttemptId[] = [];
   for (const attempt of compareAttempts) {
     // WHB-02 trap: student picks larger denominator when it's actually smaller fraction
     // Occurs in same-numerator activities (L7) where larger denominator = smaller fraction
@@ -142,7 +142,7 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
   const benchmarkAttempts = attempts.filter((a) => a.archetype === 'benchmark');
   if (benchmarkAttempts.length < 4) return null;
 
-  const evidenceIds: string[] = [];
+  const evidenceIds: import('@/types').AttemptId[] = [];
   for (const attempt of benchmarkAttempts) {
     // PRX-01: student places "almost_one" fraction in wrong zone
     // Pattern: zones for benchmark_sort are 0, 0.25, 0.5, 0.75, 1
@@ -188,18 +188,100 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
 }
 
 /**
- * Run all detectors in sequence; return first flag found.
+ * EOL-01 — Equal-Parts Loose Interpretation
+ * Pattern: student answers "yes (equal)" ≥ 50% of time on clearly unequal partitions.
+ * per misconceptions.md §3.2 MC-EOL-01
+ */
+export function detectEOL01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+  if (level < 1 || attempts.length < 4) return null;
+
+  const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
+  if (eolAttempts.length < 4) return null;
+
+  const evidenceIds: import('@/types').AttemptId[] = [];
+  for (const attempt of eolAttempts) {
+    // EOL-01: student answers "yes (equal)" when correct answer is "no (unequal)"
+    if (attempt.outcome === 'WRONG' && attempt.studentAnswerRaw && attempt.correctAnswerRaw) {
+      const raw = attempt.studentAnswerRaw as Record<string, unknown>;
+      const correct = attempt.correctAnswerRaw as Record<string, unknown>;
+      // Trap: student says equal (true) when it's unequal (false)
+      if (raw.studentAnswer === true && correct.correctAnswer === false) {
+        evidenceIds.push(attempt.id);
+      }
+    }
+  }
+
+  const rate = evidenceIds.length / eolAttempts.length;
+  if (rate >= 0.5) {
+    return {
+      id: crypto.randomUUID(),
+      studentId: attempts[0].studentId,
+      misconceptionId: 'MC-EOL-01' as MisconceptionId,
+      firstObservedAt: Date.now(),
+      lastObservedAt: Date.now(),
+      observationCount: evidenceIds.length,
+      resolvedAt: null,
+      evidenceAttemptIds: evidenceIds,
+      syncState: 'local',
+    };
+  }
+
+  return null;
+}
+
+/**
+ * NOM-01 — Numerator Over Magnitude (placeholder for expansion)
+ * Future: detect when student focuses only on numerator size.
+ */
+export function detectNOM01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+  if (level < 6 || attempts.length < 5) return null;
+
+  // Placeholder: future expansion from identify/compare patterns
+  return null;
+}
+
+/**
+ * ORD-01 — Ordering confusion (placeholder for expansion)
+ * Future: detect pattern errors in sequencing fractions.
+ */
+export function detectORD01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+  if (level < 7 || attempts.length < 5) return null;
+
+  // Placeholder: future expansion from order archetype
+  return null;
+}
+
+/**
+ * Run all detectors in sequence; return array of all flags found.
  * Called from LevelScene.onCommit() after each question submission.
+ * per C7.2 — upsert all flags to misconceptionFlagsRepo
  */
 export async function runAllDetectors(
   attempts: Attempt[],
   level: number
-): Promise<MisconceptionFlag | null> {
-  const flag =
-    detectWHB01(attempts, level) ??
-    detectWHB02(attempts, level) ??
-    detectMAG01(attempts, level) ??
-    detectPRX01(attempts, level);
+): Promise<MisconceptionFlag[]> {
+  const flags: MisconceptionFlag[] = [];
 
-  return flag || null;
+  const flag1 = detectEOL01(attempts, level);
+  if (flag1) flags.push(flag1);
+
+  const flag2 = detectWHB01(attempts, level);
+  if (flag2) flags.push(flag2);
+
+  const flag3 = detectWHB02(attempts, level);
+  if (flag3) flags.push(flag3);
+
+  const flag4 = detectMAG01(attempts, level);
+  if (flag4) flags.push(flag4);
+
+  const flag5 = detectPRX01(attempts, level);
+  if (flag5) flags.push(flag5);
+
+  const flag6 = detectNOM01(attempts, level);
+  if (flag6) flags.push(flag6);
+
+  const flag7 = detectORD01(attempts, level);
+  if (flag7) flags.push(flag7);
+
+  return flags;
 }

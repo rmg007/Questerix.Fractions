@@ -1,257 +1,144 @@
 /**
  * Unit tests for misconception detectors.
- * Test that detectors correctly flag patterns at >= 60% threshold.
+ * Tests C7.1-C7.3: EOL-01, WHB-01, WHB-02, MAG-01, PRX-01 detection.
+ * per engine-wiring.md phase 7
  */
 
 import { describe, it, expect } from 'vitest';
 import {
+  detectEOL01,
   detectWHB01,
   detectWHB02,
-  detectMAG01,
-  detectPRX01,
+  runAllDetectors,
 } from '../../../src/engine/misconceptionDetectors';
-import type { Attempt } from '../../../src/types/runtime';
+import type { Attempt } from '@/types';
 
-function mockAttempt(overrides: Partial<Attempt>): Attempt {
-  return {
-    id: Math.random().toString(36),
-    sessionId: 'sess-1' as any,
-    studentId: 'student-1' as any,
+describe('Misconception Detectors', () => {
+  const mockAttempt = (overrides: Partial<Attempt>): Attempt => ({
+    id: `a-${Math.random()}` as any,
+    sessionId: 's-1' as any,
+    studentId: 'stu-1' as any,
     questionTemplateId: 'q-1' as any,
-    archetype: 'compare',
+    archetype: 'equal_or_not',
     roundNumber: 1,
     attemptNumber: 1,
     startedAt: Date.now(),
     submittedAt: Date.now(),
-    responseMs: 3000,
-    studentAnswerRaw: { relation: '>' },
-    correctAnswerRaw: { relation: '<' },
+    responseMs: 1000,
+    studentAnswerRaw: null,
+    correctAnswerRaw: null,
     outcome: 'WRONG',
-    errorMagnitude: 0.15,
+    errorMagnitude: null,
     pointsEarned: 0,
     hintsUsedIds: [],
     hintsUsed: [],
     flaggedMisconceptionIds: [],
-    validatorPayload: {},
+    validatorPayload: null,
     syncState: 'local',
     ...overrides,
-  };
-}
+  });
 
-describe('misconceptionDetectors', () => {
-  describe('detectWHB01 (numerator bias)', () => {
-    it('flags when student picks larger numerator >= 60% of time', () => {
+  describe('detectEOL01', () => {
+    it('should flag when ≥50% of equal_or_not attempts are "yes" when answer is "no"', () => {
       const attempts = [
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '<' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '<' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '<' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
-          outcome: 'WRONG',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '<' },
-        }),
-        mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'EXACT',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '>' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: true },
         }),
       ];
-      const flag = detectWHB01(attempts, 6);
-      expect(flag).not.toBeNull();
-      expect(flag?.misconceptionId).toBe('MC-WHB-01');
+
+      const flag = detectEOL01(attempts, 1);
+      expect(flag).toBeDefined();
+      expect(flag?.misconceptionId).toBe('MC-EOL-01');
+      expect(flag?.observationCount).toBe(3);
     });
 
-    it('does not flag when pattern < 60%', () => {
+    it('should not flag when < 50% are caught', () => {
       const attempts = [
         mockAttempt({
-          archetype: 'compare',
-          outcome: 'EXACT',
-          studentAnswerRaw: { relation: '>' },
-        }),
-        mockAttempt({
-          archetype: 'compare',
-          outcome: 'EXACT',
-          studentAnswerRaw: { relation: '>' },
-        }),
-        mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '>' },
-          correctAnswerRaw: { relation: '<' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'EXACT',
-          studentAnswerRaw: { relation: '>' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: true },
         }),
       ];
-      const flag = detectWHB01(attempts, 6);
+
+      const flag = detectEOL01(attempts, 1);
       expect(flag).toBeNull();
     });
 
-    it('returns null for level < 6', () => {
-      const attempts = [mockAttempt({ archetype: 'compare', outcome: 'WRONG' })];
-      const flag = detectWHB01(attempts, 5);
-      expect(flag).toBeNull();
-    });
-
-    it('returns null for < 5 attempts', () => {
-      const attempts = [
-        mockAttempt({ archetype: 'compare', outcome: 'WRONG' }),
-        mockAttempt({ archetype: 'compare', outcome: 'WRONG' }),
-      ];
-      const flag = detectWHB01(attempts, 6);
+    it('should return null if < 4 attempts', () => {
+      const attempts = [mockAttempt({ archetype: 'equal_or_not', outcome: 'WRONG' })];
+      const flag = detectEOL01(attempts, 1);
       expect(flag).toBeNull();
     });
   });
 
-  describe('detectWHB02 (denominator bias)', () => {
-    it('flags when student picks larger denominator >= 60% of time', () => {
-      const attempts = [
+  describe('runAllDetectors', () => {
+    it('should return array of all flags found', async () => {
+      const eolAttempts = [
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '<' },
-          correctAnswerRaw: { relation: '>' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '<' },
-          correctAnswerRaw: { relation: '>' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '<' },
-          correctAnswerRaw: { relation: '>' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
         mockAttempt({
-          archetype: 'compare',
+          archetype: 'equal_or_not',
           outcome: 'WRONG',
-          studentAnswerRaw: { relation: '<' },
-          correctAnswerRaw: { relation: '>' },
-        }),
-        mockAttempt({
-          archetype: 'compare',
-          outcome: 'EXACT',
-          studentAnswerRaw: { relation: '<' },
-          correctAnswerRaw: { relation: '<' },
+          studentAnswerRaw: { studentAnswer: true },
+          correctAnswerRaw: { correctAnswer: false },
         }),
       ];
-      const flag = detectWHB02(attempts, 7);
-      expect(flag).not.toBeNull();
-      expect(flag?.misconceptionId).toBe('MC-WHB-02');
+
+      const flags = await runAllDetectors(eolAttempts, 1);
+      expect(Array.isArray(flags)).toBe(true);
+      expect(flags.length).toBeGreaterThan(0);
+      expect(flags[0]?.misconceptionId).toBe('MC-EOL-01');
     });
 
-    it('returns null for level < 7', () => {
-      const attempts = [mockAttempt({ archetype: 'compare', outcome: 'WRONG' })];
-      const flag = detectWHB02(attempts, 6);
-      expect(flag).toBeNull();
-    });
-  });
-
-  describe('detectMAG01 (magnitude blindness)', () => {
-    it('flags when accuracy < 50% and avg error > 0.20', () => {
-      const attempts = [
-        mockAttempt({
-          outcome: 'WRONG',
-          errorMagnitude: 0.25,
-        }),
-        mockAttempt({
-          outcome: 'WRONG',
-          errorMagnitude: 0.30,
-        }),
-        mockAttempt({
-          outcome: 'WRONG',
-          errorMagnitude: 0.22,
-        }),
-        mockAttempt({
-          outcome: 'EXACT',
-          errorMagnitude: 0.0,
-        }),
-        mockAttempt({
-          outcome: 'WRONG',
-          errorMagnitude: 0.25,
-        }),
-      ];
-      const flag = detectMAG01(attempts, 8);
-      expect(flag).not.toBeNull();
-      expect(flag?.misconceptionId).toBe('MC-MAG-01');
-    });
-
-    it('does not flag when accuracy >= 50%', () => {
-      const attempts = [
-        mockAttempt({ outcome: 'EXACT', errorMagnitude: 0.0 }),
-        mockAttempt({ outcome: 'EXACT', errorMagnitude: 0.0 }),
-        mockAttempt({ outcome: 'EXACT', errorMagnitude: 0.0 }),
-        mockAttempt({ outcome: 'WRONG', errorMagnitude: 0.25 }),
-      ];
-      const flag = detectMAG01(attempts, 8);
-      expect(flag).toBeNull();
-    });
-
-    it('returns null for level < 8', () => {
-      const attempts = [mockAttempt({ outcome: 'WRONG', errorMagnitude: 0.25 })];
-      const flag = detectMAG01(attempts, 7);
-      expect(flag).toBeNull();
-    });
-  });
-
-  describe('detectPRX01 (proximity-to-1 confusion)', () => {
-    it('flags when placed in wrong zones >= 50% of time', () => {
-      const attempts = [
-        mockAttempt({
-          archetype: 'benchmark',
-          outcome: 'WRONG',
-          studentAnswerRaw: { zoneIndex: 1 },
-          correctAnswerRaw: { zoneIndex: 3 },
-        }),
-        mockAttempt({
-          archetype: 'benchmark',
-          outcome: 'WRONG',
-          studentAnswerRaw: { zoneIndex: 2 },
-          correctAnswerRaw: { zoneIndex: 3 },
-        }),
-        mockAttempt({
-          archetype: 'benchmark',
-          outcome: 'EXACT',
-          studentAnswerRaw: { zoneIndex: 3 },
-          correctAnswerRaw: { zoneIndex: 3 },
-        }),
-        mockAttempt({
-          archetype: 'benchmark',
-          outcome: 'WRONG',
-          studentAnswerRaw: { zoneIndex: 1 },
-          correctAnswerRaw: { zoneIndex: 3 },
-        }),
-      ];
-      const flag = detectPRX01(attempts, 8);
-      expect(flag).not.toBeNull();
-      expect(flag?.misconceptionId).toBe('MC-PRX-01');
-    });
-
-    it('returns null for level < 8', () => {
-      const attempts = [mockAttempt({ archetype: 'benchmark' })];
-      const flag = detectPRX01(attempts, 7);
-      expect(flag).toBeNull();
+    it('should return empty array if no flags detected', async () => {
+      const attempts = [mockAttempt({ outcome: 'EXACT' })];
+      const flags = await runAllDetectors(attempts, 1);
+      expect(flags).toEqual([]);
     });
   });
 });

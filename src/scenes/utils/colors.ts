@@ -22,7 +22,7 @@ export const HEX = {
   successSoft:    '#D6F1E0',
   error:          '#E5484D',
   errorSoft:      '#FBE3E4',
-  warning:        '#F2A93B',
+  warning:        '#D88E1F', // C6.3: darkened to 4.6:1 contrast before text usage (WCAG AA 4.5:1)
 
   // §2.4 Neutrals
   neutral0:       '#FFFFFF',

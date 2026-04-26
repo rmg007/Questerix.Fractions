@@ -28,7 +28,6 @@
 
 ## Code Conventions
 - TypeScript project (v6.0.3)
-- Uses Vitest for testing (v1.0.0)
 [truncated]
 <!-- roadie:end:workspace-rules -->
 
@@ -57,6 +56,7 @@
 - **30-architecture/**
 - **40-validation/**
 - **50-roadmap/**
+- **install/**
 - **pipeline/**
 - **__pycache__/**
 - **fixtures/**

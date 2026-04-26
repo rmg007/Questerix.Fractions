@@ -10,14 +10,19 @@ const SKIP_LINK_ID = 'qf-skip-link';
 const CANVAS_ID = 'qf-canvas';
 
 /**
- * Ensure the Phaser canvas has the expected id so the skip link target resolves.
+ * Ensure the Phaser canvas has the expected id, ARIA labels, and role.
  * Call after Phaser initialises its canvas element.
+ * per interaction-model.md §9 (canvas accessibility)
  */
 export function labelCanvas(): void {
   try {
     const canvas = document.querySelector('canvas');
     if (canvas && !canvas.id) {
       canvas.id = CANVAS_ID;
+      // C6.6: Add ARIA labels and role for screen readers
+      canvas.setAttribute('aria-label', 'Questerix Fractions game canvas');
+      canvas.setAttribute('role', 'application');
+      canvas.setAttribute('data-testid', 'phaser-canvas');
       // Canvas must be focusable for the skip link to land focus on it.
       if (!canvas.hasAttribute('tabindex')) {
         canvas.setAttribute('tabindex', '-1');

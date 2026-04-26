@@ -283,7 +283,7 @@ export class SettingsScene extends Phaser.Scene {
     const text = this.add.text(cx, y, 'Privacy Notice →', {
       fontSize: '16px',
       fontFamily: '"Nunito", system-ui, sans-serif',
-      color: '#6C63FF',
+      color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
