@@ -15,6 +15,11 @@
 import type { SessionId, SkillId, StudentId } from '@/types';
 import type { Session } from '@/types';
 
+// Simple logger to avoid dependency bloat
+const logger = {
+  warn: (msg: string) => console.warn(`[calibration] ${msg}`),
+};
+
 // ── Constants ─────────────────────────────────────────────────────────────
 
 /** Number of calibration attempts before adaptive routing resumes. */
@@ -54,7 +59,10 @@ export function startCalibration(
   if (prevSession === null) return null;
 
   // If prior session had no resolvable skills (edge case), skip calibration
-  if (prevSessionSkillIds.length === 0) return null;
+  if (prevSessionSkillIds.length === 0) {
+    logger.warn(`Calibration skipped: no skills found in prior session ${prevSession.id}`);
+    return null;
+  }
 
   return {
     studentId: prevSession.studentId,

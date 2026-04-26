@@ -24,7 +24,12 @@ const APP_CONTENT_VERSION = '1.0.0';
 // Derive levelGroup from template ID format 'q:<arch>:L{N}:NNNN'
 function deriveLevelGroup(id: string): '01-02' | '03-05' | '06-09' {
   const match = /L(\d+):/i.exec(id);
-  const level = match ? parseInt(match[1]!, 10) : 1;
+  const matched = match?.[1];
+  if (!matched) {
+    console.warn(`[deriveLevelGroup] Failed to extract level from template ID "${id}", defaulting to 01-02`);
+    return '01-02';
+  }
+  const level = parseInt(matched, 10);
   if (level <= 2) return '01-02';
   if (level <= 5) return '03-05';
   return '06-09';

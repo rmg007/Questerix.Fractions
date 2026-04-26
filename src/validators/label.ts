@@ -31,12 +31,23 @@ export const labelMatchTarget: ValidatorRegistration<LabelInput, LabelExpected> 
     const regionIds = Object.keys(expectedLabelForRegion);
     const total = regionIds.length;
 
-    let wrong = 0;
+    // Build map of region → labelIds (detect duplicates)
+    const studentRegionMap = new Map<string, string[]>();
     for (const { labelId, regionId } of studentMappings) {
-      if (expectedLabelForRegion[regionId] !== labelId) wrong++;
+      if (!studentRegionMap.has(regionId)) {
+        studentRegionMap.set(regionId, []);
+      }
+      studentRegionMap.get(regionId)!.push(labelId);
     }
+
+    let wrong = 0;
     for (const regionId of regionIds) {
-      if (!studentMappings.some(m => m.regionId === regionId)) wrong++;
+      const labels = studentRegionMap.get(regionId) || [];
+      const expected_label = expectedLabelForRegion[regionId];
+      // Count as wrong if: no label, multiple labels, or wrong label
+      if (labels.length !== 1 || labels[0] !== expected_label) {
+        wrong++;
+      }
     }
 
     if (wrong === 0) return { outcome: 'correct', score: 1 };

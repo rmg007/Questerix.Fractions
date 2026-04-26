@@ -37,7 +37,7 @@ export const partitionEqualAreas: ValidatorRegistration<PartitionInput, Partitio
     }
 
     const avg = mean(regionAreas);
-    if (avg === 0) return { outcome: 'incorrect', score: 0 };
+    if (avg <= 1e-9) return { outcome: 'incorrect', score: 0, feedback: 'degenerate_partition' };
 
     const maxDelta = Math.max(...regionAreas) - Math.min(...regionAreas);
     const relativeDelta = maxDelta / avg;

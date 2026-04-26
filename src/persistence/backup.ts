@@ -77,7 +77,7 @@ export async function backupToFile(): Promise<Blob> {
   const blob = new Blob([json], { type: 'application/json' });
 
   // Bump lastBackupAt — non-critical, don't throw if it fails
-  await deviceMetaRepo.update({ lastBackupAt: Date.now() });
+  await deviceMetaRepo.update({ lastBackupAt: Date.now(), syncState: 'local' });
 
   // Trigger download (no-op in Node/test environments — jsdom lacks createObjectURL)
   if (typeof document !== 'undefined' && typeof URL.createObjectURL === 'function') {
@@ -125,14 +125,20 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
   let skipped = 0;
 
   // Helper: try to add each record; if it conflicts with an existing PK, skip it.
+  // Distinguishes between PK collisions (OK to skip) and constraint violations (error).
   async function tryAddAll<T>(table: Table<T>, rows: T[]): Promise<void> {
     for (const row of rows) {
       try {
         await table.add(row);
         added++;
-      } catch {
-        // Duplicate key = skip
-        skipped++;
+      } catch (err) {
+        // Dexie throws ConstraintError on PK violation (acceptable for restore)
+        // Other errors are genuine constraint violations — re-raise
+        if (err instanceof Error && err.name === 'ConstraintError') {
+          skipped++;
+        } else {
+          throw err;
+        }
       }
     }
   }
@@ -151,7 +157,20 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       await tryAddAll(db.hintEvents, t.hintEvents ?? []);
       await tryAddAll(db.misconceptionFlags, t.misconceptionFlags ?? []);
       await tryAddAll(db.progressionStat, t.progressionStat ?? []);
-      // deviceMeta is a singleton — skip to avoid overwriting live preferences
+      // Restore deviceMeta with merge strategy: keep newer lastBackupAt
+      if (t.deviceMeta && t.deviceMeta.length > 0) {
+        const live = await db.deviceMeta.toCollection().first();
+        for (const backupMeta of t.deviceMeta) {
+          if (live && (live.lastBackupAt ?? 0) > (backupMeta.lastBackupAt ?? 0)) {
+            // Keep live data if it's newer
+            console.info('[backup.restore] Keeping newer live deviceMeta (lastBackupAt)');
+          } else {
+            // Update with backup data
+            await db.deviceMeta.update(backupMeta.installId, backupMeta);
+            added++;
+          }
+        }
+      }
     },
   );
 

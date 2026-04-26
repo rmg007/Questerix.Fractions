@@ -78,7 +78,7 @@ function hasSkillInZPD(
 ): boolean {
   return q.skillIds.some((sid) => {
     const p = getMastery(sid, mastery);
-    return p > ZPD_LOW && p < ZPD_HIGH;
+    return p >= ZPD_LOW && p < ZPD_HIGH;
   });
 }
 

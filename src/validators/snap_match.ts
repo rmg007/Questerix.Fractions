@@ -15,7 +15,11 @@ export interface SnapMatchExpected {
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
-function pairKey(a: string, b: string): string { return `${a}||${b}`; }
+function pairKey(a: string, b: string): string {
+  // Canonical sort for deterministic pair lookup
+  const sorted = [a, b].sort();
+  return `${sorted[0]}||${sorted[1]}`;
+}
 
 // ── validator.snap_match.allPairs ─────────────────────────────────────────
 // canonical per activity-archetypes.md §11 row 8
@@ -39,14 +43,10 @@ export const snapMatchAllPairs: ValidatorRegistration<SnapMatchInput, SnapMatchE
     const expectedKeys = new Set(
       expectedPairs.map(([a, b]) => pairKey(a, b))
     );
-    // also accept reversed pairs
-    const expectedKeysRev = new Set(
-      expectedPairs.map(([a, b]) => pairKey(b, a))
-    );
 
     for (const [a, b] of studentPairs) {
       const k = pairKey(a, b);
-      if (!expectedKeys.has(k) && !expectedKeysRev.has(k)) {
+      if (!expectedKeys.has(k)) {
         return { outcome: 'incorrect', score: 0 };
       }
     }

@@ -18,7 +18,7 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
   if (compareAttempts.length < 5) return null;
 
-  let largerNumeratorCount = 0;
+  const evidenceIds: string[] = [];
   for (const attempt of compareAttempts) {
     // WHB-01 trap: student picks the option with the larger numerator
     // This occurs when correct answer is NOT '>' (i.e., top is NOT bigger)
@@ -27,12 +27,12 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
       const raw = attempt.studentAnswerRaw as Record<string, unknown>;
       // If student answered '>' when that was wrong, likely WHB-01 trap
       if (raw.relation === '>') {
-        largerNumeratorCount++;
+        evidenceIds.push(attempt.id);
       }
     }
   }
 
-  const rate = largerNumeratorCount / compareAttempts.length;
+  const rate = evidenceIds.length / compareAttempts.length;
   if (rate >= 0.6) {
     return {
       id: crypto.randomUUID(),
@@ -40,11 +40,9 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
       misconceptionId: 'MC-WHB-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
-      observationCount: largerNumeratorCount,
+      observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: compareAttempts
-        .filter((_, i) => i < 3)
-        .map((a) => a.id),
+      evidenceAttemptIds: evidenceIds,
       syncState: 'local',
     };
   }
@@ -63,7 +61,7 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
   if (compareAttempts.length < 5) return null;
 
-  let largerDenominatorCount = 0;
+  const evidenceIds: string[] = [];
   for (const attempt of compareAttempts) {
     // WHB-02 trap: student picks larger denominator when it's actually smaller fraction
     // Occurs in same-numerator activities (L7) where larger denominator = smaller fraction
@@ -73,13 +71,13 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
       if (raw.relation === '<' && attempt.correctAnswerRaw) {
         const correct = attempt.correctAnswerRaw as Record<string, unknown>;
         if (correct.relation === '>') {
-          largerDenominatorCount++;
+          evidenceIds.push(attempt.id);
         }
       }
     }
   }
 
-  const rate = largerDenominatorCount / compareAttempts.length;
+  const rate = evidenceIds.length / compareAttempts.length;
   if (rate >= 0.6) {
     return {
       id: crypto.randomUUID(),
@@ -87,11 +85,9 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
       misconceptionId: 'MC-WHB-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
-      observationCount: largerDenominatorCount,
+      observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: compareAttempts
-        .filter((_, i) => i < 3)
-        .map((a) => a.id),
+      evidenceAttemptIds: evidenceIds,
       syncState: 'local',
     };
   }
@@ -146,7 +142,7 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
   const benchmarkAttempts = attempts.filter((a) => a.archetype === 'benchmark');
   if (benchmarkAttempts.length < 4) return null;
 
-  let proximityConfusionCount = 0;
+  const evidenceIds: string[] = [];
   for (const attempt of benchmarkAttempts) {
     // PRX-01: student places "almost_one" fraction in wrong zone
     // Pattern: zones for benchmark_sort are 0, 0.25, 0.5, 0.75, 1
@@ -168,12 +164,12 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
         (studentZone === 1 || studentZone === 2) &&
         (correctZone === 3 || correctZone === 4)
       ) {
-        proximityConfusionCount++;
+        evidenceIds.push(attempt.id);
       }
     }
   }
 
-  const rate = proximityConfusionCount / benchmarkAttempts.length;
+  const rate = evidenceIds.length / benchmarkAttempts.length;
   if (rate >= 0.5) {
     return {
       id: crypto.randomUUID(),
@@ -181,11 +177,9 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
       misconceptionId: 'MC-PRX-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
-      observationCount: proximityConfusionCount,
+      observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: benchmarkAttempts
-        .filter((_, i) => i < 3)
-        .map((a) => a.id),
+      evidenceAttemptIds: evidenceIds,
       syncState: 'local',
     };
   }

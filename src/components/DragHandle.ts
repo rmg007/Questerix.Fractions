@@ -45,6 +45,7 @@ export class DragHandle {
   private _pos: number;
   private isDragging: boolean = false;
   private readonly cfg: DragHandleConfig;
+  private keyHandler?: (event: KeyboardEvent) => void;
 
   constructor(config: DragHandleConfig) {
     const { scene, x, y, trackLength, axis, depth = 20 } = config;
@@ -117,7 +118,7 @@ export class DragHandle {
     const isHoriz = this.cfg.axis === 'horizontal';
     const { minPos, maxPos, onMove, onCommit } = this.cfg;
 
-    this.scene.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+    this.keyHandler = (event: KeyboardEvent) => {
       if (!this.hitZone.active) return;
 
       let delta = 0;
@@ -141,7 +142,9 @@ export class DragHandle {
         event.preventDefault();
         onCommit?.(this._pos);
       }
-    });
+    };
+
+    this.scene.input.keyboard?.on('keydown', this.keyHandler);
   }
 
   private setAxisPosition(pos: number): void {
@@ -200,10 +203,13 @@ export class DragHandle {
     }
   }
 
-  /** Destroy all game objects. */
+  /** Destroy all game objects and remove event listeners. */
   destroy(): void {
     this.visibleLine.destroy();
     this.hitZone.destroy();
+    if (this.keyHandler) {
+      this.scene.input.keyboard?.off('keydown', this.keyHandler);
+    }
   }
 
   private checkReduceMotion(): boolean {

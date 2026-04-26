@@ -51,6 +51,8 @@ export class PreferenceToggle {
   private key: PrefKey;
   private readOnly: boolean;
   private onChange: ((v: boolean | string) => void) | undefined;
+  private clickHandler?: () => void;
+  private keydownHandler?: (e: KeyboardEvent) => void;
 
   constructor(opts: ToggleOpts, position: { top: string; left: string }) {
     this.key = opts.key;
@@ -137,13 +139,15 @@ export class PreferenceToggle {
 
     // Wire click
     if (!this.readOnly) {
-      this.btn.addEventListener('click', () => void this.toggle());
-      this.btn.addEventListener('keydown', (e) => {
+      this.clickHandler = () => void this.toggle();
+      this.keydownHandler = (e) => {
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
           void this.toggle();
         }
-      });
+      };
+      this.btn.addEventListener('click', this.clickHandler);
+      this.btn.addEventListener('keydown', this.keydownHandler);
     }
 
     // Load current value
@@ -191,6 +195,13 @@ export class PreferenceToggle {
   }
 
   destroy(): void {
+    // Remove event listeners before removing DOM
+    if (this.clickHandler) {
+      this.btn.removeEventListener('click', this.clickHandler);
+    }
+    if (this.keydownHandler) {
+      this.btn.removeEventListener('keydown', this.keydownHandler);
+    }
     this.wrapper.remove();
   }
 

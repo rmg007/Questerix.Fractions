@@ -24,7 +24,7 @@ function runPlacement(
     return { outcome: 'correct', score: 1, feedback: `error:${errorMagnitude.toFixed(4)}` };
   }
   if (errorMagnitude <= expected.closeTolerance) {
-    const score = 1 - errorMagnitude / expected.closeTolerance;
+    const score = Math.max(0, 1 - errorMagnitude / expected.closeTolerance);
     return { outcome: 'partial', score, feedback: `error:${errorMagnitude.toFixed(4)}` };
   }
 

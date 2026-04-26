@@ -34,8 +34,10 @@ export const orderSequence: ValidatorRegistration<OrderInput, OrderExpected> = {
 
     const swaps = kendallTauDistance(studentSequence, correctSequence);
 
+    // Explicit tier mapping: 0 swaps → 1.0, 1 swap → 0.5, 2+ swaps → score from Kendall normalization
     if (swaps === 0) return { outcome: 'correct', score: 1 };
     if (swaps === 1) return { outcome: 'partial', score: 0.5, feedback: 'one_swap_off' };
+    if (swaps === 2) return { outcome: 'partial', score: 0.5, feedback: 'two_swaps' };
 
     const maxSwaps = (correctSequence.length * (correctSequence.length - 1)) / 2;
     const score = maxSwaps > 0 ? Math.max(0, 1 - swaps / maxSwaps) : 0;

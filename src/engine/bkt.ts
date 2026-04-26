@@ -17,6 +17,21 @@ export const DEFAULT_PRIORS: BktParams = {
   pGuess: 0.2,
 };
 
+// ── Validation ─────────────────────────────────────────────────────────────
+
+/**
+ * Validate BKT parameters are in valid ranges.
+ * @throws Error if pGuess or pSlip are degenerate (not in (0, 1))
+ */
+export function validateBktParams(params: BktParams): void {
+  if (params.pGuess <= 0 || params.pGuess >= 1) {
+    throw new Error(`Invalid pGuess ${params.pGuess}: must be in (0, 1)`);
+  }
+  if (params.pSlip <= 0 || params.pSlip >= 1) {
+    throw new Error(`Invalid pSlip ${params.pSlip}: must be in (0, 1)`);
+  }
+}
+
 // ── Mastery threshold ──────────────────────────────────────────────────────
 
 /**
@@ -45,6 +60,7 @@ export function updatePKnown(
   correct: boolean,
   params: BktParams,
 ): number {
+  validateBktParams(params);
   const { pSlip, pGuess, pTransit } = params;
 
   // Step 1: P(L | observation)
