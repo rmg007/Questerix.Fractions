@@ -121,6 +121,93 @@ export class MenuScene extends Phaser.Scene {
         this.scene.launch('SettingsScene');
       }
     );
+
+    // One-time storage warning banner (dev mode only)
+    void this._showStorageBannerIfNeeded();
+  }
+
+  /** sessionStorage key — show at most once per browser session. */
+  private static readonly STORAGE_NOTICE_KEY = 'qf.storageNoticeShown';
+
+  /**
+   * Shows a dismissable amber banner when IndexedDB persistence is not granted.
+   * Only appears in development mode and only once per browser session.
+   * Directs the user to Settings → Export Backup.
+   */
+  private async _showStorageBannerIfNeeded(): Promise<void> {
+    if (!import.meta.env.DEV) return;
+
+    try {
+      const alreadyShown = sessionStorage.getItem(MenuScene.STORAGE_NOTICE_KEY) === '1';
+      if (alreadyShown) return;
+
+      const persisted = await navigator.storage?.persisted?.();
+      if (persisted) return;
+
+      sessionStorage.setItem(MenuScene.STORAGE_NOTICE_KEY, '1');
+    } catch {
+      return; // sessionStorage / StorageManager unavailable — skip silently
+    }
+
+    this._renderStorageBanner();
+  }
+
+  private _renderStorageBanner(): void {
+    const cx = CW / 2;
+    const bannerY = 960;
+    const bannerW = 680;
+    const bannerH = 110;
+    const radius = 10;
+
+    // Background — amber-tinted warning panel
+    const bg = this.add.graphics().setDepth(10);
+    bg.fillStyle(0xfef3c7, 1); // amber-100
+    bg.fillRoundedRect(cx - bannerW / 2, bannerY - bannerH / 2, bannerW, bannerH, radius);
+    bg.lineStyle(2, 0xd97706, 1); // amber-600 border
+    bg.strokeRoundedRect(cx - bannerW / 2, bannerY - bannerH / 2, bannerW, bannerH, radius);
+
+    // Message text
+    const line1 = this.add
+      .text(cx - 20, bannerY - 16, '⚠ Progress may not be saved in this preview.', {
+        fontSize: '18px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: '#92400E', // amber-800
+        wordWrap: { width: bannerW - 80 },
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
+
+    const line2 = this.add
+      .text(cx - 20, bannerY + 20, 'Go to Settings → Export Backup to save your data.', {
+        fontSize: '15px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: '#92400E',
+        wordWrap: { width: bannerW - 80 },
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
+
+    // Dismiss button "✕" — top-right of banner
+    const dismissX = cx + bannerW / 2 - 24;
+    const dismissY = bannerY - bannerH / 2 + 20;
+    const dismissBtn = this.add
+      .text(dismissX, dismissY, '✕', {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: '#92400E',
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
+
+    dismissBtn.on('pointerup', () => {
+      bg.destroy();
+      line1.destroy();
+      line2.destroy();
+      dismissBtn.destroy();
+    });
   }
 
   /**
