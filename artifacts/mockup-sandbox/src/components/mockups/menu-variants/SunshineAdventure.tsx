@@ -53,15 +53,36 @@ export function SunshineAdventure() {
         {/* Fraction Character */}
         <div className="relative z-10 animate-float mt-12 drop-shadow-xl">
           <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Face circle */}
             <circle cx="80" cy="80" r="76" fill="#FDE68A" stroke="#B45309" strokeWidth="8"/>
+            {/* Split line (fraction divider) */}
             <path d="M80 4V156" stroke="#B45309" strokeWidth="8" strokeDasharray="8 8"/>
-            <path d="M40 90 Q80 120 120 90" stroke="#B45309" strokeWidth="8" strokeLinecap="round"/>
-            <circle cx="55" cy="65" r="8" fill="#B45309"/>
-            <circle cx="105" cy="65" r="8" fill="#B45309"/>
-            <circle cx="50" cy="62" r="3" fill="white"/>
-            <circle cx="100" cy="62" r="3" fill="white"/>
-            <path d="M35 50 Q55 40 70 55" stroke="#B45309" strokeWidth="6" strokeLinecap="round"/>
-            <path d="M90 55 Q105 40 125 50" stroke="#B45309" strokeWidth="6" strokeLinecap="round"/>
+
+            {/* Left eye — big cartoon eye */}
+            <ellipse cx="54" cy="66" rx="13" ry="14" fill="white" stroke="#B45309" strokeWidth="3"/>
+            <circle cx="57" cy="68" r="8" fill="#1E3A5F"/>
+            <circle cx="60" cy="65" r="3" fill="white"/>
+
+            {/* Right eye — big cartoon eye */}
+            <ellipse cx="106" cy="66" rx="13" ry="14" fill="white" stroke="#B45309" strokeWidth="3"/>
+            <circle cx="109" cy="68" r="8" fill="#1E3A5F"/>
+            <circle cx="112" cy="65" r="3" fill="white"/>
+
+            {/* Happy eyebrows */}
+            <path d="M38 50 Q54 40 68 48" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
+            <path d="M92 48 Q106 40 122 50" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
+
+            {/* Wide grin with teeth */}
+            <path d="M38 96 Q80 132 122 96" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
+            <path d="M46 100 Q80 130 114 100" fill="white" stroke="none"/>
+            <path d="M46 100 Q80 130 114 100 Q80 108 46 100Z" fill="white"/>
+            <line x1="63" y1="102" x2="63" y2="118" stroke="#B45309" strokeWidth="3"/>
+            <line x1="80" y1="104" x2="80" y2="121" stroke="#B45309" strokeWidth="3"/>
+            <line x1="97" y1="102" x2="97" y2="118" stroke="#B45309" strokeWidth="3"/>
+
+            {/* Rosy cheeks */}
+            <ellipse cx="35" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45"/>
+            <ellipse cx="125" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45"/>
           </svg>
         </div>
       </div>
