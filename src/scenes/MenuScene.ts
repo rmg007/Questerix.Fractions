@@ -86,10 +86,9 @@ export class MenuScene extends Phaser.Scene {
       });
     }
 
-    // "Settings" placeholder — per runtime-architecture.md §2 (SettingsScene future)
+    // "Settings" — per runtime-architecture.md §2 (SettingsScene overlay)
     this.createButton(cx, this.lastStudentId ? 780 : 680, 'Settings', CLR.neutral100, HEX.neutral600, () => {
-      // TODO: open SettingsScene overlay when implemented
-      console.info('[MenuScene] Settings placeholder tapped');
+      this.scene.launch('SettingsScene');
     });
   }
 

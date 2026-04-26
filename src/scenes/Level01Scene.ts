@@ -71,6 +71,7 @@ export class Level01Scene extends Phaser.Scene {
   private attemptCount: number = 0;   // total across session
   private wrongCount: number = 0;     // wrong attempts on current question
   private inputLocked: boolean = false;
+  private resume: boolean = false;
 
   // Current question — may come from DB pool or synthetic fallback
   private currentQuestion!: L01Question;
@@ -101,6 +102,7 @@ export class Level01Scene extends Phaser.Scene {
 
   init(data: Level01Data): void {
     this.studentId  = data.studentId ?? null;
+    this.resume = data.resume ?? false;
     this.questionIndex = 0;
     this.attemptCount  = 0;
     this.wrongCount    = 0;
@@ -192,6 +194,33 @@ export class Level01Scene extends Phaser.Scene {
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
     try {
+      // ── Resume existing session if flag is true ────────────────────────────
+      if (this.resume === true) {
+        const { sessionRepo } = await import('../persistence/repositories/session');
+        const sessions = await sessionRepo.listForStudent(this.studentId as import('@/types').StudentId);
+
+        if (sessions.length > 0) {
+          const lastSession = sessions[0]!;
+          this.sessionId = lastSession.id as string;
+
+          // Restore prior attempt count
+          const { attemptRepo } = await import('../persistence/repositories/attempt');
+          const priorAttempts = await attemptRepo.listForSession(lastSession.id);
+          this.attemptCount = priorAttempts.length;
+
+          // Update progressBar if it exists
+          if (this.progressBar) {
+            this.progressBar.setProgress(this.attemptCount);
+          }
+
+          console.info(
+            `[Level01Scene] Session resumed: ${this.sessionId} with ${this.attemptCount} prior attempts`,
+          );
+          return;
+        }
+      }
+
+      // ── Create new session ─────────────────────────────────────────────────
       const { sessionRepo } = await import('../persistence/repositories/session');
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
       const id = nanoid() as import('@/types').SessionId;
@@ -718,7 +747,7 @@ export class Level01Scene extends Phaser.Scene {
   // ── Session complete ───────────────────────────────────────────────────────
 
   /** Show "Session complete" card after SESSION_GOAL correct answers. per C9, interaction-model.md §6.2 */
-  private showSessionComplete(): void {
+  private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
     TestHooks.mountSentinel('completion-screen');
 
@@ -752,14 +781,16 @@ export class Level01Scene extends Phaser.Scene {
 
     // Back to menu
     this.createModalButton(CW / 2, CH / 2 + 170, 'Back to menu', CLR.neutral100, HEX.neutral900, () => {
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      this.time.delayedCall(200, () => {
+        this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      });
     }, 52);
 
     // ARIA announcement
     AccessibilityAnnouncer.announce(`Session complete! You finished ${this.attemptCount} problems.`);
 
     // Close session in persistence
-    void this.closeSession();
+    await this.closeSession();
   }
 
   private createModalButton(
