@@ -20,7 +20,7 @@ export class BootScene extends Phaser.Scene {
     super({ key: 'BootScene' });
   }
 
-  async create(): Promise<void> {
+  create(): void {
     console.info('[BootScene] Starting boot sequence…');
 
     // ── Test hooks ─────────────────────────────────────────────────────────
@@ -35,6 +35,12 @@ export class BootScene extends Phaser.Scene {
       { width: '200px', height: '60px', top: '50%', left: '50%' }
     );
 
+    // Fire-and-forget: async work runs without returning a Promise to Phaser,
+    // preventing Phaser 4 from treating the returned Promise as a scene restart signal.
+    void this._bootAsync();
+  }
+
+  private async _bootAsync(): Promise<void> {
     // ── Step 1: Request durable IndexedDB storage ──────────────────────────
     // per runtime-architecture.md §5.3e — called after first engagement signal
     // We attempt immediately and degrade gracefully if denied.
