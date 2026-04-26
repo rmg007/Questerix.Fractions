@@ -44,6 +44,7 @@ const L2_TEMPLATES: QuestionTemplate[] = [
 
 const MOCK_BUNDLE = {
   version: 1,
+  contentVersion: '1.0.0',
   generatedAt: new Date().toISOString(),
   levels: {
     '01': L1_TEMPLATES,
@@ -54,8 +55,9 @@ const MOCK_BUNDLE = {
 // ── Test setup ─────────────────────────────────────────────────────────────────
 
 beforeEach(async () => {
-  // Clear the questionTemplates table before each test
+  // Clear all stores before each test to ensure clean state
   await db.questionTemplates.clear();
+  await db.deviceMeta.clear();
 });
 
 afterEach(() => {
@@ -82,6 +84,25 @@ describe('seedIfEmpty', () => {
   });
 
   it('returns alreadySeeded=true when DB has templates', async () => {
+    // Set up device metadata with matching content version
+    await db.deviceMeta.add({
+      installId: 'test-install-id',
+      schemaVersion: 3,
+      contentVersion: '1.0.0',
+      preferences: {
+        audio: true,
+        reduceMotion: false,
+        highContrast: false,
+        ttsLocale: 'en-US',
+        largeTouchTargets: false,
+        persistGranted: false,
+      },
+      lastBackupAt: null,
+      lastRestoredAt: null,
+      pendingSyncCount: 0,
+      syncState: 'local',
+    });
+
     await questionTemplateRepo.bulkPut(L1_TEMPLATES);
 
     const fetchMock = vi.fn();
@@ -152,14 +173,14 @@ describe('loadCurriculumBundle', () => {
       json: async () => MOCK_BUNDLE,
     }));
 
-    const templates = await loadCurriculumBundle();
-    expect(templates).toHaveLength(L1_TEMPLATES.length + L2_TEMPLATES.length);
+    const bundle = await loadCurriculumBundle();
+    expect(bundle.questionTemplates).toHaveLength(L1_TEMPLATES.length + L2_TEMPLATES.length);
   });
 
   it('returns [] on 404 without throwing', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
 
-    const templates = await loadCurriculumBundle();
-    expect(templates).toHaveLength(0);
+    const bundle = await loadCurriculumBundle();
+    expect(bundle.questionTemplates).toHaveLength(0);
   });
 });
