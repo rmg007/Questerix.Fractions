@@ -1,0 +1,15 @@
+[INFO] LLM provider: cloudflare (account=1ad655f0… gateway=<none> default_model=@cf/meta/llama-3.1-70b-instruct)
+[INFO] Using model: @cf/meta/llama-3.1-70b-instruct (tier=haiku)
+[INFO] Provider=cloudflare model_tier=haiku resolved_model=@cf/meta/llama-3.1-70b-instruct
+[INFO] Loaded 73 templates from curriculum
+[INFO] Generating hints for 73 templates in 5 batches of ~15
+[INFO] Batch 1/5: generating hints for 15 templates (1-15)
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 1/5 in 3s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 2/5 in 6s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 3/5 in 12s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 4/5 in 24s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 5/5 in 48s
+[WARNING] Rate limited. Waiting 5s (attempt 1/5)
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 1/5 in 3s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 2/5 in 6s
+[WARNING] Connection error to Cloudflare (ReadTimeout); retry 3/5 in 12s

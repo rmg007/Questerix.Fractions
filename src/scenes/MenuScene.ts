@@ -46,6 +46,14 @@ export class MenuScene extends Phaser.Scene {
     TestHooks.mountInteractive('level-card-L1', () => {
       this.scene.start('Level01Scene', { studentId: this.lastStudentId });
     }, { width: '360px', height: '72px', top: '45%', left: '50%' });
+    // level-card-L6: test hook for level 6 (compare same-denominator)
+    TestHooks.mountInteractive('level-card-L6', () => {
+      this.scene.start('LevelScene', { levelNumber: 6, studentId: this.lastStudentId });
+    }, { width: '100px', height: '40px', top: '50%', left: '10%' });
+    // level-card-L7: test hook for level 7 (compare same-numerator)
+    TestHooks.mountInteractive('level-card-L7', () => {
+      this.scene.start('LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
+    }, { width: '100px', height: '40px', top: '55%', left: '10%' });
 
     const cx = CW / 2;
 

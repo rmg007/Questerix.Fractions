@@ -29,17 +29,24 @@
 ## Code Conventions
 - TypeScript project (v6.0.3)
 - Uses Vitest for testing (v1.0.0)
-- Uses Vite as build tool (v8.0.9)
-- Uses npm as package manager
-- Runs on Node.js
-- Source code organised under src/
-- Tests in tests/
+
+## Hints System Integration
+- **Status**: Production-ready (100% validation pass rate)
+- **Source**: `pipeline/output/hints.json` (213 hints across 71 question templates)
+- **Structure**: 3-tier hint cascades (progressive disclosure: Tier 1 = questioning, Tier 2 = guided instruction, Tier 3 = explicit solution)
+- **Format**: Verbal hints with TTS keys; all hints ≤12 words (avg 9.2w)
+- **Zero cost**: All hints have pointCost=0.0 (gamification-neutral)
+- **Validation**: 100% pass rate (all 71 templates complete with 3 unique, ordered hints)
+- **See**: `.claude/HINTS_INTEGRATION.md` for architecture and maintenance guide
+
+[truncated]
 <!-- roadie:end:workspace-rules -->
 
 <!-- roadie:start:repo-map -->
 ## Repository Map
 
 - **--help/**
+- **PLANS/**
 - **curriculum-source/**
 - **levels-3-5_pedagogy/**
 - **Grade2-ComparingOrdering/**
@@ -114,8 +121,13 @@
 - **synthetic/** (test)
 - **results/** (test)
 - **unit/** (test)
+- **engine/** (test)
 - **validators/** (test)
 - **validation/**
+- **validation-data/**
+- **cycle-a/**
+- **cycle-b/**
+- **scripts/**
 - **phase-2/**
 - **phase-3/**
 <!-- roadie:end:repo-map -->

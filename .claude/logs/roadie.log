@@ -691,3 +691,43 @@
 [2026-04-25T15:41:13.936Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
 [2026-04-25T15:41:13.940Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
 [2026-04-25T15:41:13.953Z] [INFO] Autonomous Sync Complete | Files Updated: 0/15
+[2026-04-26T15:31:50.221Z] [ERROR] Git Error: git stash push -m "Roadie Auto-Checkpoint" | {"status":1,"signal":null,"output":[null,"Saved working directory and index state On main: Roadie Auto-Checkpoint\n","warning: in the working copy of '.claude/AGENTS.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.claude/CLAUDE.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.roadie/session-state.json', LF will be replaced by CRLF the next time Git touches it\nerror: unable to unlink old '.roadie/project-model.db': Invalid argument\nerror: unable to unlink old '.roadie/project-model.db-shm': Invalid argument\nerror: unable to unlink old '.roadie/project-model.db-wal': Invalid argument\nfatal: Could not reset index file to revision 'HEAD'.\n"],"pid":37200,"stdout":"Saved working directory and index state On main: Roadie Auto-Checkpoint\n","stderr":"warning: in the working copy of '.claude/AGENTS.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.claude/CLAUDE.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.roadie/session-state.json', LF will be replaced by CRLF the next time Git touches it\nerror: unable to unlink old '.roadie/project-model.db': Invalid argument\nerror: unable to unlink old '.roadie/project-model.db-shm': Invalid argument\nerror: unable to unlink old '.roadie/project-model.db-wal': Invalid argument\nfatal: Could not reset index file to revision 'HEAD'.\n"}
+[2026-04-26T15:31:50.222Z] [WARN] Safety Checkpoint Skipped: warning: in the working copy of '.claude/AGENTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.claude/CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.claude/logs/roadie.log', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.roadie/session-state.json', LF will be replaced by CRLF the next time Git touches it
+error: unable to unlink old '.roadie/project-model.db': Invalid argument
+error: unable to unlink old '.roadie/project-model.db-shm': Invalid argument
+error: unable to unlink old '.roadie/project-model.db-wal': Invalid argument
+fatal: Could not reset index file to revision 'HEAD'.
+[2026-04-26T15:31:50.235Z] [INFO] ProjectAnalyzer: starting analysis of C:\dev\Questerix.Fractions
+[2026-04-26T15:31:50.236Z] [DEBUG] ProjectAnalyzer: scanning dependencies…
+[2026-04-26T15:31:50.246Z] [INFO] ProjectAnalyzer: dependency scan complete — 5 tech entries, 16 commands
+[2026-04-26T15:31:50.247Z] [DEBUG] ProjectAnalyzer: scanning directories…
+[2026-04-26T15:31:50.296Z] [INFO] ProjectAnalyzer: directory scan complete — 86 entries
+[2026-04-26T15:31:50.298Z] [DEBUG] ProjectAnalyzer: parsing project conventions…
+[2026-04-26T15:31:50.303Z] [INFO] ProjectAnalyzer: no project conventions found (CLAUDE.md missing)
+[2026-04-26T15:31:50.305Z] [DEBUG] ProjectAnalyzer: deriving patterns…
+[2026-04-26T15:31:50.315Z] [INFO] ProjectAnalyzer: pattern derivation complete — 7 patterns
+[2026-04-26T15:31:50.317Z] [DEBUG] ProjectAnalyzer: enriching with regional and global knowledge…
+[2026-04-26T15:31:50.318Z] [DEBUG] Enriching knowledge for TypeScript…
+[2026-04-26T15:31:50.616Z] [DEBUG] Enriching knowledge for Node.js…
+[2026-04-26T15:31:50.892Z] [DEBUG] Enriching knowledge for Vitest…
+[2026-04-26T15:31:50.981Z] [DEBUG] Enriching knowledge for Vite…
+[2026-04-26T15:31:51.080Z] [INFO] ProjectAnalyzer: analysis complete
+[2026-04-26T15:31:51.099Z] [DEBUG] FileGenerator: .claude/roadie/.gitignore already exists
+[2026-04-26T15:31:51.103Z] [DEBUG] FileGenerator: generating roadie_instructions → .claude/roadie/instructions.md
+[2026-04-26T15:31:51.119Z] [DEBUG] FileGenerator: roadie_instructions unchanged (hash=c3d0f143…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T15:31:51.131Z] [DEBUG] FileGenerator: generating agents_md → .claude/AGENTS.md
+[2026-04-26T15:31:51.204Z] [INFO] FileGenerator: wrote .claude/AGENTS.md (4.8 KB, reason=updated, hash=46955003…)
+[2026-04-26T15:31:51.248Z] [DEBUG] FileGenerator: snapshot recorded for .claude/AGENTS.md
+[2026-04-26T15:31:51.263Z] [DEBUG] FileGenerator: generating claude_md → .claude/CLAUDE.md
+[2026-04-26T15:31:51.309Z] [INFO] FileGenerator: wrote .claude/CLAUDE.md (2.9 KB, reason=updated, hash=7e5ae09d…)
+[2026-04-26T15:31:51.328Z] [DEBUG] FileGenerator: snapshot recorded for .claude/CLAUDE.md
+[2026-04-26T15:31:51.331Z] [DEBUG] FileGenerator: generating agent_operating_rules → .claude/roadie/AGENT_OPERATING_RULES.md
+[2026-04-26T15:31:51.345Z] [DEBUG] FileGenerator: agent_operating_rules unchanged (hash=29072abe…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T15:31:51.347Z] [DEBUG] FileGenerator: generating project_model_json → .claude/roadie/project-model.json
+[2026-04-26T15:31:51.366Z] [DEBUG] FileGenerator: project_model_json unchanged (hash=0b3a6c93…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T15:31:51.368Z] [DEBUG] FileGenerator: generating prompts_md → .claude/roadie/PROMPTS.md
+[2026-04-26T15:31:51.372Z] [DEBUG] FileGenerator: prompts_md unchanged (hash=d014118d…) — skipped. Hash inputs: generated content. Note: version-only changes in package.json do not affect generated content.
+[2026-04-26T15:31:51.473Z] [ERROR] Autonomous synchronization cycle failed | Error: lance error: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33  Caused by: LanceError(Schema): Schema error: No field named "filePath". Valid fields are id, vector, text, "startLine", "endLine", _rowid, _rowaddr, _row_last_updated_at_version, _row_created_at_version, _rowoffset., C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lance-4.0.0\src\dataset\scanner.rs:422:33

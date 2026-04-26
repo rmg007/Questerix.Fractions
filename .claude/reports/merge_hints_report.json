@@ -1,0 +1,44 @@
+{
+  "status": "WARNING",
+  "summary": {
+    "total_templates": 73,
+    "templates_with_hints": 56,
+    "templates_without_hints": 17,
+    "total_hints_added": 168,
+    "unmatched_hints": 15,
+    "duplicates_removed": 0
+  },
+  "validation": {
+    "status": "WARNING",
+    "issues": [
+      "Unmatched hint template IDs: 15",
+      "Templates without hints: 17"
+    ]
+  },
+  "details": {
+    "templates_without_hints_sample": [
+      "q:lb:L3:0005",
+      "q:lb:L3:0006",
+      "q:mk:L4:0005",
+      "q:mk:L4:0006",
+      "q:mk:L5:0005",
+      "q:mk:L5:0006",
+      "q:mk:L5:0007",
+      "q:pt:L5:0005",
+      "q:pt:L5:0006",
+      "q:pt:L5:0008"
+    ],
+    "unmatched_hint_templates_sample": [
+      "q:ms:L8:0003",
+      "q:ord:L9:0004",
+      "q:cmp:L7:0003",
+      "q:pt:L4:0004",
+      "q:pt:L1:0002",
+      "q:bm:L8:0003",
+      "q:ms:L9:0003",
+      "q:lb:L7:0003",
+      "q:id:L3:0004",
+      "q:bm:L8:0004"
+    ]
+  }
+}

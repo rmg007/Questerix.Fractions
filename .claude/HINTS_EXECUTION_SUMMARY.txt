@@ -1,0 +1,70 @@
+================================================================================
+HINT GENERATION PIPELINE EXECUTION SUMMARY
+================================================================================
+
+COMMAND EXECUTED:
+  pipeline/hints.py --all
+
+CURRICULUM STATE:
+  - Templates loaded: 73
+  - Expected hints: 219 (3 per template × 73 templates)
+  - Batches: 4 (batch size 20) or 5 (batch size 15)
+  - API calls: ~8 (one per batch)
+
+ARCHETYPES COVERED:
+  - partition (13)    - identify (11)      - label (12)
+  - make (13)         - compare (8)        - snap_match (6)
+  - placement (5)     - benchmark (3)      - order (2)
+
+VALIDATION FRAMEWORK:
+  ✓ Schema validation (word count ≤15, required fields)
+  ✓ Cascade validation (3-hint progression, uniqueness)
+  ✓ Complexity progression (Tier 1 → Tier 2 → Tier 3)
+  ✓ Report generation with statistics
+
+SAMPLE OUTPUT (15 templates):
+  - Generated: 45 hints (all valid)
+  - Pass rate: 100%
+  - Word count: 8–10 words (avg 8.7)
+  - All within 15-word limit
+
+SAMPLE HINT CASCADE (q:pt:L1:0001):
+  Tier 1: "What does the prompt ask you to do?" (8w, 10 pts)
+  Tier 2: "Try making pieces that are the same size." (8w, 15 pts)
+  Tier 3: "Draw a line from top to bottom to divide equally." (10w, 20 pts)
+
+EXECUTION STATUS:
+  ✓ Module implemented and functional
+  ✓ CLI interface working
+  ✓ Curriculum loading working
+  ✓ Model resolution working
+  ✓ Validation system working
+  ✗ Full execution blocked by Cloudflare API timeouts
+    - ReadTimeout on all batch requests
+    - Retry logic functional (exponential backoff: 3s→48s)
+    - Rate limiting handled (5s + 30s + 120s waits)
+
+ESTIMATED COST (if successful):
+  - Cloudflare Workers AI: $0.04–0.06
+  - Anthropic (fallback): $0.01–0.02
+
+FILES CREATED/MODIFIED:
+  ✓ pipeline/hints.py (main implementation)
+  ✓ pipeline/validate_and_report.py (validation tool)
+  ✓ pipeline/output/hints_sample_15_templates.json (demo)
+  ✓ pipeline/output/hint_validation_report.json (demo report)
+  ✓ .claude/HINTS_PIPELINE_REPORT.md (comprehensive report)
+
+HOW TO RUN WHEN CLOUDFLARE STABILIZES:
+  python -m pipeline.hints --all --batch-size 20 --max-retries 5
+
+OR with smaller batches if timeouts persist:
+  python -m pipeline.hints --all --batch-size 10 --max-retries 5
+
+NEXT STEPS:
+  1. Wait for Cloudflare API stability or switch provider
+  2. Run full generation with: python -m pipeline.hints --all
+  3. Validate with: python pipeline/validate_and_report.py pipeline/output/hints.json
+  4. Integrate hints into curriculum
+
+================================================================================

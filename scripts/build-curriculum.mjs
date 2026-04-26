@@ -80,6 +80,7 @@ function buildBundle() {
 
   const bundle = {
     version: 1,
+    contentVersion: '1.0.0',
     generatedAt: new Date().toISOString(),
     levels,
   };

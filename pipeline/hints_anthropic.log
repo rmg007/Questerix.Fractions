@@ -1,0 +1,24 @@
+[INFO] LLM provider: anthropic
+[INFO] HTTP Request: GET https://api.anthropic.com/v1/models/claude-haiku-4-5-20251001 "HTTP/1.1 200 OK"
+[INFO] Using model: claude-haiku-4-5-20251001 (tier=haiku)
+[INFO] Provider=anthropic model_tier=haiku resolved_model=claude-haiku-4-5-20251001
+[INFO] Loaded 72 templates from curriculum
+[INFO] Generating hints for 72 templates in 4 batches of ~20
+[INFO] Batch 1/4: generating hints for 20 templates (1-20)
+[INFO] HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[INFO]   Generated 60 hints (tokens: in=7902 out=7790)
+[INFO] Batch 2/4: generating hints for 20 templates (21-40)
+[INFO] HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[INFO]   Generated 60 hints (tokens: in=7955 out=7984)
+[INFO] Batch 3/4: generating hints for 20 templates (41-60)
+[INFO] HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[ERROR] Validation failed for q:lb:L7:0004: Hint text exceeds 15 words (16)
+[INFO]   Generated 60 hints (tokens: in=8297 out=7967)
+[INFO] Batch 4/4: generating hints for 12 templates (61-72)
+[INFO] HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[INFO]   Generated 36 hints (tokens: in=5890 out=4844)
+[INFO] Written 213 hints to pipeline\output\hints.json
+C:\dev\Questerix.Fractions\pipeline\hints.py:328: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "generated_at": datetime.utcnow().isoformat() + "Z",
+[INFO] Written report to pipeline\output\hint_generation_report.json
+[INFO] Hint generation complete: 213 hints

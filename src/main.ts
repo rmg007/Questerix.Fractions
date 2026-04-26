@@ -22,8 +22,8 @@ async function boot(): Promise<void> {
 
   try {
     // Registration order matters: first scene auto-starts, others are lookup-able by key.
-    const { BootScene, PreloadScene, MenuScene, Level01Scene, SettingsScene } = await import('./scenes');
-    scenes = [BootScene, PreloadScene, MenuScene, Level01Scene, SettingsScene];
+    const { BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene } = await import('./scenes');
+    scenes = [BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene];
   } catch (err) {
     console.error('[main] Failed to load scenes:', err);
   }
