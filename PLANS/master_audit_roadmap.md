@@ -1,6 +1,6 @@
 # Master System Audit Roadmap
 
-**Date:** 2026-04-27 · **Branch:** `main` · **Auditor:** Principal System Auditor & Orchestrator
+**Date:** 2026-04-27 · **Updated:** 2026-04-27 · **Branch:** `plans/master-audit-roadmap` · **Auditor:** Principal System Auditor & Orchestrator
 **Synthesizes:** [architecture-review-2026-04-27.md](architecture-review-2026-04-27.md) · [soc_audit_findings.md](soc_audit_findings.md) · [portability_audit_findings.md](portability_audit_findings.md) · [telemetry_audit_strategy.md](telemetry_audit_strategy.md) · [qa-visual-report-2026-04-27.md](qa-visual-report-2026-04-27.md) · [master-plan-2026-04-26.md](master-plan-2026-04-26.md)
 
 ---
@@ -141,6 +141,14 @@ The sequence below is dependency-ordered: each phase removes a precondition for 
   1. **Same day** — Fix BUG-01 (template filter to `archetype === 'partition'`, ~10 min) and verify in a real Chrome tab. Capture the failing path of BUG-02 with the existing `?log=DRAG,VALID,Q` filter, then fix `handlePos` plumbing or widen `SNAP_PCT` (~30 min). Fix BUG-04 hint-tier counter (~15 min). Retest the settings-gear (BUG-05) in a real browser to either close or escalate. Capture round-trip Menu → L1 → 5-correct → session-complete screenshots into `PLANS/screenshots/`.
   2. **Same week** — Rewrite `src/lib/log.ts` as a `Logger` factory + sink array (`ConsoleSink` dev-only, `IndexedDBSink` always-on). Bump Dexie to schema v4 with `telemetryEvents: '++id, kind, severity, ts, traceId, [traceId+ts]'` and `telemetryEventRepo`. Pair `window.addEventListener('error', ...)` with the rewritten `unhandledrejection` handler in `src/main.ts`; both route through the new logger. Wire the `sessionTelemetry` writer at session open. Migrate ~5 callers of `lib/logger.ts`; delete the duplicate. Eliminate the inline logger in `engine/calibration.ts`. Drop the duplicate `workbox-window` from `devDependencies`. Remove the `nanoid` dynamic import (route through a temporary inline `crypto.randomUUID()` wrapper until the `IdGenerator` port lands in Phase 2).
   3. **Phase 1 exit criteria:** student completes a 5-question session in a real browser; production builds emit structured errors to IndexedDB; no scene calls a deprecated logger; package.json declares no hidden runtime deps; `sessionTelemetry` table is no longer dead-letter.
+
+  **Phase 1 — Completed (2026-04-27, branch `plans/master-audit-roadmap`):**
+  - ✅ Removed duplicate `workbox-window` from `devDependencies` in `package.json`
+  - ✅ Removed production-silence (`if (import.meta.env.PROD) return false`) from `src/lib/log.ts`; warn/error now always emit
+  - ✅ Added `window.addEventListener('error', …)` global error sink in `src/main.ts` routing through `log.error`
+  - ✅ Updated `unhandledrejection` handler in `src/main.ts` to use structured logger instead of bare `console.warn`
+  - ✅ Replaced all 5 `nanoid` dynamic imports with `crypto.randomUUID()` in `BootScene.ts`, `Level01Scene.ts` (×2), `LevelScene.ts` (×2)
+  - Deferred to Phase 2: Logger factory + sink array, Dexie schema v4 `telemetryEvents`, `sessionTelemetry` writer
 
 * **Phase 2 — Restore architectural integrity: Application layer + engine purity + close C5 (Sprint 1 + Sprint 2).**
   1. **Engine-purity ports first.** Add `src/engine/ports.ts` with `Clock`, `IdGenerator`, `Rng`, `Logger`, `Viewport` interfaces. Refactor `misconceptionDetectors.ts`, `selection.ts`, `calibration.ts` to receive ports. Provide `SystemClock`, `CryptoUuidGenerator`, `MathRandomRng`, `ConsoleLogger` adapters in `src/lib/adapters/`; provide `FixedClock`, `SequentialIdGenerator`, `MulberryRng(seed)` test doubles. Add ESLint rule forbidding `crypto`, `Date`, `Math.random`, `window`, `document`, `console`, `localStorage`, `fetch` in `src/engine/**` and `src/validators/**`. Unblocks deterministic detector and selection tests with `fast-check`.

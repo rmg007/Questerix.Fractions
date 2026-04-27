@@ -1,15 +1,32 @@
 import './styles/index.css';
 import * as Phaser from 'phaser';
+import { log } from './lib/log';
 
-// Swallow unhandled storage errors from third-party / sandboxed contexts
-// (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
-// The game continues in volatile mode per runtime-architecture.md §10.
+// Global error sink — catches synchronous exceptions in Phaser callbacks
+// and routes through the structured logger (C4b.1 audit Phase 1 fix).
+window.addEventListener('error', (event) => {
+  log.error('MAIN', 'uncaught_error', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    stack: event.error instanceof Error ? event.error.stack : undefined,
+  });
+});
+
+// Route storage-rejection errors through logger instead of silently dropping.
+// App continues in volatile mode per runtime-architecture.md §10.
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   const message = reason instanceof Error ? reason.message : String(reason ?? '');
   if (/storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i.test(message)) {
-    console.warn('[main] Suppressed storage-restricted error:', message);
+    log.warn('MAIN', 'storage_error_suppressed', { message });
     event.preventDefault();
+  } else {
+    log.error('MAIN', 'unhandled_rejection', {
+      message,
+      stack: reason instanceof Error ? reason.stack : undefined,
+    });
   }
 });
 

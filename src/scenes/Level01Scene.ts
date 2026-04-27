@@ -316,8 +316,7 @@ export class Level01Scene extends Phaser.Scene {
 
       // ── Create new session ─────────────────────────────────────────────────
       const { sessionRepo } = await import('../persistence/repositories/session');
-      const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
-      const id = nanoid() as import('@/types').SessionId;
+      const id = crypto.randomUUID() as import('@/types').SessionId;
 
       const session = await sessionRepo.create({
         id,
@@ -947,12 +946,10 @@ export class Level01Scene extends Phaser.Scene {
 
     try {
       const { attemptRepo } = await import('../persistence/repositories/attempt');
-      const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `a-${Date.now()}` }));
-
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
-      const attemptId = nanoid() as import('@/types').AttemptId;
+      const attemptId = crypto.randomUUID() as import('@/types').AttemptId;
       log.atmp('record_start', {
         attemptId,
         outcome,

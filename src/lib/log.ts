@@ -44,7 +44,7 @@ function getFilter(): string {
 }
 
 function isEnabled(category: string): boolean {
-  if (import.meta.env.PROD) return false;
+  // Always emit WARN/ERROR in prod; honour category filter in dev
   const f = getFilter();
   if (f === '' || f === 'off') return false;
   if (f === '*' || f === 'all') return true;
@@ -74,7 +74,9 @@ const STYLES: Record<string, string> = {
 };
 
 function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): void {
-  if (!isEnabled(category)) return;
+  // Always emit warn/error in production; filter debug/log channels
+  const isError = fn === 'warn' || fn === 'error';
+  if (!isError && !isEnabled(category)) return;
   const cat = category.toUpperCase().padEnd(5);
   const style = STYLES[cat.trim()] ?? 'color:#374151;font-weight:700';
   const prefix = `%c[${ts()}] ${cat}%c ${event}`;
