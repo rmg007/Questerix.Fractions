@@ -96,7 +96,7 @@
       "description": "Source code organised under src/",
       "evidence": {
         "files": [
-          "C:\\dev\\Questerix.Fractions\\src"
+          "C:\\dev\\Questerix.Fractions\\artifacts\\mockup-sandbox\\src"
         ],
         "matchCount": 1,
         "confidence": 0.9

@@ -23,6 +23,9 @@ import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import { getInteractionForArchetype } from './utils/levelRouter';
 import type { Interaction } from './interactions/types';
 import type { QuestionTemplate, ValidatorResult } from '@/types';
+import { MenuScene } from './MenuScene';
+import { tts } from '../audio/TTSService';
+import { log } from '../lib/log';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -52,6 +55,14 @@ export class LevelScene extends Phaser.Scene {
   private wrongCount: number = 0;
   private inputLocked: boolean = false;
 
+  // Fix G-E4: real accuracy + response-time tracking
+  private correctCount: number = 0;
+  private responseTimes: number[] = [];
+  private questionStartTime: number = 0;
+
+  // Fix G-E3: hint events linked to attempt records
+  private currentQuestionHintIds: string[] = [];
+
   // Template pool
   private templatePool: QuestionTemplate[] = [];
   private currentTemplate!: QuestionTemplate;
@@ -78,11 +89,16 @@ export class LevelScene extends Phaser.Scene {
     this.questionIndex = 0;
     this.attemptCount = 0;
     this.wrongCount = 0;
+    this.correctCount = 0;
+    this.responseTimes = [];
+    this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
+    log.scene('init', { level: this.levelNumber, studentId: this.studentId, resume: data.resume ?? false });
   }
 
   async create(): Promise<void> {
+    log.scene('create_start', { level: this.levelNumber });
     TestHooks.unmountAll();
 
     // Adventure sky background — matches the MenuScene world
@@ -128,18 +144,28 @@ export class LevelScene extends Phaser.Scene {
     // hint-text sentinel (hidden until text set)
     TestHooks.mountSentinel('hint-text');
 
+    // Fix TTS: load persisted preference before first question fires
+    try {
+      const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
+      const meta = await deviceMetaRepo.get();
+      tts.setEnabled(meta.preferences.audio ?? true);
+    } catch {
+      // Graceful fallback — leave TTS in its default state
+    }
+
     this.loadQuestion(0);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────
 
   private async loadTemplates(): Promise<void> {
+    log.tmpl('load_start', { level: this.levelNumber });
     try {
       const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
       const all = await questionTemplateRepo.getByLevel(
         this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
       );
-      console.info(`[LevelScene] getByLevel(${this.levelNumber}) returned ${all.length} templates`);
+      log.tmpl('dexie_raw', { level: this.levelNumber, totalReturned: all.length, archetypes: [...new Set(all.map(t => t.archetype))] });
       // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
       const seen = new Set<string>();
       const picked: QuestionTemplate[] = [];
@@ -151,16 +177,12 @@ export class LevelScene extends Phaser.Scene {
       }
       this.templatePool = picked;
       if (this.templatePool.length > 0) {
-        console.info(
-          `[LevelScene] Loaded ${this.templatePool.length} templates for level ${this.levelNumber}`
-        );
+        log.tmpl('load_ok', { level: this.levelNumber, count: this.templatePool.length, ids: this.templatePool.map(t => t.id), archetypes: [...new Set(this.templatePool.map(t => t.archetype))] });
       } else {
-        console.warn(
-          `[LevelScene] No templates found for level ${this.levelNumber} — using fallback`
-        );
+        log.tmpl('load_empty', { level: this.levelNumber, fallback: 'synthetic' });
       }
     } catch (err) {
-      console.warn('[LevelScene] Template fetch failed — volatile mode:', err);
+      log.warn('TMPL', 'load_error', { level: this.levelNumber, error: String(err), fallback: 'synthetic' });
       this.templatePool = [];
     }
   }
@@ -171,6 +193,7 @@ export class LevelScene extends Phaser.Scene {
     this.questionIndex = index;
     this.wrongCount = 0;
     this.inputLocked = false;
+    this.currentQuestionHintIds = [];
 
     // Unmount previous interaction
     this.activeInteraction?.unmount();
@@ -187,6 +210,21 @@ export class LevelScene extends Phaser.Scene {
     this.hintLadder = new HintLadder(this.currentTemplate.difficultyTier);
     this.hintTextGO.setVisible(false);
     this.promptText.setText(this.currentTemplate.prompt.text);
+    log.q('load', {
+      index,
+      id: this.currentTemplate.id,
+      archetype: this.currentTemplate.archetype,
+      tier: this.currentTemplate.difficultyTier,
+      prompt: this.currentTemplate.prompt.text,
+      validatorId: this.currentTemplate.validatorId,
+      source: this.templatePool.length > 0 ? 'dexie' : 'synthetic',
+    });
+
+    // G-UX3: speak prompt aloud via TTS (preference already loaded in create())
+    tts.speak(this.currentTemplate.prompt.text);
+
+    // Fix G-E4: record when this question started for response-time tracking
+    this.questionStartTime = Date.now();
 
     // Instantiate and mount interaction
     const interaction = getInteractionForArchetype(this.currentTemplate.archetype);
@@ -254,6 +292,7 @@ export class LevelScene extends Phaser.Scene {
       });
 
     backBtn.on('pointerup', () => {
+      log.input('back_to_menu', { level: this.levelNumber, questionIndex: this.questionIndex, attemptCount: this.attemptCount });
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
   }
@@ -287,7 +326,10 @@ export class LevelScene extends Phaser.Scene {
       this,
       CW - 60,
       160,
-      () => this.onHintRequest(),
+      () => {
+        log.input('hint_button_tap', { level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        this.onHintRequest();
+      },
       10,
     );
   }
@@ -298,7 +340,10 @@ export class LevelScene extends Phaser.Scene {
       CW / 2,
       CH - 180,
       'Check ✓',
-      () => { void this.onSubmit(); },
+      () => {
+        log.input('check_button_tap', { level: this.levelNumber, lastPayload: this.lastPayload, inputLocked: this.inputLocked, questionIndex: this.questionIndex });
+        void this.onSubmit();
+      },
       10,
     );
   }
@@ -313,6 +358,7 @@ export class LevelScene extends Phaser.Scene {
 
   private async onCommit(payload: unknown): Promise<void> {
     if (this.inputLocked) return;
+    log.input('interaction_commit', { level: this.levelNumber, archetype: this.currentTemplate?.archetype, payload });
     this.lastPayload = payload;
     await this.onSubmit();
   }
@@ -321,6 +367,14 @@ export class LevelScene extends Phaser.Scene {
     if (this.inputLocked || this.lastPayload === null) return;
     this.inputLocked = true;
     this.submitButtonContainer?.setAlpha(0.5);
+
+    log.valid('submit', {
+      level: this.levelNumber,
+      questionId: this.currentTemplate.id,
+      archetype: this.currentTemplate.archetype,
+      validatorId: this.currentTemplate.validatorId,
+      payload: this.lastPayload,
+    });
 
     const startedAt = Date.now();
     let result: ValidatorResult;
@@ -343,11 +397,24 @@ export class LevelScene extends Phaser.Scene {
         );
       }
     } catch (err) {
-      console.error('[LevelScene] Validator error:', err);
+      log.error('VALID', 'validator_error', { error: String(err), questionId: this.currentTemplate.id });
       result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
     }
 
     const responseMs = Date.now() - startedAt;
+    const totalResponseMs = Date.now() - this.questionStartTime;
+    this.responseTimes.push(totalResponseMs);
+
+    log.valid('result', {
+      outcome: result.outcome,
+      score: result.score,
+      feedback: result.feedback,
+      validatorMs: responseMs,
+      totalResponseMs,
+      questionId: this.currentTemplate.id,
+      attemptNumber: this.wrongCount + 1,
+    });
+
     await this.recordAttempt(result, responseMs);
     this.showOutcome(result);
   }
@@ -385,8 +452,10 @@ export class LevelScene extends Phaser.Scene {
 
   private onCorrectAnswer(): void {
     this.attemptCount++;
+    this.correctCount++;  // Fix G-E4: track correct answers separately
     this.progressBar.setProgress(this.attemptCount);
     this.lastPayload = null;
+    log.q('correct', { level: this.levelNumber, questionIndex: this.questionIndex, attemptCount: this.attemptCount, progress: `${this.attemptCount}/${SESSION_GOAL}`, wrongCountThisQ: this.wrongCount });
 
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
@@ -399,6 +468,7 @@ export class LevelScene extends Phaser.Scene {
     this.wrongCount++;
     this.inputLocked = false;
     this.lastPayload = null;
+    log.q('wrong', { level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount, questionId: this.currentTemplate.id });
 
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
     if (tier) {
@@ -413,25 +483,79 @@ export class LevelScene extends Phaser.Scene {
 
   private onHintRequest(): void {
     const tier = this.hintLadder.next();
+    log.hint('request', { tier, level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
     void this.showHintForTier(tier);
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
-    this.hintTextGO.setVisible(true);
+    const archetype = this.currentTemplate?.archetype ?? 'partition';
     let msg = '';
-    switch (tier) {
-      case 'verbal':
-        msg = 'Tip: Equal parts means each piece is the same size. Try the middle!';
+
+    // Fix G-Hints: branch on archetype so messages are contextually correct
+    switch (archetype) {
+      case 'compare':
+        switch (tier) {
+          case 'verbal':        msg = 'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.'; break;
+          case 'visual_overlay': msg = 'Try drawing both fractions as a picture — which takes up more space?'; break;
+          case 'worked_example': msg = 'If the bottom numbers are the same, the bigger top number wins.'; break;
+        }
         break;
-      case 'visual_overlay':
-        msg = 'Look for the center of the shape.';
+      case 'benchmark':
+        switch (tier) {
+          case 'verbal':        msg = 'Is this fraction closer to 0, to ½, or to 1?'; break;
+          case 'visual_overlay': msg = '½ means equal parts. Is your fraction less than half, about half, or more than half?'; break;
+          case 'worked_example': msg = 'Try: if the top is much smaller than the bottom, it\'s near 0. If they\'re almost equal, it\'s near 1.'; break;
+        }
         break;
-      case 'worked_example':
-        msg = 'Watch where to place the line, then try yourself.';
+      case 'order':
+        switch (tier) {
+          case 'verbal':        msg = 'Which fraction is smallest? Start by placing it first.'; break;
+          case 'visual_overlay': msg = 'Try converting to the same denominator — then compare the top numbers.'; break;
+          case 'worked_example': msg = 'Draw each fraction as a picture to see which is smallest, middle, and largest.'; break;
+        }
+        break;
+      case 'equal_or_not':
+        switch (tier) {
+          case 'verbal':        msg = 'Look carefully — are all the pieces exactly the same size?'; break;
+          case 'visual_overlay': msg = 'Cover one piece with another in your mind — do they match?'; break;
+          case 'worked_example': msg = 'Equal parts means every single piece is identical.'; break;
+        }
+        break;
+      case 'label':
+        switch (tier) {
+          case 'verbal':        msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.'; break;
+          case 'visual_overlay': msg = 'The bottom number is total pieces. The top number is shaded pieces.'; break;
+          case 'worked_example': msg = 'Write shaded / total.'; break;
+        }
+        break;
+      case 'make':
+        switch (tier) {
+          case 'verbal':        msg = 'The bottom number tells you how many pieces total. The top tells you how many to shade.'; break;
+          case 'visual_overlay': msg = 'Shade exactly the number on top.'; break;
+          case 'worked_example': msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.'; break;
+        }
+        break;
+      case 'snap_match':
+        switch (tier) {
+          case 'verbal':        msg = 'Find the picture where the shaded part matches the fraction.'; break;
+          case 'visual_overlay': msg = 'Count the total pieces (bottom number) and shaded pieces (top number).'; break;
+          case 'worked_example': msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.'; break;
+        }
+        break;
+      case 'partition':
+      default:
+        switch (tier) {
+          case 'verbal':        msg = 'Tip: Equal parts means each piece is the same size. Try the middle!'; break;
+          case 'visual_overlay': msg = 'Look for the center of the shape.'; break;
+          case 'worked_example': msg = 'Watch where to place the line, then try yourself.'; break;
+        }
         break;
     }
+
     this.hintTextGO.setText(msg);
+    this.hintTextGO.setVisible(true);
     TestHooks.setText('hint-text', msg);
+    log.hint('show', { tier, message: msg, level: this.levelNumber, archetype });
 
     // C7.8: Record hint event with score penalty per interaction-model.md §4.1
     // Penalty: 5 pts (T1), 15 pts (T2), 30 pts (T3)
@@ -439,7 +563,7 @@ export class LevelScene extends Phaser.Scene {
       try {
         const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
         const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
-        await hintEventRepo.record({
+        const ev = await hintEventRepo.record({
           attemptId: '' as unknown as import('@/types').AttemptId, // Will be linked post-submission
           hintId: `hint.${this.currentTemplate.archetype}.${tier}`,
           tier,
@@ -448,6 +572,7 @@ export class LevelScene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
+        if (ev?.id) this.currentQuestionHintIds.push(ev.id as string);
       } catch (err) {
         console.warn('[LevelScene] Could not record hint event:', err);
       }
@@ -500,8 +625,9 @@ export class LevelScene extends Phaser.Scene {
         syncState: 'local',
       });
       this.sessionId = session.id;
+      log.sess('open_ok', { sessionId: this.sessionId, level: this.levelNumber, activityId: `level_${this.levelNumber}` });
     } catch (err) {
-      console.warn('[LevelScene] Could not open session:', err);
+      log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
     }
   }
 
@@ -512,8 +638,10 @@ export class LevelScene extends Phaser.Scene {
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `a-${Date.now()}` }));
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
+      const attemptId = nanoid() as import('@/types').AttemptId;
+      log.atmp('record_start', { attemptId, outcome, responseMs, questionId: this.currentTemplate.id, hintsUsed: this.currentQuestionHintIds.length });
       await attemptRepo.record({
-        id: nanoid() as import('@/types').AttemptId,
+        id: attemptId,
         sessionId: this.sessionId as import('@/types').SessionId,
         studentId: this.studentId as import('@/types').StudentId,
         questionTemplateId: this.currentTemplate.id,
@@ -528,12 +656,65 @@ export class LevelScene extends Phaser.Scene {
         outcome,
         errorMagnitude: null,
         pointsEarned: result.score,
-        hintsUsedIds: [],
+        hintsUsedIds: [...this.currentQuestionHintIds],
         hintsUsed: [],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
         syncState: 'local',
       });
+
+      // Fix G-E1: update BKT mastery after every attempt
+      try {
+        const isCorrect = result.outcome === 'correct';
+        const skillIds = this.currentTemplate.skillIds ?? [];
+        const skillId = (skillIds[0] ?? `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
+        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+        const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+
+        const existing = await skillMasteryRepo.get(
+          this.studentId as import('@/types').StudentId,
+          skillId
+        );
+        const studentIdTyped = this.studentId as import('@/types').StudentId;
+        const prev: import('@/types').SkillMastery = existing ?? {
+          studentId: studentIdTyped,
+          skillId,
+          compositeKey: [studentIdTyped, skillId],
+          masteryEstimate: DEFAULT_PRIORS.pInit,
+          state: 'NOT_STARTED',
+          consecutiveCorrectUnassisted: 0,
+          totalAttempts: 0,
+          correctAttempts: 0,
+          lastAttemptAt: Date.now(),
+          masteredAt: null,
+          decayedAt: null,
+          syncState: 'local',
+        };
+        const updated = updateMastery(prev, isCorrect);
+        const withMeta: import('@/types').SkillMastery = {
+          ...updated,
+          compositeKey: [studentIdTyped, skillId],
+          lastAttemptAt: Date.now(),
+          masteredAt: updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
+            ? Date.now()
+            : prev.masteredAt ?? null,
+          decayedAt: prev.decayedAt ?? null,
+          syncState: 'local',
+        };
+        log.bkt('mastery_update', {
+          skill: skillId,
+          isCorrect,
+          prevEstimate: +prev.masteryEstimate.toFixed(4),
+          nextEstimate: +withMeta.masteryEstimate.toFixed(4),
+          state: withMeta.state,
+          totalAttempts: withMeta.totalAttempts,
+          correctAttempts: withMeta.correctAttempts,
+          justMastered: !!withMeta.masteredAt && !prev.masteredAt,
+        });
+        await skillMasteryRepo.upsert(withMeta);
+      } catch (err) {
+        log.warn('BKT', 'mastery_update_error', { level: this.levelNumber, error: String(err) });
+      }
 
       // C7.2: Run misconception detectors and upsert flags
       try {
@@ -551,12 +732,13 @@ export class LevelScene extends Phaser.Scene {
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
+          log.misc('flags_detected', { count: flags.length, ids: flags.map(f => f.misconceptionId) });
         }
       } catch (err) {
-        console.warn('[LevelScene] Misconception detection error:', err);
+        log.warn('MISC', 'detection_error', { error: String(err) });
       }
     } catch (err) {
-      console.warn('[LevelScene] Could not record attempt:', err);
+      log.error('ATMP', 'record_failed', { error: String(err) });
     }
   }
 
@@ -564,6 +746,9 @@ export class LevelScene extends Phaser.Scene {
 
   private showSessionComplete(): void {
     this.inputLocked = true;
+    const accuracy = this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
+    const avgResponseMs = this.responseTimes.length > 0 ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length) : null;
+    log.scene('session_complete', { level: this.levelNumber, attemptCount: this.attemptCount, correctCount: this.correctCount, accuracy, avgResponseMs });
     TestHooks.mountSentinel('completion-screen');
 
     this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
@@ -594,11 +779,22 @@ export class LevelScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(52);
 
+    // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
+    MenuScene.markLevelComplete(this.levelNumber, this.studentId);
+
     // Amber "Keep going" action button
+    // G-C7/G-UX6: advance to the next level. If already on the last level (9), go to menu.
     createActionButton(this, CW / 2, CH / 2 + 60, 'Keep going ▶', () => {
-      this.attemptCount = 0;
-      this.inputLocked = false;
-      this.loadQuestion(this.questionIndex + 1);
+      const nextLevel = this.levelNumber + 1;
+      if (nextLevel > 9) {
+        // All levels complete — congratulate and return to menu
+        this.scene.start('MenuScene', { lastStudentId: this.studentId, allComplete: true });
+      } else {
+        this.scene.start('LevelScene', {
+          levelNumber: nextLevel,
+          studentId: this.studentId,
+        });
+      }
     }, 52);
 
     // Secondary "Back to menu" button
@@ -644,18 +840,29 @@ export class LevelScene extends Phaser.Scene {
     if (!this.sessionId) return;
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
-      await sessionRepo.close(this.sessionId as import('@/types').SessionId, {
+
+      // Fix G-E4: compute real accuracy and avg response time
+      const accuracy = this.attemptCount > 0
+        ? this.correctCount / this.attemptCount
+        : 1;
+      const avgResponseMs = this.responseTimes.length > 0
+        ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+        : null;
+
+      const summary = {
         endedAt: Date.now(),
         totalAttempts: this.attemptCount,
-        correctAttempts: this.attemptCount,
-        accuracy: 1,
-        avgResponseMs: null,
-        xpEarned: this.attemptCount * 10,
-        scaffoldRecommendation: 'stay',
+        correctAttempts: this.correctCount,
+        accuracy,
+        avgResponseMs,
+        xpEarned: this.correctCount * 10,
+        scaffoldRecommendation: 'stay' as const,
         endLevel: this.levelNumber,
-      });
+      };
+      log.sess('close', { sessionId: this.sessionId, level: this.levelNumber, ...summary });
+      await sessionRepo.close(this.sessionId as import('@/types').SessionId, summary);
     } catch (err) {
-      console.warn('[LevelScene] Could not close session:', err);
+      log.warn('SESS', 'close_error', { level: this.levelNumber, error: String(err) });
     }
   }
 
@@ -670,6 +877,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   preDestroy(): void {
+    log.scene('destroy', { level: this.levelNumber });
     AccessibilityAnnouncer.destroy();
     this.activeInteraction?.unmount();
     TestHooks.unmountAll();

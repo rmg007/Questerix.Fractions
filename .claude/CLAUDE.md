@@ -18,17 +18,6 @@
 - **roadie**: `npm run roadie`
 - **test**: `npm run test`
 - **test:unit**: `npm run test:unit`
-- **test:integration**: `npm run test:integration`
-- **test:e2e**: `npm run test:e2e`
-- **test:a11y**: `npm run test:a11y`
-- **typecheck**: `npm run typecheck`
-- **build:analyze**: `npm run build:analyze`
-- **lint**: `npm run lint`
-- **lint:fix**: `npm run lint:fix`
-- **measure-bundle**: `npm run measure-bundle`
-
-## Code Conventions
-- TypeScript project (v6.0.3)
 [truncated]
 <!-- roadie:end:workspace-rules -->
 
@@ -36,6 +25,18 @@
 ## Repository Map
 
 - **PLANS/**
+- **artifacts/**
+- **mockup-sandbox/**
+- **public/** (static)
+- **src/** (source)
+- **components/** (source)
+- **mockups/** (source)
+- **menu-variants/** (source)
+- **ui/** (source)
+- **hooks/** (source)
+- **lib/** (source)
+- **attached_assets/**
+- **screenshots/**
 - **curriculum-source/**
 - **levels-3-5_pedagogy/**
 - **Grade2-ComparingOrdering/**
@@ -97,7 +98,6 @@
 - **styles/** (source)
 - **types/** (source)
 - **validators/** (source)
-- **test-results/**
 - **tests/** (test)
 - **a11y/** (test)
 - **e2e/** (test)

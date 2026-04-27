@@ -1,10 +1,78 @@
-# Phase 3 Planning Documents — Complete Index
+# Questerix Fractions — Planning Documents Index
 
-**All files created:** 2026-04-25  
-**Total documentation:** ~2,400 lines across 5 files  
-**Status:** Ready for implementation
+**Last updated:** 2026-04-26
+**Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
 
 ---
+
+## ⭐ Start Here (2026-04-26)
+
+### [master-plan-2026-04-26.md](master-plan-2026-04-26.md) — MASTER BACKLOG
+The single backlog of everything left to do for the MVP. Synthesizes the architecture review and visual QA, reflects in-flight work, orders by sprint with exit criteria.
+
+**Use it for:** daily next-action lookup, sprint-by-sprint task tracking, effort roll-up, open decisions awaiting user input.
+
+---
+
+## 🆕 Source Documents (2026-04-27)
+
+### [architecture-review-2026-04-27.md](architecture-review-2026-04-27.md) — MASTER TECHNICAL REVIEW
+The authoritative source of truth for the entire project's technical state.
+
+**Covers:**
+- 5 readiness dimensions: Gameplay Loop, Learning Engine, Content, Student Experience, Operational
+- 28-item gap register with severity and cross-references
+- 5-sprint plan with exit criteria per sprint
+- Constraint compliance audit (C1–C10)
+- "Definition of Done" — 8 items for a classroom pilot
+
+**When to use:**
+- Understanding what's built vs. what's wired vs. what's missing
+- Deciding which sprint to work on next
+- Writing a status update for a stakeholder
+- Checking if a constraint is being violated
+
+---
+
+### [qa-visual-report-2026-04-27.md](qa-visual-report-2026-04-27.md) — VISUAL QA WITH SCREENSHOTS
+Live browser walkthrough of every reachable screen, with embedded screenshots and per-element pass/fail.
+
+**Covers:**
+- 6 screens documented with screenshots (Menu, Level 1, Hint, Check, Back, Settings)
+- 14 untested flows (session complete, L2–L9, iPad, offline, TTS, etc.)
+- The "happy path" — what a working session should look like step by step
+- Bug register with exact symptom + root cause + fix for each
+- Readiness score (current: 🔴 NOT READY)
+
+**When to use:**
+- Seeing what the app actually looks like today
+- Understanding user-facing bugs
+- Testing a fix — compare screenshots before/after
+- Communicating app state without running the code
+
+---
+
+## 🔴 Critical Blockers (Fix In This Order)
+
+| # | Blocker | File | Effort |
+|---|---|---|---|
+| 1 | **BUG-01** — Wrong prompt ("identify" archetype on a "partition" scene) | `Level01Scene.ts` | 2 min |
+| 2 | **BUG-02** — Validation never passes, progress stuck at 0/5 forever | `Level01Scene.ts` | ~30 min |
+| 3 | **BUG-04** — Hint tiers never advance past Tier 1 | `Level01Scene.ts` | 15 min |
+| 4 | **BUG-05** — Settings gear routing (likely resolved — retest in real browser) | `MenuScene.ts` | 15 min |
+| 5 | **G-C3** — No UI route to Level 2–9. Adventure map is decorative. | `MenuScene.ts` | Sprint 2 |
+| 6 | **G-C7** — "Keep going" loops Level 1 instead of advancing to Level 2 | `LevelScene.ts` | 30 min |
+| 7 | **G-E1** — BKT `updateMastery()` never called. Zero learning signal. | `Level01Scene.ts` | Sprint 1 |
+
+**Sprint 0 exit criteria:** Student completes a 5-question session in a real browser tab at `localhost:5002`.
+
+**Why the app doesn’t feel smart:** BKT is fully built but never called. Every answer goes into a void. No mastery states change. No difficulty adjusts. No misconception feedback escalates. This is the primary work of Sprint 1.
+
+**Removed from planning:** Multi-student / parental view (⏸️ parked — future milestone). Onboarding (⛔ deprioritised — not MVP).
+
+---
+
+## Phase 3 Planning Documents (2026-04-25)
 
 ## Document Map
 

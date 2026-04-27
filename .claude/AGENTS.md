@@ -84,9 +84,9 @@ Custom notes added outside markers are preserved across regenerations.
 <!-- roadie:start:directory-structure -->
 ## Directory Structure
 
-- **Source:** Questerix.Fractions, src, audio, components, core, curriculum, engine, fractions, lib, persistence, repositories, scenes, interactions, utils, utils, styles, types, validators
+- **Source:** Questerix.Fractions, src, components, mockups, menu-variants, ui, hooks, lib, src, audio, components, core, curriculum, engine, fractions, lib, persistence, repositories, scenes, interactions, utils, utils, styles, types, validators
 - **Tests:** tests, a11y, e2e, fixtures, integration, synthetic, results, unit, engine, validators
-- **Static assets:** public
+- **Static assets:** public, public
 <!-- roadie:end:directory-structure -->
 
 <!-- roadie:start:coding-standards -->

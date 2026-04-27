@@ -275,6 +275,14 @@ export class MenuScene extends Phaser.Scene {
       },
     });
 
+    // G-C3/G-C4: "Choose Level" button — Option B chosen because MenuScene has no
+    // existing level-node game objects to tap; adding a dedicated button requires
+    // less new code than retrofitting decorative nodes.
+    // Unlock model: Level 1 always unlocked; Level N+1 unlocks when localStorage
+    // key 'unlockedLevels' (JSON number[]) includes N.  When a studentId is present
+    // the key is prefixed with the studentId for isolation.
+    this.createChooseLevelButton();
+
     // Stop tweens / handlers on shutdown so we don't leak
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       for (const t of this.ambientTweens) t.stop();
@@ -284,9 +292,208 @@ export class MenuScene extends Phaser.Scene {
         this.dashTickHandler = null;
       }
     });
+  }
 
-    // One-time storage warning banner (dev mode only)
-    void this._showStorageBannerIfNeeded();
+  // ── Level chooser ─────────────────────────────────────────────────────────
+
+  /**
+   * Tiny pill button that opens a 3×3 level grid overlay.
+   * Placed below the Play button so it doesn't compete with primary CTA.
+   */
+  private createChooseLevelButton(): void {
+    const bx = STATION_X;
+    const by = PLAY_Y + 90;
+    const W = 220, H = 48;
+
+    const g = this.add.graphics().setDepth(16);
+    g.fillStyle(WHITE, 0.9);
+    g.fillRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
+    g.lineStyle(3, NAVY, 1);
+    g.strokeRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
+
+    this.add
+      .text(bx, by, '🗺 Choose Level', {
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        fontSize: '22px',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(17);
+
+    this.add
+      .rectangle(bx, by, W, H, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(18)
+      .on('pointerup', () => void this._openLevelChooser());
+  }
+
+  /** Read unlocked levels from localStorage (with optional studentId prefix). */
+  private _getUnlockedLevels(): Set<number> {
+    const unlocked = new Set<number>([1]); // Level 1 always unlocked
+    try {
+      const key = this.lastStudentId
+        ? `unlockedLevels:${this.lastStudentId}`
+        : 'unlockedLevels';
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const arr = JSON.parse(raw) as number[];
+        arr.forEach((n) => unlocked.add(n));
+      }
+    } catch {
+      // Ignore storage errors — default to level 1 only
+    }
+    return unlocked;
+  }
+
+  /** Persist that a level was completed so the next one unlocks. */
+  static markLevelComplete(levelNumber: number, studentId: string | null): void {
+    try {
+      const key = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
+      const raw = localStorage.getItem(key);
+      const arr: number[] = raw ? (JSON.parse(raw) as number[]) : [];
+      const next = levelNumber + 1;
+      if (next <= 9 && !arr.includes(next)) {
+        arr.push(next);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  private async _openLevelChooser(): Promise<void> {
+    // Build the unlocked set — also query Dexie if we have a studentId
+    const unlocked = this._getUnlockedLevels();
+    if (this.lastStudentId) {
+      try {
+        const { sessionRepo } = await import('../persistence/repositories/session');
+        const sessions = await sessionRepo.listForStudent(
+          this.lastStudentId as import('@/types').StudentId
+        );
+        // Any closed session (endedAt != null) counts as completing that level
+        for (const s of sessions) {
+          if (s.endedAt != null && s.levelNumber >= 1 && s.levelNumber <= 9) {
+            unlocked.add(s.levelNumber);
+            if (s.levelNumber < 9) unlocked.add(s.levelNumber + 1);
+          }
+        }
+      } catch {
+        // Fall back to localStorage-only unlock state
+      }
+    }
+
+    this._renderLevelGrid(unlocked);
+  }
+
+  private _renderLevelGrid(unlocked: Set<number>): void {
+    const CX = CW / 2;
+    const CY = CH / 2;
+    const CARD_W = 640, CARD_H = 520;
+
+    // Scrim
+    const scrim = this.add.rectangle(CX, CY, CW, CH, 0x000000, 0.55).setDepth(60);
+
+    // Card
+    const cardG = this.add.graphics().setDepth(61);
+    cardG.fillStyle(0xe0f2fe, 1);
+    cardG.fillRoundedRect(CX - CARD_W / 2, CY - CARD_H / 2, CARD_W, CARD_H, 20);
+    cardG.lineStyle(4, NAVY, 1);
+    cardG.strokeRoundedRect(CX - CARD_W / 2, CY - CARD_H / 2, CARD_W, CARD_H, 20);
+
+    this.add
+      .text(CX, CY - CARD_H / 2 + 36, 'Choose a Level', {
+        fontFamily: TITLE_FONT,
+        fontSize: '34px',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(62);
+
+    // 3×3 grid of level buttons
+    const COLS = 3;
+    const CELL = 160;
+    const startX = CX - CELL;
+    const startY = CY - CARD_H / 2 + 110;
+
+    for (let lvl = 1; lvl <= 9; lvl++) {
+      const col = (lvl - 1) % COLS;
+      const row = Math.floor((lvl - 1) / COLS);
+      const bx = startX + col * CELL;
+      const by = startY + row * (CELL - 20);
+      const isUnlocked = unlocked.has(lvl);
+
+      const bW = 120, bH = 64;
+      const bg = this.add.graphics().setDepth(62);
+      if (isUnlocked) {
+        bg.fillStyle(PLAY_FILL, 1);
+        bg.lineStyle(4, PLAY_BORDER, 1);
+      } else {
+        bg.fillStyle(0xd1d5db, 1); // gray-300
+        bg.lineStyle(4, 0x9ca3af, 1); // gray-400
+      }
+      bg.fillRoundedRect(bx - bW / 2, by - bH / 2, bW, bH, 12);
+      bg.strokeRoundedRect(bx - bW / 2, by - bH / 2, bW, bH, 12);
+
+      this.add
+        .text(bx, by, isUnlocked ? `Level ${lvl}` : `🔒 ${lvl}`, {
+          fontFamily: TITLE_FONT,
+          fontSize: '20px',
+          color: isUnlocked ? PLAY_TEXT : '#6b7280',
+        })
+        .setOrigin(0.5)
+        .setDepth(63);
+
+      if (isUnlocked) {
+        this.add
+          .rectangle(bx, by, bW, bH, 0, 0)
+          .setInteractive({ useHandCursor: true })
+          .setDepth(64)
+          .on('pointerup', () => {
+            scrim.destroy();
+            cardG.destroy();
+            // Clean up all children added above depth 60
+            this.children.list
+              .filter((o) => ('depth' in o) && (o as { depth: number }).depth >= 60)
+              .forEach((o) => o.destroy());
+            if (lvl === 1) {
+              this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+            } else {
+              this.scene.start('LevelScene', {
+                levelNumber: lvl,
+                studentId: this.lastStudentId,
+              });
+            }
+          });
+      }
+    }
+
+    // Close button (×)
+    const closeG = this.add.graphics().setDepth(62);
+    const closeX = CX + CARD_W / 2 - 28;
+    const closeY = CY - CARD_H / 2 + 28;
+    closeG.fillStyle(NAVY, 1);
+    closeG.fillCircle(closeX, closeY, 20);
+
+    this.add
+      .text(closeX, closeY, '×', {
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        fontSize: '28px',
+        color: WHITE_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(63);
+
+    this.add
+      .circle(closeX, closeY, 20, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(64)
+      .on('pointerup', () => {
+        this.children.list
+          .filter((o) => (o as Phaser.GameObjects.Components.Depth & Phaser.GameObjects.GameObject).depth >= 60)
+          .forEach((o) => o.destroy());
+      });
   }
 
   // ── Drawing helpers ───────────────────────────────────────────────────────
@@ -552,55 +759,6 @@ export class MenuScene extends Phaser.Scene {
       update();
       opts.onTap();
     });
-  }
-
-  // ── Storage banner (dev only) ─────────────────────────────────────────────
-
-  private async _showStorageBannerIfNeeded(): Promise<void> {
-    if (!import.meta.env.DEV) return;
-    if (typeof navigator === 'undefined' || !navigator.storage?.persisted) return;
-    try {
-      const alreadyShown = sessionStorage.getItem('menu:storage-banner-shown');
-      if (alreadyShown) return;
-      const persisted = await navigator.storage.persisted();
-      if (persisted) return;
-      sessionStorage.setItem('menu:storage-banner-shown', '1');
-      this._renderStorageBanner();
-    } catch {
-      // ignore — best effort dev-only UX
-    }
-  }
-
-  private _renderStorageBanner(): void {
-    if (typeof document === 'undefined') return;
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('role', 'status');
-    wrapper.setAttribute('aria-live', 'polite');
-    wrapper.style.cssText = [
-      'position:fixed',
-      'top:0',
-      'left:0',
-      'right:0',
-      'min-height:56px',
-      'padding:10px 16px',
-      'box-sizing:border-box',
-      'background:#fff7ed',
-      'color:#7c2d12',
-      'font:600 14px/1.3 Nunito, system-ui, sans-serif',
-      'border-bottom:2px solid #fb923c',
-      'z-index:2147483646',
-      'display:flex',
-      'align-items:center',
-      'justify-content:space-between',
-      'gap:12px',
-    ].join(';');
-    wrapper.innerHTML = `
-      <span>⚠️ Preview mode — progress may not be saved. (Settings → Export Backup)</span>
-      <button type="button" aria-label="Dismiss" style="background:none;border:0;font:700 18px sans-serif;color:#7c2d12;cursor:pointer">×</button>
-    `;
-    const dismiss = wrapper.querySelector('button');
-    dismiss?.addEventListener('click', () => wrapper.remove());
-    document.body.appendChild(wrapper);
   }
 
   // ── Reduced motion + font ready helpers ───────────────────────────────────

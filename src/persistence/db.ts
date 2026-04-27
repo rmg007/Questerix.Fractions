@@ -108,6 +108,36 @@ export class QuesterixDB extends Dexie {
       misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
       progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
     });
+
+    // Schema version 4 — adds [archetype+submittedAt] compound index on attempts for BKT/
+    // misconception queries over recent sessions (G-DB1), and validatorId index on
+    // questionTemplates for validator-pipeline lookups (G-DB2). per architecture-review §G-DB1/G-DB2.
+    this.version(4).stores({
+      // Static curriculum stores (unchanged)
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      // G-DB2: add validatorId index for validator-pipeline queries
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      // Dynamic stores (carry from v3)
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      // G-DB1: add [archetype+submittedAt] for efficient BKT / misconception range queries
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      hintEvents: '++id, attemptId',
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+    });
   }
 }
 

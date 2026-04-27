@@ -28,6 +28,9 @@ import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import type { ValidatorResult, QuestionTemplate } from '@/types';
 import type { PartitionInput, PartitionPayload } from '../validators/partition';
+import { tts } from '../audio/TTSService';
+import { MenuScene } from './MenuScene';
+import { log } from '../lib/log';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -43,8 +46,13 @@ const SHAPE_H = 260;
 // Session goal per C9
 const SESSION_GOAL = 5;
 
-// Snap threshold (±5% of half-width) per level-01.md §4.3 Easy tier
-const SNAP_PCT = 0.05;
+// Snap threshold widened from 0.05 → 0.15 (Fix 2: BUG-02 — was too tight for students to land)
+const SNAP_PCT = 0.15;
+
+// Handle starts off-centre so the student must drag — otherwise the initial
+// centre position is already the correct partition for halves and pressing
+// Check passes without any interaction.
+const INITIAL_HANDLE_OFFSET_PCT = 0.3;
 
 // ── Question definition (inline for MVP — curriculum loader is out of scope) ─
 
@@ -118,6 +126,15 @@ export class Level01Scene extends Phaser.Scene {
   private inputLocked: boolean = false;
   private resume: boolean = false;
 
+  // Fix 7 (G-E4): response-time and accuracy tracking
+  private questionStartTime: number = 0;
+  private responseTimes: number[] = [];
+  private correctCount: number = 0;
+  private totalQuestionsAttempted: number = 0;
+
+  // Fix 6 (G-E3): hint-event IDs accumulated per question
+  private currentQuestionHintIds: string[] = [];
+
   // Current question — may come from DB pool or synthetic fallback
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
@@ -152,9 +169,11 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
+    log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
   async create(): Promise<void> {
+    log.scene('create_start');
     // Clear any stale sentinels from prior scenes
     TestHooks.unmountAll();
 
@@ -163,21 +182,22 @@ export class Level01Scene extends Phaser.Scene {
 
     // ── Load real templates from Dexie (partition + identify pool for L1) ──
     // per runtime-architecture.md §4.1 — ActivityScene loads QuestionTemplates via repo
+    log.tmpl('load_start', { level: 1 });
     try {
       const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
       const all = await questionTemplateRepo.getByLevel(1);
-      // Filter to archetypes expected for L1: partition, identify
+      // Fix 1 (BUG-01): only partition archetype — identify templates use a different mechanic
       this.templatePool = all
-        .filter((t) => t.archetype === 'partition' || t.archetype === 'identify')
+        .filter((t) => t.archetype === 'partition')
         .slice(0, 5); // first 5 distinct templates for the session
       if (this.templatePool.length > 0) {
-        console.info(`[Level01Scene] Loaded ${this.templatePool.length} real templates from Dexie`);
+        log.tmpl('load_ok', { count: this.templatePool.length, source: 'dexie', ids: this.templatePool.map(t => t.id) });
       } else {
-        console.info('[Level01Scene] No real templates found — using synthetic fallback');
+        log.tmpl('load_empty', { source: 'dexie', fallback: 'synthetic', syntheticCount: QUESTIONS.length });
       }
     } catch (err) {
       // Graceful degradation — synthetic content per runtime-architecture.md §10
-      console.warn('[Level01Scene] Template fetch failed — using synthetic fallback:', err);
+      log.warn('TMPL', 'load_error', { error: String(err), fallback: 'synthetic' });
       this.templatePool = [];
     }
 
@@ -231,6 +251,16 @@ export class Level01Scene extends Phaser.Scene {
     // Sentinel is a span with role=status; visibility toggled by data-visible attr.
     this.mountHintTextSentinel();
 
+    // Fix TTS: load persisted preference before first question fires
+    try {
+      const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
+      const meta = await deviceMetaRepo.get();
+      tts.setEnabled(meta.preferences.audio ?? true);
+    } catch {
+      // Graceful fallback — leave TTS in its default state
+    }
+
+    log.scene('create_done');
     // Load first question
     this.loadQuestion(0);
   }
@@ -246,6 +276,7 @@ export class Level01Scene extends Phaser.Scene {
 
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
+    log.sess('open_start', { studentId: this.studentId, resume: this.resume });
     try {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
@@ -272,9 +303,7 @@ export class Level01Scene extends Phaser.Scene {
             this.progressBar.setProgress(this.attemptCount);
           }
 
-          console.info(
-            `[Level01Scene] Session resumed: ${this.sessionId} with ${this.attemptCount} prior attempts`
-          );
+          log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
           return;
         }
       }
@@ -306,10 +335,10 @@ export class Level01Scene extends Phaser.Scene {
         syncState: 'local',
       });
       this.sessionId = session.id;
-      console.info('[Level01Scene] Session opened:', this.sessionId);
+      log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
     } catch (err) {
       // Volatile mode — continue without session record per runtime-architecture.md §10
-      console.warn('[Level01Scene] Could not open session:', err);
+      log.warn('SESS', 'open_error', { error: String(err) });
     }
   }
 
@@ -347,6 +376,7 @@ export class Level01Scene extends Phaser.Scene {
       });
 
     backBtn.on('pointerup', () => {
+      log.input('back_to_menu', { fromScene: 'Level01Scene', questionIndex: this.questionIndex, attemptCount: this.attemptCount });
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
   }
@@ -380,7 +410,10 @@ export class Level01Scene extends Phaser.Scene {
       this,
       CW - 60,
       160,
-      () => this.onHintRequest(),
+      () => {
+        log.input('hint_button_tap', { questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        this.onHintRequest();
+      },
       10,
     );
   }
@@ -391,7 +424,10 @@ export class Level01Scene extends Phaser.Scene {
       CW / 2,
       CH - 180,
       'Check ✓',
-      () => { this.onSubmit(); },
+      () => {
+        log.input('check_button_tap', { handlePos: this.handlePos, inputLocked: this.inputLocked, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        this.onSubmit();
+      },
       10,
     );
   }
@@ -422,13 +458,38 @@ export class Level01Scene extends Phaser.Scene {
 
     this.wrongCount = 0;
     this.inputLocked = false;
-    this.handlePos = SHAPE_CX; // reset to center
+    // Start off-centre so the partition is clearly unequal on load — student must drag.
+    this.handlePos = SHAPE_CX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
+    const initialPct = Math.round(((this.handlePos - (SHAPE_CX - SHAPE_W / 2)) / SHAPE_W) * 100);
+
+    // Fix 6 (G-E3): reset per-question hint tracking
+    this.currentQuestionHintIds = [];
+
+    // Fix 7 (G-E4): record when this question was shown
+    this.questionStartTime = Date.now();
 
     // Hint ladder resets per question per interaction-model.md §4.1
     this.hintLadder = new HintLadder(this.currentQuestion.difficultyTier);
     this.hintText.setVisible(false);
 
     this.promptText.setText(this.currentQuestion.promptText);
+
+    log.q('load', {
+      index,
+      id: this.currentQuestion.id,
+      shape: this.currentQuestion.shapeType,
+      tier: this.currentQuestion.difficultyTier,
+      snapMode: this.currentQuestion.snapMode,
+      areaTolerance: this.currentQuestion.areaTolerance,
+      prompt: this.currentQuestion.promptText,
+      initialHandlePct: initialPct,
+      source: this.templatePool.length > 0 ? 'dexie' : 'synthetic',
+    });
+
+    // Fix 8 (S3-T1): speak prompt aloud via TTS; gated on browser availability
+    // TTSService.setEnabled() is controlled by SettingsScene preference; tts.isAvailable()
+    // returns false when disabled, so no separate preference lookup is needed here.
+    tts.speak(this.currentQuestion.promptText);
 
     this.drawShape();
     this.createDragHandle();
@@ -516,9 +577,11 @@ export class Level01Scene extends Phaser.Scene {
     // Only snap in axis mode per level-01.md §4.3
     const snapTargets = this.currentQuestion.snapMode === 'axis' ? [SHAPE_CX] : [];
 
+    let dragStartPos = this.handlePos;
+
     this.dragHandle = new DragHandle({
       scene: this,
-      x: SHAPE_CX,
+      x: this.handlePos,
       y: SHAPE_CY,
       trackLength: SHAPE_H + 40,
       axis: 'horizontal',
@@ -528,11 +591,18 @@ export class Level01Scene extends Phaser.Scene {
       snapTargets,
       onMove: (pos) => {
         if (!this.inputLocked) {
+          if (this.handlePos === dragStartPos) {
+            log.drag('start', { fromX: dragStartPos, fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100) });
+          }
           this.handlePos = pos;
           this.updatePartitionLine(pos);
         }
       },
       onCommit: (pos) => {
+        const pct = Math.round(((pos - minX) / SHAPE_W) * 100);
+        const snapped = snapTargets.some(t => Math.abs(t - pos) < 1);
+        log.drag('commit', { handleX: Math.round(pos), pct, snappedToCenter: snapped, movedFrom: Math.round(dragStartPos) });
+        dragStartPos = pos;
         this.handlePos = pos;
         this.updatePartitionLine(pos);
       },
@@ -548,12 +618,20 @@ export class Level01Scene extends Phaser.Scene {
     this.inputLocked = true;
     this.submitButtonContainer?.setAlpha(0.5);
 
-    const startedAt = Date.now();
-
     // Compute areas from handle position
     // Horizontal line splits rectangle by X position
     const leftArea = this.handlePos - (SHAPE_CX - SHAPE_W / 2);
     const rightArea = SHAPE_CX + SHAPE_W / 2 - this.handlePos;
+    const relativeDelta = Math.abs(leftArea - rightArea) / ((leftArea + rightArea) / 2);
+    log.valid('submit', {
+      handleX: Math.round(this.handlePos),
+      handlePct: Math.round(((this.handlePos - (SHAPE_CX - SHAPE_W / 2)) / SHAPE_W) * 100),
+      leftArea: Math.round(leftArea),
+      rightArea: Math.round(rightArea),
+      relativeDelta: +relativeDelta.toFixed(4),
+      tolerance: this.currentQuestion.areaTolerance,
+      questionId: this.currentQuestion.id,
+    });
 
     const input: PartitionInput = { regionAreas: [leftArea, rightArea] };
     const payload: PartitionPayload = {
@@ -585,7 +663,23 @@ export class Level01Scene extends Phaser.Scene {
       result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
     }
 
-    const responseMs = Date.now() - startedAt;
+    // Fix 7 (G-E4): measure elapsed time from question-load to submit
+    const responseMs = Date.now() - this.questionStartTime;
+    this.responseTimes.push(responseMs);
+    this.totalQuestionsAttempted++;
+    if (result.outcome === 'correct') {
+      this.correctCount++;
+    }
+
+    log.valid('result', {
+      outcome: result.outcome,
+      score: result.score,
+      feedback: result.feedback,
+      responseMs,
+      questionId: this.currentQuestion.id,
+      attemptNumber: this.wrongCount + 1,
+    });
+
     await this.recordAttempt(result, responseMs, input);
 
     this.showOutcome(result);
@@ -630,6 +724,7 @@ export class Level01Scene extends Phaser.Scene {
   private onCorrectAnswer(): void {
     this.attemptCount++;
     this.progressBar.setProgress(this.attemptCount);
+    log.q('correct', { questionIndex: this.questionIndex, attemptCount: this.attemptCount, progress: `${this.attemptCount}/${SESSION_GOAL}`, wrongCountThisQ: this.wrongCount });
 
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
@@ -641,6 +736,7 @@ export class Level01Scene extends Phaser.Scene {
 
   private onWrongAnswer(): void {
     this.wrongCount++;
+    log.q('wrong', { questionIndex: this.questionIndex, wrongCount: this.wrongCount, questionId: this.currentQuestion.id });
 
     // Auto-escalate hint after wrong attempt per interaction-model.md §4 + §5.4
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
@@ -659,15 +755,21 @@ export class Level01Scene extends Phaser.Scene {
   // ── Hint handling ─────────────────────────────────────────────────────────
 
   private onHintRequest(): void {
+    // Fix 3 (BUG-04): hintLadder.next() advances the index each call (capped at max tier).
+    // The HintLadder class owns this logic; we just ensure we call next() once per press.
     const tier = this.hintLadder.next();
-    this.showHintForTier(tier);
+    log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+    void this.showHintForTierAndRecord(tier);
   }
 
   /**
-   * Show hint text or visual overlay based on tier.
+   * Show hint text or visual overlay based on tier, then persist a HintEvent.
+   * Fix 3 (BUG-04): hintLadder.next() increments on each call — tiers advance correctly.
+   * Fix 6 (G-E3): records event to hintEventRepo and pushes the returned ID into
+   *   currentQuestionHintIds so recordAttempt() can attach it.
    * per interaction-model.md §4 (3 tiers: verbal, visual_overlay, worked_example)
    */
-  private showHintForTier(tier: import('@/types').HintTier): void {
+  private async showHintForTierAndRecord(tier: import('@/types').HintTier): Promise<void> {
     this.hintText.setVisible(true);
 
     let hintMessage = '';
@@ -693,8 +795,38 @@ export class Level01Scene extends Phaser.Scene {
         this.animateWorkedExample();
         break;
     }
+    log.hint('show', { tier, message: hintMessage, questionIndex: this.questionIndex });
     // Mirror hint text to DOM sentinel for tests
     TestHooks.setText('hint-text', hintMessage);
+
+    // Fix 6 (G-E3): persist hint event and collect ID for the current attempt
+    if (this.sessionId) {
+      try {
+        const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
+        const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
+        const event = await hintEventRepo.record({
+          attemptId: '' as unknown as import('@/types').AttemptId, // linked post-submission
+          hintId: `hint.partition.${tier}`,
+          tier,
+          shownAt: Date.now(),
+          acceptedByStudent: true,
+          pointCostApplied: pointCost,
+          syncState: 'local',
+        });
+        this.currentQuestionHintIds.push(event.id);
+        log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+      } catch (err) {
+        log.warn('HINT', 'record_error', { error: String(err) });
+      }
+    }
+  }
+
+  /**
+   * Thin synchronous wrapper used by auto-escalation in onWrongAnswer().
+   * Delegates to the async version (fire-and-forget is fine for display path).
+   */
+  private showHintForTier(tier: import('@/types').HintTier): void {
+    void this.showHintForTierAndRecord(tier);
   }
 
   /** Tier 2: faint dashed center-line overlay. per interaction-model.md §4 */
@@ -785,8 +917,11 @@ export class Level01Scene extends Phaser.Scene {
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
+      const attemptId = nanoid() as import('@/types').AttemptId;
+      log.atmp('record_start', { attemptId, outcome, responseMs, questionId: this.currentQuestion.id, hintsUsed: this.currentQuestionHintIds.length });
+
       await attemptRepo.record({
-        id: nanoid() as import('@/types').AttemptId,
+        id: attemptId,
         sessionId: this.sessionId as import('@/types').SessionId,
         studentId: this.studentId as import('@/types').StudentId,
         questionTemplateId: this.currentQuestion.id as import('@/types').QuestionTemplateId,
@@ -801,15 +936,92 @@ export class Level01Scene extends Phaser.Scene {
         outcome,
         errorMagnitude: null,
         pointsEarned: result.score,
-        hintsUsedIds: [],
+        // Fix 6 (G-E3): real hint IDs accumulated during this question
+        hintsUsedIds: [...this.currentQuestionHintIds],
         hintsUsed: [],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
         syncState: 'local',
       });
+
+      log.atmp('record_ok', { attemptId, outcome, points: result.score });
+
+      // Fix 4 (G-E1): update BKT mastery after every attempt
+      try {
+        const isCorrect = outcome === 'EXACT';
+        const skillId = 'skill.partition_halves' as import('@/types').SkillId;
+        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+        const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+
+        const existing = await skillMasteryRepo.get(
+          this.studentId as import('@/types').StudentId,
+          skillId
+        );
+        const studentIdTyped = this.studentId as import('@/types').StudentId;
+        const prev: import('@/types').SkillMastery = existing ?? {
+          studentId: studentIdTyped,
+          skillId,
+          compositeKey: [studentIdTyped, skillId],
+          masteryEstimate: DEFAULT_PRIORS.pInit,
+          state: 'NOT_STARTED',
+          consecutiveCorrectUnassisted: 0,
+          totalAttempts: 0,
+          correctAttempts: 0,
+          lastAttemptAt: Date.now(),
+          masteredAt: null,
+          decayedAt: null,
+          syncState: 'local',
+        };
+        const updated = updateMastery(prev, isCorrect);
+        const withMeta: import('@/types').SkillMastery = {
+          ...updated,
+          compositeKey: [studentIdTyped, skillId],
+          lastAttemptAt: Date.now(),
+          masteredAt: updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
+            ? Date.now()
+            : prev.masteredAt ?? null,
+          decayedAt: prev.decayedAt ?? null,
+          syncState: 'local',
+        };
+        log.bkt('mastery_update', {
+          skill: skillId,
+          isCorrect,
+          prevEstimate: +prev.masteryEstimate.toFixed(4),
+          nextEstimate: +withMeta.masteryEstimate.toFixed(4),
+          state: withMeta.state,
+          totalAttempts: withMeta.totalAttempts,
+          correctAttempts: withMeta.correctAttempts,
+          justMastered: !!withMeta.masteredAt && !prev.masteredAt,
+        });
+        await skillMasteryRepo.upsert(withMeta);
+      } catch (err) {
+        log.warn('BKT', 'mastery_update_error', { error: String(err) });
+      }
+
+      // Fix 5 (G-E2): run misconception detectors on recent attempts
+      try {
+        const recentAttempts = await attemptRepo.listForStudent(
+          this.studentId as import('@/types').StudentId
+        );
+        const limitedAttempts = recentAttempts.slice(-10);
+        const { runAllDetectors } = await import('../engine/misconceptionDetectors');
+        const flags = await runAllDetectors(limitedAttempts, 1);
+
+        if (flags.length > 0) {
+          const { misconceptionFlagRepo } = await import('../persistence/repositories/misconceptionFlag');
+          for (const flag of flags) {
+            await misconceptionFlagRepo.upsert(flag);
+          }
+          log.misc('flags_detected', { count: flags.length, ids: flags.map(f => f.misconceptionId) });
+        } else {
+          log.misc('no_flags', { checkedAttempts: 'last10' });
+        }
+      } catch (err) {
+        log.warn('MISC', 'detection_error', { error: String(err) });
+      }
     } catch (err) {
       // Never crash on persistence failure per task spec
-      console.warn('[Level01Scene] Could not record attempt:', err);
+      log.error('ATMP', 'record_failed', { error: String(err) });
     }
   }
 
@@ -818,10 +1030,17 @@ export class Level01Scene extends Phaser.Scene {
   /** Show "Session complete" card after SESSION_GOAL correct answers. per C9, interaction-model.md §6.2 */
   private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
+    log.scene('session_complete', {
+      attemptCount: this.attemptCount,
+      correctCount: this.correctCount,
+      totalAttempted: this.totalQuestionsAttempted,
+      accuracy: this.totalQuestionsAttempted > 0 ? +(this.correctCount / this.totalQuestionsAttempted).toFixed(3) : null,
+      avgResponseMs: this.responseTimes.length > 0 ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length) : null,
+    });
     TestHooks.mountSentinel('completion-screen');
 
     // Dim background
-    const overlay = this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
+    void this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
 
     // Card — white rounded card matching the adventure theme
     const cardG = this.add.graphics().setDepth(51);
@@ -849,19 +1068,21 @@ export class Level01Scene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(52);
 
+    // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
+    MenuScene.markLevelComplete(1, this.studentId);
+
     // "Keep going" — amber action button
-    const keepBtn = createActionButton(
+    // G-C7/G-UX6: advance to Level 2 (LevelScene) rather than looping within Level 1.
+    void createActionButton(
       this,
       CW / 2,
       CH / 2 + 60,
       'Keep going ▶',
       () => {
-        overlay.destroy();
-        cardG.destroy();
-        keepBtn.destroy();
-        this.attemptCount = 0;
-        this.inputLocked = false;
-        this.loadQuestion(this.questionIndex + 1);
+        this.scene.start('LevelScene', {
+          levelNumber: 2,
+          studentId: this.studentId,
+        });
       },
       52,
     );
@@ -926,18 +1147,29 @@ export class Level01Scene extends Phaser.Scene {
     if (!this.sessionId) return;
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
-      await sessionRepo.close(this.sessionId as import('@/types').SessionId, {
+
+      // Fix 7 (G-E4): compute real accuracy and avg response time
+      const accuracy = this.totalQuestionsAttempted > 0
+        ? this.correctCount / this.totalQuestionsAttempted
+        : 1;
+      const avgResponseMs = this.responseTimes.length > 0
+        ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+        : null;
+
+      const summary = {
         endedAt: Date.now(),
-        totalAttempts: this.attemptCount,
-        correctAttempts: this.attemptCount, // all counted correct in session-complete branch
-        accuracy: 1,
-        avgResponseMs: null,
-        xpEarned: this.attemptCount * 10,
-        scaffoldRecommendation: 'stay',
+        totalAttempts: this.totalQuestionsAttempted,
+        correctAttempts: this.correctCount,
+        accuracy,
+        avgResponseMs,
+        xpEarned: this.correctCount * 10,
+        scaffoldRecommendation: 'stay' as const,
         endLevel: 1,
-      });
+      };
+      log.sess('close', { sessionId: this.sessionId, ...summary });
+      await sessionRepo.close(this.sessionId as import('@/types').SessionId, summary);
     } catch (err) {
-      console.warn('[Level01Scene] Could not close session:', err);
+      log.warn('SESS', 'close_error', { error: String(err) });
     }
   }
 
@@ -953,6 +1185,7 @@ export class Level01Scene extends Phaser.Scene {
 
   // Called by Phaser when scene is shut down
   preDestroy(): void {
+    log.scene('destroy');
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
   }

@@ -84,9 +84,27 @@ export class BootScene extends Phaser.Scene {
           localStorage.removeItem(LAST_STUDENT_KEY);
         }
       }
+
+      // ── First launch: no student yet — auto-create an anonymous one ──────
+      if (!this.lastStudentId) {
+        const { studentRepo } = await import('../persistence/repositories/student');
+        const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
+        const newId = nanoid() as import('@/types').StudentId;
+        await studentRepo.create({
+          id: newId,
+          displayName: 'Player',
+          avatarConfig: {},
+          gradeLevel: 1,
+          localOnly: true,
+          lastActiveAt: Date.now(),
+        });
+        localStorage.setItem(LAST_STUDENT_KEY, newId);
+        this.lastStudentId = newId;
+        console.info(`[BootScene] Created anonymous student: ${newId}`);
+      }
     } catch (err) {
-      // Storage read failed — continue without resume context. per §10 (failure modes)
-      console.warn('[BootScene] Could not read lastUsedStudentId:', err);
+      // Storage read/write failed — continue without resume context. per §10 (failure modes)
+      console.warn('[BootScene] Could not read/create lastUsedStudentId:', err);
       this.lastStudentId = null;
     }
 

@@ -68,7 +68,12 @@ export class PlacementInteraction implements Interaction {
       tickFractions: [0.5],
       snapPositions: snaps,
     });
-    this.line.setMarker(0.5);
+    // Start the marker on the far end of the line from the correct value so a
+    // touch-and-release (which still fires dragend → onCommit) doesn't pre-pass.
+    // dragend always commits, so we must avoid initialising on or near the answer.
+    const correctValue = frac.n / frac.d;
+    const initialMarker = correctValue < 0.5 ? 1 : 0;
+    this.line.setMarker(initialMarker);
     this.line.enableDrag((value) => {
       onCommit({ placedDecimal: value, exactTolerance: exactTol, closeTolerance: closeTol });
     });

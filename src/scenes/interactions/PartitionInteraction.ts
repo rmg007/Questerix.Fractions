@@ -10,10 +10,15 @@ import { DragHandle } from '../../components/DragHandle';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import type { PartitionInput, PartitionPayload } from '../../validators/partition';
+import { log } from '../../lib/log';
 
 const SHAPE_W = 340;
 const SHAPE_H = 260;
 const SNAP_PCT = 0.05;
+// Handle starts off-centre so the divider is clearly unequal on load —
+// otherwise the centre is already the correct halves answer and a stray
+// touch could submit a "correct" payload without genuine engagement.
+const INITIAL_HANDLE_OFFSET_PCT = 0.3;
 
 export class PartitionInteraction implements Interaction {
   readonly archetype = 'partition' as const;
@@ -30,7 +35,8 @@ export class PartitionInteraction implements Interaction {
 
     this.shapeGraphics = this.scene.add.graphics().setDepth(5);
     this.partitionLine = this.scene.add.graphics().setDepth(6);
-    this.handlePos = centerX;
+    this.handlePos = centerX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
+    log.scene('partition_mount', { templateId: ctx.template.id, tier: ctx.template.difficultyTier, initialHandleX: Math.round(this.handlePos) });
 
     const payload = ctx.template.payload as Partial<PartitionPayload> & {
       shapeType?: 'rectangle' | 'circle';
@@ -40,15 +46,23 @@ export class PartitionInteraction implements Interaction {
     const snapMode = payload.snapMode ?? (ctx.template.difficultyTier === 'easy' ? 'axis' : 'free');
 
     this.drawShape(shapeType, centerX, centerY);
-    this.updatePartitionLine(centerX, centerY);
+    this.updatePartitionLine(this.handlePos, centerY);
 
     const minX = centerX - SHAPE_W / 2;
     const maxX = centerX + SHAPE_W / 2;
     const snapTargets = snapMode === 'axis' ? [centerX] : [];
 
+    const buildInput = (): PartitionInput => {
+      const leftArea = this.handlePos - (centerX - SHAPE_W / 2);
+      const rightArea = centerX + SHAPE_W / 2 - this.handlePos;
+      return { regionAreas: [leftArea, rightArea] };
+    };
+
+    let dragStartPos = this.handlePos;
+
     this.dragHandle = new DragHandle({
       scene: this.scene,
-      x: centerX,
+      x: this.handlePos,
       y: centerY,
       trackLength: SHAPE_H + 40,
       axis: 'horizontal',
@@ -57,12 +71,22 @@ export class PartitionInteraction implements Interaction {
       snapThreshold: SHAPE_W * SNAP_PCT,
       snapTargets,
       onMove: (pos) => {
+        if (this.handlePos === dragStartPos) {
+          log.drag('start', { fromX: Math.round(dragStartPos), fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100) });
+        }
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);
       },
       onCommit: (pos) => {
+        const pct = Math.round(((pos - minX) / SHAPE_W) * 100);
+        const snapped = snapTargets.some(t => Math.abs(t - pos) < 1);
+        log.drag('commit', { handleX: Math.round(pos), pct, snappedToCenter: snapped, movedFrom: Math.round(dragStartPos) });
+        dragStartPos = pos;
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);
+        // Drop = commit to LevelScene (which auto-submits). Without this the
+        // Check button is dead — lastPayload stays null and onSubmit returns.
+        ctx.onCommit(buildInput());
       },
     });
 
@@ -70,10 +94,7 @@ export class PartitionInteraction implements Interaction {
     TestHooks.mountInteractive(
       'partition-target',
       () => {
-        const leftArea = this.handlePos - (centerX - SHAPE_W / 2);
-        const rightArea = centerX + SHAPE_W / 2 - this.handlePos;
-        const input: PartitionInput = { regionAreas: [leftArea, rightArea] };
-        ctx.onCommit(input);
+        ctx.onCommit(buildInput());
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
     );
