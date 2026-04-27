@@ -10,8 +10,7 @@ dist/
 .env.*
 !.env.example
 
-# Pipeline output — generated content, not source
-pipeline/output/
+# Pipeline logs only — output/ is now hand-authored curriculum source
 pipeline/*.log
 
 # Python cache

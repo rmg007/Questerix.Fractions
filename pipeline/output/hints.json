@@ -1,0 +1,1784 @@
+[
+  {
+    "id": "h:pt:L1:0001:T1",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l1_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0001:T2",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l1_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0001:T3",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l1_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0002:T1",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l1_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0002:T2",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l1_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0002:T3",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l1_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0003:T1",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l1_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0003:T2",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l1_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0003:T3",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l1_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0001:T1",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l1_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0001:T2",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l1_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0001:T3",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l1_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0002:T1",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l1_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0002:T2",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l1_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0002:T3",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l1_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0004:T1",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l1_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0004:T2",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l1_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L1:0004:T3",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l1_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0003:T1",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l1_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0003:T2",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l1_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L1:0003:T3",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l1_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0001:T1",
+    "questionTemplateId": "q:pt:L2:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l2_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0001:T2",
+    "questionTemplateId": "q:pt:L2:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l2_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0001:T3",
+    "questionTemplateId": "q:pt:L2:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l2_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0002:T1",
+    "questionTemplateId": "q:pt:L2:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l2_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0002:T2",
+    "questionTemplateId": "q:pt:L2:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l2_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0002:T3",
+    "questionTemplateId": "q:pt:L2:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l2_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0001:T1",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l2_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0001:T2",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l2_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0001:T3",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l2_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0002:T1",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l2_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0002:T2",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l2_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0002:T3",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l2_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0003:T1",
+    "questionTemplateId": "q:pt:L2:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about making both sides the same size.",
+      "ttsKey": "hint_pt_l2_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0003:T2",
+    "questionTemplateId": "q:pt:L2:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Drag the line to the middle of the shape.",
+      "ttsKey": "hint_pt_l2_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:pt:L2:0003:T3",
+    "questionTemplateId": "q:pt:L2:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts means each piece is exactly the same size. Move the line until both sides look the same.",
+      "ttsKey": "hint_pt_l2_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0003:T1",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Count how many equal parts the shape is divided into.",
+      "ttsKey": "hint_id_l2_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0003:T2",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The bottom number tells you how many equal parts total.",
+      "ttsKey": "hint_id_l2_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:id:L2:0003:T3",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Look at how many pieces the shape has. The shaded pieces show the fraction.",
+      "ttsKey": "hint_id_l2_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0001:T1",
+    "questionTemplateId": "q:eo:L3:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look carefully at the size of each part.",
+      "ttsKey": "hint_eo_l3_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0001:T2",
+    "questionTemplateId": "q:eo:L3:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Are all the pieces exactly the same size?",
+      "ttsKey": "hint_eo_l3_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0001:T3",
+    "questionTemplateId": "q:eo:L3:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts must all be exactly the same size. Compare each piece carefully.",
+      "ttsKey": "hint_eo_l3_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0002:T1",
+    "questionTemplateId": "q:eo:L3:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look carefully at the size of each part.",
+      "ttsKey": "hint_eo_l3_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0002:T2",
+    "questionTemplateId": "q:eo:L3:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Are all the pieces exactly the same size?",
+      "ttsKey": "hint_eo_l3_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0002:T3",
+    "questionTemplateId": "q:eo:L3:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts must all be exactly the same size. Compare each piece carefully.",
+      "ttsKey": "hint_eo_l3_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0001:T1",
+    "questionTemplateId": "q:lb:L3:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about what fraction each shaded area shows.",
+      "ttsKey": "hint_lb_l3_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0001:T2",
+    "questionTemplateId": "q:lb:L3:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Count the total parts and the shaded parts to name the fraction.",
+      "ttsKey": "hint_lb_l3_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0001:T3",
+    "questionTemplateId": "q:lb:L3:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Numerator = shaded parts, denominator = total parts. Drag the matching label.",
+      "ttsKey": "hint_lb_l3_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0003:T1",
+    "questionTemplateId": "q:eo:L3:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look carefully at the size of each part.",
+      "ttsKey": "hint_eo_l3_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0003:T2",
+    "questionTemplateId": "q:eo:L3:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Are all the pieces exactly the same size?",
+      "ttsKey": "hint_eo_l3_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0003:T3",
+    "questionTemplateId": "q:eo:L3:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts must all be exactly the same size. Compare each piece carefully.",
+      "ttsKey": "hint_eo_l3_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0002:T1",
+    "questionTemplateId": "q:lb:L3:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about what fraction each shaded area shows.",
+      "ttsKey": "hint_lb_l3_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0002:T2",
+    "questionTemplateId": "q:lb:L3:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Count the total parts and the shaded parts to name the fraction.",
+      "ttsKey": "hint_lb_l3_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:lb:L3:0002:T3",
+    "questionTemplateId": "q:lb:L3:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Numerator = shaded parts, denominator = total parts. Drag the matching label.",
+      "ttsKey": "hint_lb_l3_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0004:T1",
+    "questionTemplateId": "q:eo:L3:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look carefully at the size of each part.",
+      "ttsKey": "hint_eo_l3_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0004:T2",
+    "questionTemplateId": "q:eo:L3:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Are all the pieces exactly the same size?",
+      "ttsKey": "hint_eo_l3_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:eo:L3:0004:T3",
+    "questionTemplateId": "q:eo:L3:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Equal parts must all be exactly the same size. Compare each piece carefully.",
+      "ttsKey": "hint_eo_l3_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0001:T1",
+    "questionTemplateId": "q:mk:L4:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0001:T2",
+    "questionTemplateId": "q:mk:L4:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0001:T3",
+    "questionTemplateId": "q:mk:L4:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0002:T1",
+    "questionTemplateId": "q:mk:L4:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0002:T2",
+    "questionTemplateId": "q:mk:L4:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0002:T3",
+    "questionTemplateId": "q:mk:L4:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0003:T1",
+    "questionTemplateId": "q:mk:L4:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0003:T2",
+    "questionTemplateId": "q:mk:L4:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0003:T3",
+    "questionTemplateId": "q:mk:L4:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0004:T1",
+    "questionTemplateId": "q:mk:L4:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0004:T2",
+    "questionTemplateId": "q:mk:L4:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0004:T3",
+    "questionTemplateId": "q:mk:L4:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0005:T1",
+    "questionTemplateId": "q:mk:L4:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0005:T2",
+    "questionTemplateId": "q:mk:L4:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0005:T3",
+    "questionTemplateId": "q:mk:L4:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0006:T1",
+    "questionTemplateId": "q:mk:L4:0006",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the line to split the shape equally first.",
+      "ttsKey": "hint_mk_l4_0006_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0006:T2",
+    "questionTemplateId": "q:mk:L4:0006",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Move the fold line to the middle, then tap the correct number of parts.",
+      "ttsKey": "hint_mk_l4_0006_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:mk:L4:0006:T3",
+    "questionTemplateId": "q:mk:L4:0006",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Step 1: Drag the fold line to make equal parts. Step 2: Tap to shade the right number of parts.",
+      "ttsKey": "hint_mk_l4_0006_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0001:T1",
+    "questionTemplateId": "q:sm:L5:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the label and drop it near its matching picture.",
+      "ttsKey": "hint_sm_l5_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0001:T2",
+    "questionTemplateId": "q:sm:L5:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The number 1/2 means 1 out of 2 equal parts are shaded.",
+      "ttsKey": "hint_sm_l5_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0001:T3",
+    "questionTemplateId": "q:sm:L5:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Match each fraction name to the bar that shows that many shaded parts.",
+      "ttsKey": "hint_sm_l5_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0002:T1",
+    "questionTemplateId": "q:sm:L5:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the label and drop it near its matching picture.",
+      "ttsKey": "hint_sm_l5_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0002:T2",
+    "questionTemplateId": "q:sm:L5:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The number 1/2 means 1 out of 2 equal parts are shaded.",
+      "ttsKey": "hint_sm_l5_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0002:T3",
+    "questionTemplateId": "q:sm:L5:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Match each fraction name to the bar that shows that many shaded parts.",
+      "ttsKey": "hint_sm_l5_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0003:T1",
+    "questionTemplateId": "q:sm:L5:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the label and drop it near its matching picture.",
+      "ttsKey": "hint_sm_l5_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0003:T2",
+    "questionTemplateId": "q:sm:L5:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The number 1/2 means 1 out of 2 equal parts are shaded.",
+      "ttsKey": "hint_sm_l5_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0003:T3",
+    "questionTemplateId": "q:sm:L5:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Match each fraction name to the bar that shows that many shaded parts.",
+      "ttsKey": "hint_sm_l5_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0004:T1",
+    "questionTemplateId": "q:sm:L5:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the label and drop it near its matching picture.",
+      "ttsKey": "hint_sm_l5_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0004:T2",
+    "questionTemplateId": "q:sm:L5:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The number 1/2 means 1 out of 2 equal parts are shaded.",
+      "ttsKey": "hint_sm_l5_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0004:T3",
+    "questionTemplateId": "q:sm:L5:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Match each fraction name to the bar that shows that many shaded parts.",
+      "ttsKey": "hint_sm_l5_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0005:T1",
+    "questionTemplateId": "q:sm:L5:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Drag the label and drop it near its matching picture.",
+      "ttsKey": "hint_sm_l5_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0005:T2",
+    "questionTemplateId": "q:sm:L5:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The number 1/2 means 1 out of 2 equal parts are shaded.",
+      "ttsKey": "hint_sm_l5_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:sm:L5:0005:T3",
+    "questionTemplateId": "q:sm:L5:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Match each fraction name to the bar that shows that many shaded parts.",
+      "ttsKey": "hint_sm_l5_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0001:T1",
+    "questionTemplateId": "q:cp:L6:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0001:T2",
+    "questionTemplateId": "q:cp:L6:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0001:T3",
+    "questionTemplateId": "q:cp:L6:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0002:T1",
+    "questionTemplateId": "q:cp:L6:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0002:T2",
+    "questionTemplateId": "q:cp:L6:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0002:T3",
+    "questionTemplateId": "q:cp:L6:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0003:T1",
+    "questionTemplateId": "q:cp:L6:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0003:T2",
+    "questionTemplateId": "q:cp:L6:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0003:T3",
+    "questionTemplateId": "q:cp:L6:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0004:T1",
+    "questionTemplateId": "q:cp:L6:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0004:T2",
+    "questionTemplateId": "q:cp:L6:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0004:T3",
+    "questionTemplateId": "q:cp:L6:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0005:T1",
+    "questionTemplateId": "q:cp:L6:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0005:T2",
+    "questionTemplateId": "q:cp:L6:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0005:T3",
+    "questionTemplateId": "q:cp:L6:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0006:T1",
+    "questionTemplateId": "q:cp:L6:0006",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l6_0006_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0006:T2",
+    "questionTemplateId": "q:cp:L6:0006",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l6_0006_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L6:0006:T3",
+    "questionTemplateId": "q:cp:L6:0006",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l6_0006_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0001:T1",
+    "questionTemplateId": "q:cp:L7:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0001:T2",
+    "questionTemplateId": "q:cp:L7:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0001:T3",
+    "questionTemplateId": "q:cp:L7:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0002:T1",
+    "questionTemplateId": "q:cp:L7:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0002:T2",
+    "questionTemplateId": "q:cp:L7:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0002:T3",
+    "questionTemplateId": "q:cp:L7:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0003:T1",
+    "questionTemplateId": "q:cp:L7:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0003:T2",
+    "questionTemplateId": "q:cp:L7:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0003:T3",
+    "questionTemplateId": "q:cp:L7:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0004:T1",
+    "questionTemplateId": "q:cp:L7:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0004:T2",
+    "questionTemplateId": "q:cp:L7:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0004:T3",
+    "questionTemplateId": "q:cp:L7:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0005:T1",
+    "questionTemplateId": "q:cp:L7:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0005:T2",
+    "questionTemplateId": "q:cp:L7:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0005:T3",
+    "questionTemplateId": "q:cp:L7:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0006:T1",
+    "questionTemplateId": "q:cp:L7:0006",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Look at the size of each bar to see which fraction is bigger.",
+      "ttsKey": "hint_cp_l7_0006_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0006:T2",
+    "questionTemplateId": "q:cp:L7:0006",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "The longer bar shows the bigger fraction.",
+      "ttsKey": "hint_cp_l7_0006_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:cp:L7:0006:T3",
+    "questionTemplateId": "q:cp:L7:0006",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Use the bars to compare: bigger bar = bigger fraction. Same length = equal.",
+      "ttsKey": "hint_cp_l7_0006_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0001:T1",
+    "questionTemplateId": "q:bm:L8:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0001:T2",
+    "questionTemplateId": "q:bm:L8:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0001:T3",
+    "questionTemplateId": "q:bm:L8:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0002:T1",
+    "questionTemplateId": "q:bm:L8:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0002:T2",
+    "questionTemplateId": "q:bm:L8:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0002:T3",
+    "questionTemplateId": "q:bm:L8:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0003:T1",
+    "questionTemplateId": "q:bm:L8:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0003:T2",
+    "questionTemplateId": "q:bm:L8:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0003:T3",
+    "questionTemplateId": "q:bm:L8:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0004:T1",
+    "questionTemplateId": "q:bm:L8:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0004:T2",
+    "questionTemplateId": "q:bm:L8:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0004:T3",
+    "questionTemplateId": "q:bm:L8:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0005:T1",
+    "questionTemplateId": "q:bm:L8:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0005:T2",
+    "questionTemplateId": "q:bm:L8:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0005:T3",
+    "questionTemplateId": "q:bm:L8:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0006:T1",
+    "questionTemplateId": "q:bm:L8:0006",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Is the fraction more than half, less than half, or exactly half?",
+      "ttsKey": "hint_bm_l8_0006_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0006:T2",
+    "questionTemplateId": "q:bm:L8:0006",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Compare to the 1/2 mark on the number line.",
+      "ttsKey": "hint_bm_l8_0006_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:bm:L8:0006:T3",
+    "questionTemplateId": "q:bm:L8:0006",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "1/4 is closer to 0. 3/4 is closer to 1. 2/4 = 1/2. Use the number line to decide.",
+      "ttsKey": "hint_bm_l8_0006_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0001:T1",
+    "questionTemplateId": "q:or:L9:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0001_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0001:T2",
+    "questionTemplateId": "q:or:L9:0001",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0001_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0001:T3",
+    "questionTemplateId": "q:or:L9:0001",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0001_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0002:T1",
+    "questionTemplateId": "q:or:L9:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0002_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0002:T2",
+    "questionTemplateId": "q:or:L9:0002",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0002_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0002:T3",
+    "questionTemplateId": "q:or:L9:0002",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0002_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0003:T1",
+    "questionTemplateId": "q:or:L9:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0003_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0003:T2",
+    "questionTemplateId": "q:or:L9:0003",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0003_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0003:T3",
+    "questionTemplateId": "q:or:L9:0003",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0003_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0004:T1",
+    "questionTemplateId": "q:or:L9:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0004_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0004:T2",
+    "questionTemplateId": "q:or:L9:0004",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0004_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0004:T3",
+    "questionTemplateId": "q:or:L9:0004",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0004_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0005:T1",
+    "questionTemplateId": "q:or:L9:0005",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0005_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0005:T2",
+    "questionTemplateId": "q:or:L9:0005",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0005_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0005:T3",
+    "questionTemplateId": "q:or:L9:0005",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0005_t3"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0006:T1",
+    "questionTemplateId": "q:or:L9:0006",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "Think about which fraction is the smallest.",
+      "ttsKey": "hint_or_l9_0006_t1"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0006:T2",
+    "questionTemplateId": "q:or:L9:0006",
+    "type": "visual_overlay",
+    "order": 2,
+    "content": {
+      "text": "Use the bars to compare sizes before dragging.",
+      "ttsKey": "hint_or_l9_0006_t2"
+    },
+    "pointCost": 0
+  },
+  {
+    "id": "h:or:L9:0006:T3",
+    "questionTemplateId": "q:or:L9:0006",
+    "type": "worked_example",
+    "order": 3,
+    "content": {
+      "text": "Convert to the same denominator or use the bars to order from smallest to largest.",
+      "ttsKey": "hint_or_l9_0006_t3"
+    },
+    "pointCost": 0
+  }
+]

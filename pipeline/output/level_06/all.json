@@ -1,0 +1,104 @@
+[
+  {
+    "id": "q:cp:L6:0001",
+    "archetype": "compare",
+    "prompt": { "text": "Which is greater: 1/2 or 1/4?", "ttsKey": "q_cp_l6_0001" },
+    "payload": {
+      "fractionA": { "numerator": 1, "denominator": 2, "label": "1/2" },
+      "fractionB": { "numerator": 1, "denominator": 4, "label": "1/4" },
+      "trueRelation": ">",
+      "leftDecimal": 0.5,
+      "rightDecimal": 0.25
+    },
+    "correctAnswer": { "trueRelation": ">" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:halves_fourths"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cp:L6:0002",
+    "archetype": "compare",
+    "prompt": { "text": "Compare: 1/3 versus 1/2.", "ttsKey": "q_cp_l6_0002" },
+    "payload": {
+      "fractionA": { "numerator": 1, "denominator": 3, "label": "1/3" },
+      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
+      "trueRelation": "<",
+      "leftDecimal": 0.333,
+      "rightDecimal": 0.5
+    },
+    "correctAnswer": { "trueRelation": "<" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:thirds_halves"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cp:L6:0003",
+    "archetype": "compare",
+    "prompt": { "text": "Which is bigger: 2/3 or 3/4?", "ttsKey": "q_cp_l6_0003" },
+    "payload": {
+      "fractionA": { "numerator": 2, "denominator": 3, "label": "2/3" },
+      "fractionB": { "numerator": 3, "denominator": 4, "label": "3/4" },
+      "trueRelation": "<",
+      "leftDecimal": 0.667,
+      "rightDecimal": 0.75
+    },
+    "correctAnswer": { "trueRelation": "<" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:thirds_fourths"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cp:L6:0004",
+    "archetype": "compare",
+    "prompt": { "text": "Are 2/4 and 1/2 equal?", "ttsKey": "q_cp_l6_0004" },
+    "payload": {
+      "fractionA": { "numerator": 2, "denominator": 4, "label": "2/4" },
+      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
+      "trueRelation": "=",
+      "leftDecimal": 0.5,
+      "rightDecimal": 0.5
+    },
+    "correctAnswer": { "trueRelation": "=" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:equivalence"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cp:L6:0005",
+    "archetype": "compare",
+    "prompt": { "text": "Which is smaller: 1/6 or 1/3?", "ttsKey": "q_cp_l6_0005" },
+    "payload": {
+      "fractionA": { "numerator": 1, "denominator": 6, "label": "1/6" },
+      "fractionB": { "numerator": 1, "denominator": 3, "label": "1/3" },
+      "trueRelation": "<",
+      "leftDecimal": 0.167,
+      "rightDecimal": 0.333
+    },
+    "correctAnswer": { "trueRelation": "<" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:sixths_thirds"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cp:L6:0006",
+    "archetype": "compare",
+    "prompt": { "text": "Compare 3/8 and 1/2.", "ttsKey": "q_cp_l6_0006" },
+    "payload": {
+      "fractionA": { "numerator": 3, "denominator": 8, "label": "3/8" },
+      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
+      "trueRelation": "<",
+      "leftDecimal": 0.375,
+      "rightDecimal": 0.5
+    },
+    "correctAnswer": { "trueRelation": "<" },
+    "validatorId": "validator.compare.relation",
+    "skillIds": ["skill:compare:eighths_halves"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "hard"
+  }
+]

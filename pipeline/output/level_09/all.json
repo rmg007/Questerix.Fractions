@@ -1,0 +1,117 @@
+[
+  {
+    "id": "q:or:L9:0001",
+    "archetype": "order",
+    "prompt": { "text": "Put the fractions in order from smallest to largest.", "ttsKey": "q_or_l9_0001" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:1/4", "label": "1/4", "numerator": 1, "denominator": 4 },
+        { "id": "frac:1/2", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "frac:3/4", "label": "3/4", "numerator": 3, "denominator": 4 }
+      ],
+      "direction": "asc",
+      "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:fourths_halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:or:L9:0002",
+    "archetype": "order",
+    "prompt": { "text": "Order these fractions from smallest to biggest.", "ttsKey": "q_or_l9_0002" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:1/3", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "frac:1/6", "label": "1/6", "numerator": 1, "denominator": 6 },
+        { "id": "frac:1/2", "label": "1/2", "numerator": 1, "denominator": 2 }
+      ],
+      "direction": "asc",
+      "correctSequence": ["frac:1/6", "frac:1/3", "frac:1/2"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:1/6", "frac:1/3", "frac:1/2"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:sixths_thirds_halves"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:or:L9:0003",
+    "archetype": "order",
+    "prompt": { "text": "Put these fractions in order from least to greatest.", "ttsKey": "q_or_l9_0003" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:3/8", "label": "3/8", "numerator": 3, "denominator": 8 },
+        { "id": "frac:1/2", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "frac:5/8", "label": "5/8", "numerator": 5, "denominator": 8 }
+      ],
+      "direction": "asc",
+      "correctSequence": ["frac:3/8", "frac:1/2", "frac:5/8"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:3/8", "frac:1/2", "frac:5/8"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:eighths_halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:or:L9:0004",
+    "archetype": "order",
+    "prompt": { "text": "Order from smallest to largest: 2/3, 1/3, 3/3.", "ttsKey": "q_or_l9_0004" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:2/3", "label": "2/3", "numerator": 2, "denominator": 3 },
+        { "id": "frac:1/3", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "frac:3/3", "label": "3/3", "numerator": 3, "denominator": 3 }
+      ],
+      "direction": "asc",
+      "correctSequence": ["frac:1/3", "frac:2/3", "frac:3/3"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:1/3", "frac:2/3", "frac:3/3"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:thirds"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:or:L9:0005",
+    "archetype": "order",
+    "prompt": { "text": "Order these 4 fractions from smallest to largest.", "ttsKey": "q_or_l9_0005" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:1/8", "label": "1/8", "numerator": 1, "denominator": 8 },
+        { "id": "frac:1/4", "label": "1/4", "numerator": 1, "denominator": 4 },
+        { "id": "frac:1/2", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "frac:3/4", "label": "3/4", "numerator": 3, "denominator": 4 }
+      ],
+      "direction": "asc",
+      "correctSequence": ["frac:1/8", "frac:1/4", "frac:1/2", "frac:3/4"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:1/8", "frac:1/4", "frac:1/2", "frac:3/4"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:eighths_fourths_halves"],
+    "misconceptionTraps": ["MC-WHB-02"],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:or:L9:0006",
+    "archetype": "order",
+    "prompt": { "text": "Order from largest to smallest: 5/6, 1/6, 3/6.", "ttsKey": "q_or_l9_0006" },
+    "payload": {
+      "fractions": [
+        { "id": "frac:5/6", "label": "5/6", "numerator": 5, "denominator": 6 },
+        { "id": "frac:1/6", "label": "1/6", "numerator": 1, "denominator": 6 },
+        { "id": "frac:3/6", "label": "3/6", "numerator": 3, "denominator": 6 }
+      ],
+      "direction": "desc",
+      "correctSequence": ["frac:5/6", "frac:3/6", "frac:1/6"]
+    },
+    "correctAnswer": { "correctSequence": ["frac:5/6", "frac:3/6", "frac:1/6"] },
+    "validatorId": "validator.order.sequence",
+    "skillIds": ["skill:order:sixths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "hard"
+  }
+]

@@ -1,0 +1,105 @@
+[
+  {
+    "id": "q:pt:L2:0001",
+    "archetype": "partition",
+    "prompt": { "text": "Cut the shape into 3 equal parts.", "ttsKey": "q_pt_l2_0001" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 3,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 3 },
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": ["skill:partition:thirds"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L2:0002",
+    "archetype": "partition",
+    "prompt": { "text": "Divide this rectangle into 4 equal fourths.", "ttsKey": "q_pt_l2_0002" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 4,
+      "areaTolerance": 0.08
+    },
+    "correctAnswer": { "targetPartitions": 4 },
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": ["skill:partition:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0001",
+    "archetype": "identify",
+    "prompt": { "text": "Which picture shows 2/3 (two thirds)?", "ttsKey": "q_id_l2_0001" },
+    "payload": {
+      "options": [
+        { "alt": "Rectangle split into 3 parts, 2 shaded", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0, 1] },
+        { "alt": "Rectangle split into 3 parts, 1 shaded", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0] },
+        { "alt": "Rectangle split into 2 parts, 1 shaded", "partitionLines": [[[0.5, 0], [0.5, 1]]], "highlightedRegions": [0] }
+      ],
+      "targetIndex": 0,
+      "distractorMisconceptions": { "1": "MC-EOL-01" }
+    },
+    "correctAnswer": { "selectedIndex": 0 },
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": ["skill:identify:thirds"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0002",
+    "archetype": "identify",
+    "prompt": { "text": "Which picture shows 3/4 (three fourths)?", "ttsKey": "q_id_l2_0002" },
+    "payload": {
+      "options": [
+        { "alt": "Rectangle split into 4 parts, 1 shaded", "partitionLines": [[[0.25, 0], [0.25, 1]], [[0.5, 0], [0.5, 1]], [[0.75, 0], [0.75, 1]]], "highlightedRegions": [0] },
+        { "alt": "Rectangle split into 4 parts, 3 shaded", "partitionLines": [[[0.25, 0], [0.25, 1]], [[0.5, 0], [0.5, 1]], [[0.75, 0], [0.75, 1]]], "highlightedRegions": [0, 1, 2] },
+        { "alt": "Rectangle split into 3 parts, 3 shaded (whole)", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0, 1, 2] }
+      ],
+      "targetIndex": 1
+    },
+    "correctAnswer": { "selectedIndex": 1 },
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": ["skill:identify:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L2:0003",
+    "archetype": "partition",
+    "prompt": { "text": "Split this shape into 2 equal parts.", "ttsKey": "q_pt_l2_0003" },
+    "payload": {
+      "shapeType": "circle",
+      "snapMode": "axis",
+      "targetPartitions": 2,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 2 },
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": ["skill:partition:halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0003",
+    "archetype": "identify",
+    "prompt": { "text": "Which picture shows 1/2 (one half)?", "ttsKey": "q_id_l2_0003" },
+    "payload": {
+      "options": [
+        { "alt": "Circle split into 2 equal parts, 1 shaded" },
+        { "alt": "Circle split into 4 equal parts, 1 shaded" },
+        { "alt": "Circle fully shaded (whole)" }
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": { "selectedIndex": 0 },
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": ["skill:identify:halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  }
+]

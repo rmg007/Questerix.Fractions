@@ -1,0 +1,127 @@
+[
+  {
+    "id": "q:sm:L5:0001",
+    "archetype": "snap_match",
+    "prompt": { "text": "Match each fraction name to its picture.", "ttsKey": "q_sm_l5_0001" },
+    "payload": {
+      "leftItems": [
+        { "id": "lbl_half", "label": "1/2" },
+        { "id": "lbl_fourth", "label": "1/4" }
+      ],
+      "rightItems": [
+        { "id": "bar_half", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "bar_fourth", "label": "1/4", "numerator": 1, "denominator": 4 }
+      ],
+      "expectedPairs": [["lbl_half", "bar_half"], ["lbl_fourth", "bar_fourth"]]
+    },
+    "correctAnswer": [["lbl_half", "bar_half"], ["lbl_fourth", "bar_fourth"]],
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["skill:snap_match:halves_fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0002",
+    "archetype": "snap_match",
+    "prompt": { "text": "Match the fraction to its bar model.", "ttsKey": "q_sm_l5_0002" },
+    "payload": {
+      "leftItems": [
+        { "id": "lbl_third", "label": "1/3" },
+        { "id": "lbl_two_thirds", "label": "2/3" }
+      ],
+      "rightItems": [
+        { "id": "bar_third", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "bar_two_thirds", "label": "2/3", "numerator": 2, "denominator": 3 }
+      ],
+      "expectedPairs": [["lbl_third", "bar_third"], ["lbl_two_thirds", "bar_two_thirds"]]
+    },
+    "correctAnswer": [["lbl_third", "bar_third"], ["lbl_two_thirds", "bar_two_thirds"]],
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["skill:snap_match:thirds"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0003",
+    "archetype": "snap_match",
+    "prompt": { "text": "Match each fraction to its shaded bar.", "ttsKey": "q_sm_l5_0003" },
+    "payload": {
+      "leftItems": [
+        { "id": "lbl_one_fourth", "label": "1/4" },
+        { "id": "lbl_three_fourths", "label": "3/4" },
+        { "id": "lbl_half", "label": "1/2" }
+      ],
+      "rightItems": [
+        { "id": "bar_one_fourth", "label": "1/4", "numerator": 1, "denominator": 4 },
+        { "id": "bar_three_fourths", "label": "3/4", "numerator": 3, "denominator": 4 },
+        { "id": "bar_half", "label": "1/2", "numerator": 1, "denominator": 2 }
+      ],
+      "expectedPairs": [
+        ["lbl_one_fourth", "bar_one_fourth"],
+        ["lbl_three_fourths", "bar_three_fourths"],
+        ["lbl_half", "bar_half"]
+      ]
+    },
+    "correctAnswer": [
+      ["lbl_one_fourth", "bar_one_fourth"],
+      ["lbl_three_fourths", "bar_three_fourths"],
+      ["lbl_half", "bar_half"]
+    ],
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["skill:snap_match:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L5:0004",
+    "archetype": "snap_match",
+    "prompt": { "text": "Match the word name to the fraction.", "ttsKey": "q_sm_l5_0004" },
+    "payload": {
+      "leftItems": [
+        { "id": "lbl_one_half_word", "label": "one half" },
+        { "id": "lbl_one_third_word", "label": "one third" }
+      ],
+      "rightItems": [
+        { "id": "bar_half2", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "bar_third2", "label": "1/3", "numerator": 1, "denominator": 3 }
+      ],
+      "expectedPairs": [["lbl_one_half_word", "bar_half2"], ["lbl_one_third_word", "bar_third2"]]
+    },
+    "correctAnswer": [["lbl_one_half_word", "bar_half2"], ["lbl_one_third_word", "bar_third2"]],
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["skill:snap_match:halves", "skill:snap_match:thirds"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L5:0005",
+    "archetype": "snap_match",
+    "prompt": { "text": "Match 3 fractions to their bars.", "ttsKey": "q_sm_l5_0005" },
+    "payload": {
+      "leftItems": [
+        { "id": "lbl_1_6", "label": "1/6" },
+        { "id": "lbl_1_8", "label": "1/8" },
+        { "id": "lbl_1_2", "label": "1/2" }
+      ],
+      "rightItems": [
+        { "id": "bar_1_6", "label": "1/6", "numerator": 1, "denominator": 6 },
+        { "id": "bar_1_8", "label": "1/8", "numerator": 1, "denominator": 8 },
+        { "id": "bar_1_2b", "label": "1/2", "numerator": 1, "denominator": 2 }
+      ],
+      "expectedPairs": [
+        ["lbl_1_6", "bar_1_6"],
+        ["lbl_1_8", "bar_1_8"],
+        ["lbl_1_2", "bar_1_2b"]
+      ]
+    },
+    "correctAnswer": [
+      ["lbl_1_6", "bar_1_6"],
+      ["lbl_1_8", "bar_1_8"],
+      ["lbl_1_2", "bar_1_2b"]
+    ],
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["skill:snap_match:sixths", "skill:snap_match:eighths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "hard"
+  }
+]
