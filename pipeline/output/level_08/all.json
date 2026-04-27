@@ -1,0 +1,104 @@
+[
+  {
+    "id": "q:bm:L8:0001",
+    "archetype": "benchmark",
+    "prompt": { "text": "Is 1/4 closer to 0, 1/2, or 1?", "ttsKey": "q_bm_l8_0001" },
+    "payload": {
+      "targetFracId": "frac:1/4",
+      "targetLabel": "1/4",
+      "numerator": 1,
+      "denominator": 4,
+      "correctPlacements": { "frac:1/4": "zero" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:1/4": "zero" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bm:L8:0002",
+    "archetype": "benchmark",
+    "prompt": { "text": "Is 3/4 closer to 0, 1/2, or 1?", "ttsKey": "q_bm_l8_0002" },
+    "payload": {
+      "targetFracId": "frac:3/4",
+      "targetLabel": "3/4",
+      "numerator": 3,
+      "denominator": 4,
+      "correctPlacements": { "frac:3/4": "one" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:3/4": "one" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bm:L8:0003",
+    "archetype": "benchmark",
+    "prompt": { "text": "Place 2/4 on the number line: closer to 0, 1/2, or 1?", "ttsKey": "q_bm_l8_0003" },
+    "payload": {
+      "targetFracId": "frac:2/4",
+      "targetLabel": "2/4",
+      "numerator": 2,
+      "denominator": 4,
+      "correctPlacements": { "frac:2/4": "half" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:2/4": "half" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:equivalence"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0004",
+    "archetype": "benchmark",
+    "prompt": { "text": "Where does 1/8 belong: closer to 0, 1/2, or 1?", "ttsKey": "q_bm_l8_0004" },
+    "payload": {
+      "targetFracId": "frac:1/8",
+      "targetLabel": "1/8",
+      "numerator": 1,
+      "denominator": 8,
+      "correctPlacements": { "frac:1/8": "zero" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:1/8": "zero" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:eighths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0005",
+    "archetype": "benchmark",
+    "prompt": { "text": "Is 5/6 closer to 0, 1/2, or 1?", "ttsKey": "q_bm_l8_0005" },
+    "payload": {
+      "targetFracId": "frac:5/6",
+      "targetLabel": "5/6",
+      "numerator": 5,
+      "denominator": 6,
+      "correctPlacements": { "frac:5/6": "one" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:5/6": "one" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:sixths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0006",
+    "archetype": "benchmark",
+    "prompt": { "text": "Place 3/6 on the number line.", "ttsKey": "q_bm_l8_0006" },
+    "payload": {
+      "targetFracId": "frac:3/6",
+      "targetLabel": "3/6",
+      "numerator": 3,
+      "denominator": 6,
+      "correctPlacements": { "frac:3/6": "half" }
+    },
+    "correctAnswer": { "correctPlacements": { "frac:3/6": "half" } },
+    "validatorId": "validator.benchmark.sortToZone",
+    "skillIds": ["skill:benchmark:equivalence"],
+    "misconceptionTraps": [],
+    "difficultyTier": "hard"
+  }
+]

@@ -1,0 +1,104 @@
+[
+  {
+    "id": "q:mk:L4:0001",
+    "archetype": "make",
+    "prompt": { "text": "Fold and shade to show 1/2.", "ttsKey": "q_mk_l4_0001" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "axis",
+      "targetPartitions": 2,
+      "targetNumerator": 1,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 2, "targetNumerator": 1 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L4:0002",
+    "archetype": "make",
+    "prompt": { "text": "Fold the shape in half and shade 1 part to show 1/2.", "ttsKey": "q_mk_l4_0002" },
+    "payload": {
+      "shapeType": "circle",
+      "snapMode": "axis",
+      "targetPartitions": 2,
+      "targetNumerator": 1,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 2, "targetNumerator": 1 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:halves"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L4:0003",
+    "archetype": "make",
+    "prompt": { "text": "Show 1/4 by folding into 4 equal parts and shading 1.", "ttsKey": "q_mk_l4_0003" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 4,
+      "targetNumerator": 1,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 4, "targetNumerator": 1 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L4:0004",
+    "archetype": "make",
+    "prompt": { "text": "Show 2/4 — fold into 4 equal parts and shade 2.", "ttsKey": "q_mk_l4_0004" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 4,
+      "targetNumerator": 2,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 4, "targetNumerator": 2 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L4:0005",
+    "archetype": "make",
+    "prompt": { "text": "Show 1/3 — fold into 3 equal parts and shade 1.", "ttsKey": "q_mk_l4_0005" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 3,
+      "targetNumerator": 1,
+      "areaTolerance": 0.1
+    },
+    "correctAnswer": { "targetPartitions": 3, "targetNumerator": 1 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:thirds"],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L4:0006",
+    "archetype": "make",
+    "prompt": { "text": "Show 3/4 — fold into 4 equal parts and shade 3.", "ttsKey": "q_mk_l4_0006" },
+    "payload": {
+      "shapeType": "rectangle",
+      "snapMode": "free",
+      "targetPartitions": 4,
+      "targetNumerator": 3,
+      "areaTolerance": 0.08
+    },
+    "correctAnswer": { "targetPartitions": 4, "targetNumerator": 3 },
+    "validatorId": "validator.make.foldAndShade",
+    "skillIds": ["skill:make:fourths"],
+    "misconceptionTraps": [],
+    "difficultyTier": "hard"
+  }
+]
