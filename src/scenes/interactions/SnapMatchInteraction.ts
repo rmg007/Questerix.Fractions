@@ -148,7 +148,7 @@ export class SnapMatchInteraction implements Interaction {
       .rectangle(centerX, sy, 200, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    shit.on('pointerup', () => onCommit({ pairs: this.pairs }));
+    shit.on('pointerup', () => onCommit({ studentPairs: this.pairs }));
     this.gameObjects.push(sbg, stxt, shit);
   }
 

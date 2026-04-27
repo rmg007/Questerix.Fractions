@@ -103,11 +103,11 @@ export class LabelInteraction implements Interaction {
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
     shit.on('pointerup', () => {
-      const mappings = Object.entries(this.placements).map(([labelId, regionId]) => ({
+      const studentMappings = Object.entries(this.placements).map(([labelId, regionId]) => ({
         labelId,
         regionId,
       }));
-      onCommit({ mappings });
+      onCommit({ studentMappings });
     });
     this.gameObjects.push(sbg, slbl, shit);
   }

@@ -53,7 +53,7 @@ export class EqualOrNotInteraction implements Interaction {
         .rectangle(x, y, btnW, btnH, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
-      hit.on('pointerup', () => onCommit({ answer }));
+      hit.on('pointerup', () => onCommit({ studentAnswer: answer }));
       this.gameObjects.push(bg, lbl, hit);
     };
 

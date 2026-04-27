@@ -138,7 +138,7 @@ export class OrderInteraction implements Interaction {
       .rectangle(centerX, sy, 200, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    shit.on('pointerup', () => onCommit({ sequence: this.sequence.filter(Boolean) }));
+    shit.on('pointerup', () => onCommit({ studentSequence: this.sequence.filter(Boolean) }));
     this.gameObjects.push(sbg, stxt, shit);
   }
 

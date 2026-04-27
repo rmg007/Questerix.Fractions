@@ -74,7 +74,7 @@ describe('partitionEqualAreas property tests', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 2, max: 5 }),
-        fc.float({ min: Math.fround(0.5), max: Math.fround(5) }),
+        fc.float({ min: Math.fround(0.5), max: Math.fround(5), noNaN: true }),
         (count, area) => {
           const areas = Array(count).fill(area);
           const result = partitionEqualAreas.fn(

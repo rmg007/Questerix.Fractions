@@ -122,13 +122,7 @@ export class CompareInteraction implements Interaction {
         .rectangle(bx, btnY, 180, 56, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(8);
-      // Compute relation for onCommit
-      const aVal = aFrac.n / aFrac.d;
-      const bVal = bFrac.n / bFrac.d;
-      hit.on('pointerup', () => {
-        const correct = aVal > bVal ? '>' : aVal < bVal ? '<' : '=';
-        onCommit({ relation: val, correct: val === correct });
-      });
+      hit.on('pointerup', () => onCommit({ studentRelation: val }));
       this.gameObjects.push(bg, hit);
     });
   }

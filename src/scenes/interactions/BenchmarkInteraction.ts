@@ -59,6 +59,8 @@ export class BenchmarkInteraction implements Interaction {
       tickFractions: [0.5],
     });
 
+    const fracId = payload.targetFracId ?? label;
+
     // Three drop zones
     const zones: Array<{ key: Zone; label: string; value: number }> = [
       { key: 'zero', label: 'Closer to 0', value: 0 },
@@ -89,7 +91,7 @@ export class BenchmarkInteraction implements Interaction {
         .rectangle(bx, zoneY, zoneW, 64, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
-      hit.on('pointerup', () => onCommit({ zone: key }));
+      hit.on('pointerup', () => onCommit({ studentPlacements: { [fracId]: key } }));
       this.gameObjects.push(bg, hit);
     });
   }

@@ -37,7 +37,6 @@ export class MakeInteraction implements Interaction {
     const shapeType = payload.shapeType ?? 'rectangle';
     const snapMode = payload.snapMode ?? 'axis';
     const targetNumerator = payload.targetNumerator ?? 1;
-    const areaTolerance = payload.areaTolerance ?? 0.05;
 
     this.handlePos = centerX;
     this.phase = 'partition';
@@ -142,9 +141,7 @@ export class MakeInteraction implements Interaction {
       const rightArea = maxX - this.handlePos;
       onCommit({
         regionAreas: [leftArea, rightArea],
-        shadedRegionIds: [...this.shadedRegions].map(String),
-        areaTolerance,
-        targetNumerator,
+        shadedRegionCount: this.shadedRegions.size,
       });
     });
 

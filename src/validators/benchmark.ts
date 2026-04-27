@@ -7,13 +7,13 @@ import type { ValidatorRegistration, ValidatorResult } from '@/types';
 export type BenchmarkZone = 'zero' | 'half' | 'one';
 
 export interface BenchmarkInput {
-  /** fracId → student-chosen zone */
-  studentPlacements: Map<string, BenchmarkZone>;
+  /** fracId → student-chosen zone (plain object for JSON round-trip compat) */
+  studentPlacements: Record<string, BenchmarkZone>;
 }
 
 export interface BenchmarkExpected {
-  /** fracId → correct zone */
-  correctPlacements: Map<string, BenchmarkZone>;
+  /** fracId → correct zone (plain object, JSON-serializable) */
+  correctPlacements: Record<string, BenchmarkZone>;
 }
 
 // ── validator.benchmark.sortToZone ────────────────────────────────────────
@@ -30,12 +30,13 @@ export const benchmarkSortToZone: ValidatorRegistration<BenchmarkInput, Benchmar
   fn(input, expected): ValidatorResult {
     const { studentPlacements } = input;
     const { correctPlacements } = expected;
-    const total = correctPlacements.size;
+    const entries = Object.entries(correctPlacements);
+    const total = entries.length;
     if (total === 0) return { outcome: 'correct', score: 1 };
 
     let errors = 0;
-    for (const [fracId, correctZone] of correctPlacements) {
-      if (studentPlacements.get(fracId) !== correctZone) errors++;
+    for (const [fracId, correctZone] of entries) {
+      if (studentPlacements[fracId] !== correctZone) errors++;
     }
 
     if (errors === 0) return { outcome: 'correct', score: 1 };
