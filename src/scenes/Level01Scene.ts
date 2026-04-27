@@ -187,13 +187,19 @@ export class Level01Scene extends Phaser.Scene {
       const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
       const all = await questionTemplateRepo.getByLevel(1);
       // Fix 1 (BUG-01): only partition archetype — identify templates use a different mechanic
-      this.templatePool = all
-        .filter((t) => t.archetype === 'partition')
-        .slice(0, 5); // first 5 distinct templates for the session
+      this.templatePool = all.filter((t) => t.archetype === 'partition').slice(0, 5); // first 5 distinct templates for the session
       if (this.templatePool.length > 0) {
-        log.tmpl('load_ok', { count: this.templatePool.length, source: 'dexie', ids: this.templatePool.map(t => t.id) });
+        log.tmpl('load_ok', {
+          count: this.templatePool.length,
+          source: 'dexie',
+          ids: this.templatePool.map((t) => t.id),
+        });
       } else {
-        log.tmpl('load_empty', { source: 'dexie', fallback: 'synthetic', syntheticCount: QUESTIONS.length });
+        log.tmpl('load_empty', {
+          source: 'dexie',
+          fallback: 'synthetic',
+          syntheticCount: QUESTIONS.length,
+        });
       }
     } catch (err) {
       // Graceful degradation — synthetic content per runtime-architecture.md §10
@@ -376,7 +382,11 @@ export class Level01Scene extends Phaser.Scene {
       });
 
     backBtn.on('pointerup', () => {
-      log.input('back_to_menu', { fromScene: 'Level01Scene', questionIndex: this.questionIndex, attemptCount: this.attemptCount });
+      log.input('back_to_menu', {
+        fromScene: 'Level01Scene',
+        questionIndex: this.questionIndex,
+        attemptCount: this.attemptCount,
+      });
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
   }
@@ -411,10 +421,13 @@ export class Level01Scene extends Phaser.Scene {
       CW - 60,
       160,
       () => {
-        log.input('hint_button_tap', { questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        log.input('hint_button_tap', {
+          questionIndex: this.questionIndex,
+          wrongCount: this.wrongCount,
+        });
         this.onHintRequest();
       },
-      10,
+      10
     );
   }
 
@@ -425,10 +438,15 @@ export class Level01Scene extends Phaser.Scene {
       CH - 180,
       'Check ✓',
       () => {
-        log.input('check_button_tap', { handlePos: this.handlePos, inputLocked: this.inputLocked, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        log.input('check_button_tap', {
+          handlePos: this.handlePos,
+          inputLocked: this.inputLocked,
+          questionIndex: this.questionIndex,
+          wrongCount: this.wrongCount,
+        });
         this.onSubmit();
       },
-      10,
+      10
     );
   }
 
@@ -542,9 +560,9 @@ export class Level01Scene extends Phaser.Scene {
     const g = this.partitionLine;
     g.clear();
 
-    const top    = SHAPE_CY - SHAPE_H / 2 - 20;
+    const top = SHAPE_CY - SHAPE_H / 2 - 20;
     const bottom = SHAPE_CY + SHAPE_H / 2 + 20;
-    const len    = bottom - top;
+    const len = bottom - top;
 
     // Background rail (light-blue, matching the path)
     g.lineStyle(12, PATH_BLUE, 1);
@@ -552,8 +570,8 @@ export class Level01Scene extends Phaser.Scene {
 
     // White dashes
     const dashLen = 14;
-    const gapLen  = 10;
-    const cycle   = dashLen + gapLen;
+    const gapLen = 10;
+    const cycle = dashLen + gapLen;
     g.lineStyle(6, 0xffffff, 1);
 
     let pos = 0;
@@ -592,7 +610,10 @@ export class Level01Scene extends Phaser.Scene {
       onMove: (pos) => {
         if (!this.inputLocked) {
           if (this.handlePos === dragStartPos) {
-            log.drag('start', { fromX: dragStartPos, fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100) });
+            log.drag('start', {
+              fromX: dragStartPos,
+              fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100),
+            });
           }
           this.handlePos = pos;
           this.updatePartitionLine(pos);
@@ -600,8 +621,13 @@ export class Level01Scene extends Phaser.Scene {
       },
       onCommit: (pos) => {
         const pct = Math.round(((pos - minX) / SHAPE_W) * 100);
-        const snapped = snapTargets.some(t => Math.abs(t - pos) < 1);
-        log.drag('commit', { handleX: Math.round(pos), pct, snappedToCenter: snapped, movedFrom: Math.round(dragStartPos) });
+        const snapped = snapTargets.some((t) => Math.abs(t - pos) < 1);
+        log.drag('commit', {
+          handleX: Math.round(pos),
+          pct,
+          snappedToCenter: snapped,
+          movedFrom: Math.round(dragStartPos),
+        });
         dragStartPos = pos;
         this.handlePos = pos;
         this.updatePartitionLine(pos);
@@ -724,7 +750,12 @@ export class Level01Scene extends Phaser.Scene {
   private onCorrectAnswer(): void {
     this.attemptCount++;
     this.progressBar.setProgress(this.attemptCount);
-    log.q('correct', { questionIndex: this.questionIndex, attemptCount: this.attemptCount, progress: `${this.attemptCount}/${SESSION_GOAL}`, wrongCountThisQ: this.wrongCount });
+    log.q('correct', {
+      questionIndex: this.questionIndex,
+      attemptCount: this.attemptCount,
+      progress: `${this.attemptCount}/${SESSION_GOAL}`,
+      wrongCountThisQ: this.wrongCount,
+    });
 
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
@@ -736,7 +767,11 @@ export class Level01Scene extends Phaser.Scene {
 
   private onWrongAnswer(): void {
     this.wrongCount++;
-    log.q('wrong', { questionIndex: this.questionIndex, wrongCount: this.wrongCount, questionId: this.currentQuestion.id });
+    log.q('wrong', {
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      questionId: this.currentQuestion.id,
+    });
 
     // Auto-escalate hint after wrong attempt per interaction-model.md §4 + §5.4
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
@@ -918,7 +953,13 @@ export class Level01Scene extends Phaser.Scene {
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
       const attemptId = nanoid() as import('@/types').AttemptId;
-      log.atmp('record_start', { attemptId, outcome, responseMs, questionId: this.currentQuestion.id, hintsUsed: this.currentQuestionHintIds.length });
+      log.atmp('record_start', {
+        attemptId,
+        outcome,
+        responseMs,
+        questionId: this.currentQuestion.id,
+        hintsUsed: this.currentQuestionHintIds.length,
+      });
 
       await attemptRepo.record({
         id: attemptId,
@@ -977,9 +1018,10 @@ export class Level01Scene extends Phaser.Scene {
           ...updated,
           compositeKey: [studentIdTyped, skillId],
           lastAttemptAt: Date.now(),
-          masteredAt: updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
-            ? Date.now()
-            : prev.masteredAt ?? null,
+          masteredAt:
+            updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
+              ? Date.now()
+              : (prev.masteredAt ?? null),
           decayedAt: prev.decayedAt ?? null,
           syncState: 'local',
         };
@@ -1008,11 +1050,15 @@ export class Level01Scene extends Phaser.Scene {
         const flags = await runAllDetectors(limitedAttempts, 1);
 
         if (flags.length > 0) {
-          const { misconceptionFlagRepo } = await import('../persistence/repositories/misconceptionFlag');
+          const { misconceptionFlagRepo } =
+            await import('../persistence/repositories/misconceptionFlag');
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
-          log.misc('flags_detected', { count: flags.length, ids: flags.map(f => f.misconceptionId) });
+          log.misc('flags_detected', {
+            count: flags.length,
+            ids: flags.map((f) => f.misconceptionId),
+          });
         } else {
           log.misc('no_flags', { checkedAttempts: 'last10' });
         }
@@ -1034,8 +1080,14 @@ export class Level01Scene extends Phaser.Scene {
       attemptCount: this.attemptCount,
       correctCount: this.correctCount,
       totalAttempted: this.totalQuestionsAttempted,
-      accuracy: this.totalQuestionsAttempted > 0 ? +(this.correctCount / this.totalQuestionsAttempted).toFixed(3) : null,
-      avgResponseMs: this.responseTimes.length > 0 ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length) : null,
+      accuracy:
+        this.totalQuestionsAttempted > 0
+          ? +(this.correctCount / this.totalQuestionsAttempted).toFixed(3)
+          : null,
+      avgResponseMs:
+        this.responseTimes.length > 0
+          ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
+          : null,
     });
     TestHooks.mountSentinel('completion-screen');
 
@@ -1084,7 +1136,7 @@ export class Level01Scene extends Phaser.Scene {
           studentId: this.studentId,
         });
       },
-      52,
+      52
     );
 
     // "Back to menu" — secondary button
@@ -1149,12 +1201,12 @@ export class Level01Scene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix 7 (G-E4): compute real accuracy and avg response time
-      const accuracy = this.totalQuestionsAttempted > 0
-        ? this.correctCount / this.totalQuestionsAttempted
-        : 1;
-      const avgResponseMs = this.responseTimes.length > 0
-        ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
-        : null;
+      const accuracy =
+        this.totalQuestionsAttempted > 0 ? this.correctCount / this.totalQuestionsAttempted : 1;
+      const avgResponseMs =
+        this.responseTimes.length > 0
+          ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+          : null;
 
       const summary = {
         endedAt: Date.now(),

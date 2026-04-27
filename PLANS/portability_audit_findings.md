@@ -413,3 +413,230 @@ These are not strict portability violations *today* — they live in the data sh
 8. **Test discipline (ongoing):** fixture rewrite (#24); enforce in CI a lint rule that bans `Date.now`, `Math.random`, `crypto.*`, `fetch`, `window.*`, `document.*`, `localStorage`, `navigator.*`, `console.*` inside `src/engine/`, `src/curriculum/`, `src/validators/` (the validators already comply; the rule will fail in the engine until step 2 lands, which is the point).
 
 A lint rule such as the one in step 8 — implemented via `eslint-plugin-no-restricted-syntax` or a custom rule — converts the audit from a snapshot into a ratchet. Once green, regressions become impossible without an explicit `// eslint-disable` that any reviewer can spot.
+
+---
+
+# Audit Round 3 — Outer Surfaces
+
+Round 3 audited the surfaces I had named when the user pointed out the Round 1 gap: `MenuScene.ts`, `SettingsScene.ts`, `PreloadScene.ts`, `BootScene.ts`, `src/components/*`, the four nanoid dynamic-import sites, the build script, `index.html`, `wrangler.toml`, `vite.config.ts`, `tsconfig.json`, and `vitest.config.ts`. Up-front: I told the user to expect "6–10 more findings"; the actual count is ~20. Treat my prior estimate as wrong, not as a ceiling.
+
+## Category M — Project-Constraint Violations
+
+These are violations of the project's own locked constraints (see `docs/00-foundation/constraints.md`). They sit above the audit standard — the team has already agreed the code shouldn't do this.
+
+### `src/scenes/MenuScene.ts` — level-unlock progression stored in `localStorage` (violates C5)
+
+* **Violation:** `_getUnlockedLevels()` reads `JSON.parse(localStorage.getItem('unlockedLevels'))`, and the static `markLevelComplete(levelNumber, studentId)` writes the same key. C5 is explicit: "IndexedDB only for important data" and "the only allowed localStorage key is `lastUsedStudentId`." Level-unlock state is progress data — the most "important" data the app holds aside from attempt records.
+* **Location:** `src/scenes/MenuScene.ts` lines 332–347 (`_getUnlockedLevels`) and 350–363 (`markLevelComplete`); also referenced in the in-line comment at line 281–283.
+* **Consequence:** Three concrete failures: (a) the value evades JSON-backup/restore and the Dexie schema, so a student who clears site data or moves devices loses level access even after restoring a backup; (b) iOS Safari's ITP can evict localStorage independently of IndexedDB, producing a state where mastery is preserved but unlock is lost (or vice versa); (c) Round 2 finding 16 (Dexie singleton on import) means the *Dexie* data is opened anyway — so we are paying the cost of IndexedDB *and* using localStorage. The master plan's open decision D-1 is about *which* unlock model to use; this code has silently chosen "localStorage", contradicting whatever the team picks.
+* **Refactoring Directive:**
+  1. Add a `LevelUnlock` table to the Dexie schema (migration to v5). Composite key `[studentId+levelNumber]`, single column `unlockedAt: number`.
+  2. Move both methods into a `levelUnlockRepo` in `src/persistence/repositories/`. `markLevelComplete` becomes `levelUnlockRepo.unlock(studentId, levelNumber)`; `_getUnlockedLevels` becomes `levelUnlockRepo.listForStudent(studentId)`.
+  3. Delete the localStorage code and the per-student-prefixed key scheme entirely.
+  4. The `MenuScene._openLevelChooser` already queries `sessionRepo.listForStudent` as a fallback — collapse the two paths into one repo call.
+  5. Add a one-time migration that reads any pre-existing localStorage `unlockedLevels` keys, writes them into the new table, and `removeItem`s them.
+
+### `vite.config.ts` — hardcoded preview/dev hostname permits any host (security note, deployment-coupling note)
+
+* **Violation:** `server.host: '0.0.0.0'` and `server.allowedHosts: true` accept every Host header. The dev server is therefore reachable from any IP that can route to the developer's machine, with no host validation.
+* **Location:** `vite.config.ts` lines 60–61.
+* **Consequence:** Not strictly a portability finding, but a deployment-coupling one: the assumption is that this runs only inside Replit (which the comment at line 64–66 confirms). Hosting on a corporate network or a school district VPN exposes the dev server publicly. The inverse coupling — "this config will not be valid on a hardened deploy" — is also true: any deploy pipeline that runs `vite dev` for smoke tests inherits the open binding.
+* **Refactoring Directive:** Make host/allowedHosts environment-driven with a safe default: `host: process.env['DEV_BIND'] ?? 'localhost'`, `allowedHosts: process.env['DEV_HOSTS']?.split(',') ?? ['localhost']`. Document the Replit override as `DEV_BIND=0.0.0.0 DEV_HOSTS=*` in the Replit run config.
+
+## Category N — Build-Time Configuration Leaking Into the Runtime
+
+### `vite.config.ts` — three independent build-time `process.env` switches
+
+* **Violation:** PWA mode (`process.env['NODE_ENV'] === 'production' || process.env['PWA'] === '1'`), bundle analysis (`process.env['BUNDLE_ANALYZE']`), and the implicit dev/prod split all freeze at build time. The production bundle's behavior is determined by what was set when `vite build` ran, and cannot be reconfigured at deploy time.
+* **Location:** `vite.config.ts` lines 7, 12, 47.
+* **Consequence:** Cloudflare Pages (per `wrangler.toml`) builds once and deploys once; you cannot turn the PWA on or off per-environment without two separate builds. Any future need for staging/prod parity (e.g., "PWA on in prod, off in staging to make debugging easier") requires CI complexity instead of runtime config. The `BUNDLE_ANALYZE` switch silently affects build output (the visualizer plugin is invasive).
+* **Refactoring Directive:**
+  1. Move the PWA-on/off decision into a runtime check inside `src/main.ts`: register the service worker conditionally based on a `<meta name="qf-pwa">` tag in `index.html` that the deploy environment substitutes.
+  2. Or accept the build-time freeze and document it explicitly in `wrangler.toml` and the deploy README. Today's setup is implicit.
+
+### `vite.config.ts` — workbox URL pattern duplicates the curriculum bundle path
+
+* **Violation:** `urlPattern: /\/curriculum\/v\d+\.json/` hardcodes the bundle URL inside the build configuration. The same path appears in `src/curriculum/manifest.ts` (Round 2 finding 21) and as the default parameter of `loadCurriculumBundle`. Three sources of truth.
+* **Location:** `vite.config.ts` line 21.
+* **Consequence:** Bumping the bundle to `v2.json` (a curriculum schema migration) requires editing three files in two languages. If only one is updated, the cache will hit the old bundle while `fetch` requests the new one — silent serving of stale curriculum.
+* **Refactoring Directive:** Lift the bundle path into a single `src/curriculum/bundleUrl.ts` constant exported as `'/curriculum/v1.json'`. Have `vite.config.ts` import the constant at config-evaluation time (Vite supports this) so the regex is derived: `urlPattern: new RegExp(\`^${escapeRegExp(BUNDLE_URL)}\$\`)`. Resolves both this finding and Round 2 finding 21.
+
+### `vite.config.ts` and `public/manifest.json` — duplicated PWA manifest
+
+* **Violation:** The PWA manifest is declared inline in `vite.config.ts` lines 30–42 (`manifest: { ... }` passed to `VitePWA`). The master plan's S5-T2c task ("Confirm `public/manifest.json` exists") implies a static manifest also exists. `vite-plugin-pwa` precedence is "inline config wins" — meaning the static file is dead code.
+* **Location:** `vite.config.ts` lines 30–42; presumed `public/manifest.json`.
+* **Consequence:** If a developer edits the static manifest expecting it to take effect (it's the natural file to find with `grep "Questerix Fractions" public/`), they will silently make zero change to the deployed PWA. The lint trail leads in the wrong direction.
+* **Refactoring Directive:** Pick one source of truth. If `public/manifest.json` should be canonical, remove the inline `manifest: { ... }` block from `vite.config.ts` and have the plugin read the static file. Otherwise delete `public/manifest.json` if it exists.
+
+### `scripts/build-curriculum.mjs` — non-reproducible bundle (clock-stamped output)
+
+* **Violation:** `generatedAt: new Date().toISOString()` is baked into every bundle build. Two builds of identical inputs produce different outputs (different timestamp).
+* **Location:** `scripts/build-curriculum.mjs` line 84.
+* **Consequence:** Three concrete impacts: (a) content-hash–based CDN deduplication is defeated — every bundle has a unique hash; (b) deterministic build verification (a SOC-2 control evidencing "the bundle in production is the bundle the build script produced") is impossible without an exception for the `generatedAt` field; (c) the `contentVersion === '1.0.0'` check in `seed.ts` is the *only* mechanism for detecting bundle changes — so two builds with different `generatedAt` but the same content trigger no re-seed (good), and two builds with the same `generatedAt` but different content also trigger no re-seed (bad — silent staleness).
+* **Refactoring Directive:** Replace `generatedAt: new Date().toISOString()` with `contentHash: sha256(JSON.stringify(levels))`. The hash both proves provenance and serves as a re-seed trigger more accurate than the manually-bumped `contentVersion`. Keep `contentVersion` for human-readable migration intent.
+
+### `scripts/build-curriculum.mjs` — duplicate write to two destinations with no integrity check
+
+* **Violation:** Lines 88–99 write the same JSON to `public/curriculum/v1.json` AND `src/curriculum/bundle.json`. Both files are then in `git status` simultaneously (confirmed by the master plan's open decision D-3 — "is `src/curriculum/bundle.json` source-of-truth, or is `public/curriculum/v1.json`? Both are dirty in `git status`").
+* **Location:** `scripts/build-curriculum.mjs` lines 91–99.
+* **Consequence:** A developer editing one file by hand creates silent divergence. The `loader.ts` fetch path serves `public/...`; the import-fallback path resolves `src/...`; users in different environments get different curriculum without anything in CI that detects it.
+* **Refactoring Directive:**
+  1. Make `public/curriculum/v1.json` the single source of truth.
+  2. The fallback adapter (Round 1 finding 6 / `EmbeddedBundleSource`) reads `public/curriculum/v1.json` at build time using a Vite plugin or a compile-time `?raw` import. Eliminates `src/curriculum/bundle.json`.
+  3. Add a CI check: `git diff --exit-code public/curriculum/` after `npm run build:curriculum` — if the build is not clean against the committed bundle, fail.
+
+### `scripts/build-curriculum.mjs` — duplicates the level→archetype mapping
+
+* **Violation:** `LEVEL_ARCHETYPES = { '01': ['partition', 'identify'], '02': ..., ... }` is defined here, but the same domain knowledge appears in `src/curriculum/manifest.ts` (`LEVEL_KEYS`), in `src/types/archetype.ts`, in `docs/10-curriculum/scope-and-sequence.md`, and (per the master plan) in pedagogical specs in `docs/`.
+* **Location:** `scripts/build-curriculum.mjs` lines 22–32.
+* **Consequence:** Adding L10 or shifting L7 from `compare` to `order` requires touching 3–4 files. The build script silently filters out records whose archetype isn't in its mapping, so a content authoring change that isn't mirrored in the build script disappears with only a console warning.
+* **Refactoring Directive:** Move the mapping to a single JSON file (`docs/10-curriculum/level-archetypes.json`) consumed by both the build script (Node `readFileSync`) and the runtime (`import` at module load). Both readers fail loudly if the file is malformed.
+
+## Category O — Phaser/DOM Coordinate-System Bridges
+
+### `src/scenes/SettingsScene.ts` — DOM overlay positions computed from canvas measurements
+
+* **Violation:** Lines 58–63 compute `canvasTop = this.sys.game.canvas.getBoundingClientRect()?.top ?? 0`, `scaleY = this.sys.game.canvas.clientHeight / CH`, and use these to derive viewport pixel coordinates for the `PreferenceToggle` DOM overlays. This bridges Phaser's logical canvas (800×1280) and the actual viewport.
+* **Location:** `src/scenes/SettingsScene.ts` lines 58–63 plus all the `toViewport(...)` call sites.
+* **Consequence:** Five fragile assumptions: (a) the canvas is a real HTMLCanvasElement (the optional chain on `getBoundingClientRect` admits this isn't always true, but the unchained `clientHeight`/`clientWidth` reads on the same lines do not); (b) the canvas has a stable position (window resize, dev-tools docking, soft-keyboard open all invalidate the computation, and there is no recompute hook); (c) the canvas isn't transformed by CSS (a parent `transform: scale()` for retina scaling defeats `getBoundingClientRect`); (d) the canvas exists at the moment `create()` runs (Phaser's create runs after canvas insertion, but this contract isn't visible at the call site); (e) the viewport coordinate system matches what `position: fixed` computes for the toggle DOM (it does, today, but the assumption is implicit).
+* **Refactoring Directive:**
+  1. Replace ad-hoc canvas measurement with a `CanvasViewportBridge` helper in `src/scenes/utils/`. Single source of truth for canvas-to-viewport math, with a recompute method bound to a `resize` listener.
+  2. Have `PreferenceToggle` accept logical canvas coordinates `(canvasX, canvasY)` instead of viewport pixel strings; the bridge translates internally.
+  3. Once translated through a port (Round 1 finding 14), the bridge becomes the single dependency that test doubles can replace.
+
+### `src/scenes/SettingsScene.ts` — global keydown listener registered against `document`
+
+* **Violation:** Lines 122 and 380 add and remove a `document.addEventListener('keydown', this._keyHandler)` for Escape-to-close. The listener is process-global; only the cleanup in `shutdown()` removes it.
+* **Location:** Lines 118–123 (registration), 378–382 (cleanup).
+* **Consequence:** If `shutdown()` is missed (a Phaser scene-restart edge case, a tab close before cleanup runs, an uncaught exception inside `cleanup`), the listener leaks. Two SettingsScene instances stack two listeners. The handler also blindly trusts that any Escape key press during the scene's lifetime should close the scene — a modal dialog launched from inside Settings would be dismissed by the same press, then the scene would also close.
+* **Refactoring Directive:** Wrap document-level listener registration in a `KeyboardScope` adapter in `src/lib/adapters/keyboard.ts` that accepts a Phaser scene, ties the listener to the scene's `EVENTS.SHUTDOWN` and `EVENTS.SLEEP` events, and prevents double-registration.
+
+### `src/scenes/SettingsScene.ts` — `location.reload()` after database wipe
+
+* **Violation:** Line 261 calls `location.reload()` after `db.delete()` to reset application state. Hard browser reload is the reset mechanism.
+* **Location:** Line 261.
+* **Consequence:** The engine, persistence layer, scene graph, and DOM overlays cannot be coordinated through a single in-app reset because the architecture has no top-level reset event. The hammer is appropriate for the symptom (everything is reset after) but it admits an absence — the system can't recover from data wipe without restarting the JS runtime. Also breaks PWA scenarios where reload may navigate to a stale cached HTML.
+* **Refactoring Directive:** Define a `ResetController` adapter that the composition root holds. On reset, the controller emits a `reset` event that scenes, the Dexie singleton (Round 1 finding 16's factory), and adapters subscribe to. Each subscriber reinitializes its own state. `location.reload()` becomes a fallback only.
+
+### `src/scenes/SettingsScene.ts` — privacy notice opened with hardcoded path
+
+* **Violation:** `window.open('/privacy.html', '_blank', 'noopener')` at line 313. Same hardcoded-absolute-path issue as the curriculum bundle (Round 2 finding 21), but for a different surface.
+* **Location:** Line 313.
+* **Consequence:** Subdirectory deployments break. Cross-origin privacy pages (a school district hosting their own privacy notice) cannot be substituted. The hardcoded `'_blank'` and `'noopener'` are reasonable defaults but bake them into UI code rather than letting the deployment configure them.
+* **Refactoring Directive:** Move the privacy URL into the same composition-root config as the bundle URL. `SettingsScene` receives `(privacyUrl: string)` from the composition root.
+
+## Category P — Pattern-Level Violations That Fan Out
+
+### `checkReduceMotion()` is reimplemented in seven places
+
+* **Violation:** The pattern `try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }` appears as a private method or top-level function in: `src/components/DragHandle.ts:218`, `src/components/FeedbackOverlay.ts:163`, `src/components/ProgressBar.ts:121`, `src/components/LevelCard.ts:39`, `src/scenes/PreloadScene.ts:130`, `src/scenes/MenuScene.ts:767`, `src/scenes/Level01Scene.ts:1180`, `src/scenes/LevelScene.ts:873`. There is also `src/lib/preferences.ts:43` which combines OS preference with user preference — that's the function the others *should* be calling. The duplication exists because `lib/preferences.ts` requires `initPreferences()` to be called first (Round 2 finding 19), and not every consumer can rely on that.
+* **Locations:** As enumerated above.
+* **Consequence:** A change to motion preference handling (e.g., adding a `prefers-reduced-data` consideration, or making the check sync-able with the user's in-app override) requires editing 7+ files. The DRY violation slows the refactor proportionally and makes consistency unverifiable.
+* **Refactoring Directive:** When `lib/preferences.ts` is converted to a factory (Round 2 finding 19), have it expose a synchronous `prefersReducedMotion()` method backed by the cached value plus a fresh `matchMedia` check. Replace all 8 call sites with calls into the injected preference instance. Add a lint rule banning direct `window.matchMedia` references outside `src/lib/adapters/`.
+
+### `nanoid` dynamic-import-with-fallback pattern in 5 sites
+
+* **Violation:** The pattern `const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => 's-' + Date.now() }));` appears at: `src/scenes/BootScene.ts:91`, `src/scenes/Level01Scene.ts:313`, `src/scenes/Level01Scene.ts:915`, `src/scenes/LevelScene.ts:604`, `src/scenes/LevelScene.ts:638`. Each site:
+  1. Hides the dependency on `nanoid` from the static import graph (tree-shaking can't help; bundle analysis can't see it).
+  2. Falls back to `\`s-${Date.now()}\`` (or `\`a-${Date.now()}\``) if nanoid fails to resolve.
+  3. The fallback collides for any two IDs minted in the same millisecond — under fast-paced K–2 attempts this is plausible.
+  4. Couples ID generation to the system clock as a *fallback*, silently compounding Round 1 finding 1 in the unlucky path.
+  5. Means in offline/CSP-strict environments where dynamic imports fail (some Capacitor configurations, some service-worker–mediated networks), every ID degrades to a clock-based value.
+* **Locations:** As enumerated above.
+* **Consequence:** The fallback path is not exercised by any test — there is no way to know if today's data shape survives a fallback-ID write. The pattern's existence implies the author was uncertain whether `nanoid` would resolve; that uncertainty should be resolved at build time (it's a static dependency in `package.json`), not at runtime.
+* **Refactoring Directive:**
+  1. Make `nanoid` a static import. If bundle size is the concern, configure Rollup to chunk it; if module-resolution failure is the concern (it shouldn't be — it's a static dep), the project has bigger problems than ID generation.
+  2. Once static, route the call through the `IdGenerator` port (Round 1 finding 2). Five sites collapse to five `ids.newId()` calls, with the production adapter wrapping `nanoid()`.
+  3. Delete the `Date.now()` fallback entirely.
+
+### `console.*` calls are sprinkled directly throughout `src/scenes/` and `src/persistence/`
+
+* **Violation:** Quick sweep: `BootScene.ts` has 10+ direct `console.info`/`warn`/`error` calls (lines 24, 50, 53, 62, 64, 68, 76, 82, 103, 107). `seed.ts` has 6+. `loader.ts` has 5+. `db.ts` has 3+. `main.ts` has 3+. The `lib/logger.ts` and `lib/log.ts` modules exist (Round 1 finding 11) but are not used in any scene or persistence module.
+* **Locations:** As listed.
+* **Consequence:** No way to silence logs in tests without `vi.spyOn(console, 'info')` per file. No way to ship logs back to the developer for offline debugging. No way to enforce log-level discipline (info vs warn vs error inconsistency across modules). The two existing logger modules' coupling to `import.meta.env` (Round 1 finding 11) is the reason no one adopts them.
+* **Refactoring Directive:** Land Round 1 finding 11 first (decouple `lib/logger.ts` from build-tool intrinsics). Then add a CI lint rule banning `console.*` outside `src/lib/adapters/`. Bulk-replace the existing call sites by passing the injected `Logger` from the composition root.
+
+## Category Q — TypeScript and Tooling Configuration That Permits the Violations
+
+### `tsconfig.json` — `lib: ["ES2022", "DOM", "DOM.Iterable"]` makes browser globals visible everywhere
+
+* **Violation:** Including `DOM` in the compiler `lib` array makes `window`, `document`, `localStorage`, `navigator`, `crypto`, `fetch`, `URL`, etc. globally typed across every `.ts` file. There is no per-folder lib override, so a misconception detector that accidentally types `localStorage.getItem('x')` typechecks cleanly.
+* **Location:** `tsconfig.json` line 6.
+* **Consequence:** The audit standard cannot be enforced by the type checker. Round 2 finding 24's lint rule is the only mechanism that would catch new violations; until then, developers can re-introduce the patterns the audit removes.
+* **Refactoring Directive:**
+  1. Split `tsconfig.json` into a base + three project-references: `tsconfig.core.json` (lib `["ES2022"]` only — no DOM) for `src/engine`, `src/validators`, `src/curriculum`; `tsconfig.adapters.json` (lib `["ES2022", "DOM"]`) for `src/lib/adapters`, `src/persistence`; `tsconfig.ui.json` (lib `["ES2022", "DOM", "DOM.Iterable"]`) for `src/scenes`, `src/components`, `src/main.ts`.
+  2. Wire Vite to honor the project-references via `@rollup/plugin-typescript` or `unplugin-typia` setup.
+  3. Now a `localStorage.getItem` in `src/engine` is a type error, not a runtime regression discovered six weeks later.
+
+### `tsconfig.json` — strictness deferred (`noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`)
+
+* **Violation:** Lines 25–26 comment out two strictness flags as "deferred to Phase 12 pending codebase refactoring." The disabled flags would catch the engine's silent assumption that `attempts[0]` is non-null.
+* **Location:** Lines 25–26.
+* **Consequence:** Round 1's misconception detectors all do `attempts[0].studentId` (in `crypto.randomUUID()` adjacent code) without checking that `attempts` is non-empty. With `noUncheckedIndexedAccess`, the type would be `Attempt | undefined` and the access would be a compile error. Today it's a runtime `TypeError` waiting on the first attempt-empty edge case.
+* **Refactoring Directive:** Enable both flags. Expect ~50–200 type errors. Fix them iteratively under one PR per top-level folder. The fixes are mostly inserting `if (arr[0]) { ... }` guards or replacing `arr[i]` with `arr.at(i)` followed by an undefined check.
+
+### `vitest.config.ts` — `environment: 'jsdom'` for every test
+
+* **Violation:** Line 11 sets jsdom as the universal test environment. Pure engine tests (e.g., `tests/unit/engine/bkt.test.ts`) run inside a DOM emulator they don't use.
+* **Location:** Line 11.
+* **Consequence:** (a) Test startup is slower (jsdom adds ~200ms per test file). (b) An engine test that accidentally writes `document.something` *passes* because jsdom provides the API — masking the violation that Round 1 / Round 2 set out to catch. (c) The test suite cannot easily distinguish "this code is intended for the browser" from "this code is intended for any runtime".
+* **Refactoring Directive:** Add per-file `// @vitest-environment node` headers to every file under `tests/unit/engine/`, `tests/unit/validators/`, `tests/unit/curriculum/`. Once the audit refactors land, flip the global default to `node` and require explicit `// @vitest-environment jsdom` for UI tests.
+
+### `vite.config.ts` and `tsconfig.json` — `@/` alias coupling
+
+* **Violation:** The `@/` path alias is defined in `vite.config.ts` (`alias: { '@': path.resolve(__dirname, 'src') }`) and in `tsconfig.json` (`paths: { '@/*': ['src/*'] }`). It is *not* defined in `scripts/build-curriculum.mjs` (which uses Node-relative paths) or in any potential server-side runtime. Any code that imports `@/...` is therefore implicitly Vite/Vitest-only.
+* **Location:** `vite.config.ts` line 55; `tsconfig.json` lines 30–32.
+* **Consequence:** A future migration to a different bundler (esbuild, Bun, Rollup-without-Vite) requires either reproducing the alias in the new tool's config or rewriting every `@/` import. A server-side migration tool that wants to import the schema definition cannot resolve the alias without a custom loader. This is why Round 1 finding 6 (`bundle.json` JSON import) lands harder than it should — both findings are the same shape: build-tool intrinsics leaking into "domain" code.
+* **Refactoring Directive:** Pick one — either banish `@/` from `src/engine`, `src/validators`, `src/curriculum` (use relative imports there; aliases acceptable only in scenes/components), or commit to the alias and add a fallback `tsconfig-paths` resolver to any non-Vite consumer.
+
+## Category R — Identity and Reset Hazards
+
+### `src/scenes/SettingsScene.ts` and `src/scenes/BootScene.ts` — `crypto.randomUUID` / `nanoid` race for student creation
+
+* **Violation:** BootScene auto-creates an anonymous student on first launch (`nanoid()` for the ID at line 92). SettingsScene's reset wipes the database and reloads. After reload, BootScene runs again and mints a *different* ID for the "same" anonymous user. Their unlocked levels (stored in `localStorage` per Category M) keyed by the *previous* student ID are now orphaned in localStorage, and the new anonymous user starts with an empty unlock set.
+* **Locations:** `src/scenes/BootScene.ts` lines 89–104; `src/scenes/SettingsScene.ts` lines 254–262.
+* **Consequence:** Reset is partial: IndexedDB wipes, localStorage doesn't (the SettingsScene calls `lastUsedStudent.clear()` which removes only `questerix.lastUsedStudentId` — not the `unlockedLevels` keys). After reset, stale `unlockedLevels:s-OLD-ID` keys persist in localStorage indefinitely. Eventually the user's localStorage accumulates one orphaned key per reset — a slow leak.
+* **Refactoring Directive:**
+  1. Resolve Category M (move unlock state to Dexie). The leak disappears because `db.delete()` already wipes everything in IndexedDB.
+  2. If localStorage must keep auxiliary keys, the reset path must enumerate and remove them: `Object.keys(localStorage).filter(k => k.startsWith('questerix.') || k.startsWith('unlockedLevels')).forEach(localStorage.removeItem.bind(localStorage))`. A `localStorageReset()` helper in `lastUsedStudent.ts` (or wherever the storage convention is owned) is the right home for this.
+
+### `src/components/AccessibilityAnnouncer.ts` and `src/components/SkipLink.ts` — singleton DOM mutators with id-keyed coordination
+
+* **Violation:** Both modules coordinate via well-known string IDs (`'qf-a11y-live'`, `'qf-skip-link'`, `'qf-canvas'`, `'qf-pref-toggles'`). Any other module — or a containing host page that wraps the game — can collide with these IDs and break the components silently.
+* **Locations:** `src/components/AccessibilityAnnouncer.ts:7,10,29,66`; `src/components/SkipLink.ts:9,10,42,46,76,84`; `src/components/PreferenceToggle.ts:24,27`.
+* **Consequence:** Embedding the game inside a host page (e.g., a school's LMS iframe wrapper) is brittle: a host page that uses `id="qf-a11y-live"` for any purpose will break the announcer. The id-based coordination is also non-scoped — there's no way to run two game instances on the same page (e.g., a teacher dashboard previewing a student's screen alongside live).
+* **Refactoring Directive:** Replace top-level id-keyed singletons with constructor-injected `HTMLElement` host containers. Each component receives its host (`new AccessibilityAnnouncer(hostEl)`) rather than walking `document` for it. The composition root creates the host elements with whatever scoping it wants — including shadow DOM for full isolation.
+
+---
+
+## Round 3 Summary Table
+
+| # | File / Module | Category | Severity | Effort |
+|---|---|---|---|---|
+| 28 | `src/scenes/MenuScene.ts` (unlock state in localStorage, violates C5) | M | High | Medium |
+| 29 | `vite.config.ts` (open `0.0.0.0` host + `allowedHosts: true`) | M | Low (deployment hygiene) | Trivial |
+| 30 | `vite.config.ts` (build-time `process.env` switches frozen at build) | N | Medium | Small |
+| 31 | `vite.config.ts` (workbox URL pattern duplicates bundle path) | N | Medium | Small |
+| 32 | `vite.config.ts` + `public/manifest.json` (duplicate PWA manifest) | N | Low | Trivial |
+| 33 | `scripts/build-curriculum.mjs` (`generatedAt` clock-stamp non-reproducible) | N | Medium | Small |
+| 34 | `scripts/build-curriculum.mjs` (dual write: `public/` + `src/`) | N | Medium | Small (subsumed by #6) |
+| 35 | `scripts/build-curriculum.mjs` (duplicates level→archetype map) | N | Low | Small |
+| 36 | `src/scenes/SettingsScene.ts` (canvas-to-DOM coordinate bridge) | O | High | Medium |
+| 37 | `src/scenes/SettingsScene.ts` (`document.addEventListener('keydown')`) | O | Medium | Small |
+| 38 | `src/scenes/SettingsScene.ts` (`location.reload()` for reset) | O | Medium | Medium |
+| 39 | `src/scenes/SettingsScene.ts` (`window.open('/privacy.html')` hardcoded) | O | Low | Trivial |
+| 40 | `checkReduceMotion()` reimplemented in 8 sites | P | Medium | Small (per-site) |
+| 41 | `nanoid` dynamic-import-with-fallback in 5 sites | P | High | Small |
+| 42 | Direct `console.*` calls in scenes/persistence | P | Medium | Medium |
+| 43 | `tsconfig.json` (DOM lib globally available) | Q | High (foundational) | Medium |
+| 44 | `tsconfig.json` (strictness flags deferred) | Q | High (foundational) | Large |
+| 45 | `vitest.config.ts` (jsdom for every test) | Q | Medium | Small |
+| 46 | `@/` alias couples to Vite/Vitest config | Q | Low | Small |
+| 47 | Reset leaks orphaned `unlockedLevels:*` localStorage keys | R | Medium | Trivial (subsumed by #28) |
+| 48 | DOM components coordinate via well-known string ids | R | Medium | Medium |
+
+## Calibration Note
+
+I told you to expect "6–10 more findings" from Round 3. The actual count is 21. Two takeaways:
+1. **My estimate was wrong by 2–3×.** The visible surface (component files, configs, build script) hides more coupling per file than I projected. Don't take any of my future "rough estimates" of audit yield as a ceiling.
+2. **There is almost certainly a Round 4.** Surfaces I have *not* yet audited: the 13 interaction files in `src/scenes/interactions/*` (each imports Phaser; each likely has its own coupling beyond the contract leak in Round 2 finding 23); `src/scenes/interactions/utils/NumberLine.ts` and `BarModel.ts`; `src/scenes/Level01Scene.ts` line-by-line (I sampled the `Date.now`/`nanoid` sites but not the full file); `src/curriculum/bundle.json` shape vs schema drift; the seven test files in `tests/`; the playwright e2e setup; the cloudflare workers env; CSS coupling in `src/styles/index.css` (the `/fonts/` URLs already noted but the cascade may have layout assumptions); the Phaser game config in `main.ts` (`width: 800, height: 1280` hardcoded — the only canvas size the entire app supports). My honest estimate now: 10–15 more findings live in those surfaces. Treat this estimate with the same skepticism as the last one.

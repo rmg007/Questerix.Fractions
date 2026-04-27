@@ -303,7 +303,8 @@ export class MenuScene extends Phaser.Scene {
   private createChooseLevelButton(): void {
     const bx = STATION_X;
     const by = PLAY_Y + 90;
-    const W = 220, H = 48;
+    const W = 220,
+      H = 48;
 
     const g = this.add.graphics().setDepth(16);
     g.fillStyle(WHITE, 0.9);
@@ -332,9 +333,7 @@ export class MenuScene extends Phaser.Scene {
   private _getUnlockedLevels(): Set<number> {
     const unlocked = new Set<number>([1]); // Level 1 always unlocked
     try {
-      const key = this.lastStudentId
-        ? `unlockedLevels:${this.lastStudentId}`
-        : 'unlockedLevels';
+      const key = this.lastStudentId ? `unlockedLevels:${this.lastStudentId}` : 'unlockedLevels';
       const raw = localStorage.getItem(key);
       if (raw) {
         const arr = JSON.parse(raw) as number[];
@@ -389,7 +388,8 @@ export class MenuScene extends Phaser.Scene {
   private _renderLevelGrid(unlocked: Set<number>): void {
     const CX = CW / 2;
     const CY = CH / 2;
-    const CARD_W = 640, CARD_H = 520;
+    const CARD_W = 640,
+      CARD_H = 520;
 
     // Scrim
     const scrim = this.add.rectangle(CX, CY, CW, CH, 0x000000, 0.55).setDepth(60);
@@ -423,7 +423,8 @@ export class MenuScene extends Phaser.Scene {
       const by = startY + row * (CELL - 20);
       const isUnlocked = unlocked.has(lvl);
 
-      const bW = 120, bH = 64;
+      const bW = 120,
+        bH = 64;
       const bg = this.add.graphics().setDepth(62);
       if (isUnlocked) {
         bg.fillStyle(PLAY_FILL, 1);
@@ -454,7 +455,7 @@ export class MenuScene extends Phaser.Scene {
             cardG.destroy();
             // Clean up all children added above depth 60
             this.children.list
-              .filter((o) => ('depth' in o) && (o as { depth: number }).depth >= 60)
+              .filter((o) => 'depth' in o && (o as { depth: number }).depth >= 60)
               .forEach((o) => o.destroy());
             if (lvl === 1) {
               this.scene.start('Level01Scene', { studentId: this.lastStudentId });
@@ -491,7 +492,10 @@ export class MenuScene extends Phaser.Scene {
       .setDepth(64)
       .on('pointerup', () => {
         this.children.list
-          .filter((o) => (o as Phaser.GameObjects.Components.Depth & Phaser.GameObjects.GameObject).depth >= 60)
+          .filter(
+            (o) =>
+              (o as Phaser.GameObjects.Components.Depth & Phaser.GameObjects.GameObject).depth >= 60
+          )
           .forEach((o) => o.destroy());
       });
   }
@@ -502,13 +506,7 @@ export class MenuScene extends Phaser.Scene {
    * Approximate a CSS-style blur by stacking translucent ellipses. Faster and
    * more reliable across browsers than Phaser blur shaders.
    */
-  private drawSoftGlow(
-    cx: number,
-    cy: number,
-    radius: number,
-    color: number,
-    alpha: number
-  ): void {
+  private drawSoftGlow(cx: number, cy: number, radius: number, color: number, alpha: number): void {
     const g = this.add.graphics().setDepth(1);
     const layers = 5;
     for (let i = 0; i < layers; i++) {

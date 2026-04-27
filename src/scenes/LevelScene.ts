@@ -94,7 +94,11 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
-    log.scene('init', { level: this.levelNumber, studentId: this.studentId, resume: data.resume ?? false });
+    log.scene('init', {
+      level: this.levelNumber,
+      studentId: this.studentId,
+      resume: data.resume ?? false,
+    });
   }
 
   async create(): Promise<void> {
@@ -165,7 +169,11 @@ export class LevelScene extends Phaser.Scene {
       const all = await questionTemplateRepo.getByLevel(
         this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
       );
-      log.tmpl('dexie_raw', { level: this.levelNumber, totalReturned: all.length, archetypes: [...new Set(all.map(t => t.archetype))] });
+      log.tmpl('dexie_raw', {
+        level: this.levelNumber,
+        totalReturned: all.length,
+        archetypes: [...new Set(all.map((t) => t.archetype))],
+      });
       // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
       const seen = new Set<string>();
       const picked: QuestionTemplate[] = [];
@@ -177,12 +185,21 @@ export class LevelScene extends Phaser.Scene {
       }
       this.templatePool = picked;
       if (this.templatePool.length > 0) {
-        log.tmpl('load_ok', { level: this.levelNumber, count: this.templatePool.length, ids: this.templatePool.map(t => t.id), archetypes: [...new Set(this.templatePool.map(t => t.archetype))] });
+        log.tmpl('load_ok', {
+          level: this.levelNumber,
+          count: this.templatePool.length,
+          ids: this.templatePool.map((t) => t.id),
+          archetypes: [...new Set(this.templatePool.map((t) => t.archetype))],
+        });
       } else {
         log.tmpl('load_empty', { level: this.levelNumber, fallback: 'synthetic' });
       }
     } catch (err) {
-      log.warn('TMPL', 'load_error', { level: this.levelNumber, error: String(err), fallback: 'synthetic' });
+      log.warn('TMPL', 'load_error', {
+        level: this.levelNumber,
+        error: String(err),
+        fallback: 'synthetic',
+      });
       this.templatePool = [];
     }
   }
@@ -292,7 +309,11 @@ export class LevelScene extends Phaser.Scene {
       });
 
     backBtn.on('pointerup', () => {
-      log.input('back_to_menu', { level: this.levelNumber, questionIndex: this.questionIndex, attemptCount: this.attemptCount });
+      log.input('back_to_menu', {
+        level: this.levelNumber,
+        questionIndex: this.questionIndex,
+        attemptCount: this.attemptCount,
+      });
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
   }
@@ -327,10 +348,14 @@ export class LevelScene extends Phaser.Scene {
       CW - 60,
       160,
       () => {
-        log.input('hint_button_tap', { level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+        log.input('hint_button_tap', {
+          level: this.levelNumber,
+          questionIndex: this.questionIndex,
+          wrongCount: this.wrongCount,
+        });
         this.onHintRequest();
       },
-      10,
+      10
     );
   }
 
@@ -341,10 +366,15 @@ export class LevelScene extends Phaser.Scene {
       CH - 180,
       'Check ✓',
       () => {
-        log.input('check_button_tap', { level: this.levelNumber, lastPayload: this.lastPayload, inputLocked: this.inputLocked, questionIndex: this.questionIndex });
+        log.input('check_button_tap', {
+          level: this.levelNumber,
+          lastPayload: this.lastPayload,
+          inputLocked: this.inputLocked,
+          questionIndex: this.questionIndex,
+        });
         void this.onSubmit();
       },
-      10,
+      10
     );
   }
 
@@ -358,7 +388,11 @@ export class LevelScene extends Phaser.Scene {
 
   private async onCommit(payload: unknown): Promise<void> {
     if (this.inputLocked) return;
-    log.input('interaction_commit', { level: this.levelNumber, archetype: this.currentTemplate?.archetype, payload });
+    log.input('interaction_commit', {
+      level: this.levelNumber,
+      archetype: this.currentTemplate?.archetype,
+      payload,
+    });
     this.lastPayload = payload;
     await this.onSubmit();
   }
@@ -397,7 +431,10 @@ export class LevelScene extends Phaser.Scene {
         );
       }
     } catch (err) {
-      log.error('VALID', 'validator_error', { error: String(err), questionId: this.currentTemplate.id });
+      log.error('VALID', 'validator_error', {
+        error: String(err),
+        questionId: this.currentTemplate.id,
+      });
       result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
     }
 
@@ -452,10 +489,16 @@ export class LevelScene extends Phaser.Scene {
 
   private onCorrectAnswer(): void {
     this.attemptCount++;
-    this.correctCount++;  // Fix G-E4: track correct answers separately
+    this.correctCount++; // Fix G-E4: track correct answers separately
     this.progressBar.setProgress(this.attemptCount);
     this.lastPayload = null;
-    log.q('correct', { level: this.levelNumber, questionIndex: this.questionIndex, attemptCount: this.attemptCount, progress: `${this.attemptCount}/${SESSION_GOAL}`, wrongCountThisQ: this.wrongCount });
+    log.q('correct', {
+      level: this.levelNumber,
+      questionIndex: this.questionIndex,
+      attemptCount: this.attemptCount,
+      progress: `${this.attemptCount}/${SESSION_GOAL}`,
+      wrongCountThisQ: this.wrongCount,
+    });
 
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
@@ -468,7 +511,12 @@ export class LevelScene extends Phaser.Scene {
     this.wrongCount++;
     this.inputLocked = false;
     this.lastPayload = null;
-    log.q('wrong', { level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount, questionId: this.currentTemplate.id });
+    log.q('wrong', {
+      level: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      questionId: this.currentTemplate.id,
+    });
 
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
     if (tier) {
@@ -483,7 +531,12 @@ export class LevelScene extends Phaser.Scene {
 
   private onHintRequest(): void {
     const tier = this.hintLadder.next();
-    log.hint('request', { tier, level: this.levelNumber, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+    log.hint('request', {
+      tier,
+      level: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+    });
     void this.showHintForTier(tier);
   }
 
@@ -495,59 +548,111 @@ export class LevelScene extends Phaser.Scene {
     switch (archetype) {
       case 'compare':
         switch (tier) {
-          case 'verbal':        msg = 'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.'; break;
-          case 'visual_overlay': msg = 'Try drawing both fractions as a picture — which takes up more space?'; break;
-          case 'worked_example': msg = 'If the bottom numbers are the same, the bigger top number wins.'; break;
+          case 'verbal':
+            msg =
+              'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.';
+            break;
+          case 'visual_overlay':
+            msg = 'Try drawing both fractions as a picture — which takes up more space?';
+            break;
+          case 'worked_example':
+            msg = 'If the bottom numbers are the same, the bigger top number wins.';
+            break;
         }
         break;
       case 'benchmark':
         switch (tier) {
-          case 'verbal':        msg = 'Is this fraction closer to 0, to ½, or to 1?'; break;
-          case 'visual_overlay': msg = '½ means equal parts. Is your fraction less than half, about half, or more than half?'; break;
-          case 'worked_example': msg = 'Try: if the top is much smaller than the bottom, it\'s near 0. If they\'re almost equal, it\'s near 1.'; break;
+          case 'verbal':
+            msg = 'Is this fraction closer to 0, to ½, or to 1?';
+            break;
+          case 'visual_overlay':
+            msg =
+              '½ means equal parts. Is your fraction less than half, about half, or more than half?';
+            break;
+          case 'worked_example':
+            msg =
+              "Try: if the top is much smaller than the bottom, it's near 0. If they're almost equal, it's near 1.";
+            break;
         }
         break;
       case 'order':
         switch (tier) {
-          case 'verbal':        msg = 'Which fraction is smallest? Start by placing it first.'; break;
-          case 'visual_overlay': msg = 'Try converting to the same denominator — then compare the top numbers.'; break;
-          case 'worked_example': msg = 'Draw each fraction as a picture to see which is smallest, middle, and largest.'; break;
+          case 'verbal':
+            msg = 'Which fraction is smallest? Start by placing it first.';
+            break;
+          case 'visual_overlay':
+            msg = 'Try converting to the same denominator — then compare the top numbers.';
+            break;
+          case 'worked_example':
+            msg = 'Draw each fraction as a picture to see which is smallest, middle, and largest.';
+            break;
         }
         break;
       case 'equal_or_not':
         switch (tier) {
-          case 'verbal':        msg = 'Look carefully — are all the pieces exactly the same size?'; break;
-          case 'visual_overlay': msg = 'Cover one piece with another in your mind — do they match?'; break;
-          case 'worked_example': msg = 'Equal parts means every single piece is identical.'; break;
+          case 'verbal':
+            msg = 'Look carefully — are all the pieces exactly the same size?';
+            break;
+          case 'visual_overlay':
+            msg = 'Cover one piece with another in your mind — do they match?';
+            break;
+          case 'worked_example':
+            msg = 'Equal parts means every single piece is identical.';
+            break;
         }
         break;
       case 'label':
         switch (tier) {
-          case 'verbal':        msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.'; break;
-          case 'visual_overlay': msg = 'The bottom number is total pieces. The top number is shaded pieces.'; break;
-          case 'worked_example': msg = 'Write shaded / total.'; break;
+          case 'verbal':
+            msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.';
+            break;
+          case 'visual_overlay':
+            msg = 'The bottom number is total pieces. The top number is shaded pieces.';
+            break;
+          case 'worked_example':
+            msg = 'Write shaded / total.';
+            break;
         }
         break;
       case 'make':
         switch (tier) {
-          case 'verbal':        msg = 'The bottom number tells you how many pieces total. The top tells you how many to shade.'; break;
-          case 'visual_overlay': msg = 'Shade exactly the number on top.'; break;
-          case 'worked_example': msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.'; break;
+          case 'verbal':
+            msg =
+              'The bottom number tells you how many pieces total. The top tells you how many to shade.';
+            break;
+          case 'visual_overlay':
+            msg = 'Shade exactly the number on top.';
+            break;
+          case 'worked_example':
+            msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.';
+            break;
         }
         break;
       case 'snap_match':
         switch (tier) {
-          case 'verbal':        msg = 'Find the picture where the shaded part matches the fraction.'; break;
-          case 'visual_overlay': msg = 'Count the total pieces (bottom number) and shaded pieces (top number).'; break;
-          case 'worked_example': msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.'; break;
+          case 'verbal':
+            msg = 'Find the picture where the shaded part matches the fraction.';
+            break;
+          case 'visual_overlay':
+            msg = 'Count the total pieces (bottom number) and shaded pieces (top number).';
+            break;
+          case 'worked_example':
+            msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.';
+            break;
         }
         break;
       case 'partition':
       default:
         switch (tier) {
-          case 'verbal':        msg = 'Tip: Equal parts means each piece is the same size. Try the middle!'; break;
-          case 'visual_overlay': msg = 'Look for the center of the shape.'; break;
-          case 'worked_example': msg = 'Watch where to place the line, then try yourself.'; break;
+          case 'verbal':
+            msg = 'Tip: Equal parts means each piece is the same size. Try the middle!';
+            break;
+          case 'visual_overlay':
+            msg = 'Look for the center of the shape.';
+            break;
+          case 'worked_example':
+            msg = 'Watch where to place the line, then try yourself.';
+            break;
         }
         break;
     }
@@ -625,7 +730,11 @@ export class LevelScene extends Phaser.Scene {
         syncState: 'local',
       });
       this.sessionId = session.id;
-      log.sess('open_ok', { sessionId: this.sessionId, level: this.levelNumber, activityId: `level_${this.levelNumber}` });
+      log.sess('open_ok', {
+        sessionId: this.sessionId,
+        level: this.levelNumber,
+        activityId: `level_${this.levelNumber}`,
+      });
     } catch (err) {
       log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
     }
@@ -639,7 +748,13 @@ export class LevelScene extends Phaser.Scene {
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
       const attemptId = nanoid() as import('@/types').AttemptId;
-      log.atmp('record_start', { attemptId, outcome, responseMs, questionId: this.currentTemplate.id, hintsUsed: this.currentQuestionHintIds.length });
+      log.atmp('record_start', {
+        attemptId,
+        outcome,
+        responseMs,
+        questionId: this.currentTemplate.id,
+        hintsUsed: this.currentQuestionHintIds.length,
+      });
       await attemptRepo.record({
         id: attemptId,
         sessionId: this.sessionId as import('@/types').SessionId,
@@ -667,7 +782,8 @@ export class LevelScene extends Phaser.Scene {
       try {
         const isCorrect = result.outcome === 'correct';
         const skillIds = this.currentTemplate.skillIds ?? [];
-        const skillId = (skillIds[0] ?? `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
+        const skillId = (skillIds[0] ??
+          `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
         const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
         const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
 
@@ -695,9 +811,10 @@ export class LevelScene extends Phaser.Scene {
           ...updated,
           compositeKey: [studentIdTyped, skillId],
           lastAttemptAt: Date.now(),
-          masteredAt: updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
-            ? Date.now()
-            : prev.masteredAt ?? null,
+          masteredAt:
+            updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
+              ? Date.now()
+              : (prev.masteredAt ?? null),
           decayedAt: prev.decayedAt ?? null,
           syncState: 'local',
         };
@@ -732,7 +849,10 @@ export class LevelScene extends Phaser.Scene {
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
-          log.misc('flags_detected', { count: flags.length, ids: flags.map(f => f.misconceptionId) });
+          log.misc('flags_detected', {
+            count: flags.length,
+            ids: flags.map((f) => f.misconceptionId),
+          });
         }
       } catch (err) {
         log.warn('MISC', 'detection_error', { error: String(err) });
@@ -746,9 +866,19 @@ export class LevelScene extends Phaser.Scene {
 
   private showSessionComplete(): void {
     this.inputLocked = true;
-    const accuracy = this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
-    const avgResponseMs = this.responseTimes.length > 0 ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length) : null;
-    log.scene('session_complete', { level: this.levelNumber, attemptCount: this.attemptCount, correctCount: this.correctCount, accuracy, avgResponseMs });
+    const accuracy =
+      this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
+    const avgResponseMs =
+      this.responseTimes.length > 0
+        ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
+        : null;
+    log.scene('session_complete', {
+      level: this.levelNumber,
+      attemptCount: this.attemptCount,
+      correctCount: this.correctCount,
+      accuracy,
+      avgResponseMs,
+    });
     TestHooks.mountSentinel('completion-screen');
 
     this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
@@ -784,18 +914,25 @@ export class LevelScene extends Phaser.Scene {
 
     // Amber "Keep going" action button
     // G-C7/G-UX6: advance to the next level. If already on the last level (9), go to menu.
-    createActionButton(this, CW / 2, CH / 2 + 60, 'Keep going ▶', () => {
-      const nextLevel = this.levelNumber + 1;
-      if (nextLevel > 9) {
-        // All levels complete — congratulate and return to menu
-        this.scene.start('MenuScene', { lastStudentId: this.studentId, allComplete: true });
-      } else {
-        this.scene.start('LevelScene', {
-          levelNumber: nextLevel,
-          studentId: this.studentId,
-        });
-      }
-    }, 52);
+    createActionButton(
+      this,
+      CW / 2,
+      CH / 2 + 60,
+      'Keep going ▶',
+      () => {
+        const nextLevel = this.levelNumber + 1;
+        if (nextLevel > 9) {
+          // All levels complete — congratulate and return to menu
+          this.scene.start('MenuScene', { lastStudentId: this.studentId, allComplete: true });
+        } else {
+          this.scene.start('LevelScene', {
+            levelNumber: nextLevel,
+            studentId: this.studentId,
+          });
+        }
+      },
+      52
+    );
 
     // Secondary "Back to menu" button
     this.makeModalBtn(CW / 2, CH / 2 + 160, 'Back to menu', () => {
@@ -808,13 +945,10 @@ export class LevelScene extends Phaser.Scene {
     void this.closeSession();
   }
 
-  private makeModalBtn(
-    x: number,
-    y: number,
-    label: string,
-    onTap: () => void
-  ): void {
-    const W = 320, H = 56, R = 28;
+  private makeModalBtn(x: number, y: number, label: string, onTap: () => void): void {
+    const W = 320,
+      H = 56,
+      R = 28;
     const g = this.add.graphics().setDepth(52);
     g.fillStyle(0xffffff, 1);
     g.fillRoundedRect(x - W / 2, y - H / 2, W, H, R);
@@ -842,12 +976,11 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy = this.attemptCount > 0
-        ? this.correctCount / this.attemptCount
-        : 1;
-      const avgResponseMs = this.responseTimes.length > 0
-        ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
-        : null;
+      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
+      const avgResponseMs =
+        this.responseTimes.length > 0
+          ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+          : null;
 
       const summary = {
         endedAt: Date.now(),

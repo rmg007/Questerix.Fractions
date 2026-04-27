@@ -36,7 +36,11 @@ export class PartitionInteraction implements Interaction {
     this.shapeGraphics = this.scene.add.graphics().setDepth(5);
     this.partitionLine = this.scene.add.graphics().setDepth(6);
     this.handlePos = centerX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
-    log.scene('partition_mount', { templateId: ctx.template.id, tier: ctx.template.difficultyTier, initialHandleX: Math.round(this.handlePos) });
+    log.scene('partition_mount', {
+      templateId: ctx.template.id,
+      tier: ctx.template.difficultyTier,
+      initialHandleX: Math.round(this.handlePos),
+    });
 
     const payload = ctx.template.payload as Partial<PartitionPayload> & {
       shapeType?: 'rectangle' | 'circle';
@@ -72,15 +76,23 @@ export class PartitionInteraction implements Interaction {
       snapTargets,
       onMove: (pos) => {
         if (this.handlePos === dragStartPos) {
-          log.drag('start', { fromX: Math.round(dragStartPos), fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100) });
+          log.drag('start', {
+            fromX: Math.round(dragStartPos),
+            fromPct: Math.round(((dragStartPos - minX) / SHAPE_W) * 100),
+          });
         }
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);
       },
       onCommit: (pos) => {
         const pct = Math.round(((pos - minX) / SHAPE_W) * 100);
-        const snapped = snapTargets.some(t => Math.abs(t - pos) < 1);
-        log.drag('commit', { handleX: Math.round(pos), pct, snappedToCenter: snapped, movedFrom: Math.round(dragStartPos) });
+        const snapped = snapTargets.some((t) => Math.abs(t - pos) < 1);
+        log.drag('commit', {
+          handleX: Math.round(pos),
+          pct,
+          snappedToCenter: snapped,
+          movedFrom: Math.round(dragStartPos),
+        });
         dragStartPos = pos;
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);

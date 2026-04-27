@@ -610,4 +610,402 @@ This ordering is intentional: each phase is independently shippable and has a ve
 
 ---
 
+### 9. Build, CI, and Release-Pipeline Observability (Out-of-App)
+
+The first two passes covered runtime telemetry. This section covers the *delivery* pipeline — every gap here means a regression escapes to production before runtime telemetry could possibly catch it.
+
+#### 9.1 `tsconfig.json` — strict flags deferred that widen the runtime catch surface
+
+* **Deficiency:** Lines 25–26 explicitly defer `noUncheckedIndexedAccess` and `noPropertyAccessFromIndexSignature` ("Phase 10.1: stricter checks — deferred to Phase 12 pending codebase refactoring"). The codebase uses `arr[i]!` (the non-null assertion) in many hot paths, including the BKT and the selection algorithm (`selection.ts:87` returns `arr[Math.floor(Math.random() * arr.length)]!`). The compiler accepts these as `T`; at runtime they can be `undefined`.
+* **Location:** `tsconfig.json:25-26`. Representative call sites: `selection.ts:87`; `bkt.ts:124-128` (state derivation); `LevelScene.ts:204` (`templatePool[index % templatePool.length]!`); virtually every `attempts[0]` reference in `misconceptionDetectors.ts`.
+* **Risk:** Every `!` is a TypeError waiting for an empty-array edge case. Without `noUncheckedIndexedAccess`, the type system is no help — the bug surfaces at runtime as `Cannot read properties of undefined (reading 'masteryEstimate')`. With production source maps disabled (finding 4.2) and no error tracker installed, the field user sees a frozen scene with zero diagnostic. Telemetry becomes the *only* line of defence for a class of bugs the type system would have caught for free.
+* **Refactoring Directive:** Flip `noUncheckedIndexedAccess: true` after a one-time codemod that converts every `arr[i]!` to either `arr[i] ?? <fallback>` or an explicit `if (i >= arr.length) reportError(...)`. This is mechanically tedious but high-leverage: it converts ~50 silent `undefined` paths into either type-safe defaults or observable errors. The tsconfig comment says "deferred to Phase 12" — observability work is the lever to make Phase 12 land.
+
+#### 9.2 `.lighthouserc.json` — Lighthouse runs but enforces nothing
+
+* **Deficiency:** The entire config is six lines: `staticDistDir: ./dist`, `numberOfRuns: 1`, `target: temporary-public-storage`. No `assert.preset`, no `assertions` block, no per-category thresholds. The lighthouse.yml workflow (`run: lhci autorun`) executes successfully no matter what scores come back.
+* **Location:** `.lighthouserc.json` (entire file).
+* **Risk:** Lighthouse is *theatre* without assertions. A PR that drops LCP from 1.5 s to 4.5 s passes CI green. A regression in interactivity (TBT > 600 ms) on a touch-first iPad app for K-2 students is invisible. The team is paying the LHCI compute cost and getting zero enforcement; an honest "we don't enforce performance" signal would be more valuable than a perpetually-passing run.
+* **Refactoring Directive:**
+  ```json
+  {
+    "ci": {
+      "collect": { "staticDistDir": "./dist", "numberOfRuns": 3 },
+      "assert": {
+        "preset": "lighthouse:recommended",
+        "assertions": {
+          "categories:performance": ["error", { "minScore": 0.85 }],
+          "categories:accessibility": ["error", { "minScore": 0.95 }],
+          "first-contentful-paint": ["error", { "maxNumericValue": 2000 }],
+          "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+          "total-blocking-time": ["error", { "maxNumericValue": 300 }],
+          "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+          "interactive": ["error", { "maxNumericValue": 3500 }]
+        }
+      },
+      "upload": { "target": "temporary-public-storage" }
+    }
+  }
+  ```
+  Numbers should be sourced from `docs/30-architecture/performance-budget.md §1` (the same spec the bundle-size gate cites). Tighten `numberOfRuns` to 3 to stabilise the assertion against jitter.
+
+#### 9.3 Bundle-size gate is duplicated inline; `measure-bundle.mjs` exists but is unused in CI
+
+* **Deficiency:** `ci.yml:54-61` and `deploy.yml:30-37` both run an inline shell script: `GZ=$(find dist -name '*.js' -exec gzip -c {} \; | wc -c); if [ "$GZ" -gt 1048576 ]; then exit 1; fi`. The script is duplicated verbatim. Meanwhile `scripts/measure-bundle.mjs` is a hand-built tool that does the same enforcement but with per-file breakdown — and CI doesn't call it. So the team has *two* implementations of the gate, divergence between them is silent, and the better-instrumented one runs nowhere.
+* **Location:** `.github/workflows/ci.yml:54-61`; `.github/workflows/deploy.yml:30-37`; `scripts/measure-bundle.mjs:1-44`.
+* **Risk:** A regression in either inline shell snippet (e.g. a path with spaces in `find`, a different `gzip` codec on a future runner) silently breaks the gate without producing a visible error — `wc -c` on no input returns `0`, which passes. The duplication means a budget bump (1 MB → 1.5 MB) requires editing three places (the two workflows and `measure-bundle.mjs`). When the three drift, the deploy and CI gates apply different thresholds.
+* **Refactoring Directive:** Replace both inline gates with a single `npm run measure-bundle` invocation. The script already exits non-zero on overage (line 43). Move the threshold to a single environment variable read by `measure-bundle.mjs`, sourced from `docs/30-architecture/performance-budget.md`. Delete the duplicated shell. This also gives CI per-file breakdown output for free, which is what the comment in ci.yml ("Run: npx vite-bundle-visualizer to identify the offending chunk") admits is missing.
+
+#### 9.4 `deploy.yml` does not stamp the build with a release identifier
+
+* **Deficiency:** The deploy workflow (lines 1–46) builds with `npm run build` and uploads `dist/` to Cloudflare Pages. It never reads `${{ github.sha }}` or `${{ github.run_id }}` and never sets `VITE_GIT_SHA`, `VITE_RELEASE`, or any equivalent. The build output therefore has no field that telemetry could use to correlate a captured event to a specific deploy.
+* **Location:** `.github/workflows/deploy.yml:18-46`.
+* **Risk:** Once telemetry lands, every captured event must answer "which deploy?" Without a build-time stamp, every event is unattributable. Deploy regressions cannot be located on a timeline; A/B tests across releases cannot be partitioned.
+* **Refactoring Directive:** Add an env block to the build step:
+  ```yaml
+  - name: Production build
+    run: npm run build
+    env:
+      VITE_GIT_SHA: ${{ github.sha }}
+      VITE_GIT_SHORT: ${{ github.sha }}
+      VITE_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
+      VITE_RELEASE: ${{ github.run_id }}
+  ```
+  Read these in `vite.config.ts` via `define: { ... }` so they end up as compile-time constants. The Sentry recommendation in §5.2 (`release: import.meta.env.VITE_GIT_SHA`) only works if this is wired.
+
+#### 9.5 Cloudflare Pages deploy uploads `dist/` raw — source-map and telemetry-secret handling
+
+* **Deficiency:** The `cloudflare/pages-action@1` step uploads `directory: dist`. If `vite.config.ts` is later changed to emit `.map` files (per finding 4.2), they will be uploaded *publicly* to the Cloudflare Pages CDN — exposing source. There is no step to upload maps to Sentry / OTel collector first, then strip them. Additionally, no `VITE_SENTRY_DSN` / `VITE_OTLP_ENDPOINT` env vars are set during the build, so even with the SDK present, the production build would have no egress endpoint baked in.
+* **Location:** `.github/workflows/deploy.yml:39-46`.
+* **Risk:** A naive enabling of `sourcemap: true` without coordinating the deploy step ships unminified source to public CDN. This is both a code-secret leak (any `// SAFETY:` comments, internal API names, prompt strings for K-2 content) and a Sentry-pricing risk (the Sentry plugin uses the maps; uncoordinated maps shipped publicly bypass Sentry's symbolication path). The deploy workflow is where this contract must be enforced.
+* **Refactoring Directive:** Insert before the Cloudflare upload step:
+  ```yaml
+  - name: Upload source maps to Sentry
+    uses: getsentry/action-release@v1
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: questerix-fractions
+    with:
+      sourcemaps: dist
+      version: ${{ github.sha }}
+  - name: Strip source maps from Pages upload
+    run: find dist -name '*.map' -delete
+  ```
+  Set the build env vars (§9.4) plus `VITE_SENTRY_DSN`, `VITE_OTLP_ENDPOINT` in the same step. Until self-hosting is decided (§14), keep these secrets gated by the consent flag at runtime so the build is portable to non-telemetry deployments.
+
+#### 9.6 Synthetic playtest results are dead-letter — Mondays at 06:00, no one reads them
+
+* **Deficiency:** `synthetic-playtest.yml:28-44` runs the harness weekly, uploads `tests/synthetic/results/` as a GitHub artifact, retains for 30 days. There is no aggregation across runs, no trend chart, no regression-alerting webhook, no Slack/email notification, no comparison to the prior week's report. A run that fails (exit 1 from the Playwright assertions) does flag the workflow red — but a *gradual* drop from 95.1% completion to 94.9% takes weeks to fail and is invisible until then.
+* **Location:** `.github/workflows/synthetic-playtest.yml:38-44`. Output schema: `tests/synthetic/aggregator.ts` (`AggregatedReport`).
+* **Risk:** The synthetic harness was built to validate the engine end-to-end (per the rich `aggregator.ts` schema with completion rate, p95 latency, feedback budget, per-persona accuracy). It is the closest thing to real-user telemetry the team has, and its output rots in artifact storage. The pass/fail criteria coded in `aggregator.ts:108-118` (≥95% completion, 0 crashes, ≥90% feedback <800ms) are *exactly* the SLO numbers production telemetry should track — they're already specified, just not reported.
+* **Refactoring Directive:**
+  1. Add a `.github/workflows/synthetic-playtest.yml` step that uploads the latest `AggregatedReport` JSON to a long-lived store (a dedicated GitHub Releases asset on a `synthetic-history` tag works; an S3/R2 bucket is cleaner). Keyed by ISO timestamp.
+  2. Add a downstream "compare to last 4 runs" step that flags trend regressions even when the absolute pass criteria still hold (e.g. completion rate dropped >2% week-over-week even if still ≥95%).
+  3. When production runtime telemetry lands, emit events with the same field names as `AttemptRecord` / `SessionRecord` so the production aggregator is the *same code* — `aggregate(sessions: SessionRecord[])` already works on either source.
+  4. Wire a notification on failure (Slack webhook or GitHub-issue auto-create) so a red Monday doesn't sit unread until Friday.
+
+#### 9.7 Vitest coverage thresholds are absent
+
+* **Deficiency:** `vitest.config.ts:22-26` configures `coverage.provider: 'v8'` and `coverage.include: ['src/**/*.ts']` — but no `coverage.thresholds` block. Coverage is computed but not enforced. CI runs `npm run test:unit` (no `--coverage`) so coverage isn't even *measured* in the default path.
+* **Location:** `vitest.config.ts:22-26`; `vitest.integration.config.ts:18-21`; `.github/workflows/ci.yml:33-37` (no coverage step).
+* **Risk:** A code change that ships untested branches — including telemetry call sites — passes CI green. Once `Logger`, `reportError`, and `instrumentDexie` land, their test coverage matters: an untested branch in the IndexedDB ring buffer silently drops events. Without enforced coverage, the observability stack itself becomes unobservable.
+* **Refactoring Directive:** Add to `vitest.config.ts`:
+  ```ts
+  coverage: {
+    provider: 'v8',
+    include: ['src/**/*.ts'],
+    exclude: ['src/_legacy/**', 'src/**/*.d.ts'],
+    thresholds: {
+      lines: 70, branches: 65, functions: 70, statements: 70,
+      // Higher bar for the observability surface itself
+      'src/lib/observability/**': { lines: 90, branches: 85, functions: 90, statements: 90 },
+    },
+  }
+  ```
+  Add `--coverage` to the CI test invocation. Bump the threshold gradually as coverage improves — the initial 70/65 floor should be set to current measured coverage so the pipeline can't go red on day one.
+
+#### 9.8 `vitest.validators.config.ts` — validators run in `node` with no Phaser stub or a11y probe
+
+* **Deficiency:** Validators tests run in `environment: 'node'` (line 13) with no setup file. They are pure-function unit tests, which is fine — but there is no validator-specific telemetry contract test. A validator that returns `{ outcome: 'incorrect', score: 0, feedback: 'validator_error' }` (the magic-string fallback at `Level01Scene.ts:663` and `LevelScene.ts:401`) cannot be distinguished by downstream code from a legitimate incorrect answer, and there is no test asserting that the magic string never leaks into the BKT pipeline.
+* **Location:** `vitest.validators.config.ts:8-17`; `Level01Scene.ts:663`; `LevelScene.ts:401`.
+* **Risk:** A regression where every validator throws (e.g. registry import broken in production but not in test, since tests use static imports) silently produces a session of "every answer was wrong, the student is in trouble" — and the BKT depresses mastery while feeding `feedback: 'validator_error'` into the pipeline. The student-experience and engine-logic regressions are indistinguishable.
+* **Refactoring Directive:** Add a contract test in `tests/integration/validator-pipeline.test.ts` that exercises every validator with deliberately-malformed payloads, asserts (a) no validator throws, (b) `feedback: 'validator_error'` is never returned (introduce a discriminated `ValidatorErrorOutcome` type instead), (c) `validatorMs` (per finding 4.9) is captured at the dispatch layer, not inside the validator. Once the new error reporter exists, dispatch-layer throws should call `reportError(err, { validatorId, templateId })` *and* return a typed `{ outcome: 'incorrect', errorKind: 'validator_throw' }`.
+
+---
+
+### 10. The Engine Layer's Pedagogical Black Boxes
+
+The engine modules — `selection.ts`, `bkt.ts`, `calibration.ts`, `misconceptionDetectors.ts` — are deliberately pure, side-effect-free per the SoC and portability audits. **That purity does not preclude observability**; it just relocates it. Today, every engine output is an opaque return value. There is no per-decision audit trail.
+
+#### 10.1 `src/engine/selection.ts` — the entire pedagogical routing decision is dark
+
+* **Deficiency:** `selectNextQuestion` (line 46) has four selection branches: (1) recency-filtered ZPD candidates, (2) recency-filtered unmastered fallback (if `preferUnmastered`), (3) any remaining candidate, (4) `null` (line 49 — empty pool). The function returns a `QuestionTemplate | null`. The caller has *no way to know which branch fired*. Branch (3) — the random fallback — is a pedagogical-failure mode: it means "no skill in the ZPD window, no skill below it, give them anything." This is the silent regression mode for the entire engine.
+* **Location:** `selection.ts:46-67`.
+* **Risk:** A regression where every skill mastery reads as `0` (e.g. `getMastery` finds the wrong key after a schema change) means *every* selection falls into the unmastered-fallback or random branches. The student receives questions that look reasonable but are no longer adaptive. There is no signal until aggregate mastery curves on the team's analytics dashboard plateau — and there is no analytics dashboard.
+* **Refactoring Directive:** Change the return type from `QuestionTemplate | null` to `{ template: QuestionTemplate; branch: 'zpd' | 'unmastered' | 'fallback'; poolSize: number; freshSize: number; recentSkipped: number } | null`. Increment a counter `selection.branch{branch}` at the call site. A regression where `zpd` rate drops from typical ~70% to <5% is the smoking gun for a mastery-data corruption.
+
+#### 10.2 `src/components/HintLadder.ts` — state machine emits no telemetry
+
+* **Deficiency:** The class is a pure state machine: `next()`, `reset()`, `tierForAttemptCount()`. It emits no logs, no events. The caller (`LevelScene.showHintForTier:474-475`) is what eventually emits a hint event into Dexie — but the *ladder's own state transitions* (specifically the `exhausted` boundary at `state.exhausted`) are not surfaced.
+* **Location:** `HintLadder.ts:35-86`.
+* **Risk:** Hint efficacy is a research question the team needs to answer (per `learning-hypotheses.md`). To answer it, telemetry must record (a) how often each tier is shown, (b) tier-to-correct-on-next-attempt rate, (c) the exhaustion rate (students who hit Tier 3 and still failed). Today, only (a) is partially capturable from the `hintEvents` table; (b) and (c) require deriving from `attempts` join `hintEvents` after the fact, with no foreign-key linkage (the `hintEventId` and `attemptId` correlation is structural but not traced).
+* **Refactoring Directive:** Inject a `Meter` port (or the `Logger` from §3) into the constructor. On every `next()`, increment `hint.tier.shown{tier, difficulty}`. On `state.exhausted` transition, increment `hint.exhausted{difficulty}`. The next-attempt outcome is captured by the existing `Attempt.outcome`; the join is the team's analytical responsibility but the raw signal must exist.
+
+#### 10.3 `src/engine/calibration.ts` — H-04 retention silent-skip is invisible
+
+* **Deficiency:** Line 63: `logger.warn(\`Calibration skipped: no skills found in prior session ${prevSession.id}\`)`. The warning goes to the inline `logger` defined at line 19–21, which is `{ warn: (msg) => console.warn('[calibration] ' + msg) }`. In production builds, this warning is dropped (per the structured-logger production-silence finding in Section 1).
+* **Location:** `calibration.ts:19-21, 63`.
+* **Risk:** H-04 retention measurement is the *primary research hypothesis* the calibration code exists to validate (per the file's own header comment citing `learning-hypotheses.md H-04`). When calibration is skipped — which line 62 says happens "if prior session had no resolvable skills" — H-04 measurement is silently corrupted. The team cannot empirically answer their own research question because the failure mode is dark in production.
+* **Refactoring Directive:** Replace the inline logger with the structured logger; emit a `calibration.skipped{reason}` counter alongside the warning. A `reason: 'no_prior_skills'` rate trending upward is the signal that the team's H-04 measurements are increasingly polluted.
+
+#### 10.4 `src/engine/bkt.ts` — `predictCorrect` is dead code; `updateMastery` is unmeasured
+
+* **Deficiency:** `predictCorrect` (lines 112–118) is exported but, per Grep, has zero call sites in `src/`. It is computable telemetry — a per-attempt prediction that could be compared against actual outcomes to validate the BKT priors. Dead code. Meanwhile `updateMastery` (line 87) is called once per attempt at `Level01Scene.ts:990` and `LevelScene.ts:711` but the *change* it produces (`prev.masteryEstimate` → `next.masteryEstimate`, the delta, the resulting `state` transition `LEARNING` → `APPROACHING` → `MASTERED`) is not emitted anywhere. The `state` transition is the most pedagogically meaningful event in the entire app and it is not signalled.
+* **Location:** `bkt.ts:87-106` (`updateMastery`); `bkt.ts:112-118` (`predictCorrect`, dead).
+* **Risk:** State-transition telemetry is the difference between "we have BKT" and "we have BKT and know if it's working." A regression where `pTransit` is mis-tuned and `MASTERED` state is unreachable is invisible until a research review notices the cohort never has anyone graduate.
+* **Refactoring Directive:**
+  1. Remove `predictCorrect` if there's no plan to wire it (the SoC audit's F-06 will dictate that wiring is via use-case). Or wire it: emit `bkt.prediction{predicted, actual}` per attempt and compute confusion-matrix metrics offline.
+  2. In the use-case wrapper around `updateMastery`, emit `bkt.state.transition{from, to, skillId}` whenever `prev.state !== next.state`. Emit `bkt.mastery.delta` as a histogram with attribute `state`.
+
+#### 10.5 `src/engine/misconceptionDetectors.ts` — every `return null` is a silent miss
+
+* **Deficiency:** Each detector function returns either a `MisconceptionFlag` or `null`. The `null` branch is taken in every "I evaluated, but the pattern didn't reach the threshold" case. Today there is no signal that a detector *evaluated* at all; only the flag it produces is observable downstream. Detector population, evaluation cardinality, and per-detector flag rate are all dark.
+* **Location:** `misconceptionDetectors.ts:50, 95, …` (the `return null` lines for each detector).
+* **Risk:** A detector that *stops firing* due to a regression in its filter logic (e.g. a check on `attempt.outcome === 'WRONG'` that should be `attempt.outcome === 'WRONG' || attempt.outcome === 'CLOSE'`) is indistinguishable from a healthy detector that just hasn't observed the trap pattern. The team cannot tell "WHB-01 is healthy and our students aren't tripping" from "WHB-01 is broken and we have no idea."
+* **Refactoring Directive:** Per the §4.10 finding, accept a `meter` port, and on every detector entry emit `misconception.detector.eval{detector}`; on every flag-return emit `misconception.detector.flag{detector, misconceptionId}`; on every null-return emit `misconception.detector.miss{detector, reason}` with the reason string ('insufficient_attempts', 'rate_below_threshold', etc.). The miss reason matters: a `miss{reason: 'insufficient_attempts'}` rate that exceeds 80% means the detector almost never has data to work with.
+
+#### 10.6 `src/lib/preferences.ts` — `applyContrastMode` is fired silently on init
+
+* **Deficiency:** `initPreferences` (lines 20–35) silently calls `applyContrastMode(cache.highContrast)` based on the cached value. The function (per the implementation pattern) toggles a CSS class. There is no log of whether high-contrast was applied, the cached value used, or the source of the value (deviceMeta vs default).
+* **Location:** `lib/preferences.ts:20-35`.
+* **Risk:** A user with `highContrast: true` persisted in `deviceMeta` who experiences a corrupt `deviceMeta` row enters the catch at line 28, falls into defaults (line 31: `highContrast: false`), and silently loses the accessibility setting. Combined with the bare-catch finding (4.x), the user's high-contrast mode silently turns off. No telemetry signal.
+* **Refactoring Directive:** Emit `prefs.applied{reduceMotion, highContrast, source: 'deviceMeta' | 'default'}` once per init. A drift in the `default`-source rate (e.g. from typical 5% first-boot to 60%) signals widespread `deviceMeta` corruption.
+
+---
+
+### 11. Test-Side Telemetry — The Schema Already Exists
+
+The team has already built a high-fidelity telemetry schema. It just lives in `tests/synthetic/`, not in production.
+
+#### 11.1 `tests/synthetic/aggregator.ts` is the canonical telemetry contract
+
+* **Deficiency (framing, not a bug):** `AttemptRecord`, `SessionRecord`, and `AggregatedReport` (lines 9–58 of `aggregator.ts`) define the team's view of "what observable events are." The fields (`outcome`, `hintUsed`, `responseTimeMs`, `feedbackShownMs`, `taskDurationMs`, `consoleErrors`, `crashed`, `abandoned`, `completed`) and the SLO numerators (≥95% completion, 0 crashes, ≥90% feedback <800 ms — lines 108–118) are the de facto telemetry spec. Production telemetry is being built *as if from scratch* when this schema can be the production contract.
+* **Location:** `tests/synthetic/aggregator.ts` (entire file).
+* **Risk:** Inverting: this is the *opportunity*. If the production runtime emits events into the IndexedDB ring buffer in the *exact* shape of `AttemptRecord` / `SessionRecord`, the existing `aggregate(sessions)` function (line 60) can be invoked unmodified on production data captured during e2e or via a debug dumper. The synthetic harness and the production runtime become a contract dual.
+* **Refactoring Directive:**
+  1. **Move `aggregator.ts` to `src/lib/observability/aggregator.ts`** — it's no longer test-only. Re-export from `tests/synthetic/aggregator.ts` for backward compatibility.
+  2. **Define `AttemptRecord` and `SessionRecord` as first-class types in `src/types/telemetry.ts`.** Keep them strictly cohort-anonymised (no `studentId`, only `personaName` or — for production — a per-session salted hash).
+  3. **Production runtime emits these shapes** into `db.telemetryEvents`. The "kind" discriminator on `telemetryEvents` is `'attempt' | 'session' | 'error' | 'longtask' | 'fps_sample'`.
+  4. **Add `npm run telemetry:dump` script** that opens IndexedDB, drains the buffer, runs `aggregate()`, and prints a `printSummary` matching the synthetic harness output.
+  5. **Add an e2e test** that plays a happy path, dumps the buffer, asserts the shape matches `SessionRecord`, runs `aggregate`, and verifies the assertions match. This is the *contract* between synthetic and production.
+
+#### 11.2 The synthetic harness's `clearStorage` hardcodes the DB name
+
+* **Deficiency:** `tests/synthetic/playtest.spec.ts:27` calls `indexedDB.deleteDatabase('questerix-fractions')`. The DB name is duplicated from `db.ts:56` (`super('questerix-fractions')`). There is no shared constant; if the DB name ever changes, the synthetic harness silently leaks state across sessions.
+* **Location:** `tests/synthetic/playtest.spec.ts:27`; `src/persistence/db.ts:56`.
+* **Risk:** A test that runs against a renamed-but-still-existing-in-fixtures DB silently re-uses the prior session's mastery state. The harness's "session independence" guarantee (the comment on line 22) is broken without warning. False-positive results in the synthetic playtest mask production regressions that depended on a clean state.
+* **Refactoring Directive:** Export `DB_NAME = 'questerix-fractions'` from `db.ts`; have both the constructor and the synthetic harness import from one source.
+
+#### 11.3 `tests/setup.ts` — denial-path mocks structurally untestable
+
+* **Deficiency:** Lines 20–26 mock `navigator.storage` as `{ persist: vi.fn().mockResolvedValue(true), persisted: vi.fn().mockResolvedValue(true) }`. Lines 5–17 mock `matchMedia` to always return `matches: false`. Both mocks paper over the failure modes the persistence-grant and reduce-motion code exists to detect.
+* **Location:** `tests/setup.ts:5-26`.
+* **Risk:** The grant-denied path in `db.ts:188-198` and the OS-prefers-reduce-motion path in `lib/preferences.ts:43-44` are structurally untestable today. A regression that breaks them is impossible to surface in unit tests; it has to wait for e2e.
+* **Refactoring Directive:** Add per-test override helpers:
+  ```ts
+  // tests/setup-overrides.ts
+  export function withDeniedStorage<T>(fn: () => Promise<T>): Promise<T> { /* override navigator.storage.persist to return false, run fn, restore */ }
+  export function withReduceMotion<T>(fn: () => Promise<T>): Promise<T> { /* override matchMedia, run fn, restore */ }
+  ```
+  Add tests in `tests/integration/persistence.test.ts` that exercise the denial path through `withDeniedStorage`. This makes the previously-flagged silent-warn finding (Section 2 `db.ts` finding) testable.
+
+#### 11.4 The harness's `consoleErrors` capture is the existing crash telemetry
+
+* **Deficiency (framing):** `playtest.spec.ts:178-183` is the most thorough crash-capture in the codebase: `page.on('console')` for `msg.type() === 'error'`, `page.on('pageerror')` for uncaught errors. Line 342–345 asserts `[uncaught]` count is 0. **This is the existing crash-budget contract**: synthetic tests fail if any session has even one uncaught error.
+* **Location:** `playtest.spec.ts:178-183, 342-345`.
+* **Risk (inverted to opportunity):** Production has no equivalent. The synthetic harness establishes a "0 uncaught errors per session" SLO that production must meet without measurement. Once `reportError` exists, the synthetic harness can assert against the production telemetry buffer (drain `db.telemetryEvents` where `kind = 'error'`, count, assert 0) — closing the loop.
+* **Refactoring Directive:** After §3 / §5 lands, add an e2e assertion: `expect(await drainTelemetryBuffer().then(events => events.filter(e => e.kind === 'error'))).toHaveLength(0)`. This makes the synthetic harness the authoritative arbiter of the production telemetry surface.
+
+#### 11.5 `page.metrics().TaskDuration` is the existing perf metric — production has no equivalent
+
+* **Deficiency:** `playtest.spec.ts:270-272` is the only place in the entire codebase that reads any browser performance metric. It uses the Chrome DevTools Protocol via `page.metrics()` to extract `TaskDuration`. This is Chrome-specific and only available in test contexts.
+* **Location:** `playtest.spec.ts:270-272`.
+* **Risk:** The synthetic harness measures task-duration jank. Production users (potentially on Safari iPad — the primary target per `runtime-architecture.md`) emit no equivalent signal. The team validates a perf metric in synthetic that is uncollectable in their primary deployment context.
+* **Refactoring Directive:** `PerformanceObserver({ entryTypes: ['longtask'] })` (per §3 step 5 / §7) is the cross-browser equivalent. The production telemetry should emit `longtask{durationMs, attribution}` events; the aggregator can compute the same p95 task-duration the synthetic harness reads from `TaskDuration`. **This is the cross-browser version of the already-validated synthetic metric.**
+
+---
+
+### 12. Dexie Lifecycle and Storage-Quota Observability
+
+#### 12.1 `db.on('versionchange')` and `db.on('blocked')` are not handled
+
+* **Deficiency:** `db.ts` (constructor lines 55–141) declares schema versions but never registers `db.on('versionchange', ...)` or `db.on('blocked', ...)` handlers. Per the Dexie documentation, `versionchange` fires when *another tab* upgrades the schema (the current tab should close to allow the upgrade); `blocked` fires when an upgrade in *this tab* is blocked by another tab holding the older version open.
+* **Location:** `src/persistence/db.ts:55-141` (the constructor — both events go unhandled). Verified by Grep — zero matches for `db.on(`, `versionchange`, or `blocked` outside the schema declarations.
+* **Risk:** The PWA can be opened in two tabs simultaneously (a teacher's iPad with the dashboard tab and the student tab — possible if per-student kiosks aren't enforced). A schema upgrade pushed in a release would: (a) the new tab `blocked` because the old tab holds v4; (b) the old tab gets `versionchange` and should close; (c) without handlers, the new tab hangs indefinitely on `db.open()` and the old tab keeps writing v4 data. The team has zero signal that either tab is in a bad state.
+* **Refactoring Directive:** In `db.ts` after the `db` instantiation:
+  ```ts
+  db.on('versionchange', (event) => {
+    reportError(new Error('Dexie versionchange — closing connection'), {
+      kind: 'db.versionchange',
+      newVersion: event.newVersion,
+      oldVersion: event.oldVersion,
+    });
+    db.close();
+    // Reload to get a fresh connection on the new schema
+    if (typeof window !== 'undefined') window.location.reload();
+  });
+  db.on('blocked', (event) => {
+    reportError(new Error('Dexie blocked — another tab holds the old schema'), {
+      kind: 'db.blocked',
+      newVersion: event.newVersion,
+      oldVersion: event.oldVersion,
+    });
+    // UI: show a toast asking the user to close other tabs
+  });
+  ```
+  Both events become observable, and the UI gets a chance to recover.
+
+#### 12.2 `navigator.storage.estimate()` is never called
+
+* **Deficiency:** Verified by Grep: zero matches for `navigator.storage.estimate` in `src/`. The persistence code only ever calls `navigator.storage.persist()` and `navigator.storage.persisted()`. Quota usage is never read.
+* **Location:** Whole codebase.
+* **Risk:** IndexedDB quota on iOS Safari is famously aggressive (typically ~50 MB before prompts, with eviction under pressure). The app can grow unboundedly: every attempt is appended (`Attempt`, `HintEvent`, `MisconceptionFlag`); the `sessions` table grows monotonically until backup-restore is run. Storage approaches its quota silently; the next write throws `QuotaExceededError`; the bare-catch swallows; the user sees a phantom "save failed" with no recovery.
+* **Refactoring Directive:** In `BootScene._bootAsync()` and on `pagehide`, call:
+  ```ts
+  const est = await navigator.storage.estimate();
+  meter.histogram('storage.quota.usage_pct').record(
+    est.usage && est.quota ? (est.usage / est.quota) * 100 : 0,
+    { source: typeof event !== 'undefined' && event.type === 'pagehide' ? 'pagehide' : 'boot' }
+  );
+  if (est.usage && est.quota && est.usage / est.quota > 0.85) {
+    reportError(new Error('Storage quota >85%'), { kind: 'quota.warn', usage: est.usage, quota: est.quota });
+  }
+  ```
+  85% is the recommended warning threshold per the MDN `StorageManager` docs; some browsers begin LRU eviction at 90%. This signal is the *only* way to know that a particular cohort is hitting the quota wall.
+
+#### 12.3 `db.transaction` blocks have no per-table progress signal
+
+* **Deficiency:** `seed.ts:188-240` and `backup.ts:164-203` both run multi-table transactions with no per-step instrumentation. If the seed transaction takes 8 seconds, all eight bulkPuts are opaque inside; the team cannot tell whether `fractionBank` (the largest table) or `hints` (the smallest) is the bottleneck.
+* **Location:** `seed.ts:188-240`; `backup.ts:164-203`.
+* **Risk:** A schema regression that bloats one table (e.g. adding a large `metadata` field on every `fractionBank` row) extends boot time silently. The boot-budget guard in §3 needs per-table breakdown to attribute the regression.
+* **Refactoring Directive:** Wrap each `bulkPut` call inside the transaction with `tracer.startActiveSpan('db.seed.<table>', span => { ... })`. The Dexie middleware in §5.3 captures top-level operations; transaction-internal sub-spans require manual instrumentation at these two sites.
+
+#### 12.4 Schema version migration outcomes are unobservable
+
+* **Deficiency:** `db.ts` declares schema versions 1 → 4 (lines 59, 72, 86, 115). Dexie's auto-migration runs upgrade functions silently. There is no log emitted on upgrade ("v3 → v4: adding [archetype+submittedAt] index"), no measurement of migration duration, no record of which user installs are on which schema.
+* **Location:** `db.ts:59, 72, 86, 115`.
+* **Risk:** A user stuck on schema v2 (perhaps because their browser blocked the v3 upgrade) has different available indexes than a user on v4. The team cannot tell from afar which schema each user is on. A migration that fails and rolls back leaves the user on the prior schema, indistinguishable from a user who simply hasn't reloaded since the release.
+* **Refactoring Directive:** Add Dexie upgrade hooks (per Dexie docs: `this.version(N).stores({...}).upgrade(tx => { /* migration */ })`). Even when no data migration is needed, register an empty upgrade function so the upgrade event fires. In the upgrade callback emit `db.migration{from, to, durationMs}`. Read `deviceMeta.schemaVersion` after open and emit `db.schema.installed{version}` as a counter — the cohort distribution by schema version becomes visible.
+
+---
+
+### 13. Network State and PWA Lifecycle
+
+#### 13.1 `navigator.onLine` and `'online' / 'offline'` events are unhooked
+
+* **Deficiency:** Grep confirms zero matches for `navigator.onLine`, `'online'`, or `'offline'` in `src/`. The PWA contract is offline-first; the app should function with no network. But network *transitions* (going offline mid-session, regaining connectivity) are not observed.
+* **Location:** Entire codebase.
+* **Risk:** A student on a school bus with intermittent Wi-Fi has invisible failure modes: the curriculum CDN goes unreachable, the embedded fallback is used, but the team has no signal of fallback rate. Once telemetry egress is wired (§5), buffered events accumulate offline; without an `'online'` listener, the flush never triggers when connectivity returns.
+* **Refactoring Directive:**
+  ```ts
+  // src/lib/observability/networkBridge.ts
+  window.addEventListener('online', () => {
+    tracer.startSpan('network.online').end();
+    void flushTelemetryBuffer(); // drain IndexedDB ring buffer
+  });
+  window.addEventListener('offline', () => {
+    tracer.startSpan('network.offline').end();
+  });
+  ```
+  Plus a periodic `navigator.connection.effectiveType` sampler — the difference between `4g` and `slow-2g` matters for the curriculum-fetch fallback rate.
+
+#### 13.2 `workbox-window` is installed but unused
+
+* **Deficiency:** `package.json:45, 62` declares `workbox-window: ^7.4.0` (twice — once in deps, once in devDeps; minor housekeeping). Grep shows zero imports of `workbox-window` outside `vite-plugin-pwa`'s internal resolution. The `Workbox` class is the standard primitive for hooking service-worker lifecycle events from page-side code; the team has the dependency but does not use it.
+* **Location:** `package.json:45, 62`; `src/main.ts` (no `workbox-window` import).
+* **Risk:** Service-worker registration succeeds or fails silently. The `installed` / `waiting` / `controlling` / `redundant` events are unhooked — meaning a botched precache (curriculum bundle that fails to fetch during install) leaves the user with a half-broken PWA and no signal.
+* **Refactoring Directive:**
+  ```ts
+  // src/main.ts (after Phaser game instantiation)
+  if ('serviceWorker' in navigator && enablePWA) {
+    const { Workbox } = await import('workbox-window');
+    const wb = new Workbox('/sw.js');
+    wb.addEventListener('installed', (e) => logger.info('sw', 'installed', { isUpdate: e.isUpdate }));
+    wb.addEventListener('waiting', () => logger.warn('sw', 'waiting', {}));
+    wb.addEventListener('controlling', () => logger.info('sw', 'controlling', {}));
+    wb.addEventListener('redundant', () => reportError(new Error('SW redundant'), { kind: 'sw.redundant' }));
+    void wb.register();
+  }
+  ```
+
+#### 13.3 PWA install events are unobserved
+
+* **Deficiency:** No handler for `beforeinstallprompt` (the user is being prompted to install) or `appinstalled` (the user accepted). The PWA install rate is the primary engagement metric for an app of this category.
+* **Location:** Entire codebase.
+* **Risk:** The team cannot tell what fraction of users install the PWA vs. visit-once. PWA install funnels are a significant product signal that is collected by literally every tracking tag the team chose not to use; rolling it manually into structured telemetry is the privacy-aligned alternative.
+* **Refactoring Directive:**
+  ```ts
+  window.addEventListener('beforeinstallprompt', (e) => {
+    meter.counter('pwa.prompt.shown').add(1);
+    // Defer the prompt; let the app surface it at a contextually appropriate moment
+    deferredPrompt = e;
+  });
+  window.addEventListener('appinstalled', () => {
+    meter.counter('pwa.installed').add(1);
+  });
+  ```
+
+---
+
+### 14. Privacy-Aligned Self-Hosted Telemetry (Open Question)
+
+The team's existing privacy posture is explicit. From `deploy.yml:58-60`:
+> *"After first deploy, verify in the Cloudflare dashboard that: Web Analytics is OFF (Workers & Pages → project → Settings → Web Analytics) per docs/40-validation/privacy-notice.md 'no third parties.'"*
+
+This is a hard constraint. **Sentry SaaS is a third party.** **OTLP-to-Honeycomb / Datadog / Grafana Cloud is a third party.** The Section 3 / Section 5 recommendations conflict with this posture as written.
+
+The audit cannot resolve this trade-off — it is a product/legal decision — but the resolution paths are:
+
+* **Option A: Self-host Sentry.** The `getsentry/sentry` repo ships a Docker-Compose-based self-hosted edition. ~9 services, postgres + redis + clickhouse + symbolicator, ~4 GB RAM, ~30 GB disk per month at moderate volume. This is the heavyweight option but keeps "no third parties" intact. The `@sentry/browser` SDK works against a self-hosted instance with no code change — only the DSN host differs.
+* **Option B: Self-host an OTel pipeline.** OpenTelemetry Collector (single binary, ~100 MB RAM) ingests OTLP over HTTP; backends are Grafana Tempo (traces), Loki (logs), Prometheus (metrics). Lighter than self-host Sentry; lacks Sentry's error-grouping and source-map symbolication out of the box. Source maps require manual symbolication via `sentry-cli` against a self-hosted Sentry — i.e. **A and B are not mutually exclusive**: the cleanest topology is Sentry-self-hosted *for errors and replays* + OTel-self-hosted *for traces and metrics*. But that's two stacks to operate.
+* **Option C: Sentry SaaS with a Data Processing Agreement.** Sentry has a standard DPA, EU-region option, and supports data-residency commitments. *Legally* this can satisfy COPPA/FERPA in many jurisdictions; whether it meets the team's *literal* "no third parties" wording is a policy question. The privacy-notice text would need to be amended explicitly.
+* **Option D: Stay third-party-free; ship telemetry to a team-owned Cloudflare Worker.** Cloudflare Pages already hosts the app; the same account can host a Worker accepting OTLP-formatted POST bodies and writing to R2 + a small ClickHouse-compatible DB (e.g. Cloudflare D1 for low-cardinality counters). This is the cheapest "no third parties" topology — the data never leaves the team's Cloudflare account. The implementation cost is meaningful (3–5 person-days for a minimal collector); operational cost is negligible.
+
+* **Risk if not decided:** The Section 3 / Section 5 / Section 8 implementation work cannot start because Phase 2 ("Sentry") has no DSN. The audit *recommends* picking one of these explicitly before any code is written, and updating `docs/40-validation/privacy-notice.md` and `public/privacy.html` to reflect the decision in language a school district can review.
+
+* **Recommended:** **Option D** for traces/metrics + **Option A** for errors/replays. Telemetry stays inside the team's Cloudflare account (D); error grouping and symbolication get the maturity of a self-hosted Sentry (A). The IndexedDB ring buffer (§3 step 5) decouples the runtime from the egress topology — switching between A/B/C/D later is a transport change, not a runtime change.
+
+---
+
+### 15. Closing the Loop — Synthetic Harness as Runtime Contract Test
+
+The single highest-leverage win in the entire audit is making the synthetic harness's `aggregator` the production runtime's emitter shape. The work is small once §11 lands:
+
+1. **Promote `aggregator.ts` to `src/lib/observability/aggregator.ts`.** Re-export from the synthetic test path.
+2. **Define `EventKind = 'attempt' | 'session' | 'error' | 'longtask' | 'fps_sample' | 'sw_lifecycle' | 'storage_quota'`** in `src/types/telemetry.ts`.
+3. **Production runtime emits `AttemptRecord` and `SessionRecord` shapes** into `db.telemetryEvents`, via the new structured `Logger`.
+4. **Add `npm run telemetry:dump`** — a Node script that opens IndexedDB (via `dexie/dist/dexie.js` directly + `fake-indexeddb/auto`), drains the buffer, runs `aggregate(sessions)`, prints `printSummary`. Local-debugging tool that mirrors the synthetic CI report.
+5. **Add an e2e contract test** at `tests/e2e/telemetry-contract.spec.ts`:
+   ```ts
+   test('production runtime emits aggregator-compatible events', async ({ page }) => {
+     await page.goto('/');
+     // play a session...
+     const events = await page.evaluate(async () => {
+       const db = await openDb('questerix-fractions');
+       return await db.telemetryEvents.toArray();
+     });
+     const sessions = events.filter(e => e.kind === 'session') as SessionRecord[];
+     const report = aggregate(sessions);
+     expect(report.totalSessions).toBeGreaterThan(0);
+     expect(report.crashedSessions).toBe(0);
+     expect(report.failReasons).toHaveLength(0);
+   });
+   ```
+6. **Update `synthetic-playtest.yml`** to also run the telemetry-contract e2e test on the same schedule. When both pass, the contract holds: synthetic-Playwright behaviour and production-runtime emission produce reports of identical shape and meeting identical SLOs.
+
+This is the difference between "we have telemetry" and "our telemetry is already battle-tested by 100 simulated K-2 students every Monday at 06:00 UTC, and field telemetry just adds more data points to the same dashboard."
+
+---
+
 *End of audit. Re-run on every release-candidate build; append new findings as separate dated sections rather than rewriting prior ones.*

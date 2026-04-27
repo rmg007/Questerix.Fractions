@@ -88,7 +88,9 @@ export class BootScene extends Phaser.Scene {
       // ── First launch: no student yet — auto-create an anonymous one ──────
       if (!this.lastStudentId) {
         const { studentRepo } = await import('../persistence/repositories/student');
-        const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
+        const { nanoid } = await import('nanoid').catch(() => ({
+          nanoid: () => `s-${Date.now()}`,
+        }));
         const newId = nanoid() as import('@/types').StudentId;
         await studentRepo.create({
           id: newId,
