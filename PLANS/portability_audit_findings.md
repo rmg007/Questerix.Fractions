@@ -640,3 +640,290 @@ These are violations of the project's own locked constraints (see `docs/00-found
 I told you to expect "6–10 more findings" from Round 3. The actual count is 21. Two takeaways:
 1. **My estimate was wrong by 2–3×.** The visible surface (component files, configs, build script) hides more coupling per file than I projected. Don't take any of my future "rough estimates" of audit yield as a ceiling.
 2. **There is almost certainly a Round 4.** Surfaces I have *not* yet audited: the 13 interaction files in `src/scenes/interactions/*` (each imports Phaser; each likely has its own coupling beyond the contract leak in Round 2 finding 23); `src/scenes/interactions/utils/NumberLine.ts` and `BarModel.ts`; `src/scenes/Level01Scene.ts` line-by-line (I sampled the `Date.now`/`nanoid` sites but not the full file); `src/curriculum/bundle.json` shape vs schema drift; the seven test files in `tests/`; the playwright e2e setup; the cloudflare workers env; CSS coupling in `src/styles/index.css` (the `/fonts/` URLs already noted but the cascade may have layout assumptions); the Phaser game config in `main.ts` (`width: 800, height: 1280` hardcoded — the only canvas size the entire app supports). My honest estimate now: 10–15 more findings live in those surfaces. Treat this estimate with the same skepticism as the last one.
+
+---
+
+# Audit Round 4 — Inner Surfaces
+
+Round 4 audited the surfaces enumerated at the end of Round 3: the interaction files, `Level01Scene.ts` end-to-end, the test setup files, `playwright.config.ts`, `tests/synthetic/*`, `tests/e2e/*`, `index.html`, `src/styles/index.css`, the design-token files, and the remaining components. Up-front: I estimated 10–15 more findings; the actual count is 28. My estimates remain biased low.
+
+## Category S — Validation Logic Duplicated Into the UI Tier
+
+### `src/scenes/interactions/CompareInteraction.ts` — fraction-comparison decided in the UI, not the validator
+
+* **Violation:** Lines 126–131 compute `const aVal = aFrac.n / aFrac.d; const bVal = bFrac.n / bFrac.d;` then `const correct = aVal > bVal ? '>' : aVal < bVal ? '<' : '=';` inside the pointer-up handler. The interaction commits `{ relation: val, correct: val === correct }` — shipping a *pre-decided verdict* to the validator alongside the user input.
+* **Location:** Lines 126–131, inside the `forEach` button-handler closure.
+* **Consequence:** The project has two sources of truth for "is fraction A bigger than fraction B." `src/validators/compare.ts` is the canonical one; the interaction has its own copy. The two will drift the moment one is updated. Specifically: if the validator is taught about equivalent-fractions equality (`1/2 === 2/4` should match `=`, not `>` or `<`), the interaction's local computation still produces `>` or `<` based on raw decimal. Floating-point comparison (`aVal > bVal` for `1/3 vs 2/6`) is also fragile: `0.3333... > 0.3333...` is false but the comparison is sensitive to numerator-denominator quantization that the validator handles intentionally.
+* **Refactoring Directive:**
+  1. Strip the `correct` computation. Commit `{ studentRelation: val }` only — the raw choice.
+  2. The validator (already implemented at `src/validators/compare.ts`) computes the verdict from the question template's `trueRelation`. The scene, not the interaction, is responsible for invoking the validator.
+  3. Add a unit test that constructs a `CompareInteraction`, simulates a click, captures the committed payload, and asserts it contains *only* `{ studentRelation }` — no decision keys.
+
+### `src/scenes/interactions/BenchmarkInteraction.ts` — UI ships a single zone, validator expects a `Map`
+
+* **Violation:** Line 92: `hit.on('pointerup', () => onCommit({ zone: key }));` commits `{ zone: 'zero' | 'half' | 'one' }` per click. But `validators/benchmark.ts` (Round 1 review) expects `BenchmarkInput.studentPlacements: Map<string, BenchmarkZone>` — a fracId-to-zone Map representing a *complete sort* of all targets.
+* **Location:** Line 92 (`onCommit`); contrast with `src/validators/benchmark.ts` line 11 (`studentPlacements: Map<string, BenchmarkZone>`).
+* **Consequence:** Either the validator is wrong, or the interaction is wrong, or there is a missing intermediate that aggregates per-click zones into a Map before calling the validator. None of the three is documented. If the missing intermediate is the LevelScene, then the L8 archetype (benchmark) is broken in the current codebase — which the master plan partly corroborates ("L6–L9 templates" listed under S4-T2 as not yet authored).
+* **Refactoring Directive:**
+  1. Decide which side is canonical. The validator's `Map` shape is correct for "sort all benchmark targets into zones"; if the interaction only does *one* placement at a time, that's a different mechanic that needs a different validator.
+  2. If multi-placement is intended: the `BenchmarkInteraction` must accept N targets (from `template.payload`), render N drag-source bars (or N tap targets), maintain an internal `Map<fracId, Zone>` as the user assigns each, and commit the full Map only when the student presses a Submit button.
+  3. Add a contract test: for each archetype, assert that `validators/X.ts`'s input shape matches the payload type that `interactions/XInteraction.ts` commits. Today there is no compile-time link; a `ValidatorInput<archetype>` type alias bridging the two would surface drift immediately.
+
+## Category T — Test Infrastructure Quadruplication
+
+### Four parallel test runtimes, each with its own setup and stub
+
+* **Violation:** The project has four distinct test runtimes, each with its own setup, port assumption, Phaser stub, and bootstrap:
+  1. **Vitest unit tests with jsdom** — `tests/setup.ts`, includes `import 'fake-indexeddb/auto'`, a `matchMedia` mock, a `navigator.storage` mock, and a Phaser stub (lines 1–42).
+  2. **Vitest engine tests with minimal stubs** — `tests/setup.engine.ts`, includes a `matchMedia` mock and a *duplicate* Phaser stub (lines 1–34).
+  3. **Playwright e2e** — `playwright.config.ts`, runs `npm run dev` and connects to `http://localhost:5173` on the chromium project plus four mobile profiles.
+  4. **Synthetic playtest** — `tests/synthetic/aggregator.ts` + `tests/synthetic/playtest.spec.ts`, also a Playwright spec but with its own personas and report aggregation that writes to disk via `fs.writeFileSync`.
+* **Location:** `tests/setup.ts`; `tests/setup.engine.ts`; `playwright.config.ts`; `tests/synthetic/aggregator.ts`.
+* **Consequence:** A change to any test-environment assumption (e.g., adding a new browser global the engine touches) requires updating up to four files in two test frameworks. The Phaser stub specifically is duplicated verbatim between `setup.ts:30-42` and `setup.engine.ts:25-33` — one of them will drift first. The `Phaser.Math.Clamp` stub is also a *partial* implementation: any test code that touches `Phaser.Math.Distance` or `Phaser.Math.Linear` blows up with `undefined is not a function`, requiring per-test patching.
+* **Refactoring Directive:**
+  1. Extract the Phaser stub into `tests/_shared/phaserStub.ts`. Both vitest setups import from there; expand the stub by adding a method on first miss rather than per-file.
+  2. Extract the `matchMedia` mock the same way (`tests/_shared/matchMediaMock.ts`).
+  3. Move the `import 'fake-indexeddb/auto'` to a separate `tests/_shared/persistence-setup.ts` that engine tests do not load. The current `setup.ts` runs even for engine tests via the `setupFiles` array — wasteful side effect.
+  4. Make the synthetic playtest reuse `playwright.config.ts` instead of having its own implicit setup. Today the persona-driven playtest lives in `tests/synthetic/` but the playwright config testDir is `tests/e2e/` — so it's unclear how the synthetic playtest is even invoked under playwright.
+
+### `tests/setup.ts:1` — `import 'fake-indexeddb/auto'` monkey-patches `globalThis.indexedDB`
+
+* **Violation:** The `auto` variant of `fake-indexeddb` exists explicitly to patch global `indexedDB` for the test process. Side-effect-only import; opposite of dependency injection.
+* **Location:** Line 1.
+* **Consequence:** Round 2 finding 16 (Dexie singleton on import) compounds with this: the singleton database is opened once when `db.ts` is first imported, against whatever `indexedDB` is at that moment — which after `setup.ts` runs is the fake. There's no way to swap the fake mid-test or to opt out for tests that should fail when storage is unavailable. The fake also persists data across tests within the same process unless each test explicitly clears stores — a frequent cause of test-order-dependent flakes.
+* **Refactoring Directive:** Move to `fake-indexeddb` (non-auto) and inject the IDBFactory through the same `DatabaseProvider` port proposed in Round 2 finding 16. Tests construct their own `db = createDatabase(idbFactory)`; the production code path uses `globalThis.indexedDB`.
+
+### `tests/setup.engine.ts:5` — admits the type-graph leak that justifies the engine setup
+
+* **Violation:** The comment reads: "Phaser stub still required because tsconfig includes it via @/types chains." This is the test-side admission of Round 2 finding 23 (Phaser leaks into the interaction contract) and Round 3 finding 43 (DOM globals available everywhere via tsconfig). The stub exists *only* because the type imports leak into the engine; without it, `import type { ... } from '@/types'` would fail because of an unresolvable transitive Phaser reference.
+* **Location:** `tests/setup.engine.ts` line 5 (the comment). The stub follows on lines 6–33.
+* **Consequence:** A test setup file that exists primarily to compensate for an architectural leak is the strongest possible signal that the leak is real. As Round 2's positive-baseline finding noted, the validators don't need this kind of stub — they're pure. The fact that engine tests need a Phaser stub at all proves Round 1 finding 1 (`@/types` chains pull non-domain types into the engine).
+* **Refactoring Directive:** Land Round 2 finding 23 (`InteractionRenderer` port). Once the engine's type chain doesn't transitively reach Phaser, the stub in `setup.engine.ts` becomes deletable. The deletion *is* the test that the refactor worked.
+
+### `playwright.config.ts:7` vs `vite.config.ts:59` — port mismatch
+
+* **Violation:** Playwright connects to `baseURL: 'http://localhost:5173'` (the Vite default port) and starts the dev server with `port: 5173`. But `vite.config.ts:59` declares `server.port: 5000`. If `npm run dev` honors the vite config, playwright's `webServer.port: 5173` will fail (the server is on 5000, not 5173). If `npm run dev` overrides via package.json (`vite --port 5173`), then there are *three* sources of truth: `vite.config.ts`, the npm script, and `playwright.config.ts`.
+* **Location:** `playwright.config.ts` lines 7 and 11; `vite.config.ts` line 59; `package.json` (not read but implied).
+* **Consequence:** A developer who tries to run the e2e suite without a properly aligned package.json sees confusing failures — port refused or wrong content served. The master plan's "Roadie integration (`npm run dev`) — broken dependency — works around with `npm run dev:app`" comment hints that this divergence is real and biting.
+* **Refactoring Directive:** Define `DEV_PORT=5173` in a single `.env` (or `package.json` `config.devPort`). Both `vite.config.ts` and `playwright.config.ts` read from the same source. Document the port choice once.
+
+### `tests/synthetic/personas.ts:23,36` — `Math.random()` in synthetic-data generators
+
+* **Violation:** The persona functions `accuracyByLevel`, `responseTimeMs`, etc., call `Math.random()` directly to generate variance. Synthetic playtest runs are non-reproducible.
+* **Location:** Lines 22–23 (`uniformMs`), 36 (`accuracyByLevel`), 53–54, 60 (`responseTimeMs`), 81, and per-persona equivalents below.
+* **Consequence:** A regression test that says "the synthetic playtest passes" cannot be re-run to compare two builds — the random seed differs each run, so the report differs even if the production code is identical. This defeats the *purpose* of synthetic regression testing. The aggregator's pass/fail criteria (Round 4 finding for `aggregator.ts:108-118`) silently includes this noise as a tolerance band.
+* **Refactoring Directive:** Same `Rng` port from Round 1 finding 3. Each persona accepts an injected `Rng`. The playtest spec instantiates a seeded `MulberryRng(42)` (or similar) and threads it through every persona invocation. Same seed produces the same playtest result every run.
+
+### `tests/synthetic/aggregator.ts:3-4,140-147` — direct `fs`/`path` imports for report writing
+
+* **Violation:** The aggregator uses `fs.writeFileSync` and `path.join` directly. It also uses `__dirname` (resolved via `fileURLToPath(import.meta.url)`) — a Node-only convention.
+* **Location:** Lines 3–7 (imports + `__dirname`), 140–147 (`saveReport`).
+* **Consequence:** The aggregator can only run in Node. A future "playtest report uploaded to a CI artifacts API" or "playtest report rendered as HTML in a browser" requires rewriting the I/O layer. The same `BackupSink`-style port from Round 1 finding 7 would apply — different surface, identical fix.
+* **Refactoring Directive:** Define `interface ReportSink { write(name: string, payload: string): Promise<void>; }`. The Node implementation wraps `fs.writeFileSync`; CI can substitute an HTTP-uploader implementation; tests can substitute an in-memory sink.
+
+### `tests/synthetic/aggregator.ts:61` — `new Date().toISOString()` for report timestamp
+
+* **Violation:** The report includes `timestamp: new Date().toISOString()` and uses it as the filename: `${report.timestamp.replace(/[:.]/g, '-')}.json` (line 143).
+* **Location:** Lines 61, 143.
+* **Consequence:** Same non-reproducibility as Round 3 finding 33 (curriculum builder). Each run produces a unique filename, so the `tests/synthetic/results/` directory accumulates files indefinitely (no overwrite). Diffing two runs requires manually picking the right two filenames.
+* **Refactoring Directive:** Take `clock: Clock` and `runId: string` as parameters. Default `runId` to "latest" (overwrites). The clock-stamped timestamp goes inside the report body for forensic context, not in the filename.
+
+### `tests/synthetic/aggregator.ts:152-171` — 16 direct `console.log` calls for the human-readable report
+
+* **Violation:** `printSummary` is implemented entirely via `console.log` calls. No structured-output mode.
+* **Location:** Lines 152–171.
+* **Consequence:** A CI integration that wants to parse the playtest results (e.g., to post a PR comment with pass/fail) must scrape the human-readable text. Same Category P pattern as the production code.
+* **Refactoring Directive:** Split `printSummary(report)` into `formatSummary(report): string` (pure function returning the formatted text) and a thin `console.log(formatSummary(report))` caller. Tests can assert against the formatted text without intercepting `console`.
+
+### `tests/e2e/level01.spec.ts:5-7` — every test in the file is dead code by author admission
+
+* **Violation:** A comment block declares: "SKIP: All tests in this file require data-testid attributes not yet implemented in scenes: boot-start-btn, menu-scene, level-card-L1, level01-scene, partition-target, feedback-overlay, feedback-next-btn, progress-bar, completion-screen, hint-btn, hint-text." The tests are written but cannot pass.
+* **Location:** Lines 5–7 (comment); the test bodies follow normally — they are not actually skipped via `test.skip` or `describe.skip`.
+* **Consequence:** Two failure modes: (a) the tests will run and fail in CI, producing perpetual red on a build that is otherwise green for the wrong reason; (b) when the data-testids ARE added (some clearly already exist — `boot-start-btn` is in `BootScene.ts` line 31, `partition-target` is in `Level01Scene.ts` line 246), no one will remember the comment is stale, and the tests will continue to be ignored even though they could now pass. The drift between what the test file *says* about reality and what reality actually is becomes self-reinforcing.
+* **Refactoring Directive:** Either (a) delete the tests if they're not maintained; (b) add `test.skip` so the failures are explicit and skip-counted in CI reports; or (c) audit each `data-testid` against the current scene code and re-enable the tests one by one. Option (c) appears cheapest given that several testids already exist.
+
+## Category U — Design-System Sources of Truth Have Multiplied
+
+### Four color systems, one design language
+
+* **Violation:** The same brand palette is declared in:
+  1. `src/scenes/utils/colors.ts` — TS constants `HEX` (string `'#2F6FED'` etc.) and `CLR` (number `0x2F6FED` derived via `hexToNum`).
+  2. `src/scenes/utils/colors-high-contrast.ts` — alternate palette for high-contrast mode (not read but referenced from `lib/preferences.ts`).
+  3. `src/styles/index.css` lines 31–67 — CSS custom properties (`--color-primary: #2f6fed;` etc.).
+  4. `src/scenes/utils/levelTheme.ts` lines 15–44 — gameplay-scene specific tokens (`SKY_BG`, `NAVY`, `ACTION_FILL`, etc.) declared as their own `0x` literals with no reference back to `colors.ts`.
+* **Location:** As enumerated.
+* **Consequence:** Changing `--color-primary` requires editing 3–4 files. Worse: `colors.ts` and `levelTheme.ts` are *both* TypeScript files in the same `src/scenes/utils/` directory, so a developer rendering a partition line might use `CLR.primary` (Adventure-world Royal Blue from design-language §2.1) or `PATH_BLUE` (a different blue from levelTheme) without knowing which is canonical. There is no compile-time check that `levelTheme.NAVY === HEX.primary` or that the CSS var matches.
+* **Refactoring Directive:**
+  1. Pick one source. The natural canonical is `src/design-tokens.ts` (move from `src/scenes/utils/colors.ts`).
+  2. Generate `src/styles/tokens.css` from `design-tokens.ts` at build time via a tiny script — every CSS var derives from a TS export.
+  3. Have `levelTheme.ts` and `colors-high-contrast.ts` import from `design-tokens.ts` rather than declaring their own. The high-contrast variant becomes a *transformation* of the base tokens, not a parallel set.
+  4. Add a CI check that fails if any `.ts` or `.css` file contains a hex literal that doesn't appear in `design-tokens.ts`.
+
+### Hardcoded canvas resolution `800 × 1280` in 6+ files
+
+* **Violation:** `CW = 800` and `CH = 1280` (or the literal `800` and `1280`) appear as constants in: `src/scenes/Level01Scene.ts:37-38`, `src/scenes/PreloadScene.ts:16-17`, `src/scenes/SettingsScene.ts:16-17`, `src/components/FeedbackOverlay.ts:18-21` (defaults), `src/main.ts:34-35` (Phaser game config), and almost certainly `MenuScene.ts` and the other interaction files. The "logical canvas" — fundamental to the entire scene tier — is a magic number repeated everywhere.
+* **Location:** As enumerated.
+* **Consequence:** (a) Adding a landscape mode for tablet play requires editing every file that hardcodes the dimensions. (b) The `FeedbackOverlay`'s default `width = 800, height = 1280` (lines 19–21) means consumers that don't pass these values implicitly assume the same canvas — fine today, brittle to any future refactor. (c) The Phaser game config in `main.ts` is the *real* source of truth (the actual rendering size); every constant in the scene files is a copy that *must* match it. Nothing enforces the invariant.
+* **Refactoring Directive:**
+  1. Define `LOGICAL_CANVAS = { width: 800, height: 1280 } as const` in a new `src/scenes/utils/canvas.ts`.
+  2. Have `main.ts` read from this constant for the Phaser config.
+  3. Have every scene/component import from this constant. Replace `CW = 800` with `const { width: CW } = LOGICAL_CANVAS`.
+  4. Once the magic numbers are gone, parameterizing the canvas (for a landscape mode) becomes a one-file change.
+
+### Five typography surfaces for the same font stack
+
+* **Violation:** The string `'"Nunito", system-ui, sans-serif'` (or a permutation thereof) appears in:
+  1. `src/styles/index.css:59` — `--font-sans: system-ui, -apple-system, ..., sans-serif;` (CSS custom property).
+  2. `src/scenes/utils/levelTheme.ts:43-44` — `BODY_FONT = '"Nunito", system-ui, sans-serif'`.
+  3. `src/components/PreferenceToggle.ts:84,141` — inline `fontFamily: '"Nunito", system-ui, sans-serif'`.
+  4. ~30 Phaser text styles across `Level01Scene.ts`, `LevelScene.ts`, `MenuScene.ts`, `SettingsScene.ts`, `PreloadScene.ts`, `FeedbackOverlay.ts`, `ProgressBar.ts`, `OrderInteraction.ts`, etc.
+  5. `src/components/SymbolicFractionDisplay.ts:29` — `fontFamily = '"Nunito", system-ui, sans-serif'` as a default parameter.
+* **Location:** As enumerated.
+* **Consequence:** (a) Adding a future Spanish-language font (e.g., for diacritic coverage) requires bulk find-and-replace across 30+ sites. (b) The CSS `--font-sans` variable cannot be referenced from TS because Phaser text styles don't read CSS variables — so even if the team wanted ONE source of truth, the Phaser/DOM split prevents it. (c) A subtle inconsistency: the CSS var puts `system-ui` *first* (lines 59); the TS strings put `Nunito` first. CSS-rendered HTML uses system font; canvas-rendered text uses Nunito. The visual experience differs depending on whether content is in DOM overlays or Phaser canvas.
+* **Refactoring Directive:** Since Phaser cannot read CSS vars at runtime, generate the Phaser-side font constants from a single source at build time:
+  1. Source: `src/design-tokens.ts` exports `FONT_SANS = '"Nunito", system-ui, sans-serif'`.
+  2. Build script: derives `--font-sans: <FONT_SANS>` and writes to a generated `src/styles/tokens.css`.
+  3. Phaser text styles all import `FONT_SANS` from `design-tokens.ts`.
+  4. Banner-comment any inline `fontFamily` strings that remain so future grep-and-replace operators are warned.
+
+### `src/components/ProgressBar.ts:58` — hardcoded color string inside a file that imports the palette
+
+* **Violation:** Line 58 sets `color: '#5B6478'` directly inside the count-text style, with a comment "neutral-600 per design-language.md §2.4". The same value is exported as `HEX.neutral600` from the file's own import (`import { CLR } from '../scenes/utils/colors';` line 8 — note: only `CLR` is imported, not `HEX`).
+* **Location:** Line 58.
+* **Consequence:** Drive-by inconsistency. The author chose to hardcode the string instead of importing `HEX` alongside `CLR`. Every such inconsistency is a future palette-change failure point.
+* **Refactoring Directive:** Add `HEX` to the import on line 8 and replace `'#5B6478'` with `HEX.neutral600`. Apply the same audit across every `.ts` file that contains a hex literal.
+
+### `src/styles/index.css:106-113` — global `prefers-reduced-motion` override caps every animation at 80ms
+
+* **Violation:** The CSS rule `*, *::before, *::after { animation-duration: 80ms !important; transition-duration: 80ms !important; }` (lines 107–112) overrides every CSS animation in the app. The rule is correct intent (per WCAG 2.3.3), but the override is global and `!important`, which means: (a) the rule covers *every* element including third-party widgets whose animations are designed to be informative at full speed (e.g., a video player progress bar); (b) the 80ms value is a magic number not connected to design-language tokens; (c) `FeedbackOverlay.ts:28-29` declares `DISPLAY_MS = 600` and `FADE_MS = 120` — these are *Phaser timer* values, not CSS, so the CSS override does not affect them. The reduced-motion experience is therefore inconsistent: CSS-driven UI snaps in 80ms, Phaser-driven UI runs the original durations until the per-component `checkReduceMotion()` triggers (Round 3 finding 40).
+* **Location:** `src/styles/index.css` lines 105–113.
+* **Consequence:** A reduced-motion user sees a hybrid experience: CSS bits respect the preference one way, Phaser bits respect it (or fail to) another way, with no shared timing source.
+* **Refactoring Directive:** Move the reduced-motion timing constants to `design-tokens.ts`: `MOTION_REDUCED = 80, MOTION_STANDARD = 240`. The CSS reads them from `tokens.css` (same generation pipeline as the color tokens). Phaser's per-component `checkReduceMotion()` reads them from `design-tokens.ts`. One source of truth.
+
+## Category V — Inline Curriculum Data and Tier Budgets in TypeScript
+
+### `src/scenes/Level01Scene.ts:69-110` — hardcoded inline `QUESTIONS` array shadowing the curriculum
+
+* **Violation:** Lines 69–110 declare `const QUESTIONS: L01Question[] = [ ... ]` — 8 inline question definitions for L1. The scene falls back to this array when Dexie's `questionTemplateRepo.getByLevel(1)` returns empty (`templatePool.length === 0` branch). The inline data is curriculum.
+* **Location:** Lines 69–110 (the array); lines 187–207 (the fallback branch in `create()`).
+* **Consequence:** Two sources of truth for L1 question definitions. The inline copy survives even after the Dexie content is updated by `npm run build:curriculum`. Worse: the inline copy is *only* used when the seed pipeline fails, which is exactly the moment the team would *want* the curriculum to be fresh. The fallback masks seed failures.
+* **Refactoring Directive:**
+  1. Delete the `QUESTIONS` array. If the curriculum is empty, the scene shows an explicit "content not loaded" error rather than silently substituting hardcoded data.
+  2. Convert the inline data to a `tests/fixtures/L1-fallback-curriculum.json` for use in tests only.
+  3. Have BootScene fail loudly if `seedIfEmpty` returns `seeded: 0 && !alreadySeeded` — the master plan's "synthetic mode" is currently invisible to the user; making it visible forces the team to fix the seed pipeline rather than relying on inline fallbacks.
+
+### `src/components/HintLadder.ts:11-15` — hint-tier budget hardcoded as TS data
+
+* **Violation:** `TIER_BUDGETS = { easy: ['verbal', 'visual_overlay', 'worked_example'], medium: [...], hard: [...] }` is module-level TypeScript. The same domain knowledge belongs in `docs/30-architecture/hint-system/` and/or in the curriculum bundle (each `QuestionTemplate` could declare its own `availableTiers`).
+* **Location:** Lines 11–15.
+* **Consequence:** Curriculum authors who want to grant a `worked_example` tier on a `medium` question (e.g., for a particularly tricky concept) cannot do so without editing TypeScript. The budget is per-difficulty, not per-template — a coarse coupling.
+* **Refactoring Directive:** Move tier budgets into `QuestionTemplate.payload.hintTiers` (the curriculum bundle). The HintLadder constructor accepts `tiers: HintTier[]` directly. Default to a fallback budget for templates that don't specify, but make the default opt-in rather than baked-in.
+
+### `tests/synthetic/personas.ts:33-43` — K-2 fraction-performance norms hardcoded as TS magic numbers
+
+* **Violation:** Constants like `0.55 - (level - 1) * 0.04375` (line 36, EagerK accuracy decay), `0.40 + (level - 1) * 0.0875` (line 77, ConfidentG1 accuracy growth), etc., embed pedagogical research findings directly into TypeScript.
+* **Location:** As enumerated; per-persona functions occupy lines 31–~150 (only the first 100 read).
+* **Consequence:** Updating the K-2 norms (e.g., when 2027 NAEP data is published) requires a TypeScript edit. The same numbers should live in `docs/40-validation/k-2-norms.md` and be loaded from data, not encoded in functions. Every persona's accuracy curve is a separate hand-tuned function — changing the *shape* of the model (linear vs. exponential decay) requires touching every function.
+* **Refactoring Directive:** Define `interface PersonaProfile { name: string; accuracyByLevel: Array<{ level: number; mean: number; jitter: number }>; responseTimeMs: { min: number; max: number; longTailProb: number; longTailExtra: { min: number; max: number } }; hintProbability: number; abandonProbability: number; }`. Personas become *data*, loaded from `tests/synthetic/personas.json`. The functions in `personas.ts` become a single `runPersona(profile, rng): SimulatedAttempt` driver.
+
+## Category W — Defensive `!` Non-Null Assertions Hiding Strictness Gaps
+
+### Engine and components rely on `!` to suppress type errors that strictness would catch
+
+* **Violation:** Multiple non-null assertions in places where the underlying access could legitimately be undefined:
+  - `src/engine/selection.ts:87` — `arr[Math.floor(Math.random() * arr.length)]!` (already noted in Round 1, but the `!` is the smoking gun: if `arr.length === 0`, this returns `undefined`; the `!` lies to the type system).
+  - `src/components/HintLadder.ts:49,57,84` — `this.tiers[this.index]!` and `this.tiers[idx] ?? null`.
+  - `src/scenes/interactions/utils/NumberLine.ts:95-99,103-121` — six uses of `this.marker!` after `if (!this.marker) this.setMarker(minValue)` (lines 93). The author had to re-assert the marker exists at every read; with strict types and an immutable creation, this would be one assertion at one boundary.
+  - `src/scenes/interactions/OrderInteraction.ts:117` — `this.sequence[best] = frac.id` followed elsewhere by reads of `this.sequence[best]` that would error under `noUncheckedIndexedAccess`.
+* **Location:** As enumerated.
+* **Consequence:** Each `!` is a place where the author *believes* the value is non-null but the type system can't prove it. The belief is correct *today*, brittle to refactors. Round 3 finding 44 (deferred strictness flags) is the upstream cause: with the flags on, every `!` becomes either a real bug or a prompt to refactor the data flow. Without the flags, every `!` is invisible.
+* **Refactoring Directive:** Land Round 3 finding 44. Then sweep every `!` operator with `eslint-plugin-no-non-null-assertion`. Each one becomes either (a) a guarded read (`if (arr[i]) { ... }`), (b) a type narrowing via discriminated union, or (c) an architectural refactor that makes the field non-nullable in the first place.
+
+## Category X — Cross-Scene Concrete Imports
+
+### `src/scenes/Level01Scene.ts:32` imports `MenuScene` to call its static helper
+
+* **Violation:** `import { MenuScene } from './MenuScene';` is a direct concrete import of one scene from another. The presumed call site (one of the closeSession code paths around lines 970–980 or 1160) calls `MenuScene.markLevelComplete(levelNumber, studentId)` — the static method that mutates localStorage in violation of C5 (Round 3 finding 28).
+* **Location:** Line 32.
+* **Consequence:** (a) The two scenes have a circular-ish coupling: Level01Scene knows about MenuScene's persistence concern. (b) Phaser's scene routing API is *string-based* (`this.scene.start('MenuScene')`); the typed import here is needed *only* for the static method, which is itself a misplaced concern. (c) Removing localStorage from MenuScene (Round 3 finding 28's refactor) requires also editing Level01Scene to call `levelUnlockRepo.unlock(...)` instead of `MenuScene.markLevelComplete(...)`. Cross-scene method-call coupling fights the refactor.
+* **Refactoring Directive:** Move `markLevelComplete` out of `MenuScene` and into the new `levelUnlockRepo` (Round 3 finding 28's refactor). Level01Scene calls the repo directly. MenuScene's static method disappears. The cross-scene import is no longer needed.
+
+### `src/scenes/Level01Scene.ts:31` imports the `tts` singleton
+
+* **Violation:** `import { tts } from '../audio/TTSService';` — a direct singleton import (Round 2 finding 17) used at line 264 to call `tts.setEnabled(meta.preferences.audio ?? true)`.
+* **Location:** Lines 31, 264.
+* **Consequence:** Confirms that the `tts` singleton's import-time evaluation (Round 2 finding 17) fans out into every scene that uses TTS. Once the Round 2 refactor lands, this import becomes a parameter on the scene's data payload — but until then, the coupling is endemic.
+* **Refactoring Directive:** Subsumed by Round 2 finding 17.
+
+### `src/scenes/interactions/PartitionInteraction.ts:13` imports the project logger
+
+* **Violation:** `import { log } from '../../lib/log';` — the interaction directly depends on the browser-coupled logger module (Round 1 finding 11). Even though every other line of `PartitionInteraction` only depends on Phaser and shared utilities, the logger import drags the build-tool intrinsic (`import.meta.env`) and host globals (`window.location.search`, `localStorage`) into the interaction's dependency graph.
+* **Location:** Line 13.
+* **Consequence:** Refactoring the interaction toward Phaser-portability (Round 2 finding 23) is blocked not just by Phaser, but by the logger. The interaction would also break in any non-Vite test runner because of the `import.meta.env.DEV` check inside `lib/log.ts`.
+* **Refactoring Directive:** Subsumed by Round 1 finding 11 (logger refactor). Once `Logger` is a port, the interaction accepts it via `InteractionContext`.
+
+## Category Y — Late-Discovered Hazards
+
+### `index.html:8` and `vite.config.ts:30-42` — manifest source-of-truth ambiguity confirmed
+
+* **Violation:** `index.html` line 8 contains `<link rel="manifest" href="/manifest.json" />` — pointing at a static file. `vite.config.ts:30-42` declares an inline manifest passed to `VitePWA`. Round 3 finding 32 noted the duplication; this confirms it from the HTML side: the static file is referenced by `index.html` whether it exists or not, and `VitePWA` may rewrite or generate it.
+* **Location:** `index.html` line 8; `vite.config.ts` lines 30–42.
+* **Consequence:** Same as Round 3 finding 32: silent precedence bug. A developer editing `public/manifest.json` may see no effect. A developer editing the inline config may not realize `index.html` references a different filename.
+* **Refactoring Directive:** Subsumed by Round 3 finding 32.
+
+### `index.html:11` — comment claims "no external fonts" but `src/styles/index.css:13` loads woff2 from `/fonts/`
+
+* **Violation:** `index.html` line 11 comment: "No external fonts: per docs/40-validation/privacy-notice.md 'no third parties'". This is correct for the HTML — no `<link rel="stylesheet" href="https://fonts.googleapis.com/...">` is present. But `src/styles/index.css:13,20,27` loads three woff2 files (`/fonts/nunito-400.woff2`, `/fonts/nunito-700.woff2`, `/fonts/fredoka-one-400.woff2`). The fonts are *self-hosted* (per the CSS comment) — so the privacy claim holds — but the comment in `index.html` and the @font-face declarations in `index.css` are documenting the same constraint twice, in two different places, in two different languages.
+* **Location:** `index.html` line 11; `src/styles/index.css` lines 5–7 (the comment), 8–28 (the @font-face declarations).
+* **Consequence:** Documentation drift hazard. A future developer who adds a Google Font via `<link>` in `index.html` violates the constraint, but the violation lives in HTML while the explanatory comment lives in CSS. No automation catches this.
+* **Refactoring Directive:** Add a CI check (or a custom ESLint rule for HTML) that fails on `<link rel="stylesheet" href="https://...">` patterns in `index.html`. The constraint becomes machine-enforced.
+
+### `wrangler.toml:2` — `compatibility_date = "2025-01-01"`
+
+* **Violation:** Cloudflare Pages projects pin a `compatibility_date` to fix the Workers runtime feature set. This date is in the past (today is 2026-04-26) and was probably copied from a template. It freezes the runtime to early-2025 features.
+* **Location:** Line 2.
+* **Consequence:** Any new Workers runtime feature added after Jan 1 2025 is unavailable to the deployed app. This may not matter for the current "static site only" deployment (Pages serves static files), but if the project ever adds a Workers function (e.g., for the future sync), it will silently be on a 16-month-old runtime. The pin is also a source of audit-trail confusion when debugging future production issues.
+* **Refactoring Directive:** Update `compatibility_date` to a recent value (e.g., `"2026-04-01"`). Or remove the line entirely if the project is using Pages without Workers — the field is meaningful only for Workers.
+
+## Round 4 Summary Table
+
+| # | File / Module | Category | Severity | Effort |
+|---|---|---|---|---|
+| 49 | `src/scenes/interactions/CompareInteraction.ts` (UI decides correctness) | S | High | Small |
+| 50 | `src/scenes/interactions/BenchmarkInteraction.ts` (single zone vs validator's Map) | S | High | Medium (or contract bug) |
+| 51 | Four parallel test runtimes with own setups | T | Medium | Medium |
+| 52 | `tests/setup.ts:1` (`fake-indexeddb/auto` global patch) | T | Medium | Small (subsumed by #16) |
+| 53 | `tests/setup.engine.ts:5` (Phaser stub admits type-graph leak) | T | Low | Trivial (subsumed by #23) |
+| 54 | `playwright.config.ts:7` vs `vite.config.ts:59` (port mismatch) | T | Medium | Trivial |
+| 55 | `tests/synthetic/personas.ts` (`Math.random()` in personas) | T | High | Small |
+| 56 | `tests/synthetic/aggregator.ts` (direct `fs`/`path`/`__dirname`) | T | Low | Small |
+| 57 | `tests/synthetic/aggregator.ts:61,143` (clock-stamped report) | T | Low | Trivial |
+| 58 | `tests/synthetic/aggregator.ts:152-171` (16 `console.log`s) | T | Low | Trivial |
+| 59 | `tests/e2e/level01.spec.ts` (dead tests, no `test.skip`) | T | Medium | Small |
+| 60 | Four-way color-system fragmentation (colors / colors-hc / index.css / levelTheme) | U | High | Medium |
+| 61 | Hardcoded canvas resolution `800 × 1280` in 6+ files | U | Medium | Small |
+| 62 | Five typography surfaces for Nunito font stack | U | Medium | Medium |
+| 63 | `ProgressBar.ts:58` hex literal inside file that already imports the palette | U | Low | Trivial |
+| 64 | `index.css:107-112` global reduced-motion override decoupled from Phaser timing | U | Medium | Small |
+| 65 | `Level01Scene.ts:69-110` inline `QUESTIONS` shadowing curriculum | V | High | Small |
+| 66 | `HintLadder.ts:11-15` tier budgets hardcoded in TS | V | Medium | Small |
+| 67 | `personas.ts` K-2 norms hardcoded as TS magic numbers | V | Medium | Medium |
+| 68 | Pervasive `!` non-null assertions hiding strictness gaps | W | Medium | Large (depends on #44) |
+| 69 | `Level01Scene.ts:32` direct import of `MenuScene` for static helper | X | Medium | Small (subsumed by #28) |
+| 70 | `Level01Scene.ts:31` direct import of `tts` singleton | X | Low | Trivial (subsumed by #17) |
+| 71 | `PartitionInteraction.ts:13` imports browser-coupled logger | X | Medium | Trivial (subsumed by #11) |
+| 72 | `index.html:8` + `vite.config.ts:30-42` manifest source ambiguity | Y | Low | Trivial (confirms #32) |
+| 73 | `index.html:11` privacy-notice comment in HTML, font loading in CSS | Y | Low | Trivial |
+| 74 | `wrangler.toml:2` `compatibility_date` pinned to 2025-01-01 | Y | Low | Trivial |
+
+(28 items in the prose; 26 unique findings in the table — three are noted as subsumed by earlier-round refactors.)
+
+## Calibration — third estimate, third miss
+
+| Round | I estimated | Actual | Miss factor |
+|---|---|---|---|
+| Round 1 → Round 2 | unstated (implicitly "thorough") | 12 missed | — |
+| Round 2 → Round 3 | "6–10 more findings" | 21 | 2.1–3.5× |
+| Round 3 → Round 4 | "10–15 more findings" | 28 | 1.9–2.8× |
+
+The estimate-to-actual ratio has been 2–3× in both rounds. Possible Round-5 surfaces I have *not* yet audited: the remaining 8 interaction files (I read 4 of 13: Partition, Compare, Identify, Order, Benchmark — left: Label, Make, EqualOrNot, SnapMatch, Placement, plus the `LevelScene.ts` complete read which I sampled for `Date.now`/`nanoid` only); the `LevelScene.ts` complete file (>873 lines per Round 1 grep counts); the `MenuScene.ts` complete file (>800 lines, sampled ~200); the integration tests (`tests/integration/persistence.test.ts`, `curriculum.test.ts`, `hints_seed.test.ts`); the a11y test (`tests/a11y/wcag.spec.ts`); the e2e settings spec; the per-archetype property tests (`tests/unit/validators/*.property.test.ts`); the `src/persistence/repositories/` files I haven't read (`session.ts`, `student.ts`, `bookmark.ts`, `progressionStat.ts`, `hintEvent.ts`, `misconception.ts`, `misconceptionFlag.ts`, `curriculumPack.ts`, `activity.ts`, `activityLevel.ts`, `fractionBank.ts`, `hint.ts`, `questionTemplate.ts`, `skill.ts`); `src/scenes/utils/colors-high-contrast.ts` and `levelMeta.ts`; the `src/types/*.ts` family beyond `runtime.ts`; the `src/audio/index.ts` barrel; the actual `package.json`; the `.claude/` folder which the user's CLAUDE.md says contains automation; the `roadie/` integration files. **My calibrated estimate: 30–50 more findings live in those surfaces, given the 2–3× pattern.** Treat that estimate the same way as the previous two.

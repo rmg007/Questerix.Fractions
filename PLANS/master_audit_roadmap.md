@@ -1,7 +1,29 @@
 # Master System Audit Roadmap
 
-**Date:** 2026-04-27 · **Branch:** `main` · **Auditor:** Principal System Auditor & Orchestrator
+**Date:** 2026-04-27 (v3 — third pass: corrections + security/CI/curriculum dive) · **Branch:** `main` · **Auditor:** Principal System Auditor & Orchestrator
 **Synthesizes:** [architecture-review-2026-04-27.md](architecture-review-2026-04-27.md) · [soc_audit_findings.md](soc_audit_findings.md) · [portability_audit_findings.md](portability_audit_findings.md) · [telemetry_audit_strategy.md](telemetry_audit_strategy.md) · [qa-visual-report-2026-04-27.md](qa-visual-report-2026-04-27.md) · [master-plan-2026-04-26.md](master-plan-2026-04-26.md)
+**v3 direct evidence:** read of `public/_headers`, `public/manifest.json`, `public/about.html`, `public/privacy.html`, `public/robots.txt`, `index.html`, `tailwind.config.ts`, `.nvmrc`, `.replit`, `.npmrc`, `scripts/build-curriculum.mjs`, `scripts/post-commit-push.sh`, `scripts/post-merge.sh`, all 5 GitHub Actions workflows, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, validator code (`partition.ts`, `identify.ts`), `Level01Scene.ts:645-700` (validator dispatch), `LevelScene.ts:410-445` (validator dispatch), `MenuScene.ts:781-803` (font loading), full `public/curriculum/v1.json` parse (255 templates × 9 levels), `AccessibilityAnnouncer.ts`, `SkipLink.ts`, `tests/` directory inventory.
+
+---
+
+## v3 Corrections to the v2 Audit
+
+Several v2 findings were based on outdated source documents or incomplete evidence. Direct re-read corrects them:
+
+| v2 Claim | Reality (v3 evidence) |
+|---|---|
+| "No CSP in `index.html` — CSP enforcement likely missing" | **`public/_headers` ships strong CSP via Cloudflare Pages headers** — `default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'`. Plus HSTS (2-year max-age), `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, COOP `same-origin` + COEP `require-corp`, Permissions-Policy denying 7 sensitive APIs. Single weakness: `'unsafe-inline'` for inline element-attribute styles (used by `SkipLink`, `AccessibilityAnnouncer`). |
+| "PWA manifest status unknown / `manifest.json` existence unconfirmed" | **`public/manifest.json` is fully configured** — all 4 icons (any + maskable, 192 + 512), display: standalone, orientation: portrait, theme/background colors, description. Complete and ready. `_headers` enforces `/manifest.json` and `/sw.js` Cache-Control: no-cache so updates propagate immediately. |
+| "No E2E tests" / "TestHooks ready, no specs yet" | **26 test files exist** — `tests/unit/` (16 incl. 9 validators with 2 property-based), `tests/integration/` (3), `tests/e2e/` (`level01.spec.ts`, `settings.spec.ts`, `smoke.spec.ts`), `tests/a11y/wcag.spec.ts`, `tests/synthetic/playtest.spec.ts` with personas + aggregator. `fast-check` IS in production use. Audio, settings, persistence, curriculum, hints all have test coverage. |
+| "L3–L9 templates not authored / L2 skeleton only" | **All 9 levels have authored content** — L01:39, L02:40, L03:27, L04:19, L05:10, L06:30, L07:30, L08:30, L09:30 = **255 total templates** in the live bundle. The user-facing problem is **access** (no UI route to L2-L9), not authorship. The architecture-review and master-plan describe a state from before the curriculum-pipeline output landed. |
+| "Curriculum bundle duplication with no script-enforced reconciliation" | **`scripts/build-curriculum.mjs:91-99` writes both `public/curriculum/v1.json` and `src/curriculum/bundle.json` from the same source** — the dual copy is enforced by the `prebuild` hook. Risk reduces to "manual edits between builds + silent prebuild failure on missing pipeline output." |
+| "TTS never called" (inherited from architecture-review-2026-04-27.md) | **TTS is wired** — 5 production call sites (`Level01Scene.ts:258, 492`; `LevelScene.ts:151, 224`; `announce.ts:21`). Tested by `tests/unit/audio.test.ts`. Treat as wired-but-unverified-in-real-iPad-Safari. |
+| "No CI configured" (inherited from earlier docs) | **5 GitHub Actions workflows enforce 8 sequential CI gates**: typecheck, lint, unit, integration, e2e, a11y, production build, **bundle-size hard gate at 1.0 MB gzipped JS** (`ci.yml:53-61`, `deploy.yml:30-37`). Plus Lighthouse CI on every PR/push, weekly synthetic playtest via cron, content-validation workflow running the Python pipeline's verifier on `pipeline/output/`. PR template includes a Bundle Size Delta table. |
+| "Three silent-swallow catches" (v2) | **Seven** confirmed: `lib/preferences.ts:28-34`, `audio/TTSService.ts:35`, `audio/TTSService.ts:43`, `MenuScene.ts:789`, `AccessibilityAnnouncer.ts:55-57`, `SkipLink.ts:31-33` (`labelCanvas`), `SkipLink.ts:77-79` (`injectSkipLink`). |
+| "No frame-budget instrumentation" | Still true at *runtime* — but Lighthouse CI runs on every PR, catching budget regressions in CI rather than in production. The runtime gap is real; the development gap is closed. |
+| "Local fonts? Privacy concern about Nunito" (implied) | **Local fonts shipped** — `public/fonts/{fredoka-one-400,nunito-400,nunito-700}.woff2` + `LICENSE-Nunito.txt`. `MenuScene.ts:781-803` loads them via `document.fonts.load(...)` and re-rasterizes Phaser Text objects after `fonts.ready` to defeat Phaser's font-baking issue. Privacy notice is honored — **`public/privacy.html` is COPPA-compliant and explicit about no data collection.** |
+
+The architectural and observability cores of the v2 audit remain valid. The revisions above shrink the *attack surface for criticism* and let v3 focus on what's genuinely broken: a real validator-lookup bug in L1, three Node-version-drift fault lines, dead validators in the registry, an auto-push git hook with a token-leak surface, and a port-mismatched synthetic-playtest CI job that has been failing silently.
 
 ---
 
@@ -31,6 +53,16 @@
   * **DOM coupling inside persistence.** `src/persistence/backup.ts:100-106` synthesises `<a download>` clicks (presentation concern) inside the persistence module; `src/persistence/db.ts:158-200` reads `navigator.storage`/`sessionStorage` and emits `console.warn` directly. Persistence cannot run headlessly.
   * **Embedded curriculum content in presentation.** `Level01Scene.ts:69-110` hardcodes a `QUESTIONS` array as a synthetic fallback — curriculum data leaked into a Phaser scene file.
   * **Hidden runtime dependency.** `Level01Scene.ts:313, 915` and `LevelScene.ts` analogues call `await import('nanoid').catch(...)` — and `nanoid` is **not declared** in `package.json`. Either the catch fallback always fires (silent dead path) or the build pipeline will choke once tree-shaking decides differently.
+  * **Real validator-lookup bug at `Level01Scene.ts:675`** *(v3 finding)*. The dispatch reads `validatorRegistry.get(this.currentQuestion.id as never)` — passes the **question ID** (e.g. `q:pt:L1:0001`) where the registry expects a **validator ID** (e.g. `validator.partition.equalAreas`). The `as never` cast is a deliberate type-system bypass; TypeScript would otherwise reject this. The lookup always returns `undefined`, the code falls through to a hardcoded `partitionEqualAreas` fallback at line 680, and L1 happens to work *only because* every L1 template currently uses that one validator. The moment any future L1 template needs `partition.equalCount` (which exists, registered, but unused — see Dead Code), L1 will silently misroute. `LevelScene.ts:417-418` is correct (`getValidator(this.currentTemplate.validatorId)`); the two scenes diverge here too.
+  * **Triple archetype-to-level mapping** *(v3 finding)*. The same canonical mapping is encoded three times: (a) `scripts/build-curriculum.mjs:22-32` `LEVEL_ARCHETYPES` constant (used to filter pipeline output), (b) `src/curriculum/seed.ts:25-38` `deriveLevelGroup` regex `/L(\d+):/i` (used to bucket templates into `levelGroup` index for Dexie queries), (c) the implicit `archetype` field on each template. Drift between (a) and (b) silently corrupts the index; (b)'s parse-failure fallback to `'01-02'` (line 30-32) silently corrupts further.
+  * **Backup envelope coupled to schema** *(v3 finding)*. `backup.ts:30-41` enumerates 10 tables explicitly. Any new table (e.g. the `telemetryEvents` table proposed in Dimension 2) must be added to the envelope or it is silently *not backed up*. Schema bump v5 must touch this file or the new table is non-recoverable.
+  * **`backup.ts:154` ConstraintError detection by string-comparison** *(v3 finding)*. `if (err instanceof Error && err.name === 'ConstraintError')` — if Dexie ever changes the error name, wraps in a different type, or upstreams a typed-error refactor, every restore error becomes a re-throw and partial restores fail catastrophically.
+  * **`build-curriculum.mjs` silent filters** *(v3 finding)*. Two silent-skip code paths: (a) line 44-47 — pipeline output missing for a level → "skipping silently"; (b) line 65-67 — templates flagged `manual_review: true` → silently dropped. Both report aggregate counts but no per-template list. A reviewer who flags a borderline template for re-review never sees it ship; a missing pipeline run never blocks the build.
+  * **Synthetic-playtest CI port mismatch** *(v3 finding)*. `synthetic-playtest.yml:31-33` does `npm run dev:app &` then `npx wait-on http://localhost:5173 --timeout 30000`. **Vite is configured for port 5000** (`vite.config.ts:59`). The wait will time out forever; the workflow has been silently failing or being ignored every Monday at 06:00 UTC.
+  * **Three Node versions across the project** *(v3 finding)*. `.nvmrc: 20`. `.replit: nodejs-20`. `ci.yml: '24'`. `deploy.yml: '24'`. `lighthouse.yml: '20'`. `synthetic-playtest.yml: '20'`. Production builds compile on Node 24; perf measurements (Lighthouse) on Node 20; synthetic playtests on Node 20; local dev on Node 20. **A bug introduced by Node 24's V8 cannot be reproduced by any check that's not on the deploy path.**
+  * **Auto-push git hook is a token-leak surface** *(v3 finding)*. `scripts/post-commit-push.sh` is intended to be installed as `.git/hooks/post-commit` (per its own comment) and uses `$GITHUB_TOKEN` to push to `https://github.com/rmg007/Questerix.Fractions` — note that hardcoded URL **does not match `package.json:53` (`questerix/fractions`)**. The redaction pattern (`sed "s/${GITHUB_TOKEN}/***REDACTED***/g"`) protects the visible logs but: (a) any developer who exports `GITHUB_TOKEN` with broader scopes than this repo is one accidental commit from leakage, (b) the org-name drift between hardcoded URL and `package.json` indicates the script was written for a different repo and never updated, (c) auto-push bypasses local review.
+  * **`scripts/post-merge.sh` uses `npm install` not `npm ci`** *(v3 finding)*. `set -e; npm install` runs after every `git merge` or `git pull` (per `.replit:55-57`'s `[postMerge].path = "scripts/post-merge.sh"`). `npm install` mutates `package-lock.json` if dependency resolution differs; the developer is silently asked to commit a drifted lockfile after every merge. Use `npm ci`.
+  * **Solo `CODEOWNERS`** *(v3 finding)*. `.github/CODEOWNERS: * @ryanmidogonzalez`. No peer-review gate exists. The bundle-size budget and CI green-bar are the *only* enforced merge policies; a self-approved PR can ship anything that passes typecheck.
   * **The engine museum** — central finding of this deeper pass. Five engine modules totalling 707 LOC are mathematically and pedagogically sound but only `runAllDetectors` is invoked from production code (and only in `LevelScene.recordAttempt`, not `Level01Scene`). `git grep -- 'src/**'` confirms zero production callers for `selectNextQuestion`, `decideNextLevel`, `startCalibration`, `recordCalibrationAttempt`, `isCalibrationComplete`, `shouldUseCalibration`, or `updateMastery` (BKT). The team built and tested the Q19 calibration freeze (`learning-hypotheses.md` H-04), the ZPD selection algorithm, and the regress/advance routing — and none of it runs. `tests/unit/router.test.ts` and `tests/unit/calibration.test.ts` exercise functions production never calls; `MenuScene.test.ts:10` imports `decideNextLevel` though `MenuScene.ts` does not. The engine is a museum and the test suite is partially testing exhibits.
   * **Schema-version drift between Dexie and `deviceMeta`.** Dexie now declares schema v4 (`db.ts:115-140`) but `seed.ts:68` hardcodes `schemaVersion: 3` into every fresh `DeviceMeta` row. New installs will record their schema as 3 forever; backup envelopes (`backup.ts:25` `BACKUP_SCHEMA_VERSION = 1`) compound the drift. There is no migration that rewrites the hardcoded value as schema bumps land — every future bump deepens the divergence.
   * **Curriculum-bundle source-of-truth ambiguity.** `wc -c` confirms `public/curriculum/v1.json` is exactly **103,239 bytes**; `src/curriculum/bundle.json` is exactly **103,239 bytes**. Two files, identical sizes — the embedded fallback at `loader.ts:26` is a literal copy of the served file. Both are dirty in `git status`. There is no script-enforced reconciliation between them; `loader.ts:134-157` falls back to whichever was bundled at compile time if `fetch` throws a `TypeError`. Master-plan Decision D-3 names this as an open question.
@@ -74,6 +106,8 @@
     Plus `src/scenes/Level01Scene.ts:997-1024` reduces three nested catches to `String(err)` (drops stack), captures no originating IDs — *with* a log call but one that no-ops in production.
   * **Backup audit trail invisible.** `backup.ts:144-161` `tryAddAll` distinguishes `ConstraintError` (skip) from genuine errors (re-throw) via string-comparison `err.name === 'ConstraintError'`. A partial restore that drops half the attempts is indistinguishable from a clean restore — `added`/`skipped` counters return to caller but the per-row identity of skipped records is lost. `backup.ts:97` bumps `lastBackupAt` *before* the file actually downloads (lines 100-106) — a cancelled download leaves the meta wrongly stamped, and a restore-from-an-incomplete-backup is undetectable.
   * **PWA service worker has no observability.** `vite-plugin-pwa@0.21` with `registerType: 'autoUpdate'` and a 30-day `CacheFirst` curriculum cache — no Workbox event hook reports cache-hit/miss, update-available, controlling, or skipWaiting events. A stuck service worker shipping stale curriculum to half the install base is invisible.
+  * **Validator-only latency is computed and immediately discarded** *(v3 finding)*. `LevelScene.ts:441` measures `responseMs = Date.now() - startedAt` (validator dispatch only), then `:442` overwrites with `totalResponseMs = Date.now() - this.questionStartTime` (whole-question wall-clock), and pushes `totalResponseMs` into `responseTimes`. The validator-isolated number is logged once via `log.valid('result', { ..., validatorMs: responseMs })` and then dropped. The histogram dimension that would isolate validator regressions from student-think-time is captured and thrown away.
+  * **Backup-restore JSON.parse from user file** *(v3 security finding, low severity but worth flagging)*. `backup.ts:130` — `envelope = JSON.parse(text) as BackupEnvelope` from a user-uploaded `File`. Only `envelope.version === BACKUP_SCHEMA_VERSION` is validated; nothing validates the shape of `envelope.tables.*` rows. A malicious backup could supply rows with `__proto__`-keyed properties (no longer prototype-pollutes via `JSON.parse` itself in modern V8, but the spread + `await table.add(row)` could propagate other corrupt fields), or future-dated `lastBackupAt` to corrupt the merge logic at `backup.ts:192`. Real but bounded — the only attacker is the user themselves on their own device.
   * **No build/release version stamp** on any log record. Even if logs reached an aggregator, no `app.version` / `git.sha` field exists for deploy correlation.
   * **Three logger substrates competing.** `lib/log.ts` (12-channel categorical), `lib/logger.ts` (4-level wrapper), `engine/calibration.ts:20` (inline `console.warn`). Three retrofit surfaces; the engine's instinct to avoid the central logger is correct because the central one taints purity.
   * **External-fetch telemetry absent.** `loadCurriculumBundle` (`loader.ts:138`) does not record HTTP status, payload size, parse duration, or fallback frequency to the embedded `bundle.json`. A degrading CDN that pushes every user to the embedded fallback would be invisible.
@@ -137,6 +171,12 @@
   * **`tests/unit/engine/bkt.test.ts`** is the only engine test (197 LOC, 8 describe blocks). The implied dead surface is the rest of the engine: zero validator unit tests, zero detector tests, zero selection tests. These are not unused code but unused *test surface* — flag for Sprint 5.
   * **Suspected:** orphan validators in `src/validators/` not registered in `src/validators/registry.ts`. Audit during port-interface introduction.
   * **Tests of unwired engine functions.** `tests/unit/router.test.ts` and `tests/unit/calibration.test.ts` test `decideNextLevel`, `startCalibration`, `recordCalibrationAttempt`, `isCalibrationComplete`, `shouldUseCalibration` — none of which are called from `src/`. `MenuScene.test.ts:10` imports `decideNextLevel` though `MenuScene.ts` does not. Either wire the engine (Dimension 1 directive #8) or remove the tests. Today they are confidence-theatre.
+  * **Two BKT test files** *(v3 finding)*. `tests/unit/bkt.test.ts` AND `tests/unit/engine/bkt.test.ts` both exist. Likely a duplicate from a directory reorganization. Audit and delete one.
+  * **Orphan validators in the registry** *(v3 finding)*. The full curriculum bundle (255 templates) uses 9 unique `validatorId` values. The registry imports 10 validator files. Three validators are **registered but never referenced by any template**: `validator.partition.equalCount` (in `partition.ts`), and the entire `validator.placement.*` family (`src/validators/placement.ts`, 75 LOC; plus `src/scenes/interactions/PlacementInteraction.ts`, 102 LOC). The `placement` archetype has zero curriculum content — the entire vertical slice is dead. Either author placement templates or delete `placement.ts`, `PlacementInteraction.ts`, and the placement entry in `registry.ts:16, 32`.
+  * **Curriculum content authorship is largely complete.** *(v3 correction to v2's "L3-L9 not authored")*. 255 templates across all 9 levels in the live bundle. The remaining authorship gap is 5 of L05 (`snap_match` is at 10 templates — at the architecture-review's ≥10 threshold but with no buffer), and the orphan `placement` archetype. The user-facing problem is **access not authorship** — the UI has no L2-L9 route and "Keep going" loops L1.
+  * **Dual Lighthouse configs unchanged.** `.lighthouserc.json` (164 bytes) and `lighthouserc.cjs` (682 bytes) — `lighthouse.yml:13` runs `lhci autorun` which auto-discovers; one is dead.
+  * **`scripts/post-commit-push.sh` and `scripts/post-merge.sh`** *(v3 candidates)* — auto-push hook with token-leak surface and `npm install`-not-`ci` post-merge install. See Dimension 1 for details. Either keep with hardening (rotate `GITHUB_TOKEN` scope, switch to `npm ci`, fix the hardcoded `rmg007` org-name) or delete.
+  * **`scripts/dev-with-roadie.mjs`** — wraps Roadie around the dev server; per master-plan §8 the Roadie integration is broken and developers use `npm run dev:app` directly. Either fix Roadie or delete the wrapper and the `npm run dev` script.
   * **Inherited Python pipeline (23 .py files tracked in git).** Confirmed by `git ls-files '*.py'`: `pipeline/cli.py`, `pipeline/generate.py`, `pipeline/hints.py`, `pipeline/level_archetypes.py`, `pipeline/llm.py`, `pipeline/parity_test.py`, `pipeline/phase-0-fixes.py`, `pipeline/phase_0b1_handauthor.py`, `pipeline/schemas.py`, `pipeline/validate_and_report.py`, `pipeline/validators_py.py`, `pipeline/verify.py`, `pipeline/__init__.py`, plus `main.py`, `test_hints.py` (root), `validation-data/scripts/check.py`, and `.claude/HINTS_GENERATION_DEMO.py`, `.claude/accumulate_templates.py`, `.claude/coverage_report.py`, `.claude/dedup_and_analyze.py`, `.claude/merge_hints.py`, `.claude/merge_hints_v2.py`, `.claude/merge_outputs.py`. Plus two `pyproject.toml` files. The pipeline is a build-time tool that generates curriculum content; only `public/curriculum/v1.json` and `src/curriculum/bundle.json` are runtime artifacts. **Action:** extract to a sibling `questerix-curriculum-pipeline` repo; commit only the JSON outputs here.
   * **Repo-root debris.** `Topics.docx` (81,111 bytes — Word document tracked at root), `main.py` (102 bytes), `test_hints.py` (5,143 bytes), root-level `pyproject.toml`, `.replit`, `replit.md`. Inherited brainstorm and platform-binding artifacts. Move `Topics.docx` to `PLANS/archive/` if of historical value; delete the rest with the pipeline migration. Decide whether Replit is a supported environment; if not, remove `.replit`/`replit.md`.
   * **Inherited directories at repo root** — `attached_assets/`, `curriculum-source/`, `install/`, `deploy/`, `artifacts/`, `validation/`, `validation-data/`, `mockup-sandbox/`. `git ls-files` confirms ~214 of 517 tracked files (41%) sit inside these roots. Audit each; consolidate into `PLANS/archive/` or delete. **Target after pruning: 517 → ~300 tracked files.**
@@ -153,7 +193,11 @@ The K–2 persona is, by C3, the **only** intended user for the MVP. Every inter
   * **BUG-04 — Hint ladder stuck on Tier 1.** Repeated hint presses replay the same Tier-1 message; Tier 2 (visual midpoint overlay) and Tier 3 (worked example) never fire despite being authored. Removes the only pedagogical scaffold available to a struggling student.
   * **G-C3 — No UI route to Level 2-9.** The adventure map is decorative — exactly three tappable stations exist (Play!, Continue, Settings) per master-plan §5.1. A student who finishes L1 has nowhere to go. Direct cause of the user feedback "couldn't go till the last level." Worse: the visual affordance of a winding path with level badges *lies* about what's interactive — the child taps every node before learning none respond, exhausting working memory before reaching the actual primary action.
   * **G-C7 — "Keep going" loops Level 1.** `LevelScene.showSessionComplete()`'s "Keep going ▶" button calls `loadQuestion(questionIndex + 1)` which increments within the same level rather than advancing `levelNumber`. A student who masters halves is sent back to halves with no acknowledgement of progression — invisible regression.
-  * **G-UX3 / G-UX8 — TTS built but never called.** `TTSService` (Web Speech API, K-2-tuned 0.95× rate) exists; `PreferenceToggle` works in `SettingsScene`; `tts.speak(promptText)` is **never invoked** on question load. K–2 students with developing reading fluency cannot independently start a session that requires reading the prompt. Critical accessibility regression for the target persona — turns every prompt into a literacy hurdle before it becomes a math hurdle.
+  * **G-UX3 / G-UX8 — TTS audit correction (this branch).** The `architecture-review-2026-04-27.md` claim that "TTS is never called" is **outdated for this branch**. Re-read by `git grep`: `Level01Scene.ts:258` and `:492`, `LevelScene.ts:151` and `:224`, and `scenes/utils/announce.ts:21` all call `tts.setEnabled` / `tts.speak`. The wire is no longer cut — but real-browser verification on iPad Safari is required to confirm prompts actually speak (Web Speech API has well-known autoplay-policy and voice-load races that the silently-swallowing catch at `TTSService.ts:35` will hide). Treat this as "wired-but-unverified," not "not-built."
+  * **The intelligence layer is invisible to the student even when TTS works.** Even with prompts being spoken, with detectors flagging EOL-01, with hints escalating — none of the *adaptive* signal reaches the K-2 player because `selectNextQuestion` never picks the next question (templates are statically sequenced in scenes), `decideNextLevel` never routes (the level is whatever was passed into scene init), and `CalibrationState` never gates the first 5 attempts of a returning session. The student feels constant difficulty regardless of accuracy. The "smart" brand promise is currently undeliverable for engine-museum reasons orthogonal to BUG-01/BUG-02.
+  * **PWA 30-day curriculum cache as a UX time-bomb.** `vite.config.ts:25` — `CacheFirst` with `maxAgeSeconds: 30 * 86400`. A student who plays once today and again in 25 days will see the curriculum from build day, not the latest patch — including a fix to BUG-01. With no content-hash on the URL, the only way to bust the cache is a Workbox SW update *and* the user opening the app long enough for `autoUpdate` to fire.
+  * **The "no content" excuse is no longer valid.** *(v3 correction.)* All 9 levels have 10–40 authored templates each (L01:39, L02:40, L03:27, L04:19, L05:10, L06:30, L07:30, L08:30, L09:30 — 255 total in the live bundle). The student-facing experience is gated entirely by the missing UI route to L2-L9 (G-C3) and the "Keep going" loop bug (G-C7). Sprint 4 in the master plan ("Author L3–L9 templates ≥10 each") is largely already done.
+  * **`Level01Scene.ts:675` validator-lookup bug visibility.** *(v3.)* The `as never` cast at the validator dispatch silently routes every L1 question through the hardcoded `partitionEqualAreas` fallback. As long as L1 stays partition-only, students don't notice. The moment a `partition.equalCount` or `identify` template enters the L1 pool *and the scene loads it through the wrong path*, the student will see "Wrong" on a correct answer. This is a latent BUG-02-style trap waiting for content drift.
   * **`SettingsScene` over-serves the K–2 persona.** 393 lines, six controls (Reduced Motion, TTS Enabled, Storage Permission, Export Backup, Reset Device, Privacy Notice). For the *actual* end user (5–7 years old), only TTS is age-relevant; the remaining five are caregiver-tier controls in a product that explicitly parks the caregiver surface (`G-UX1`) to a future milestone. The screen distracts the persona from the task and offers a one-tap path to data destruction.
   * **Settings-gear ambiguity** (BUG-05). Earlier QA flagged the gear as routing to Level 1; architecture review reclassified as IDE-preview artifact since `MenuScene` calls `scene.launch('SettingsScene')`. Until verified in a real Chrome tab, the team carries a phantom risk and cannot trust the menu's primary affordance.
   * **No K-2-emotional verification of feedback animations.** `EXACT → green + "Correct! Great work."`, `CLOSE → amber + "Almost! Try a tiny adjustment."`, `WRONG → shake + "Not quite — try again."` are blocked by BUG-02 and have never been seen by a target-age proxy. Risk: animations land flat, copy lands scary, or both.
@@ -171,16 +215,18 @@ The sequence below is dependency-ordered: each phase removes a precondition for 
 
 * **Phase 1 — Stop the bleeding: telemetry foundation + Sprint 0 unblock.**
   1. **Same day** — Fix BUG-01 (template filter to `archetype === 'partition'`, ~10 min) and verify in a real Chrome tab. Capture the failing path of BUG-02 with the existing `?log=DRAG,VALID,Q` filter, then fix `handlePos` plumbing or widen `SNAP_PCT` (~30 min). Fix BUG-04 hint-tier counter (~15 min). Retest the settings-gear (BUG-05) in a real browser to either close or escalate. Capture round-trip Menu → L1 → 5-correct → session-complete screenshots into `PLANS/screenshots/`.
-  2. **Same week** — Rewrite `src/lib/log.ts` as a `Logger` factory + sink array (`ConsoleSink` dev-only, `IndexedDBSink` always-on). Bump Dexie to schema v4 with `telemetryEvents: '++id, kind, severity, ts, traceId, [traceId+ts]'` and `telemetryEventRepo`. Pair `window.addEventListener('error', ...)` with the rewritten `unhandledrejection` handler in `src/main.ts`; both route through the new logger. Wire the `sessionTelemetry` writer at session open. Migrate ~5 callers of `lib/logger.ts`; delete the duplicate. Eliminate the inline logger in `engine/calibration.ts`. Drop the duplicate `workbox-window` from `devDependencies`. Remove the `nanoid` dynamic import (route through a temporary inline `crypto.randomUUID()` wrapper until the `IdGenerator` port lands in Phase 2).
-  3. **Phase 1 exit criteria:** student completes a 5-question session in a real browser; production builds emit structured errors to IndexedDB; no scene calls a deprecated logger; package.json declares no hidden runtime deps; `sessionTelemetry` table is no longer dead-letter.
+  2. **Same week** — Rewrite `src/lib/log.ts` as a `Logger` factory + sink array (`ConsoleSink` dev-only, `IndexedDBSink` always-on). Bump Dexie to **schema v5** (not v4 — already shipped on this branch) with `telemetryEvents: '++id, kind, severity, ts, traceId, [traceId+ts]'` and `telemetryEventRepo`. Pair `window.addEventListener('error', ...)` with the rewritten `unhandledrejection` handler in `src/main.ts`; both route through the new logger. **Replace the three silent-swallow catches** at `lib/preferences.ts:28-34`, `audio/TTSService.ts:35` and `:43`, and `MenuScene.ts:789` with structured `logger.warn` calls. Wire the `sessionTelemetry` writer at session open. Migrate ~5 callers of `lib/logger.ts`; delete the duplicate. Eliminate the inline logger in `engine/calibration.ts`. Drop the duplicate `workbox-window` from `devDependencies`. Remove the `nanoid` dynamic import (route through a temporary inline `crypto.randomUUID()` wrapper until the `IdGenerator` port lands in Phase 2).
+  3. **Same week (schema integrity)** — Replace `seed.ts:68` hardcoded `schemaVersion: 3` with a single `CURRENT_SCHEMA_VERSION` constant exported from `db.ts` (currently 4); add a one-time `deviceMetaRepo.update({ schemaVersion: CURRENT_SCHEMA_VERSION })` migration step in `seedIfEmpty` for existing rows.
+  4. **Same week (v3 housekeeping)** — Fix the `Level01Scene.ts:675` validator lookup: replace `validatorRegistry.get(this.currentQuestion.id as never)` with `getValidator(template.validatorId)`. Remove the `as never` cast permanently; add an ESLint rule `no-restricted-syntax` for `as never` in `src/scenes/**`. Fix the `synthetic-playtest.yml:33` port from `5173` to `5000`. Reconcile Node version: pick one (Node 24 if Vite 8 supports cleanly, Node 20 if conservative) and update `.nvmrc`, `.replit`, `lighthouse.yml`, `synthetic-playtest.yml`, `ci.yml`, `deploy.yml` to match. Switch `scripts/post-merge.sh` from `npm install` to `npm ci`. Decide on `scripts/post-commit-push.sh`: rotate `GITHUB_TOKEN` scope or delete the auto-push.
+  5. **Phase 1 exit criteria:** student completes a 5-question session in a real browser; production builds emit structured errors to IndexedDB; no scene calls a deprecated logger; package.json declares no hidden runtime deps; `sessionTelemetry` table is no longer dead-letter; `deviceMeta.schemaVersion` matches Dexie's actual version; `Level01Scene` validator lookup uses `validatorId`; synthetic-playtest CI is on the right port; one Node version across the project.
 
 * **Phase 2 — Restore architectural integrity: Application layer + engine purity + close C5 (Sprint 1 + Sprint 2).**
   1. **Engine-purity ports first.** Add `src/engine/ports.ts` with `Clock`, `IdGenerator`, `Rng`, `Logger`, `Viewport` interfaces. Refactor `misconceptionDetectors.ts`, `selection.ts`, `calibration.ts` to receive ports. Provide `SystemClock`, `CryptoUuidGenerator`, `MathRandomRng`, `ConsoleLogger` adapters in `src/lib/adapters/`; provide `FixedClock`, `SequentialIdGenerator`, `MulberryRng(seed)` test doubles. Add ESLint rule forbidding `crypto`, `Date`, `Math.random`, `window`, `document`, `console`, `localStorage`, `fetch` in `src/engine/**` and `src/validators/**`. Unblocks deterministic detector and selection tests with `fast-check`.
-  2. **Stand up `src/application/`** with `SubmitAttemptUseCase`, `OpenSessionUseCase`, `CloseSessionUseCase`, `LoadLevelTemplatesUseCase`, `RecordHintUseCase`, `MarkLevelCompleteUseCase`, `GetUnlockedLevelsUseCase`, `ResetDeviceUseCase`, `ExportBackupUseCase`. Move the ~600 LOC of orchestration out of both scene files. Introduce `SkillIdResolver` (single mastery namespace), `SessionFactory`, `SessionSummaryCalculator`, `LevelUnlockPolicy`, `ValidationService`. Wire BKT (`updateMastery`) and detectors (`runAllDetectors`) into `SubmitAttemptUseCase`. **Closes G-E1 through G-E5 in one structural move and silences the L1/L2 contract divergence.**
+  2. **Stand up `src/application/`** with `SubmitAttemptUseCase`, `OpenSessionUseCase`, `CloseSessionUseCase`, `LoadNextQuestionUseCase`, `RecordHintUseCase`, `MarkLevelCompleteUseCase`, `GetUnlockedLevelsUseCase`, `ResetDeviceUseCase`, `ExportBackupUseCase`. Move the ~600 LOC of orchestration out of both scene files. Introduce `SkillIdResolver` (single mastery namespace), `SessionFactory`, `SessionSummaryCalculator`, `LevelUnlockPolicy`, `ValidationService`. **Wire the engine museum:** `LoadNextQuestionUseCase` calls `selectNextQuestion` (with `MathRandomRng` adapter), `decideNextLevel` (with the prereq map), and respects `CalibrationState`. `SubmitAttemptUseCase` calls `updateMastery` (BKT) and `runAllDetectors`, then persists via the now-port-fronted repositories. **Closes G-E1 through G-E5 in one structural move, silences the L1/L2 contract divergence, and resurrects the engine — `selectNextQuestion`, `decideNextLevel`, `CalibrationState` all run on every attempt for the first time.**
   3. **Replace `MenuScene` `localStorage` unlock state** with `ProgressionRepository` writes via `MarkLevelCompleteUseCase`. One-time migration copies existing `localStorage.unlockedLevels:*` keys into Dexie, then deletes them. **Closes the C5 breach.** Make adventure-map nodes tappable through `GetUnlockedLevelsUseCase` results. Fix "Keep going" to advance `levelNumber` (G-C7).
   4. **Sunset `Level01Scene.ts`.** Once `LevelScene.ts` consumes the use cases and reaches parity, delete `Level01Scene.ts` and its hardcoded `QUESTIONS` array. Replace dynamic `await import()` calls with eager top-of-file imports. Add the ESLint `no-restricted-syntax` rule forbidding dynamic imports of `src/persistence/**` and `src/engine/**` from `src/scenes/**` — architecture becomes self-policing.
   5. **Application-layer instrumentation.** At the use-case seam (which now exists), wrap repository and validator dispatch with `performance.now()` brackets emitting to the `Logger`. Open `tracer.startSpan('attempt.cascade')` at the top of `SubmitAttemptUseCase.execute`; propagate `spanContext().traceId` into `Attempt.traceId` (Dexie schema v5 bump).
-  6. **Phase 2 exit criteria:** mastery state visible in IndexedDB after 5 questions; Level 2 is reachable from the menu; no scene imports a Dexie repository directly; no detector calls `Date.now()` or `crypto`; latency histograms accumulate in `telemetryEvents`; engine unit tests are deterministic with seeded RNG.
+  6. **Phase 2 exit criteria:** mastery state visible in IndexedDB after 5 questions; Level 2 is reachable from the menu; no scene imports a Dexie repository directly; no detector calls `Date.now()` or `crypto`; latency histograms accumulate in `telemetryEvents`; engine unit tests are deterministic with seeded RNG; **the engine museum is reopened — `selectNextQuestion`, `decideNextLevel`, `CalibrationState` are all on the live attempt path.**
 
 * **Phase 3 — Distil the interface, harden the perimeter, ship (Sprint 3 + Sprint 4 + Sprint 5).**
   1. **Cognitive-load distillation.** Activate TTS at question load (G-UX3, G-UX8). Move hardcoded hint copy to `src/curriculum/hints/` JSON. Extract `src/lib/accessibility.ts` for the five duplicated `prefersReducedMotion` checks. Trim `SettingsScene` to controls appropriate for the K–2 persona — TTS as the only direct control; relocate Reduced Motion to OS-default + a hidden 5-tap caregiver gesture; move Export Backup, Reset Device, Storage Permission, Privacy Notice behind a future caregiver surface gated when `G-UX1` returns from "parked". Playtest feedback animations with a target-age proxy.
@@ -188,9 +234,398 @@ The sequence below is dependency-ordered: each phase removes a precondition for 
   3. **Portability hardening.** Repository port interfaces (`src/persistence/ports/`) + concrete implementations in `src/persistence/dexie/`. `BundleSource` adapters in `src/lib/adapters/` (Http, Embedded, Fallback). `BackupSink` adapters (DownloadAnchor, FileSystem, WebShare). `Viewport` port. Promote `src/main.ts` to thin composition root assembling the full DI container. Removes every remaining host-global from the domain.
   4. **Observability graduation.** Adopt OpenTelemetry-JS + `@sentry/browser`; replace the `IndexedDBSink` with a `BufferedExporter` that drains via `navigator.sendBeacon` on `pagehide` and `fetch(..., { keepalive: true })` fallback. Stamp every record with `import.meta.env.VITE_GIT_SHA` injected by Vite from CI. Add `web-vitals` for INP/LCP/CLS sampling and `PerformanceObserver({ entryTypes: ['longtask'] })`. Add `DeviceMeta.preferences.telemetryConsent` privacy gate.
   5. **Production gates.** iPad Safari touch-drag verification (G-OPS2 — primary K–2 device, currently untested). Playwright happy-path E2E (`tests/e2e/level-1-happy-path.spec.ts`) using existing TestHooks. Expand BKT, validator, and detector unit tests with `fast-check`. Either land a hand-rolled service worker (~80 LOC) or freeze `vite-plugin-pwa@0.21`. Lighthouse PWA audit. Cloudflare Pages deploy via existing `wrangler.toml`. Three telemetry smoke tests (`tests/integration/telemetry.{boot,attempt,error}.test.ts`).
-  6. **Final pruning.** Migrate ESLint 8 → 9 + flat config (with `@typescript-eslint/*` v8). Delete `src/lib/logger.ts`. Archive `PLANS/phase-3-*.md`. Audit and consolidate `mockup-sandbox/`, `attached_assets/`, `screenshots/`. Delete orphan validators identified during port-interface introduction. Drop `fast-check` if engine property tests did not land; drop Tailwind if usage stayed below ~5 directives. Pin exact versions for Phaser 4, Tailwind v4, TypeScript 6, Vite 8.
-  7. **Phase 3 exit criteria:** app installable on iPad with TTS reading prompts; fully observable in production with consented telemetry reaching the configured collector; every domain module testable without booting Phaser; `SettingsScene` contains zero controls inappropriate for the K–2 persona; ≤ 50-hour MVP budget intact.
+  6. **Inherited-artifact eviction (deeper-pass priority).** **Extract the Python pipeline to a sibling repo** (`questerix-curriculum-pipeline`); commit only the JSON outputs to this repo. Eliminates 23 `.py` files, two `pyproject.toml`, the `.venv/` reference, and the `pipeline/`-related ESLint/lint exclusions. Move `Topics.docx` to `PLANS/archive/` (or delete); delete `main.py`, `test_hints.py`, root `pyproject.toml`. Reconcile `.lighthouserc.json` vs `lighthouserc.cjs` (delete one). Audit `attached_assets/`, `curriculum-source/`, `install/`, `deploy/`, `artifacts/`, `validation/`, `validation-data/`, `mockup-sandbox/` — consolidate into `PLANS/archive/` or delete. Decide on `.replit`/`replit.md` retention. Migrate `scripts/create-pages-project.cjs` to ESM. **Target: cut 517 → ~300 tracked files.**
+  7. **Final pruning.** Migrate ESLint 8 → 9 + flat config (with `@typescript-eslint/*` v8). Delete `src/lib/logger.ts`. Archive `PLANS/phase-3-*.md`. Delete orphan validators identified during port-interface introduction. Drop `fast-check` if engine property tests did not land; drop Tailwind if usage stayed below ~5 directives. Pin exact versions for Phaser 4, Tailwind v4, TypeScript 6, Vite 8. Add a content-hash to the curriculum URL (or rev the URL path on each release) to bust the 30-day `CacheFirst` cache without an SW update. Lift the commented-out `noUncheckedIndexedAccess` and `noPropertyAccessFromIndexSignature` flags in `tsconfig.json`.
+  8. **Phase 3 exit criteria:** app installable on iPad with TTS reading prompts; fully observable in production with consented telemetry reaching the configured collector; every domain module testable without booting Phaser; `SettingsScene` contains zero controls inappropriate for the K–2 persona; the Python pipeline lives in a separate repository; orphan validators (`partition.equalCount`, `placement.*`) deleted or backed by content; ≤ 50-hour MVP budget intact.
 
 ---
 
-*File: `PLANS/master_audit_roadmap.md` · Status: ACTIVE · Re-evaluate at each phase exit; append new findings as separate dated sections rather than rewriting prior ones. Cross-references to all source audits are listed in the header. The next audit run after Phase 1 closes should verify (a) production logs reach IndexedDB, (b) `sessionTelemetry` table is no longer empty, (c) BUG-01/02/04 are closed in a screenshot-evidenced session.*
+## Appendix B — Security & CI/CD Posture (v3 deeper-pass)
+
+The team has invested meaningfully in security and CI; the v2 audit underweighted both. This appendix consolidates the posture so future audits don't repeat the omission.
+
+### Security headers (production, via `public/_headers` for Cloudflare Pages)
+
+| Header | Value | Strength |
+|---|---|---|
+| `Strict-Transport-Security` | `max-age=63072000` (2 years) | Strong |
+| `X-Content-Type-Options` | `nosniff` | Standard |
+| `X-Frame-Options` | `DENY` | Strong (no embedding) |
+| `Referrer-Policy` | `no-referrer` | Maximally privacy-preserving |
+| `Content-Security-Policy` | `default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'` | Strong; single weakness `'unsafe-inline'` for element-attribute styles (used by `SkipLink`, `AccessibilityAnnouncer`) |
+| `Permissions-Policy` | denies accelerometer, camera, geolocation, gyroscope, microphone, payment, usb | Strong |
+| `Cross-Origin-Opener-Policy` | `same-origin` | Strong (window-isolation) |
+| `Cross-Origin-Embedder-Policy` | `require-corp` | Strict — any future cross-origin resource without CORP headers will silently fail to load |
+| `/sw.js` Cache-Control | `no-cache, no-store, must-revalidate` | Correct for `autoUpdate` |
+| `/manifest.json` Cache-Control | `no-cache` | Correct |
+
+**Verdict:** posture is good for a privacy-first kids' app. The single open question is whether the `'unsafe-inline'` style-src can be tightened by hashing or nonce-ing the inline styles in `SkipLink.ts:50-64` and `AccessibilityAnnouncer.ts:18-28` — likely not worth the maintenance cost.
+
+### Privacy notice (`public/privacy.html`)
+
+COPPA-compliant, explicit about local-only IndexedDB storage, no PII collection, no third-party trackers, no advertising, no network calls during gameplay. Single observation: **personal email address `ryanmidogonzalez@gmail.com` is hardcoded as the contact** — fine for a solo project; would warrant a project alias or `noreply@questerix.app` once the team grows.
+
+### CI/CD gates (`.github/workflows/`)
+
+| Workflow | Trigger | Gates |
+|---|---|---|
+| `ci.yml` | `push` + `pull_request` | typecheck → lint → unit → integration → playwright e2e → a11y (axe) → production build → **bundle-size hard gate at 1.0 MB gzipped JS** |
+| `deploy.yml` | `push` to `main` | build → bundle-size gate → Cloudflare Pages deploy via `cloudflare/pages-action@1` |
+| `lighthouse.yml` | every PR/push | Lighthouse CI autorun (per `lhci@0.14.x`) |
+| `content-validation.yml` | PRs touching `pipeline/output/**` or `public/curriculum/**` | runs Python pipeline's `verify --strict --templates-only` per level |
+| `synthetic-playtest.yml` | weekly cron + manual | persona-driven Playwright playtest (currently broken — port mismatch, see Dimension 1) |
+
+**Strengths:** the bundle-size budget is a *real* gate that has blocked deploys. Lighthouse CI on every PR catches perf regressions in development. Content validation catches malformed curriculum before merge.
+
+**Weaknesses:**
+* **Three Node versions** (Node 24 in ci/deploy; Node 20 in lighthouse/synthetic/.replit/.nvmrc) — see Dimension 1.
+* **Synthetic-playtest port mismatch** has been silently failing weekly — see Dimension 1.
+* **Solo CODEOWNERS** = no peer review gate.
+* **`cloudflare/pages-action@1`** uses unpinned major — supply-chain drift surface.
+* **No CodeQL or Dependabot config visible** — `.github/` has `ISSUE_TEMPLATE` and `PULL_REQUEST_TEMPLATE.md` but no `dependabot.yml` or `codeql.yml`. Dependency-vulnerability scanning relies entirely on `npm audit` runs that are not in CI.
+* **No SRI hashes** on the few `<script>` tags in `index.html` — minor (only one `src="/src/main.ts"` exists, same-origin).
+
+### Auto-push hook risk (`scripts/post-commit-push.sh`)
+
+Intended to be installed as `.git/hooks/post-commit`. Uses `$GITHUB_TOKEN` to push to a hardcoded `https://github.com/rmg007/Questerix.Fractions` URL — **note the org name `rmg007` does not match `package.json:53` (`questerix/fractions`)**. The token-redaction in script output is correct, but the script itself is a token-leak surface in three ways:
+1. Any developer who exports `GITHUB_TOKEN` with broader scopes (e.g., a personal access token for cross-repo use) is one accidental commit from leaking history to the wrong repo.
+2. The hardcoded org-name suggests the script was written for a different repository and never updated.
+3. Auto-push bypasses local pre-push review.
+
+**Action:** delete unless explicitly required; if kept, scope `GITHUB_TOKEN` to the single repo and reconcile the URL with `package.json`.
+
+### Backup/restore security surface
+
+Backup export (`backup.ts:56-110`) writes a JSON Blob to a user-triggered download — no PII risk, all data local. Restore (`backup.ts:125-208`) reads a user-uploaded `File` via `JSON.parse(text) as BackupEnvelope`. Schema-version check exists (`:135`) but no row-shape validation. Modern V8 does not call setters during `JSON.parse`, so direct prototype pollution via `__proto__` keys is mitigated; the residual risk is corrupt-but-syntactically-valid rows that pass into Dexie `add()` and corrupt indexes. Bounded — the only attacker is the user themselves on their own device, but worth a defensive `validateRow(table, row)` call before each add.
+
+### Threat model summary
+
+The threat model is light by design (no backend, no network during gameplay, no PII, COPPA-compliant). The remaining surfaces are:
+1. **User-supplied backup files** — bounded; add row-shape validation.
+2. **Curriculum bundle integrity** — currently relies on build-time `content-validation.yml` Python verifier; runtime `loader.ts:80-117` accepts both legacy and comprehensive formats with silent-degradation fallback. A malicious or malformed bundle served from `/curriculum/v1.json` could brick L1; CSP and same-origin enforcement prevent cross-origin substitution.
+3. **PWA service-worker hijacking** — `_headers` `/sw.js: no-cache` and the `autoUpdate` registration mitigate; weak link is the 30-day `CacheFirst` curriculum cache that can be poisoned only if the SW itself is compromised.
+4. **Token-leak via auto-push hook** — see above.
+5. **`'unsafe-inline'` style-src** — narrow surface; only allows attribute-level styles, not `<style>` injection.
+
+There is no concerning XSS surface in `src/`: zero `innerHTML`, zero `dangerouslySetInnerHTML`, zero `eval`, zero `new Function`, zero `document.write` (verified by Grep). Phaser canvas rendering is the dominant UI surface; HTML escapes are enforced by the framework.
+
+---
+
+## Appendix A — Quantitative Snapshot (deeper-pass evidence)
+
+Numbers below were captured by direct file inspection (`wc -l`, `wc -c`, `git ls-files`, `git grep`) on 2026-04-27. Recapture at each phase exit; drift in either direction is itself a signal.
+
+| Metric | Value | Method |
+|---|---|---|
+| Total tracked files | 517 | `git ls-files \| wc -l` |
+| Tracked files in inherited-artifact roots | 214 (41%) | `git ls-files \| grep -E '^(pipeline\|validation\|validation-data\|curriculum-source\|install\|deploy\|artifacts\|attached_assets)'` |
+| Python files in repo | 23 | `git ls-files '*.py' \| wc -l` |
+| `Date.now()` call sites in `src/` | 45 | aggregate of `git grep -c "Date.now()" -- 'src/**'` |
+| `console.{log,warn,error,info}` call sites in `src/` | 50+ | aggregate of `git grep -c "console\\.\\(log\\|warn\\|error\\|info\\)" -- 'src/**'` |
+| `Level01Scene.ts` LOC | 1,192 | `wc -l` |
+| `LevelScene.ts` LOC | 885 | `wc -l` |
+| `MenuScene.ts` LOC | 805 | `wc -l` |
+| Total scene LOC (incl. Settings 392, Boot 123, Preload 135) | 3,532 | `wc -l` |
+| Total engine LOC (`bkt + router + selection + calibration + misconceptionDetectors`) | 707 | `wc -l` |
+| Total validator LOC | 729 | `wc -l src/validators/*.ts` |
+| Total interaction LOC | 1,221 | `wc -l src/scenes/interactions/*.ts` |
+| Curriculum bundle size (each copy) | 103,239 bytes | `wc -c` |
+| Number of curriculum bundle copies | 2 (`public/curriculum/v1.json`, `src/curriculum/bundle.json`) | direct inspection |
+| Engine functions called from production code (excl. tests) | **2 of ~10** (`runAllDetectors`, `tts.speak`) | `git grep` for entry points |
+| Schema version mismatch | Dexie v4 vs hardcoded `deviceMeta.schemaVersion: 3` | `db.ts:115` vs `seed.ts:68` |
+| Lighthouse configs | 2 (`.lighthouserc.json`, `lighthouserc.cjs`) | `ls` |
+| Vitest configs | 4 (`vitest.config.ts`, `vitest.engine.config.ts`, `vitest.validators.config.ts`, `vitest.integration.config.ts`) | `git ls-files` |
+| Logger substrates | 3 (`lib/log.ts`, `lib/logger.ts`, `engine/calibration.ts:20` inline) | `git grep` |
+| `prefersReducedMotion` duplicates | 6 (5 scenes + `lib/preferences.ts:43`) | direct inspection |
+| Production error sink | none | `lib/log.ts:47` short-circuits in PROD |
+| `window.onerror` handler | absent | Grep confirms zero matches |
+| `sessionTelemetry` writers in `src/` | 0 | Grep confirms zero matches |
+| Vite chunk-size warning threshold | 1,400 KB (default 500) | `vite.config.ts:82` |
+| PWA cache TTL on curriculum | 30 days | `vite.config.ts:25` |
+| PWA exercised in dev | no | `vite.config.ts:7` |
+| Three silent-swallow catches | `lib/preferences.ts:28-34`, `audio/TTSService.ts:35` and `:43`, `MenuScene.ts:789` | direct inspection |
+| TTS call sites in production code | 5 (`Level01Scene.ts:258, 492`; `LevelScene.ts:151, 224`; `announce.ts:21`) | `git grep` — **corrects earlier "TTS never called" claim** |
+| Total curriculum templates in live bundle | 255 (L01:39, L02:40, L03:27, L04:19, L05:10, L06:30, L07:30, L08:30, L09:30) | full `public/curriculum/v1.json` parse |
+| Unique validator IDs used in bundle | 9 (one per active archetype) | full bundle parse |
+| Validators registered but unused (orphan) | 3 (`partition.equalCount`, all `placement.*`) | bundle parse vs `validators/registry.ts` |
+| Total test files | 26 (16 unit, 3 integration, 3 e2e, 1 a11y, 3 synthetic) | `find tests -name "*.ts"` |
+| Validator unit tests | 9 (incl. 2 property-based with `fast-check`) | `find tests/unit/validators` |
+| Silent-swallow catches | 7 (`preferences.ts:28`, `TTSService.ts:35` and `:43`, `MenuScene.ts:789`, `AccessibilityAnnouncer.ts:55`, `SkipLink.ts:31` and `:77`) | direct inspection — **corrects v2's "three"** |
+| Node versions across project | 3 (`.nvmrc:20`, `.replit:nodejs-20`, `ci.yml:24`, `deploy.yml:24`, `lighthouse.yml:20`, `synthetic-playtest.yml:20`) | direct inspection |
+| CI gates blocking merge | 8 (typecheck, lint, unit, integration, e2e, a11y, build, bundle-size ≤ 1.0 MB gz JS) | `ci.yml` |
+| GitHub Actions workflows | 5 (`ci`, `content-validation`, `deploy`, `lighthouse`, `synthetic-playtest`) | `ls .github/workflows/` |
+| Synthetic-playtest CI status | broken (port mismatch — expects 5173, dev:app serves 5000) | `synthetic-playtest.yml:33` vs `vite.config.ts:59` |
+| CSP deployment | strong (via `public/_headers`) — **corrects v2's "no CSP" implication** | `_headers` file |
+| Validator-lookup bug at `Level01Scene.ts:675` | passes `currentQuestion.id` (e.g. `q:pt:L1:0001`) where validator ID expected; masked by `as never` cast | direct read |
+| `Topics.docx` | 81,111 bytes tracked in repo root | `wc -c` |
+| Local fonts shipped | yes — `public/fonts/{fredoka-one,nunito-400,nunito-700}.woff2` + LICENSE | direct inspection |
+| PWA manifest icons | 4 (any 192/512 + maskable 192/512) | `public/manifest.json` |
+| `public/about.html` | exists, accessible, self-contained | direct read |
+
+---
+
+## Round 2 Addendum — Deep Reconnaissance (2026-04-27, second pass)
+
+**Mandate:** dig deeper than the synthesis pass. Verify each finding with direct file inspection rather than relying on prior audits. Flag findings the earlier dimensions missed entirely. Promote any finding to the Executive Summary if it changes the threat ranking.
+
+**Headline result:** the prior round identified the *missing Application layer* and the *production telemetry void* as the two greatest threats. This pass confirms both — and surfaces a third, equally severe, that the synthesis missed: **the interaction → validator wiring is broken in 5 of 10 archetypes.** It is mathematically impossible for a student in this branch to ever submit a "correct" answer in `compare`, `order`, `snap_match`, `benchmark`, or `placement`. BUG-02 (validator never accepts) is not unique to partition; it is the *single instance* of a defect that recurs five more times, currently hidden because no UI route to L2–9 exists. The moment Sprint 2 ships (G-C3 closed), every non-partition archetype will surface its own BUG-02 simultaneously. Fix the contract drift in Phase 1, not Phase 4 with the content authoring.
+
+---
+
+### R2.1 — Updated Executive Threat Ranking
+
+| Rank | Threat | Status | Severity |
+|---|---|---|---|
+| 1 | **Missing Application layer** (root of scene bloat, BKT divergence, dynamic-import epidemic) | Already documented | 🔴 Catastrophic |
+| 2 | **Production telemetry is `/dev/null`** (no error sink, no `window.onerror`, dead-letter `sessionTelemetry`) | Already documented | 🔴 Catastrophic |
+| 3 | **Validator-input contract drift across 5 archetypes** (newly surfaced) — interactions emit one shape, validators expect another; runtime crashes or false-positive scoring guaranteed once L2–9 ship | **NEW — promote to Executive Summary** | 🔴 Critical |
+| 4 | **Validator registry is a dead abstraction in `Level01Scene`** — wrong-keyed lookup at `Level01Scene.ts:675` (`validatorRegistry.get(this.currentQuestion.id as never)`); fallback to direct partition validator always fires | **NEW** | 🔴 Critical |
+| 5 | **Engine museum** (`selectNextQuestion`, `decideNextLevel`, `CalibrationState`, `updateMastery` have zero production callers) | Captured in v2 Executive Summary | 🟡 High |
+| 6 | **Hint-event/Attempt linkage permanently broken** — every persisted `HintEvent.attemptId === ''` (cast `'' as unknown as AttemptId` at `Level01Scene.ts:843` and `LevelScene.ts:672`); `hintEventRepo.listForAttempt(id)` never returns rows | **NEW** | 🟡 High |
+| 7 | **Inherited Python pipeline + repo-root debris** (41% of tracked files non-runtime) | Captured in v2 | 🟡 High |
+| 8 | **Acute presentation defects** (BUG-01, BUG-02 partition, BUG-04, G-C3, G-C7) | Captured in v1/v2 | 🟡 High |
+
+The Executive Summary at the top of this document should be amended to include #3, #4, and #6.
+
+---
+
+### R2.2 — Architecture & Portability (additions to Dimension 1)
+
+* **A-R2.1 — Validator-input contract drift across 5 archetypes (CRITICAL).** Each interaction emits a payload shape; each validator destructures by field name. Five pairs are mismatched:
+
+| Archetype | Interaction emits at | Validator expects (`Input`) | Effect |
+|---|---|---|---|
+| `compare` | `CompareInteraction.ts:130` — `{ relation, correct }` | `compare.ts:9` — `{ studentRelation }` | `studentRelation` is `undefined`; comparison `undefined === trueRelation` is always false. **Every compare answer scores `outcome:'incorrect'`.** |
+| `order` | `OrderInteraction.ts:141` — `{ sequence }` | `order.ts:8` — `{ studentSequence }` | `studentSequence` is `undefined`; line 33 `studentSequence.length` throws. **Every order submit raises a `TypeError`.** |
+| `snap_match` | `SnapMatchInteraction.ts:151` — `{ pairs }` | `snap_match.ts:9` — `{ studentPairs }` | `studentPairs` is `undefined`; line 39 `studentPairs.length` throws. **Every match submit raises a `TypeError`.** |
+| `benchmark` | `BenchmarkInteraction.ts:92` — `{ zone: key }` (single zone tap) | `benchmark.ts:11` — `{ studentPlacements: Map<string, BenchmarkZone> }` | Different shape entirely. If `expected.correctPlacements.size === 0`, returns `correct:1` (false positive); else line 38 `studentPlacements.get(fracId)` throws on undefined. **Every benchmark submit either crashes or scores 100% regardless of answer.** |
+| `placement` | `PlacementInteraction.ts:78` — `{ placedDecimal, exactTolerance, closeTolerance }` | `placement.ts:7-15` — `{ studentPlacedDecimal }` (input) + `{ targetDecimal, exactTolerance, closeTolerance }` (expected) | Wrong field name in input slot; tolerance fields placed in input rather than expected. Validator computes `Math.abs(undefined - target)` → `NaN`; all comparisons against `NaN` are false; falls through to `outcome:'incorrect'` with PRX-02 misconception detection misfiring on `NaN`. **Every placement scores wrong; misconception flags spurious.** |
+
+  * **Why prior audits missed it:** the SoC and architecture audits described the *registry-and-validator abstraction* but did not type-check the actual emit/destructure pairs. The visual QA report only exercised partition (the one archetype where interaction emits `{ handlePos }` and validator expects `{ handlePos }` — the names match by accident).
+  * **Why it matters now:** these are 5–10 line fixes per archetype but they need to land in **Phase 1**, before L2–9 templates are authored. Authoring 80 templates against silently-broken validators would require re-authoring once the bug is fixed.
+  * **Root cause:** `src/scenes/interactions/types.ts:16` — `onCommit: (payload: unknown) => void`. The interaction → scene boundary is `unknown`-typed in both directions; the wrong-shape bugs are precisely the failure mode this should prevent. Make `Interaction<A extends ArchetypeId>` generic on archetype with `onCommit: (payload: PayloadFor<A>) => void`; subsequent drift becomes a compile error.
+  * **Verification artefact for the Phase 1 exit:** add `tests/unit/interactions/contract.test.ts` — for each archetype, mount a stub Phaser scene, fire `onCommit` with a synthesised payload that should score `correct`, pipe through `validatorRegistry.get(activity.validatorId)?.fn(input, expected)`, assert `outcome === 'correct'`. Five trivial tests catch the entire defect class.
+
+* **A-R2.2 — Validator registry lookup uses the wrong key (CRITICAL).** `Level01Scene.ts:675` calls `validatorRegistry.get(this.currentQuestion.id as never)`. `this.currentQuestion.id` is a *template* ID like `q:ph:L1:0001`. The registry is keyed by *validator* IDs like `validator.partition.equalAreas` (`registry.ts:35-37`). The lookup **always returns `undefined`**, the `if (reg)` branch never executes, and the fallback to `partitionEqualAreas.fn(...)` (line 680) always fires. The whole registry abstraction is dead in `Level01Scene`. The cast `as never` is the smoking gun — the type system told the developer the lookup was wrong-keyed; the cast silenced it. `LevelScene.ts:418` looks up by `template.validatorId` (correct), so this defect is `Level01Scene`-only and disappears when L1 is sunset (per Dimension 1 directive). Until then, any L1 hard-tier template that should use a non-default validator silently uses `partitionEqualAreas`.
+
+* **A-R2.3 — `HintEvent.attemptId` is permanently the empty string (HIGH).** `Level01Scene.ts:843` writes `attemptId: '' as unknown as AttemptId` into the persisted hint event with the comment "Will be linked post-submission." `LevelScene.ts:672` does the same. `git grep` confirms there is **no link-post-submission code** anywhere in `src/`. Every `HintEvent` row in IndexedDB has `attemptId === ''`. The `hintEventRepo.listForAttempt(attemptId)` query (`hintEvent.ts:17`) — `db.hintEvents.where('attemptId').equals(attemptId).toArray()` — will never return rows for any real attempt. The attempt → hint-event join is permanently broken. `Attempt.hintsUsedIds` and `HintEvent.attemptId` are never reconciled. **Closes G-E3 only when the linkage is established by `RecordHintUseCase` minting the attempt ID first and threading it through.**
+
+* **A-R2.4 — Schema-version mismatch + no `.upgrade()` blocks (HIGH).** `db.ts:59-140` declares versions 1, 2, 3, 4 — each with `.stores()` only, never with `.upgrade(tx => ...)`. Dexie's auto-upgrade only re-creates indexes; **column-shape changes between versions go unnoticed.** `v3 → v4` adds the `validatorId` index on `questionTemplates`; existing v3 rows have no `validatorId` field on lookup unless re-seeded. Combined with `seed.ts:68`'s hardcoded `schemaVersion: 3` on every fresh `DeviceMeta` row (already noted in v2), returning students will hit "no questions for this level" silently because `[archetype+difficultyTier]` queries return empty when `archetype` is undefined.
+
+* **A-R2.5 — Curriculum loader 404 ≠ TypeError (MEDIUM).** `loader.ts:148-160` falls back to the bundled JSON **only on `TypeError`** (network-layer failure). A 404 from `/curriculum/v1.json` returns `response.ok = false` (line 139) and the bundled fallback is **NOT** used — the function returns the empty parse. In production, a stale CDN URL silently degrades to empty curriculum. Use the embedded source for any non-200 response, not just TypeError.
+
+* **A-R2.6 — Curriculum bundle inlined twice (MEDIUM).** `wc -c` on `src/curriculum/bundle.json` and `public/curriculum/v1.json` confirm both are identical 103,239 bytes. The Vite import `import bundledData from './bundle.json'` at `loader.ts:26` **always inlines** the 103 KB into the JS bundle (verified: `dist/assets/seed-*.js` is ~105 KB minified). Production users with a working CDN pay for both. Move the inline import behind an adapter that reads it lazily on TypeError fallback.
+
+* **A-R2.7 — Empty source directories `src/core/` and `src/fractions/` (LOW, hygiene).** `ls` confirms both are empty. They are listed in the project's repo map. Either populate or delete; today they are scaffolding mass that misleads new contributors.
+
+* **A-R2.8 — `Level01Scene` does not extend `LevelScene` despite parameterised constructor (LOW, signals divergent OO design).** `LevelScene.ts:82-84` — `constructor(key = 'LevelScene')`. The class was clearly designed to be subclassed. The intended polymorphism `class Level01Scene extends LevelScene { constructor() { super('Level01Scene'); } }` never landed; instead `Level01Scene` is a separate class with copy-pasted state. The roadmap's "sunset Level01" directive remains correct; this finding documents the *original* intent so the sunset is read as completion, not deletion.
+
+* **A-R2.9 — Module-level mutable singletons without DI seams.** `lib/preferences.ts:14` (`let cache: PreferenceCache | null = null` — global mutable state with no test-reset hook), `audio/TTSService.ts:58` (`export const tts = new TTSService()` — singleton, no swap path), `validators/registry.ts:35` (eager-built registry at module load), `persistence/db.ts:144` (`export const db = new QuesterixDB()` — instance-on-import). All typical browser-app patterns; all become test-friction once you try to swap behaviour.
+
+* **A-R2.10 — Type holes at four load-bearing seams (MEDIUM).** `as unknown as` casts at `curriculum/loader.ts:157`, `repositories/questionTemplate.ts:38`, `Level01Scene.ts:843`, `LevelScene.ts:672`. These bypass the type system at the boundaries that most need protection — bundle parsing, persistence, and the attempt cascade. Introduce runtime validation (hand-written type guards or a small `zod` parser) at the bundle-parse seam and the attempt-create boundary.
+
+* **A-R2.11 — Eighth duplicate of `prefersReducedMotion` confirmed.** Direct `Grep` lists 8 files referencing the check: 4 scenes (`Level01Scene`, `LevelScene`, `MenuScene`, `PreloadScene`), 3 components (`ProgressBar`, `FeedbackOverlay`, `DragHandle`), and `lib/preferences.ts`. The earlier audit said 5; the v2 update said 6; the actual count is **8**. Extract to `src/lib/accessibility.ts` and delete seven duplicates.
+
+---
+
+### R2.3 — Telemetry & Observability (additions to Dimension 2)
+
+* **T-R2.1 — `responseMs` measurement is two different durations under one column name (HIGH measurement defect).** `LevelScene.ts:441` measures *only the validator dispatch* — `const responseMs = Date.now() - startedAt` where `startedAt` is set inside `onSubmit` at line 413. `Level01Scene.ts:693` measures *think + animation + validator* — `const responseMs = Date.now() - this.questionStartTime`. Both numbers are persisted to `Attempt.responseMs`. BKT consumes `attempt.responseMs` indirectly via `session.avgResponseMs`. **The mastery model is being fed mismatched units depending on which scene the student played.** Cross-scene mastery analysis is uninterpretable. Define `responseMs` to mean exactly one thing — recommend `submittedAt − questionStartTime` (full think time) — and centralise in `SubmitAttemptUseCase`. While here, switch `Date.now()` to `performance.now()` for sub-ms monotonic timing.
+
+* **T-R2.2 — Catalogued: 40 console statements outside the logger substrate.** `Grep` count by module: `BootScene.ts` (10), `seed.ts` (6), `loader.ts` (6), `main.ts` (4), `db.ts` (3), `lib/log.ts` (3), `lib/logger.ts` (4 — dead file), `backup.ts` (1), `engine/calibration.ts` (1), `Level01Scene.ts` (1), `LevelScene.ts` (1). The pattern is consistent: **the load-bearing failure paths (boot, seed, curriculum-fetch) all use raw `console.*`** because developers correctly intuited that `lib/log.ts` would be silenced in production. Today those signals survive *only* as console output, never as structured records. The Phase 1 logger rewrite must absorb all 40 sites.
+
+* **T-R2.3 — `Level01Scene.ts:688` uses `console.error` directly while the rest of the file uses `log.error` (INCONSISTENCY).** A sole `console.error` survived a logger migration. Logs from this site format differently than every other site in the same file — a downstream log shipper will see a contract bump from one row.
+
+* **T-R2.4 — `unhandledrejection` filter matches only 4 patterns (MEDIUM).** `main.ts:10` — regex `/storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i`. Other rejection names that occur in this codebase but escape the filter: `DataError`, `ConstraintError`, `InvalidStateError`, network `TypeError`, validator `TypeError`, `AbortError`. They reach the browser's default handler — DevTools red banner only, no application record.
+
+* **T-R2.5 — `navigator.storage.persist()` called twice (LOW bug).** Once at `main.ts:48`, again via `BootScene.ts:49 → ensurePersistenceGranted (db.ts:158)`. Two grant prompts may fire on first launch. Browsers typically dedupe but the duplicate call is a code smell and an opportunity for divergent error-handling.
+
+* **T-R2.6 — PII surface in logs (PRIVACY).** `LevelScene.ts:407, 421, 451`, `Level01Scene.ts:286, 312, 956` log `studentId`, `sessionId`, and the raw `payload` (which is `studentAnswerRaw`). With `?log=*` set in DevTools, a school IT admin sees a full timeline of student answers and identities. **Today this is harmless because PROD silences logs, but the moment Phase 1 telemetry lands without redaction it becomes a live exposure.** Redact at the `emit` site, or define a `redact: (attrs) => attrs` adapter that is mandatory in non-dev sinks.
+
+* **T-R2.7 — Backup `lastBackupAt` is stamped before the file actually downloads (DATA-INTEGRITY).** `backup.ts:97` updates `deviceMeta.lastBackupAt` to `Date.now()` *before* the `<a download>` synthesises the click and the user accepts the dialog (lines 100–106). A cancelled or interrupted download leaves the meta wrongly stamped; a subsequent restore-from-incomplete-backup is undetectable.
+
+* **T-R2.8 — `tryAddAll` distinguishes `ConstraintError` by string-matching `err.name` (FRAGILE).** `backup.ts:144-161`. Any future Dexie error type whose `name` happens to match collides; a real bug masquerades as a skip. Use `err instanceof Dexie.ConstraintError` if the import is available.
+
+* **T-R2.9 — `nanoid` fallback IDs collide within a millisecond.** `BootScene.ts:91, Level01Scene.ts:319, 950, LevelScene.ts:709, 747` use `s-${Date.now()}` / `a-${Date.now()}` formats. Two inserts within the same millisecond produce identical IDs. Combined with the `attempts` table's `++id` auto-PK, the synthesised `attemptId` is overwritten anyway — but the hint-event chain stores `attemptId: '' as unknown as AttemptId` (A-R2.3) before the real PK is known, so the fallback's collision risk is irrelevant only because the linkage is already broken.
+
+* **T-R2.10 — Five DOM-event swallowers in components.** `SkipLink.ts:31, 77`, `AccessibilityAnnouncer.ts:55`, `FeedbackOverlay.ts:164`, `DragHandle.ts:219`, `ProgressBar.ts:122` each wrap `window.matchMedia` in `try { ... } catch { return false }` with no log. If `matchMedia` ever throws (unlikely but possible in older WebViews), reduced-motion silently disables — invisible accessibility regression. Route through the shared `prefersReducedMotion()` adapter in `src/lib/accessibility.ts`.
+
+* **T-R2.11 — `SessionTelemetry` table costs index space in every backup file too.** Schema declared in 4 versions (`db.ts:50, 67, 80, 105, 136`); only reader is `backup.ts:61`; no writer. The dead-letter table is round-tripped through every backup export, inflating envelope size for no value. Either wire the writer (Phase 1 Step 2) or drop the table.
+
+---
+
+### R2.4 — Dependency Longevity (additions to Dimension 3)
+
+* **D-R2.1 — `package-lock.json` is `lockfileVersion: 3` (CONFIRMED PINNED).** Versions are truly locked at install time. Worth running `npm audit --omit=dev` in a connected environment to surface any transitive CVE on the EOL ESLint 8 chain or the Phaser 4 fresh release.
+
+* **D-R2.2 — `tailwindcss` is functionally unused (STRONG REMOVAL CANDIDATE — confirmed).** `Grep -c "@tailwind|@apply|@theme|@variants" src/styles/index.css` returns `0`. The CSS file imports `'tailwindcss'` but uses no utilities or directives. **No `className=` exists in any `.ts` file** (Grep confirms). `tailwind.config.ts` declares a full theme that no class consumes. Drop `tailwindcss`, `@tailwindcss/vite`, the `@import 'tailwindcss'` line, and `tailwind.config.ts` outright. Saves ~40 MB of node_modules, one extra build pass, and unblocks the ESLint 9 migration without coordinating Tailwind v4 plugin compatibility.
+
+* **D-R2.3 — `vite-plugin-pwa` ships `registerSW.js` reference but the file is missing from `dist/` (CRITICAL — broken PWA registration on this build).** `dist/index.html:17` — `<script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script>`. `ls dist/` does not contain `registerSW.js`. The script tag references a non-existent file. Service-worker registration will 404 in production. Verify with `npm run build`; either include `registerSW.js` in the output or change the plugin's `injectManifest` mode. Likely a `vite-plugin-pwa@0.21` config nuance with `registerType: 'autoUpdate'`.
+
+* **D-R2.4 — Two manifests ship in `dist/` (REDUNDANCY/CONFLICT).** `dist/manifest.json` (842 bytes, hand-authored) AND `dist/manifest.webmanifest` (PWA-plugin-generated). `index.html:8` references `/manifest.json`. `_headers:14-15` only sets no-cache for `manifest.json`. At runtime two manifests exist with potentially divergent `theme_color`, `start_url`, or icon entries. Consolidate to one source of truth.
+
+* **D-R2.5 — Single 91 KB scene chunk (BLOAT).** `dist/assets/scenes-*.js = 91 KB` holds all 6 scenes (BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene). The Vite `manualChunks` (`vite.config.ts:85-89`) only splits `phaser` and `dexie`. Splitting Level01/LevelScene into separate chunks would defer ~30 KB until first level entry. Use route-based dynamic import.
+
+* **D-R2.6 — `dist/assets/seed-*.js = 105 KB` is the inline curriculum bundle (BLOAT).** A consequence of A-R2.6 — the 103 KB `bundle.json` minifies to ~105 KB JS and ships in *every* boot. With the public copy ALSO fetched, users pay double curriculum cost. Move behind an adapter that loads only on TypeError fallback.
+
+* **D-R2.7 — `fast-check` is in use at the validator layer (CORRECTS prior claim).** `tests/unit/validators/partition.property.test.ts`, `placement.property.test.ts`, `snap_match.property.test.ts` exist. The earlier audit's "no engine property tests yet exist; consider removal" is wrong — property tests cover validators (the appropriate layer). Keep the dependency. The engine layer still lacks property tests; the agenda is to *expand* property testing to detectors and selection, not to add it.
+
+* **D-R2.8 — `rollup-plugin-visualizer` is wired but no documented script triggers it (LOW).** `vite.config.ts:47-49` wires the visualizer when `BUNDLE_ANALYZE=1`. `package.json:21` declares `build:analyze` but the script is `BUNDLE_ANALYZE=1 npm run build` — works but undocumented. Add a one-line note in CLAUDE.md or a `README` entry.
+
+* **D-R2.9 — `@types/node@^25.6.0` paired with no `engines` field in `package.json` (LOW).** No declared Node version. CI may run on a Node version that doesn't match the type defs. Add `"engines": { "node": ">=22.0.0" }` for clarity.
+
+* **D-R2.10 — `vitest.engine.config.ts` and `vitest.validators.config.ts` are dead config (DEAD INFRASTRUCTURE).** No `package.json:scripts` entry references them. The Appendix counts 4 configs total; only `vitest.config.ts` and `vitest.integration.config.ts` are wired. Add `test:engine` / `test:validators` scripts or delete the files. `tests/setup.engine.ts` is similarly orphaned — only `tests/setup.ts` is wired in `vitest.config.ts:19`.
+
+* **D-R2.11 — `LevelCard` component is 155 LOC and never instantiated (DEAD UI).** `Grep` shows only `MenuScene.test.ts:9` references `LEVEL_META`. `LevelCard.ts` has zero callers in `src/` outside test fixtures. 155 LOC of polished, accessible UI built and never wired. Either land it in `MenuScene._openLevelChooser` (replacing the bespoke 3×3 grid at `MenuScene.ts:413-470`) or delete.
+
+* **D-R2.12 — `phaser@4.0.0` is the GA "Caladan" release (LOW, verified).** `node_modules/phaser/package.json` shows `"version": "4.0.0", "release": "Caladan"`. Stable major, not a beta. Confirms the v2 audit's volatility characterisation but rules out the "is this even GA?" risk.
+
+---
+
+### R2.5 — UX & Cognitive Friction (additions to Dimension 4)
+
+* **U-R2.1 — TestHooks contamination in production (CRITICAL).** `FeedbackOverlay.ts:117-129` calls `TestHooks.mountInteractive('feedback-next-btn', …)` on every feedback show — even in production. The hook mounts an invisible 200×60 px DOM button at `top:55%, left:50%` with `pointer-events: auto` and `opacity: 0` (`TestHooks.ts:81`). **Real students touching that region — the centre of the canvas, near the partition shape — get an instant "feedback-next-btn click" → dismiss the overlay early.** Likely explanation for any "feedback feels twitchy" reports the team is yet to receive once gameplay works. Gate the mount on `import.meta.env.MODE === 'test'` (or behind a `TestHooks.enabled` flag set by Playwright).
+
+* **U-R2.2 — `MenuScene._openLevelChooser` blocks render on Dexie roundtrip with no loading indicator (MEDIUM perceived-performance).** `MenuScene.ts:329` — `() => void this._openLevelChooser()`. Lines 364–385 await `sessionRepo.listForStudent` before drawing the level grid. With ~50 stored sessions, that is 80–150 ms of empty screen on a low-end iPad after the tap — perceived as a broken button by a K–2 player. Render the modal scrim immediately, populate the cells when the await resolves.
+
+* **U-R2.3 — Modal close at depth ≥ 60 destroys the modal itself (FRAGILE).** `MenuScene.ts:494-500` — `this.children.list.filter((o) => o.depth >= 60).forEach((o) => o.destroy())`. The modal scrim is depth 60, the card is 61, children 62, the close button 64. **Iterating children while mutating during `forEach` is fragile** even if Phaser is forgiving today; any future depth bump that puts other game objects ≥ 60 would wipe them on modal close. Tag modal members with a name and filter by name, not depth.
+
+* **U-R2.4 — Touch-target conformance is wrapper-deep, not behavior-deep (MEDIUM accessibility).** `PreferenceToggle.ts:111-120` — visible `<button>` is 52×28 px (lines 112–113). Lines 90–99 wrap it in a 44×44 outer `<div>`. `data-testid` and `tabindex` are on the *inner* button (lines 106, 109). Screen readers and Playwright tests target the 52×28 hit; the 44×44 conformance is real for finger taps but invisible to keyboard/AT users. Move `data-testid` and focus to the wrapper and bind the toggle action there.
+
+* **U-R2.5 — `SettingsScene` document keydown listener may leak (MEDIUM).** `SettingsScene.ts:122` adds `document.addEventListener('keydown', this._keyHandler)`. `cleanup()` at line 379 removes it. `cleanup` is called only from `goBack` (line 374) and `shutdown` (line 389). **Phaser fires both `SCENE.SHUTDOWN` and `SCENE.DESTROY`; only `shutdown` is intercepted.** If the scene is ever replaced via `scene.start()` rather than `scene.stop()`, the listener accumulates. Verify by reloading Settings 5×; count `_keyHandler` listeners on `document` in DevTools. Add a `scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup)` for safety.
+
+* **U-R2.6 — Reset confirm button overlaps the same canvas region as the original Reset trigger (DATA-LOSS risk).** `SettingsScene.ts:191-211`. After tapping Reset, the original button is hidden (lines 156–157) and "Yes, reset" appears at `cx-95, baseY+74` (line 197) — directly below where the user just tapped. **Muscle memory + double-tap = data destruction.** Move the confirm to a different region or add a 1-second guard delay.
+
+* **U-R2.7 — `TTSService.speak` cancels in-progress utterance with no fade-out (LOW).** `TTSService.ts:25-38` — `if (this.synth.speaking) this.synth.cancel()` on every `speak()`. Rapid taps between questions cut prompts mid-syllable. K–2 students experience this as "the voice keeps stopping." Either queue utterances (browser default) or insert a 250 ms grace period before cancellation.
+
+* **U-R2.8 — `AccessibilityAnnouncer` uses an unscheduled `requestAnimationFrame` (LOW).** `AccessibilityAnnouncer.ts:48-54` clears `textContent`, then on next RAF sets it again. Modern screen readers detect this; older NVDA versions (pre-2024) may miss the clear-and-set pattern. Also: if the scene shuts down between `textContent = ''` and the RAF callback (`destroy()` at line 67), the callback fires after the live region is removed, leaking work and potentially logging an access-after-destroy warning.
+
+* **U-R2.9 — Marching dashes repaint every frame ignoring `prefers-reduced-motion` (LOW).** `MenuScene.ts:603-613` registers `events.on('update', tick)` to redraw the dotted adventure path every Phaser update. ~60 FPS of `Graphics.clear + lineBetween`. On low-power 2GB iPads in school deployments, this is real battery and CPU. Honour `prefersReducedMotion`: pause the animation when set.
+
+* **U-R2.10 — `SkipLink` skip target is a `tabindex="-1"` canvas (LOW).** `SkipLink.ts:46` targets `#qf-canvas`; line 27 sets `tabindex="-1"`. A `tabindex="-1"` element receives focus only via JS `.focus()`, not via Tab key. The skip link works for click-to-skip but breaks for screen-reader users who Shift-Tab back to the link expecting to land on the canvas.
+
+* **U-R2.11 — Playwright viewport never matches the design's 800×1280 logical canvas (MEDIUM).** `playwright.config.ts:18` — desktop Chromium 1280×720, iPad project 768×1024. **No Playwright project tests at the design's intended aspect ratio.** `Phaser.Scale.FIT` letterboxes — visual-regression screenshots compromise pixel-perfect verification. Add an `iPad-portrait-800×1280` device project that matches the production target.
+
+* **U-R2.12 — Hardcoded English in `FeedbackOverlay` (MEDIUM i18n).** `FeedbackOverlay.ts:35-43` — "Correct! Great work.", "Almost! Adjust a little.", "Not quite — try again!". The most-displayed UX text in the app, ineligible for i18n without code change. Move to `src/curriculum/copy/feedback.ts` or the same JSON store as the hint copy migration.
+
+---
+
+### R2.6 — NEW DIMENSION 5: Security & Privacy
+
+* **S-R2.1 — `restoreFromFile` parses untrusted JSON without shape validation (HIGH).** `backup.ts:130` — `envelope = JSON.parse(text) as BackupEnvelope`. The cast is unchecked. A malicious or corrupted backup feeds straight into `db.transaction(...)` (line 164):
+  * `t.attempts ?? []` (line 181) — a row with `studentAnswerRaw: { __proto__: { polluted: true } }` could prototype-pollute on first read.
+  * No bound on array length — restore a 1 GB JSON, OOM the iPad.
+  * `t.deviceMeta` merge (line 191) blindly accepts the file's `installId`, `lastBackupAt` — an attacker can swap the device identity.
+  * Validate `envelope.tables.*` shapes against the live Dexie schema (or a small `zod` parser) before transacting. Cap each array length at a sane upper bound.
+
+* **S-R2.2 — `localStorage` JSON parsed without validation (MEDIUM).** `MenuScene.ts:339` — `JSON.parse(raw) as number[]`. A user/extension that writes `localStorage.unlockedLevels = '"corrupted"'` makes `arr` a string; the subsequent `arr.forEach` throws (caught by the outer block, but the C5 unlock state is lost silently). Validate shape (`Array.isArray(arr) && arr.every(x => typeof x === 'number')`) before use. Closes after the C5 fix in Phase 2 makes this code path dead.
+
+* **S-R2.3 — CSP `connect-src 'self'` blocks `navigator.sendBeacon` to any external collector (BLOCKING for Phase 3).** `_headers:6`. Any OpenTelemetry / Sentry endpoint outside the same origin will be blocked. The CSP and the telemetry strategy must be planned together — either (a) tunnel telemetry through a same-origin Cloudflare Worker proxy, or (b) explicitly allow the chosen collector's host in `connect-src`.
+
+* **S-R2.4 — CSP `style-src 'self' 'unsafe-inline'` (MEDIUM).** `_headers:6`. `'unsafe-inline'` is required because `PreferenceToggle.ts`, `AccessibilityAnnouncer.ts`, `SkipLink.ts`, `TestHooks.ts` all set inline styles via `Object.assign(element.style, …)`. Acceptable for the offline-only K–2 app today; flag for hardening: refactor to CSS classes and drop `'unsafe-inline'`.
+
+* **S-R2.5 — `Cross-Origin-Embedder-Policy: require-corp` breaks cross-origin font loading (HIGH but CURRENTLY CORRECT).** `_headers:9`. Self-hosted fonts (`/fonts/*.woff2`) are fine. **If a future contributor adds Google Fonts** (very tempting for kid-friendly fonts), the strict COEP will block load with no fallback. Document the constraint in a `CONTRIBUTING.md` or a top-of-file comment in `_headers`.
+
+* **S-R2.6 — TTS does not sanitise input (LOW).** `TTSService.ts:27` — `new SpeechSynthesisUtterance(text)`. The Web Speech API itself sanitises for synthesis, but if `text` is ever sourced from untrusted curriculum (e.g., a future remote-loaded patch), an attacker could craft extremely long strings to denial-of-service the audio thread, or inject pseudo-SSML markers. Today curriculum is build-time-bundled; low risk; flag for future content-loading paths.
+
+* **S-R2.7 — `BackupEnvelope` `version: 2+` strands existing user backups (LOW).** `backup.ts:135-138` — strict equality `envelope.version === BACKUP_SCHEMA_VERSION` (currently `1`). Future format bumps cannot read old backups. Add a small migration map.
+
+* **S-R2.8 — `privacy.html` author email is plaintext `mailto:` (LOW).** `privacy.html:158` — `<a href="mailto:ryanmidogonzalez@gmail.com">`. Scrapers will harvest. Move to a contact form, an obfuscated email image, or a project-owned alias.
+
+* **S-R2.9 — No SRI on bundled scripts (LOW — defence-in-depth).** `index.html:17` — `<script type="module" crossorigin src="/assets/index-*.js">`. With CSP `'self'` this is fine, but Subresource Integrity attributes would catch tampering of cached or edge-cached assets and align with stricter accreditation profiles common in school deployments.
+
+* **S-R2.10 — Auto-create student on first launch with no consent flow (LOW — letter, not spirit, of COPPA).** `BootScene.ts:88-106` mints an anonymous Student and writes the UUID to `localStorage` immediately. No "this is me" first-tap. Multiple browser profiles → multiple disconnected Students with no merge path. Acceptable today (data is local-only per `privacy.html`) but worth surfacing in any future caregiver flow.
+
+* **S-R2.11 — No CSRF surface (CONFIRMED — by design).** `connect-src 'self'`, no external `fetch`, no form posts. As intended.
+
+---
+
+### R2.7 — NEW DIMENSION 6: Build & Deploy Posture
+
+* **B-R2.1 — `vite-plugin-pwa` does not emit `registerSW.js` on this branch (CRITICAL).** Already cited in D-R2.3; re-stated here because it is a deploy-blocker. Verify after every build that `dist/registerSW.js` exists alongside `dist/sw.js`.
+
+* **B-R2.2 — `tsconfig.json` strict-flag escape hatches (HIGH).** Lines 25–26 keep `noUncheckedIndexedAccess` and `noPropertyAccessFromIndexSignature` commented out with the note "deferred to Phase 12 pending codebase refactoring." Means `array[index]` returns `T` not `T | undefined`. Invisible runtime crashes lurk behind `templatePool[questionIndex % templatePool.length]!` (`Level01Scene.ts:460`) and similar non-null assertions. Schedule the lift, do not indefinite-defer.
+
+* **B-R2.3 — `tsconfig.json` `target: ES2022` matches `vite.config.ts` `target: 'es2022'` (CONSISTENT).** ES2022 implies iOS 16.4+ as the minimum supported runtime. Verify against the school iPad fleet — if any fleet device is on iOS 15 or older, the build will silently fail to load with a syntax error.
+
+* **B-R2.4 — `vite.config.ts:82` raises `chunkSizeWarningLimit: 1400` (HIGH — masks bloat).** Vite default is 500 KB. The 1.4 MB threshold silences warnings about Phaser's ~1.3 MB compressed payload, which the team should know about. Drop to 800 KB; the warning will fire on Phaser, document the exception, and surface any *new* large chunks the team adds.
+
+* **B-R2.5 — `build.sourcemap` is not explicitly disabled (MEDIUM privacy).** Default Vite behaviour is sourcemap off in production, but no `build: { sourcemap: false }` line guarantees it. A future contributor enabling sourcemaps ships full TypeScript source — including pedagogy logic, BKT parameters, validators — to the Cloudflare-hosted site, leaking IP. Set explicitly.
+
+* **B-R2.6 — `_headers` does not declare immutable cache for `assets/` (LOW bandwidth).** Content-hashed asset names make immutable caching safe; declare `Cache-Control: public, max-age=31536000, immutable` to make CDN behaviour explicit.
+
+* **B-R2.7 — `_redirects` wildcard `/* /index.html 200` (LOW SEO/observability).** A request for `/api/foo` (404 on this site) returns `index.html` with HTTP 200. Crawlers index the home page under arbitrary paths; bot traffic appears to be browsing real pages. For an offline app this is fine; flag for any future analytics setup.
+
+* **B-R2.8 — `prebuild` silently skips levels whose pipeline output is missing (MEDIUM).** `package.json:10-11` runs `node scripts/build-curriculum.mjs` which reads `pipeline/output/level_NN/all.json` (`build-curriculum.mjs:21`). Lines 46–48 `continue` past missing levels with a `console.warn`. **In CI without the pipeline output, the curriculum bundle is empty** and the inlined `bundle.json` (last committed copy) becomes the only source. Curriculum drift between source-of-truth (pipeline) and shipped (bundle.json) is invisible. Either fail the build on missing levels or assert each level was produced.
+
+* **B-R2.9 — `npm run build` runs `tsc && vite build` with no error suppression (verify clean exit).** `tsconfig.json:18-19` enables `noUnusedLocals` and `noUnusedParameters`. Given the empty catch blocks, orphan `LevelCard`, dead `lib/logger.ts`, and unused engine functions, **`tsc` may currently fail.** Run `npm run typecheck` before declaring "build works" in any phase exit.
+
+* **B-R2.10 — Two Lighthouse configs at repo root (DUPLICATE).** `.lighthouserc.json` (164 bytes) and `lighthouserc.cjs` (682 bytes) coexist. One must be canonical; the other is dead.
+
+* **B-R2.11 — `scripts/create-pages-project.cjs` is CommonJS in an ESM project (LOW).** `package.json:4` declares `"type": "module"`. The CJS extension `.cjs` works but is inconsistent. Migrate to ESM or document why it must stay CJS.
+
+* **B-R2.12 — `wrangler.toml` is 3 lines (CORRECT for Pages).** `name`, `compatibility_date`, `pages_build_output_dir = "dist"`. Cloudflare Pages reads `_headers` and `_redirects` from `dist/` automatically; verified both are copied on build.
+
+* **B-R2.13 — PWA never exercised in development (MEDIUM).** `vite.config.ts:6-7` enables PWA only when `NODE_ENV === 'production'` or `PWA === '1'`. First contact with the service worker, the `CacheFirst` curriculum cache, and the `autoUpdate` registration is in production. Add a `dev:pwa` script: `PWA=1 npm run dev:app`.
+
+* **B-R2.14 — 30-day curriculum cache + no URL versioning = locked-in regressions (MEDIUM).** `vite.config.ts:25` — `CacheFirst, maxAgeSeconds: 30 * 86400`. A bug shipped to production is locked in for up to 30 days per device. With no content-hash on the curriculum URL, the only cache-busting path is a Workbox SW update *and* the user opening the app long enough for `autoUpdate` to fire. Add a content hash to the URL, or rev the URL path on every release.
+
+---
+
+### R2.8 — NEW DIMENSION 7: Test Surface
+
+* **V-R2.1 — Test inventory.** **Unit:** 18 files (`tests/unit/`). Includes `bkt.test.ts`, `calibration.test.ts`, `router.test.ts`, `audio.test.ts`, `settings.test.ts`, `engine/bkt.test.ts`, `engine/misconceptionDetectors.test.ts`, plus 11 in `validators/` (10 archetype validators + 3 property tests for partition / placement / snap_match + setup + registry tests). **Integration:** 3 files. **E2E:** 3 files (`level01.spec.ts`, `settings.spec.ts`, `smoke.spec.ts`). **A11y:** 1 file (`wcag.spec.ts`). The earlier audit's "the only engine test is `bkt.test.ts`" is wrong — `engine/misconceptionDetectors.test.ts` exists; correct the claim.
+
+* **V-R2.2 — Two `bkt.test.ts` files (DUPLICATE/RACE).** `tests/unit/bkt.test.ts` AND `tests/unit/engine/bkt.test.ts`. Both auto-included by `vitest.config.ts:11-15`. Possible test duplication, possible drift between the two — investigate which is canonical, consolidate.
+
+* **V-R2.3 — E2E specs claim to be skipped, but data-testids exist (HIGH cycle-time waste).** `tests/e2e/level01.spec.ts:5` comment says *"SKIP: All tests in this file require data-testid attributes not yet implemented in scenes."* The data-testids ARE implemented (`TestHooks.ts` is wired); the comment was never updated. So the developer reading the file believes "all skipped" while the actual test runner may run them and fail. Verify whether they pass or fail in CI today.
+
+* **V-R2.4 — Playwright runs all 5 device projects on every spec (CYCLE-TIME).** 5 viewports × 3 spec files × ~10 tests = ~150 runs per CI. With Phaser cold-start at ~3 s/test, that is 7+ minutes. No sharding or project filtering. The 50-hour MVP budget is hostage to this cadence. Add a `--project=desktop-chromium` default for the dev loop.
+
+* **V-R2.5 — `tests/synthetic/` directory + `playwright.synthetic.config.ts` (DEAD INFRASTRUCTURE).** Not exercised by `npm run test:e2e`. Likely stale infrastructure for the rejected LangGraph plan.
+
+* **V-R2.6 — No interaction → validator wiring tests anywhere (CRITICAL meta-finding).** This is precisely why the contract drift in benchmark / order / snap_match / compare / placement (A-R2.1) went unnoticed. **No test boots an Interaction class, fires `onCommit`, and asserts the registered validator returns `outcome:'correct'`.** A 10-line property test per archetype catches the entire defect class. Add to Phase 1.
+
+* **V-R2.7 — `axe-core` heavy infrastructure for a single a11y spec (LOW coverage).** `@axe-core/playwright` is wired but `tests/a11y/wcag.spec.ts` is one file. Likely covers only the menu and one level. Sub-route coverage (settings, completion modal, level chooser modal) almost certainly missing.
+
+* **V-R2.8 — Tests of unwired engine functions are confidence-theatre (already cited in v2 Dead Code; re-stated as a test concern).** `tests/unit/router.test.ts` and `tests/unit/calibration.test.ts` exercise functions production never calls. Wire in Phase 2 (Dimension 1 directive #8) or remove the tests; today they create false confidence in engine wiring.
+
+---
+
+### R2.9 — Updated Phase 1 Priority List
+
+The original Phase 1 priorities stand. **Add the following before Phase 1 exit (each is a 5–60 minute fix):**
+
+1. **Fix the validator-input contract drift in 5 archetypes** (A-R2.1) — rename `relation`→`studentRelation` (Compare), `sequence`→`studentSequence` (Order), `pairs`→`studentPairs` (SnapMatch); convert single-zone tap to a `Map<fracId, zone>` in Benchmark; rename `placedDecimal`→`studentPlacedDecimal` and move tolerances out of the input slot in Placement. Add the contract test (V-R2.6) that prevents future drift. **Without this, every Sprint 2 archetype ships broken.**
+2. **Fix the validator registry lookup key** (A-R2.2) — replace `Level01Scene.ts:675` `validatorRegistry.get(this.currentQuestion.id as never)` with `validatorRegistry.get(this.currentTemplate.validatorId)`. Five-minute fix; closes the dead-code path that `Level01Scene` runs through every submit.
+3. **Gate `TestHooks.mountInteractive` on test-only environments** (U-R2.1) — wrap `FeedbackOverlay.ts:117-129` and any other call site in `if (import.meta.env.MODE === 'test') TestHooks.mountInteractive(...)`. Removes the centre-canvas invisible button that hijacks production feedback dismissal.
+4. **Ship a `registerSW.js`** (D-R2.3 / B-R2.1) — verify `npm run build` produces it; if `vite-plugin-pwa@0.21` does not emit it under `injectRegister: 'auto'`, fall through to `injectRegister: 'inline'` or vendor a hand-rolled three-line registration script. Without this, the deployed PWA registration 404s.
+5. **Run `npm run typecheck` once** (B-R2.9) — confirm `tsc` exits clean today; if not, fix the unused-locals failures before Phase 1 Step 2's logger rewrite.
+6. **Replace the three silent-swallow catches** at `lib/preferences.ts:28-34`, `audio/TTSService.ts:35`/`:43`, `MenuScene.ts:789` with structured `logger.warn` calls. Already in v2 Phase 1 Step 2; re-stated for emphasis because it is the direct prerequisite for proving the logger rewrite worked.
+
+---
+
+### R2.10 — Updated Quantitative Snapshot (deeper-pass corrections)
+
+| Metric | Earlier value | Corrected | Method |
+|---|---|---|---|
+| `Level01Scene.ts` LOC | 1,192 | **1,244** | `wc -l` direct |
+| `LevelScene.ts` LOC | 885 | **1,018** | `wc -l` direct |
+| `MenuScene.ts` LOC | 805 | 803 | `wc -l` (within rounding) |
+| Total scene LOC top-3 | 2,882 | **3,065** | sum |
+| `console.*` call sites in `src/` | "50+" | **40 across 11 files** | `Grep -c` exact |
+| Empty `catch {}` blocks | "82 empty/minimal" *(prior agent claim)* | **0 strictly empty; 3 silently-swallowing with no log** | `Grep` confirms zero `catch (\w*) { }`; the silent-swallow pattern is at named files, not literal empties |
+| `prefersReducedMotion` reference sites | 6 | **8** (4 scenes + 3 components + `lib/preferences.ts`) | `Grep` direct |
+| Validators wired correctly to interactions | "10 archetypes registered" *(prior implication)* | **5 of 10** (partition, identify, label, make, equal_or_not work; compare, order, snap_match, benchmark, placement broken — A-R2.1) | code inspection |
+| `fast-check` use | "no engine property tests yet" | **In use at validator layer**: `partition.property.test.ts`, `placement.property.test.ts`, `snap_match.property.test.ts` | `ls tests/unit/validators/` |
+| Engine functions called from production code | "2 of ~10" | Same — confirms the museum claim | `Grep` on `selectNextQuestion`, `decideNextLevel`, `updateMastery`, `runAllDetectors`, `startCalibration`, `recordCalibrationAttempt`, `isCalibrationComplete`, `shouldUseCalibration`. Only `runAllDetectors` (`LevelScene` only) and `tts.speak` are wired |
+| `dist/registerSW.js` exists? | unstated | **NO — broken PWA registration on this build** | `ls dist/` confirms absent |
+| Manifests in `dist/` | unstated | **2** (`manifest.json` hand-authored + `manifest.webmanifest` PWA-generated) | `ls dist/` |
+| `dist/assets/scenes-*.js` size | unstated | **91 KB** (single chunk for all 6 scenes) | `ls -la dist/assets/` |
+| `dist/assets/seed-*.js` size | unstated | **105 KB** (inline curriculum) | same |
+| `tailwindcss` directives in `src/styles/index.css` | unstated | **0** | `Grep -c "@tailwind\|@apply\|@theme\|@variants"` |
+| `package-lock.json` | unstated | `lockfileVersion: 3` — versions truly pinned | direct read |
+
+---
+
+*File: `PLANS/master_audit_roadmap.md` · Status: ACTIVE — v3 deepened (Round 2, 2026-04-27 second pass) · Re-evaluate at each phase exit; append new findings as separate dated sections rather than rewriting prior ones. Cross-references to all source audits are listed in the header. The next audit run after Phase 1 closes should verify (a) production logs reach IndexedDB, (b) `sessionTelemetry` table is no longer empty, (c) BUG-01/02/04 are closed in a screenshot-evidenced session, (d) the engine museum is no longer a museum — `selectNextQuestion`, `decideNextLevel`, and `CalibrationState` should appear in the call graph from `SubmitAttemptUseCase` / `LoadNextQuestionUseCase`, **(e) the five archetype contract-drift fixes (R2.1) are covered by a live `tests/unit/interactions/contract.test.ts`, and (f) `dist/registerSW.js` exists in every production build**.*
