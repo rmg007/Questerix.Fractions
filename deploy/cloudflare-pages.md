@@ -1,34 +1,88 @@
-# Cloudflare Pages — Deployment Notes
+# Cloudflare Pages — Deployment Guide
 
-**Primary host for Questerix Fractions** (see `deploy/README.md` for the rationale).
-Vercel and Netlify configs remain as alternates.
-
-Header config is done via a `_headers` file in `public/` (Vite copies `public/`
-verbatim into `dist/`, so the file lands at `dist/_headers` — exactly where
-Cloudflare expects it). Same approach for `_redirects` (SPA fallback).
-
-The `public/_headers` and `public/_redirects` files in this repo are already
-configured. You do not need to recreate them.
+**Live URL:** https://fractions.questerix.com  
+**Pages project:** `questerix-fractions` → `questerix-fractions.pages.dev`  
+**CNAME:** `fractions.questerix.com` → `questerix-fractions.pages.dev` (Cloudflare proxy)
 
 ---
 
-## Build Settings (Cloudflare Dashboard)
+## How to Deploy
 
-| Setting | Value |
-|---------|-------|
-| Framework preset | None |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Root directory | (leave blank) |
-| Node.js version | 20 |
+One command runs the full pipeline (pre-checks → build → upload → post-checks):
+
+```bash
+npm run deploy
+```
+
+**What it does automatically:**
+
+| Stage | Steps | Blocks on failure? |
+|-------|-------|-------------------|
+| `predeploy` | typecheck → lint → unit tests (173) → build → bundle size guard (≤1 MB gz) | Yes |
+| `deploy` | `wrangler pages deploy dist` → Cloudflare Pages | Yes |
+| `postdeploy` | 13 live checks (see below) | Reports only |
+
+To target a preview deployment instead of production:
+```bash
+DEPLOY_URL=https://<hash>.questerix-fractions.pages.dev node scripts/postdeploy-check.mjs
+```
 
 ---
 
-## Headers File
+## Post-Deploy Checks (13 total)
 
-Create `public/_headers` with the content below. Vite copies `public/` into `dist/`
-verbatim, so the file will be at `dist/_headers` after build — exactly where
-Cloudflare Pages expects it.
+`scripts/postdeploy-check.mjs` verifies the live site after every deploy:
+
+| Check | What it catches |
+|-------|----------------|
+| Root HTTP 200 | Site is up |
+| 5 security headers | HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy |
+| `/sw.js` — JS MIME | Service worker reachable as JavaScript (not SPA fallback HTML) |
+| `/registerSW.js` — JS MIME | SW registration script reachable (not SPA fallback HTML) |
+| `/manifest.json` — JSON MIME | Web app manifest reachable |
+| `/manifest.webmanifest` — JSON MIME | Alias rewrite working (`_redirects` rule) |
+| `/curriculum/v1.json` — JSON MIME | Curriculum data reachable |
+| SPA fallback | Unknown paths return `200 text/html` (not 404) |
+| No CF Analytics beacon | `cloudflareinsights.com` absent from HTML (privacy constraint C4) |
+
+---
+
+## First-Time Setup (already done — for reference)
+
+```bash
+# 1. Create the Pages project
+npx wrangler pages project create questerix-fractions --production-branch main
+
+# 2. Deploy
+npm run deploy
+
+# 3. Add custom domain via API (CNAME must already exist)
+curl -X POST \
+  "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/pages/projects/questerix-fractions/domains" \
+  -H "Authorization: Bearer <CF_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"fractions.questerix.com"}'
+
+# 4. Wait for domain to go active (~30–60 seconds), then run:
+node scripts/postdeploy-check.mjs
+```
+
+---
+
+## Static Files in `public/`
+
+Vite copies `public/` verbatim into `dist/`. These files must stay in sync with any CSP or routing changes:
+
+| File | Purpose |
+|------|---------|
+| `public/_headers` | Security headers + MIME types per path |
+| `public/_redirects` | SPA fallback + `/manifest.webmanifest` rewrite |
+| `public/registerSW.js` | Service worker registration (vite-plugin-pwa v0.21 doesn't emit this automatically) |
+| `public/manifest.json` | PWA manifest |
+
+---
+
+## Current `_headers`
 
 ```
 /*
@@ -37,51 +91,57 @@ Cloudflare Pages expects it.
   X-Frame-Options: DENY
   Referrer-Policy: no-referrer
   Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
 
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
+/registerSW.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /manifest.json
   Cache-Control: no-cache
+  Content-Type: application/json; charset=utf-8
 ```
 
-> CSP note: `connect-src 'self'` blocks all external fetch/XHR at the network level,
-> enforcing the privacy-notice.md "no third parties" guarantee even if a library tries
-> to phone home.
+> CSP `script-src 'self'` intentionally blocks Cloudflare Analytics and any other
+> external scripts. Do **not** add `cloudflareinsights.com` to `script-src` — this
+> would violate the COPPA/privacy constraint (no data leaves the device).
 
 ---
 
-## Analytics
-
-Cloudflare Web Analytics must be **disabled**. Per `docs/40-validation/privacy-notice.md`,
-no data leaves the device. Do not enable it.
-
-Dashboard: Workers & Pages → your project → Settings → Web Analytics → off.
-
----
-
-## Custom Domain
-
-Pages → your project → Custom domains → Add. Cloudflare handles the TLS certificate
-automatically if the domain's DNS is managed by Cloudflare. If not, add a CNAME record
-pointing to `<project>.pages.dev` and Cloudflare will provision a cert.
-
----
-
-## SPA Fallback
-
-Add `public/_redirects`:
+## Current `_redirects`
 
 ```
+/manifest.webmanifest  /manifest.json  200
 /*  /index.html  200
 ```
 
-This is the Cloudflare Pages convention for single-page apps.
+The first rule rewrites `/manifest.webmanifest` → `/manifest.json` (vite-plugin-pwa
+injects a `<link rel="manifest" href="/manifest.webmanifest">` tag but only generates
+`manifest.json`). Order matters — more specific rules must come before `/*`.
 
 ---
 
-## Verify Headers After Deploy
+## Analytics — Must Stay Disabled
 
+Cloudflare Web Analytics is **disabled** on this project (done via API on 2026-04-28).
+Per `docs/40-validation/privacy-notice.md`, no data leaves the device.
+
+**Do not re-enable it.** The postdeploy check will fail if the beacon appears in the HTML.
+
+To verify it stays off:
 ```bash
-curl -I https://your-domain.com | grep -E 'Content-Security|X-Frame|Strict-Transport'
+curl -s https://fractions.questerix.com | grep -c cloudflareinsights
+# must print 0
 ```
+
+---
+
+## Known Browser Warnings (not errors)
+
+| Warning | Why | Action needed |
+|---------|-----|---------------|
+| `AudioContext was not allowed to start` | Browser requires user gesture before audio | None — Phaser handles this on first tap |
