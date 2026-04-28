@@ -14,6 +14,7 @@ export default defineConfig(async () => {
     plugins.push(
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'script',
         includeAssets: ['manifest.json', 'icons/*.png'],
         workbox: {
           runtimeCaching: [

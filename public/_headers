@@ -11,5 +11,9 @@
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
+/registerSW.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /manifest.json
   Cache-Control: no-cache
+  Content-Type: application/json; charset=utf-8
