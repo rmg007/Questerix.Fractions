@@ -150,6 +150,11 @@ The sequence below is dependency-ordered: each phase removes a precondition for 
   - ✅ Replaced all 5 `nanoid` dynamic imports with `crypto.randomUUID()` in `BootScene.ts`, `Level01Scene.ts` (×2), `LevelScene.ts` (×2)
   - Deferred to Phase 2: Logger factory + sink array, Dexie schema v4 `telemetryEvents`, `sessionTelemetry` writer
 
+  **Phase 2 — Partial (2026-04-28, branch `plans/master-audit-roadmap`):**
+  - ✅ Added `src/engine/ports.ts` — `Clock`, `IdGenerator`, `Rng`, `EngineLogger`, `Viewport`, `DetectorContext` port interfaces
+  - ✅ Added `src/lib/adapters/index.ts` — `SystemClock`, `CryptoUuidGenerator`, `MathRandomRng`, `ConsoleEngineLogger`, `BrowserViewport` production adapters
+  - Remaining Phase 2: Application layer (`src/application/` use cases), refactor detectors/selection/calibration to accept ports, close C5 localStorage breach, sunset Level01Scene
+
 * **Phase 2 — Restore architectural integrity: Application layer + engine purity + close C5 (Sprint 1 + Sprint 2).**
   1. **Engine-purity ports first.** Add `src/engine/ports.ts` with `Clock`, `IdGenerator`, `Rng`, `Logger`, `Viewport` interfaces. Refactor `misconceptionDetectors.ts`, `selection.ts`, `calibration.ts` to receive ports. Provide `SystemClock`, `CryptoUuidGenerator`, `MathRandomRng`, `ConsoleLogger` adapters in `src/lib/adapters/`; provide `FixedClock`, `SequentialIdGenerator`, `MulberryRng(seed)` test doubles. Add ESLint rule forbidding `crypto`, `Date`, `Math.random`, `window`, `document`, `console`, `localStorage`, `fetch` in `src/engine/**` and `src/validators/**`. Unblocks deterministic detector and selection tests with `fast-check`.
   2. **Stand up `src/application/`** with `SubmitAttemptUseCase`, `OpenSessionUseCase`, `CloseSessionUseCase`, `LoadLevelTemplatesUseCase`, `RecordHintUseCase`, `MarkLevelCompleteUseCase`, `GetUnlockedLevelsUseCase`, `ResetDeviceUseCase`, `ExportBackupUseCase`. Move the ~600 LOC of orchestration out of both scene files. Introduce `SkillIdResolver` (single mastery namespace), `SessionFactory`, `SessionSummaryCalculator`, `LevelUnlockPolicy`, `ValidationService`. Wire BKT (`updateMastery`) and detectors (`runAllDetectors`) into `SubmitAttemptUseCase`. **Closes G-E1 through G-E5 in one structural move and silences the L1/L2 contract divergence.**
