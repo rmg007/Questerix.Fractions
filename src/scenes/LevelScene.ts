@@ -131,6 +131,10 @@ export class LevelScene extends Phaser.Scene {
 
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
 
+    // C5.5: Phaser 4 does not invoke preDestroy(); use SHUTDOWN + DESTROY events instead
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanup());
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => this.cleanup());
+
     // Testid sentinels: mount generic `level-scene` + per-level `levelNN-scene`
     TestHooks.mountSentinel('level-scene');
     const levelId = `level${String(this.levelNumber).padStart(2, '0')}-scene`;
@@ -1009,10 +1013,18 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  preDestroy(): void {
+  private _cleanedUp = false;
+  private cleanup(): void {
+    if (this._cleanedUp) return;
+    this._cleanedUp = true;
     log.scene('destroy', { level: this.levelNumber });
+    this.feedbackOverlay?.destroy();
     AccessibilityAnnouncer.destroy();
     this.activeInteraction?.unmount();
     TestHooks.unmountAll();
+  }
+
+  preDestroy(): void {
+    this.cleanup();
   }
 }

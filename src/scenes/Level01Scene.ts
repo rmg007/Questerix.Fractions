@@ -145,6 +145,8 @@ export class Level01Scene extends Phaser.Scene {
   private progressBar!: ProgressBar;
   private hintLadder!: HintLadder;
   private dragHandle!: DragHandle;
+  // C5.6: track pending timers so they can be cancelled on scene shutdown
+  private pendingTimers: Phaser.Time.TimerEvent[] = [];
 
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
@@ -229,6 +231,10 @@ export class Level01Scene extends Phaser.Scene {
 
     // Feedback overlay — per interaction-model.md §2 (<800ms)
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
+
+    // C5.5: Phaser 4 does not invoke preDestroy(); use SHUTDOWN + DESTROY events instead
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanup());
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => this.cleanup());
 
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);
@@ -875,14 +881,16 @@ export class Level01Scene extends Phaser.Scene {
       SHAPE_CY + SHAPE_H / 2 + 20
     );
     // Fade out after 3 seconds
-    this.time.delayedCall(3000, () => {
-      this.tweens.add({
-        targets: overlay,
-        alpha: 0,
-        duration: 400,
-        onComplete: () => overlay.destroy(),
-      });
-    });
+    this.pendingTimers.push(
+      this.time.delayedCall(3000, () => {
+        this.tweens.add({
+          targets: overlay,
+          alpha: 0,
+          duration: 400,
+          onComplete: () => overlay.destroy(),
+        });
+      })
+    );
   }
 
   /**
@@ -897,11 +905,13 @@ export class Level01Scene extends Phaser.Scene {
       // per design-language.md §6.4 — static overlay
       this.drawCenterOverlay();
       // Reset handle position after a brief pause
-      this.time.delayedCall(1200, () => {
-        this.handlePos = SHAPE_CX;
-        this.dragHandle.moveTo(SHAPE_CX, false);
-        this.updatePartitionLine(SHAPE_CX);
-      });
+      this.pendingTimers.push(
+        this.time.delayedCall(1200, () => {
+          this.handlePos = SHAPE_CX;
+          this.dragHandle.moveTo(SHAPE_CX, false);
+          this.updatePartitionLine(SHAPE_CX);
+        })
+      );
       return;
     }
 
@@ -909,16 +919,20 @@ export class Level01Scene extends Phaser.Scene {
     this.inputLocked = true;
     this.dragHandle.moveTo(SHAPE_CX, true); // 500ms animation
 
-    this.time.delayedCall(700, () => {
-      // Brief pause showing correct position, then reset for student attempt
-      this.time.delayedCall(800, () => {
-        this.handlePos = SHAPE_CX + SHAPE_W * 0.3; // deliberately off-center
-        this.dragHandle.moveTo(this.handlePos, false);
-        this.updatePartitionLine(this.handlePos);
-        this.inputLocked = false;
-        this.hintText.setText('Now you try! Drag the line to the middle.');
-      });
-    });
+    this.pendingTimers.push(
+      this.time.delayedCall(700, () => {
+        // Brief pause showing correct position, then reset for student attempt
+        this.pendingTimers.push(
+          this.time.delayedCall(800, () => {
+            this.handlePos = SHAPE_CX + SHAPE_W * 0.3; // deliberately off-center
+            this.dragHandle.moveTo(this.handlePos, false);
+            this.updatePartitionLine(this.handlePos);
+            this.inputLocked = false;
+            this.hintText.setText('Now you try! Drag the line to the middle.');
+          })
+        );
+      })
+    );
   }
 
   /** One-time pulse on the hint button per interaction-model.md §5.4 */
@@ -1235,10 +1249,21 @@ export class Level01Scene extends Phaser.Scene {
     }
   }
 
-  // Called by Phaser when scene is shut down
-  preDestroy(): void {
+  private _cleanedUp = false;
+  private cleanup(): void {
+    if (this._cleanedUp) return;
+    this._cleanedUp = true;
     log.scene('destroy');
+    // C5.6: cancel any pending timers before teardown
+    this.pendingTimers.forEach((t) => t.remove());
+    this.pendingTimers = [];
+    this.feedbackOverlay?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
+  }
+
+  // Called by Phaser when scene is shut down
+  preDestroy(): void {
+    this.cleanup();
   }
 }

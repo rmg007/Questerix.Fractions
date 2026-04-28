@@ -30,7 +30,7 @@ describe('partitionEqualAreas property tests', () => {
     );
   });
 
-  it('should handle degenerate case (all areas near-zero)', () => {
+  it('should handle degenerate case (all areas near-zero or non-finite)', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 5 }),
@@ -49,6 +49,14 @@ describe('partitionEqualAreas property tests', () => {
         }
       )
     );
+
+    // NaN areas should also return degenerate
+    const nanResult = partitionEqualAreas.fn(
+      { regionAreas: [NaN, NaN] },
+      { targetPartitions: 2, areaTolerance: 0.05 }
+    );
+    expect(nanResult.outcome).toBe('incorrect');
+    expect(nanResult.feedback).toBe('degenerate_partition');
   });
 
   it('should reject when partition count mismatches', () => {
@@ -74,7 +82,7 @@ describe('partitionEqualAreas property tests', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 2, max: 5 }),
-        fc.float({ min: Math.fround(0.5), max: Math.fround(5) }),
+        fc.float({ min: Math.fround(0.5), max: Math.fround(5), noNaN: true }),
         (count, area) => {
           const areas = Array(count).fill(area);
           const result = partitionEqualAreas.fn(
