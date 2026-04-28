@@ -21,7 +21,10 @@
     "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
     "lint": "eslint src --max-warnings 0 && prettier --check src",
     "lint:fix": "eslint src --fix && prettier --write src",
-    "measure-bundle": "node scripts/measure-bundle.mjs"
+    "measure-bundle": "node scripts/measure-bundle.mjs",
+    "deploy": "wrangler pages deploy dist --project-name questerix-fractions --branch main --commit-dirty=true",
+    "predeploy": "npm run typecheck && npm run lint && npm run test:unit && npm run build && node scripts/measure-bundle.mjs",
+    "postdeploy": "node scripts/postdeploy-check.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
