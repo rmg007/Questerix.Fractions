@@ -36,6 +36,9 @@ export const partitionEqualAreas: ValidatorRegistration<PartitionInput, Partitio
       return { outcome: 'incorrect', score: 0, feedback: 'wrong_partition_count' };
     }
 
+    if (regionAreas.some((a) => !Number.isFinite(a))) {
+      return { outcome: 'incorrect', score: 0, feedback: 'degenerate_partition' };
+    }
     const avg = mean(regionAreas);
     if (avg <= 1e-9) return { outcome: 'incorrect', score: 0, feedback: 'degenerate_partition' };
 

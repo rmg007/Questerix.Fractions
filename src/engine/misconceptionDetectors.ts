@@ -141,7 +141,7 @@ export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: Math.floor(hardAttempts.length * (1 - accuracy)),
       resolvedAt: null,
-      evidenceAttemptIds: hardAttempts.filter((_, i) => i < 3).map((a) => a.id),
+      evidenceAttemptIds: hardAttempts.filter((a) => a.outcome !== 'EXACT').map((a) => a.id),
       syncState: 'local',
     };
   }

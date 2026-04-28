@@ -106,7 +106,7 @@ todos:
   # ── Phase 4: Validator & engine bug fixes ──────────────────────────
   - id: c4b-1-partition-divzero
     content: C4b.1 partition.ts:42-43 - guard against avg<=1e-9 to prevent Infinity in relativeDelta
-    status: pending
+    status: done
   - id: c4b-2-compare-whb02
     content: C4b.2 compare.ts:46 - MC-WHB-02 inverted logic (should be leftDecimal>rightDecimal); detector triggers on correct answers
     status: pending
@@ -133,7 +133,7 @@ todos:
     status: pending
   - id: c4b-10-misconceptions-evidence
     content: C4b.10 misconceptionDetectors.ts:45-46 - evidenceAttemptIds truncated to 3 but observationCount counts all; replay/audit broken
-    status: pending
+    status: done
   - id: c4b-11-seed-regex-crash
     content: C4b.11 seed.ts:26-27 - unguarded match[1]! crashes on malformed IDs; use match?.[1] or default fallback
     status: pending
@@ -156,22 +156,22 @@ todos:
     status: pending
   - id: c5-3-feedback-overlay-l01
     content: C5.3 Level01Scene.ts:853 preDestroy() does not destroy FeedbackOverlay (created at line 160); ~16KB leak per session
-    status: pending
+    status: done
   - id: c5-4-feedback-overlay-ls
     content: C5.4 LevelScene.ts:563 preDestroy() does not destroy FeedbackOverlay (created at line 104); affects L2-L9
-    status: pending
+    status: done
   - id: c5-5-phaser-lifecycle
     content: C5.5 Both scenes use preDestroy() but Phaser 4 doesn't call it; replace with this.events.once(SHUTDOWN/DESTROY,cleanup)
-    status: pending
+    status: done
   - id: c5-6-delayedcall-orphan
     content: C5.6 Level01Scene.ts:674-676 - chained time.delayedCall in animateWorkedExample fires after scene shutdown; track and remove on cleanup
-    status: pending
+    status: done
   - id: c5-7-modal-focus
     content: C5.7 Level01Scene.ts:773-787 modal close doesn't restore focus; keyboard navigation broken after 2nd modal close
     status: pending
   - id: c5-8-pref-toggle-ssr
     content: C5.8 PreferenceToggle.ts:55-73 unguarded document access; breaks SSR/SSG builds
-    status: pending
+    status: done
 
   # ── Phase 6: Accessibility (C7 + WCAG AA) ──────────────────────────
   - id: c6-1-link-contrast
@@ -331,7 +331,7 @@ todos:
     status: pending
   - id: c10-10-root-clutter
     content: C10.10 Move HINT_*.md, test_hints.py, Topics.docx out of root into docs/30-architecture/hint-system/
-    status: pending
+    status: done
   - id: c10-11-pkg-metadata
     content: C10.11 Fill package.json keywords, author, repository, bugs, homepage
     status: pending
@@ -1435,3 +1435,23 @@ If any locked constraint should be relaxed, that's a separate decision recorded 
 ---
 
 **Source files for every line:reference in this plan are checked into git as of commit 053c574. Re-run audits before executing each phase to confirm findings still apply.**
+
+---
+
+## Completion — 2026-04-27
+
+**Status:** Partial (high-priority Phase 4b/5/10 items addressed; content and engine-wiring phases remain)
+
+**Completed in branch `plans/curriculum-completion-phase-3`:**
+
+| ID | Description | File(s) changed |
+|----|-------------|-----------------|
+| C4b.10 | Fixed MAG-01 `evidenceAttemptIds` truncation: was `.filter((_, i) => i < 3)`, now uses full wrong-answer evidence set | `src/engine/misconceptionDetectors.ts` |
+| C5.3 | Level01Scene FeedbackOverlay now destroyed in `cleanup()` | `src/scenes/Level01Scene.ts` |
+| C5.4 | LevelScene FeedbackOverlay now destroyed in `cleanup()` | `src/scenes/LevelScene.ts` |
+| C5.5 | Both scenes now use `this.events.once(SHUTDOWN/DESTROY, cleanup)` instead of the non-functional `preDestroy()` | `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts` |
+| C5.6 | All `time.delayedCall()` in `animateWorkedExample()` and `drawCenterOverlay()` tracked in `pendingTimers[]`; removed on cleanup | `src/scenes/Level01Scene.ts` |
+| C5.8 | Added `typeof document === 'undefined'` guard in `getOrCreateContainer()` | `src/components/PreferenceToggle.ts` |
+| C10.10 | `test_hints.py` → `pipeline/scripts/smoke_hints.py`; `Topics.docx` → `docs/_archive/Topics.docx` | moved files |
+
+**Remaining (all other phases):** Phases 0–3 (curriculum content), C4b.1-9/11-14 (validator/engine bugs), C5.1/C5.2/C5.7 (already fixed in main), C6–C13 (a11y, PWA, engine wiring, CI, tooling, docs, playtest) — unchanged, pending future implementation.
