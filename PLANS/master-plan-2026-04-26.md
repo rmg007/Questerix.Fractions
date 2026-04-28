@@ -62,13 +62,13 @@ Numbering matches the 2026-04-27 architecture review so cross-references stay st
 - [x] ~~S1-T3 — Pass `hintsUsedIds` through to attempt records~~ (`Level01Scene.ts:981` confirmed)
 - [x] ~~S1-T4 — Real `accuracy` + `avgResponseMs` in `closeSession()`~~ (`Level01Scene.ts:1203-1216` confirmed)
 - [ ] S1-T5 — Verify state transitions in IndexedDB: `NOT_STARTED → LEARNING → APPROACHING → MASTERED`
-- [ ] S1-T6 — *(pull-in)* Add `[archetype+submittedAt]` index to Dexie schema v4 if attempt queries get slow (G-DB1, deferrable)
+- [x] ~~S1-T6 — *(pull-in)* Add `[archetype+submittedAt]` index to Dexie schema v4 if attempt queries get slow (G-DB1, deferrable)~~ (schema v4 at `db.ts:112,130` adds `[archetype+submittedAt]`)
 
 ### Sprint 2 — Level Progression
 *Exit:* Student can reach Level 2 after L1, and progress is gated on mastery (or simple completion — see Open Decision D-1).
 
 - [ ] S2-T1 — Choose unlock model: BKT-mastery gate vs. session-completion gate (D-1)
-- [ ] S2-T2 — Make adventure-map nodes tappable, OR add a level-select bottom sheet (G-C3, G-C4)
+- [x] ~~S2-T2 — Make adventure-map nodes tappable, OR add a level-select bottom sheet (G-C3, G-C4)~~ (`MenuScene.createChooseLevelButton()` + `_openLevelChooser()` + `_renderLevelGrid()` implemented; "🗺 Choose Level" button opens tappable 3×3 grid; confirmed at `MenuScene.ts:303-468`)
 - [x] ~~S2-T3 — Fix "Keep going" to advance `levelNumber`~~ (`Level01Scene.ts:1135` confirmed, `levelNumber: 2`)
 - [x] ~~S2-T4 — Author L2 templates~~ (6 templates in `pipeline/output/level_02/all.json`)
 - [x] ~~S2-T5 — Run `npm run build:curriculum`~~ (54 templates across L1–L9 in `public/curriculum/v1.json`)
