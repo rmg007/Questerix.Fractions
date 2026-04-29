@@ -109,7 +109,7 @@ describe('LevelScene Quest wiring (behavior)', () => {
     });
   });
 
-  describe('questHintText — partition / equal_or_not (denominator-driven)', () => {
+  describe('questHintText — partition (denominator-driven)', () => {
     it('returns split2/3/4 lines per the payload denominator on every tier', () => {
       const tiers: HintTier[] = ['verbal', 'visual_overlay', 'worked_example'];
       for (const tier of tiers) {
@@ -117,7 +117,7 @@ describe('LevelScene Quest wiring (behavior)', () => {
           makeScene('partition', { targetPartitions: 2 }).questHintText('partition', tier)
         ).toBe('Hmm. I can split this in two.');
         expect(
-          makeScene('equal_or_not', { targetPartitions: 3 }).questHintText('equal_or_not', tier)
+          makeScene('partition', { targetPartitions: 3 }).questHintText('partition', tier)
         ).toBe('Hmm. I can split this in three.');
         expect(
           makeScene('partition', { targetPartitions: 4 }).questHintText('partition', tier)
@@ -130,6 +130,33 @@ describe('LevelScene Quest wiring (behavior)', () => {
         makeScene('partition', { targetPartitions: 5 }).questHintText('partition', 'verbal')
       ).toBeNull();
       expect(makeScene('partition', {}).questHintText('partition', 'verbal')).toBeNull();
+    });
+  });
+
+  describe('questHintText — equal_or_not (tiered, real payload shape)', () => {
+    // Real equal_or_not payloads use { shapeType, partitionLines } (per
+    // src/curriculum/bundle.json L3 entries). The hint must resolve to
+    // the catalog entry directly — no denominator inference — so the
+    // production code path can never fall back to hardcoded English.
+    const realPayload = {
+      shapeType: 'rectangle',
+      partitionLines: [
+        [
+          [0.5, 0],
+          [0.5, 1],
+        ],
+      ],
+    };
+
+    it('verbal/visual_overlay/worked_example return Quest catalog lines', () => {
+      const scene = makeScene('equal_or_not', realPayload);
+      expect(scene.questHintText('equal_or_not', 'verbal')).toBe('Look at each part. Same size?');
+      expect(scene.questHintText('equal_or_not', 'visual_overlay')).toBe(
+        'I can stack them. Then I see.'
+      );
+      expect(scene.questHintText('equal_or_not', 'worked_example')).toBe(
+        'Equal parts match. Same size each.'
+      );
     });
   });
 

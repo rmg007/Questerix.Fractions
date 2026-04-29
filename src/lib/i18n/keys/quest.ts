@@ -101,6 +101,22 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
 
+  'quest.hint.equal_or_not.verbal': {
+    text: 'Look at each part. Same size?',
+    notes: 'Tier 1 hint for equal_or_not. Verbal nudge to compare parts.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.equal_or_not.visual': {
+    text: 'I can stack them. Then I see.',
+    notes: 'Tier 2 hint for equal_or_not. Models stacking parts to compare.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.equal_or_not.worked': {
+    text: 'Equal parts match. Same size each.',
+    notes: 'Tier 3 hint for equal_or_not. Worked-example rule.',
+    tone: 'persona-quest',
+  },
+
   'quest.hint.order.verbal': {
     text: 'Which is smallest? Pick that one first.',
     tone: 'persona-quest',

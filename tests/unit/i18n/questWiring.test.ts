@@ -64,6 +64,12 @@ describe('LevelScene Quest wiring (T28)', () => {
         'Same bottom? Top number wins.',
       ],
       [
+        'equal_or_not',
+        'Look at each part. Same size?',
+        'I can stack them. Then I see.',
+        'Equal parts match. Same size each.',
+      ],
+      [
         'order',
         'Which is smallest? Pick that one first.',
         'I can draw each piece. Then sort.',

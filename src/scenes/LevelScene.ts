@@ -564,12 +564,13 @@ export class LevelScene extends Phaser.Scene {
 
   /**
    * Quest-voiced hint for archetype + tier, or null to let the caller's
-   * strategy-tier fallback run. partition/equal_or_not are tier-agnostic
-   * (denominator-shaped). Other archetypes use .verbal/.visual/.worked
-   * to mirror HintLadder's three tiers. See src/lib/i18n/keys/quest.ts.
+   * strategy-tier fallback run. partition is denominator-shaped; other
+   * archetypes use .verbal/.visual/.worked to mirror HintLadder's three
+   * tiers. See src/lib/i18n/keys/quest.ts.
    */
   private questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
-    if (archetype === 'partition' || archetype === 'equal_or_not') {
+    // partition is denominator-shaped (the hint *is* "I can split this in N").
+    if (archetype === 'partition') {
       const d = this.payloadDenominator();
       switch (d) {
         case 2:
@@ -585,6 +586,7 @@ export class LevelScene extends Phaser.Scene {
     // verbal / visual_overlay / worked_example → .verbal / .visual / .worked
     const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
     switch (archetype) {
+      case 'equal_or_not':
       case 'compare':
       case 'order':
       case 'benchmark':
