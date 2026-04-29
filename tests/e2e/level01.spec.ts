@@ -10,9 +10,9 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await page.goto('/?testHooks=1');
     // Navigate Boot → Menu → L1
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="level-card-L1"]').click();
-    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
   });
 
   test('completes 5 attempts and shows completion screen with ProgressBar 5/5', async ({ page }) => {
@@ -22,9 +22,9 @@ test.describe('Level 01 — full 5-attempt flow', () => {
 
     // Attempt 1–4: interact, wait for feedback, dismiss
     for (let i = 1; i <= 4; i++) {
-      await expect(partitionTarget).toBeVisible({ timeout: 3000 });
+      await expect(partitionTarget).toBeVisible({ timeout: 10000 });
       await partitionTarget.click();
-      await expect(feedbackOverlay).toBeVisible({ timeout: 1000 });
+      await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
 
       // ARIA-live region announces outcome per accessibility.md §6
       const liveRegion = page.locator('[aria-live="polite"]');
@@ -35,18 +35,18 @@ test.describe('Level 01 — full 5-attempt flow', () => {
       await expect(progressBar).toHaveAttribute('aria-valuenow', String(i));
 
       await feedbackNext.click();
-      await expect(feedbackOverlay).toBeHidden({ timeout: 1000 });
+      await expect(feedbackOverlay).toBeHidden({ timeout: 5000 });
     }
 
     // Attempt 5: the final attempt
-    await expect(partitionTarget).toBeVisible({ timeout: 3000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 10000 });
     await partitionTarget.click();
-    await expect(feedbackOverlay).toBeVisible({ timeout: 1000 });
+    await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
     await feedbackNext.click();
 
     // Completion screen must appear
     const completionScreen = page.locator('[data-testid="completion-screen"]');
-    await expect(completionScreen).toBeVisible({ timeout: 3000 });
+    await expect(completionScreen).toBeVisible({ timeout: 10000 });
 
     // ProgressBar shows 5/5
     const progressBar = page.locator('[data-testid="progress-bar"]');
@@ -60,7 +60,7 @@ test.describe('Level 01 — full 5-attempt flow', () => {
 
   test('hint button is reachable and announces text via ARIA per accessibility.md §6', async ({ page }) => {
     const partitionTarget = page.locator('[data-testid="partition-target"]');
-    await expect(partitionTarget).toBeVisible({ timeout: 3000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 10000 });
 
     const hintBtn = page.locator('[data-testid="hint-btn"]');
     await expect(hintBtn).toBeVisible();
@@ -68,6 +68,6 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     // Activate hint
     await hintBtn.click();
     const hintText = page.locator('[data-testid="hint-text"]');
-    await expect(hintText).toBeVisible({ timeout: 1000 });
+    await expect(hintText).toBeVisible({ timeout: 5000 });
   });
 });

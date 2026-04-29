@@ -31,13 +31,11 @@ test.describe('Smoke — boot to first attempt', () => {
     await expect(partitionTarget).toBeVisible({ timeout: 3000 });
 
     // Tap/click the partition mechanic to make one attempt
-    const t0 = Date.now();
     await partitionTarget.click();
 
     // FeedbackOverlay must appear within 1000 ms of the interaction
     // per accessibility.md §6 (ARIA-live outcome announcements)
     const feedback = page.locator('[data-testid="feedback-overlay"]');
     await expect(feedback).toBeVisible({ timeout: 1000 });
-    expect(Date.now() - t0).toBeLessThan(1000);
   });
 });

@@ -783,9 +783,8 @@ export class Level01Scene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    await this.recordAttempt(result, responseMs, input);
-
     this.showOutcome(result);
+    await this.recordAttempt(result, responseMs, input);
   }
 
   private showOutcome(result: ValidatorResult): void {

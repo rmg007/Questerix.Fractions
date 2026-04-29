@@ -37,7 +37,7 @@ function getOrCreateContainer(): HTMLElement | null {
     el.id = CONTAINER_ID;
     el.setAttribute('aria-hidden', 'true');
     el.style.cssText =
-      'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;';
+      'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:99999;';
     document.body?.appendChild(el);
   }
   return el;
@@ -94,7 +94,6 @@ export const TestHooks = {
 
     const btn = document.createElement('button');
     btn.setAttribute('data-testid', testid);
-    btn.setAttribute('aria-hidden', 'true');
     btn.setAttribute('tabindex', '-1');
     btn.style.cssText = [
       'position:fixed',
@@ -103,7 +102,7 @@ export const TestHooks = {
       `width:${opts?.width ?? '80px'}`,
       `height:${opts?.height ?? '80px'}`,
       'transform:translate(-50%,-50%)',
-      'opacity:0',
+      'opacity:0.01',
       'cursor:pointer',
       'z-index:9999',
       'background:transparent',
