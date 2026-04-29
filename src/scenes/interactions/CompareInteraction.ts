@@ -7,7 +7,14 @@ import * as Phaser from 'phaser';
 import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
+import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+
+const RELATION_TESTID: Record<'<' | '=' | '>', string> = {
+  '>': 'compare-relation-gt',
+  '=': 'compare-relation-eq',
+  '<': 'compare-relation-lt',
+};
 
 type FractionRef = string | { numerator: number; denominator: number; label?: string } | undefined;
 
@@ -130,18 +137,25 @@ export class CompareInteraction implements Interaction {
         .rectangle(bx, btnY, 180, 56, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(8);
-      // Compute relation for onCommit
       const aVal = aFrac.n / aFrac.d;
       const bVal = bFrac.n / bFrac.d;
-      hit.on('pointerup', () => {
+      const submit = () => {
         const correct = aVal > bVal ? '>' : aVal < bVal ? '<' : '=';
         onCommit({ relation: val, correct: val === correct });
+      };
+      hit.on('pointerup', submit);
+      TestHooks.mountInteractive(RELATION_TESTID[val], submit, {
+        top: `${(btnY / 1280) * 100}%`,
+        left: `${(bx / 800) * 100}%`,
+        width: '180px',
+        height: '56px',
       });
       this.gameObjects.push(bg, hit);
     });
   }
 
   unmount(): void {
+    (Object.values(RELATION_TESTID) as string[]).forEach((id) => TestHooks.unmount(id));
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
     this.bars.forEach((b) => b.destroy());

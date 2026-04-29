@@ -204,37 +204,10 @@ describe('LevelScene Quest wiring (behavior)', () => {
     });
   });
 
-  describe('questFeedbackText — defensive guard', () => {
-    it('returns null (no throw) when a Quest feedback key is missing', async () => {
-      // Mirrors the questHintText guard. Future catalog drift on a
-      // feedback key shouldn't crash the level screen — caller falls
-      // back to FeedbackOverlay's baked-in per-kind label.
+  describe('questHintText — dynamic-key guard', () => {
+    it('returns null (no throw) when a Quest dynamic key is missing', async () => {
       const { _resetForTests, registerCatalog } = await import('@/lib/i18n/catalog');
       _resetForTests();
-      registerCatalog({}); // empty catalog — every key is missing
-      const scene = makeScene('partition', { targetPartitions: 2 });
-      expect(() => scene.questFeedbackText('correct')).not.toThrow();
-      expect(scene.questFeedbackText('correct')).toBeNull();
-      expect(() => scene.questFeedbackText('incorrect')).not.toThrow();
-      expect(scene.questFeedbackText('incorrect')).toBeNull();
-
-      // Restore for downstream tests.
-      _resetForTests();
-      const { QUEST_CATALOG } = await import('@/lib/i18n/keys/quest');
-      registerCatalog(QUEST_CATALOG);
-    });
-  });
-
-  describe('questHintText — defensive guard', () => {
-    it('returns null (no throw) when a Quest key is missing from the catalog', async () => {
-      // The dynamic key path (`quest.hint.<archetype>.<suffix>`) is
-      // type-checked at compile time but could still drift if a future
-      // catalog edit removes a key. Verify the runtime guard catches that
-      // and falls through to the strategy-tier text instead of crashing.
-      const { _resetForTests, registerCatalog } = await import('@/lib/i18n/catalog');
-      _resetForTests();
-      // Re-register only the partition lines, deliberately omitting
-      // `quest.hint.compare.verbal` so the lookup throws inside getCopy.
       registerCatalog({
         'quest.hint.split2': { text: 'x', tone: 'persona-quest' },
         'quest.hint.split3': { text: 'x', tone: 'persona-quest' },
@@ -244,7 +217,6 @@ describe('LevelScene Quest wiring (behavior)', () => {
       expect(() => scene.questHintText('compare', 'verbal')).not.toThrow();
       expect(scene.questHintText('compare', 'verbal')).toBeNull();
 
-      // Restore for downstream tests by re-registering the real catalog.
       _resetForTests();
       const { QUEST_CATALOG } = await import('@/lib/i18n/keys/quest');
       registerCatalog(QUEST_CATALOG);

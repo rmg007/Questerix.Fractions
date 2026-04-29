@@ -538,70 +538,35 @@ export class LevelScene extends Phaser.Scene {
   }
 
   /**
-   * Resolve the Quest-voiced feedback string for the given outcome. Returns
-   * null when no Quest line applies (currently: `close`/partial outcomes).
-   *
-   * - `correct` → the denominator-named line for halves/thirds/fourths,
-   *   falling back to `quest.feedback.correct.equal` when the denominator
-   *   is missing or not 2/3/4.
-   * - `incorrect` → `quest.feedback.wrong.unequal` (the partition-shaped
-   *   "The parts are not equal." line — the only generic wrong line in
-   *   the catalog today; the parts-counting variant takes a `count` param
-   *   and is wired separately when the validator surfaces a count).
+   * Quest-voiced feedback for the outcome. correct picks the denominator-
+   * named line (halves/thirds/fourths, else equal); incorrect returns
+   * the generic wrong line. null for partial/close outcomes.
    */
   private questFeedbackText(kind: FeedbackKind): string | null {
-    // Defensive lookup matching questHintText: getCopy() throws on unknown
-    // catalog keys, and although questCatalog.test.ts pins these strings
-    // at build time, a future catalog edit shouldn't crash the level
-    // screen. Returning null lets FeedbackOverlay fall back to its
-    // baked-in per-kind label instead.
-    const safe = (key: string): string | null => {
-      try {
-        return getCopy(key as Parameters<typeof getCopy>[0]);
-      } catch (err) {
-        log.q('quest_feedback_key_missing', {
-          key,
-          error: err instanceof Error ? err.message : String(err),
-        });
-        return null;
-      }
-    };
-
     if (kind === 'correct') {
       const d = this.payloadDenominator();
       switch (d) {
         case 2:
-          return safe('quest.feedback.correct.half');
+          return getCopy('quest.feedback.correct.half');
         case 3:
-          return safe('quest.feedback.correct.third');
+          return getCopy('quest.feedback.correct.third');
         case 4:
-          return safe('quest.feedback.correct.fourth');
+          return getCopy('quest.feedback.correct.fourth');
         default:
-          return safe('quest.feedback.correct.equal');
+          return getCopy('quest.feedback.correct.equal');
       }
     }
     if (kind === 'incorrect') {
-      return safe('quest.feedback.wrong.unequal');
+      return getCopy('quest.feedback.wrong.unequal');
     }
     return null;
   }
 
   /**
-   * Pick a Quest-voiced hint line for the given archetype + tier, or null
-   * when no Quest line is registered for the case (the caller then falls
-   * back to the existing strategy-tier text).
-   *
-   * Routing (per ux-elevation §9 T28 + entries in src/lib/i18n/keys/quest.ts):
-   *   - partition / equal_or_not → tier-agnostic; selects the
-   *     denominator-shaped split{2,3,4} line because the hint *is* the
-   *     observation that the shape can be split in N pieces.
-   *   - compare / order / benchmark / label / make / snap_match → three
-   *     tiers each, mirroring HintLadder's verbal / visual_overlay /
-   *     worked_example budgets. Catalog suffixes are `.verbal`, `.visual`,
-   *     `.worked` to keep keys short.
-   *
-   * Returning null lets the caller's fallback switch run, preserving graceful
-   * degradation if a Quest entry is removed without rewiring this map.
+   * Quest-voiced hint for archetype + tier, or null to let the caller's
+   * strategy-tier fallback run. partition/equal_or_not are tier-agnostic
+   * (denominator-shaped). Other archetypes use .verbal/.visual/.worked
+   * to mirror HintLadder's three tiers. See src/lib/i18n/keys/quest.ts.
    */
   private questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
     if (archetype === 'partition' || archetype === 'equal_or_not') {
@@ -626,20 +591,11 @@ export class LevelScene extends Phaser.Scene {
       case 'label':
       case 'make':
       case 'snap_match':
-        // Defensive: getCopy() throws on unknown keys. The strings here
-        // are verified at build time by tests/unit/i18n/questWiring.test.ts
-        // and tests/unit/i18n/questCatalog.test.ts, but a future catalog
-        // edit (e.g. renaming a key) shouldn't crash the level screen —
-        // fall back to the strategy-tier text instead. Logged for triage.
+        // Dynamic key — guard runtime miss so a stray catalog edit can't
+        // crash the level screen. Caller falls back to strategy-tier copy.
         try {
           return getCopy(`quest.hint.${archetype}.${suffix}`);
-        } catch (err) {
-          log.hint('quest_key_missing', {
-            archetype,
-            tier,
-            key: `quest.hint.${archetype}.${suffix}`,
-            error: err instanceof Error ? err.message : String(err),
-          });
+        } catch {
           return null;
         }
       default:
