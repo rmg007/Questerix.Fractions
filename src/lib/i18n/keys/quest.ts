@@ -201,6 +201,12 @@ const QUEST_COPY: Catalog = {
     notes: '5 words — at MIN_WORDS_FOR_FK boundary; FK gate may skip.',
     tone: 'persona-quest',
   },
+  'quest.hint.fallback.safe': {
+    text: 'Take another look.',
+    notes:
+      'Last-resort hint shown when catalog retrieval fails entirely. Prevents blank hint bubble.',
+    tone: 'persona-quest',
+  },
 
   // ── Tricky / 3-wrong recovery (offers ramp-down per §9 T29) ───────────
   'quest.tricky.offerRamp': {

@@ -700,10 +700,10 @@ export class LevelScene extends Phaser.Scene {
       try {
         msg = getCopy(`quest.hint.fallback.${suffix}`);
       } catch {
-        // Catalog unavailable (e.g. test teardown reset) — use safe literal
-        // so the hint bubble is never blank in production.
+        // Catalog unavailable (e.g. test teardown reset) — use the stable
+        // safe key so no player-facing text is a hardcoded literal.
         log.warn('HINT', 'fallback_catalog_miss', { tier, archetype });
-        msg = 'Take another look.';
+        msg = getCopy('quest.hint.fallback.safe');
       }
     }
 
