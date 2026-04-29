@@ -98,13 +98,19 @@ export class FeedbackOverlay {
    * Show feedback for the given kind. Auto-dismisses after displayMs.
    * per interaction-model.md §2 — visual feedback must start within 300ms of submit.
    */
-  show(kind: FeedbackKind, onDismiss?: () => void): void {
+  show(kind: FeedbackKind, onDismiss?: () => void, text?: string): void {
     const cfg = KIND_CONFIG[kind];
     const reduceMotion = this.checkReduceMotion();
 
+    // Optional `text` override lets callers (e.g. LevelScene routing through
+    // the Quest microcopy catalog per ux-elevation §9 T28) supply the visible
+    // label while keeping the per-kind color + icon. Falls back to the
+    // baked-in label when omitted, so legacy two-arg callers are unchanged.
+    const labelText = text && text.trim().length > 0 ? text : cfg.text;
+
     this.bg.setFillStyle(cfg.bg, 0.97);
     this.iconGO.setText(cfg.icon).setColor(cfg.textColor).setVisible(true);
-    this.label.setText(cfg.text).setVisible(true);
+    this.label.setText(labelText).setVisible(true);
     this.bg.setVisible(true).setAlpha(1);
     this.iconGO.setAlpha(1);
     this.label.setAlpha(1);

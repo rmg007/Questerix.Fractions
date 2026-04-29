@@ -17,7 +17,7 @@ import {
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
-import { FeedbackOverlay } from '../components/FeedbackOverlay';
+import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
@@ -27,6 +27,12 @@ import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
 import { tts } from '../audio/TTSService';
 import { log } from '../lib/log';
+// Quest microcopy catalog (registered at boot via src/main.ts).
+// Per ux-elevation §9 T28 — the level screen routes its hint, feedback,
+// and session-complete copy through `getCopy('quest.…')` so Quest's voice
+// stays consistent and localizable without scene-side string literals.
+import { get as getCopy } from '../lib/i18n/catalog';
+import { resolveQuestName } from '../lib/persona/quest';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -49,6 +55,14 @@ export class LevelScene extends Phaser.Scene {
   protected levelNumber: number = 1;
   private studentId: string | null = null;
   private sessionId: string | null = null;
+  /**
+   * Cached Quest-facing display name for the active student. Resolved from
+   * Dexie inside `openSession()` and consumed once per session by
+   * `showSessionComplete()` (Quest names the player at most once per
+   * §4 of the persona bible). Reset to `null` in `init()` so a previous
+   * student's name cannot leak into a later anonymous session.
+   */
+  private studentDisplayName: string | null = null;
 
   // Session state
   private questionIndex: number = 0;
@@ -95,6 +109,11 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
+    // Reset the cached display name on every scene init so a previous
+    // student's name can't leak into a later anonymous session-complete
+    // line. `openSession()` re-resolves it from Dexie when a studentId
+    // is bound; otherwise `resolveQuestName(null)` falls back to "friend".
+    this.studentDisplayName = null;
     log.scene('init', {
       level: this.levelNumber,
       studentId: this.studentId,
@@ -486,23 +505,110 @@ export class LevelScene extends Phaser.Scene {
       this.progressBar.setProgress(this.attemptCount + 1);
     }
 
-    this.feedbackOverlay.show(kind, () => {
-      this.inputLocked = false;
-      this.submitButtonContainer?.setAlpha(1);
-      if (kind === 'correct') {
-        this.onCorrectAnswer();
-      } else {
-        this.onWrongAnswer();
-      }
-    });
+    // Quest-voiced feedback per ux-elevation §9 T28. The catalog only
+    // ships Quest copy for `correct` and `incorrect`; `close` (partial)
+    // has no Quest line yet so we let FeedbackOverlay fall back to its
+    // baked-in default ("Almost! Adjust a little.").
+    const questText = this.questFeedbackText(kind);
 
+    this.feedbackOverlay.show(
+      kind,
+      () => {
+        this.inputLocked = false;
+        this.submitButtonContainer?.setAlpha(1);
+        if (kind === 'correct') {
+          this.onCorrectAnswer();
+        } else {
+          this.onWrongAnswer();
+        }
+      },
+      questText ?? undefined
+    );
+
+    // Mirror the visible feedback to the screen-reader announcer so the
+    // assistive-tech experience stays in Quest's voice when one is set.
     const announcement =
-      kind === 'correct'
+      questText ??
+      (kind === 'correct'
         ? 'Correct! Great work.'
         : kind === 'close'
           ? 'Almost! Try a tiny adjustment.'
-          : 'Not quite — try again.';
+          : 'Not quite — try again.');
     AccessibilityAnnouncer.announce(announcement);
+  }
+
+  /**
+   * Resolve the Quest-voiced feedback string for the given outcome. Returns
+   * null when no Quest line applies (currently: `close`/partial outcomes).
+   *
+   * - `correct` → the denominator-named line for halves/thirds/fourths,
+   *   falling back to `quest.feedback.correct.equal` when the denominator
+   *   is missing or not 2/3/4.
+   * - `incorrect` → `quest.feedback.wrong.unequal` (the partition-shaped
+   *   "The parts are not equal." line — the only generic wrong line in
+   *   the catalog today; the parts-counting variant takes a `count` param
+   *   and is wired separately when the validator surfaces a count).
+   */
+  private questFeedbackText(kind: FeedbackKind): string | null {
+    if (kind === 'correct') {
+      const d = this.payloadDenominator();
+      switch (d) {
+        case 2:
+          return getCopy('quest.feedback.correct.half');
+        case 3:
+          return getCopy('quest.feedback.correct.third');
+        case 4:
+          return getCopy('quest.feedback.correct.fourth');
+        default:
+          return getCopy('quest.feedback.correct.equal');
+      }
+    }
+    if (kind === 'incorrect') {
+      return getCopy('quest.feedback.wrong.unequal');
+    }
+    return null;
+  }
+
+  /**
+   * Pick a Quest-voiced hint line for the given archetype/denominator,
+   * or return null when no Quest line is registered for the case (the
+   * caller then falls back to the existing strategy-tier text).
+   *
+   * Today the catalog ships hint copy only for the partition family
+   * (`quest.hint.split{2,3,4}`); other archetypes will land in a follow-up
+   * once their lines pass persona + copy-lint review.
+   */
+  private questHintText(archetype: string): string | null {
+    if (archetype !== 'partition' && archetype !== 'equal_or_not') return null;
+    const d = this.payloadDenominator();
+    switch (d) {
+      case 2:
+        return getCopy('quest.hint.split2');
+      case 3:
+        return getCopy('quest.hint.split3');
+      case 4:
+        return getCopy('quest.hint.split4');
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Best-effort denominator extraction from the current question template's
+   * payload. Walks the field names actually used by current payloads —
+   * partition templates carry `targetPartitions` (see
+   * `src/validators/partition.ts`), other archetypes vary. Listing the
+   * exhaustive set here keeps the lookup robust without coupling LevelScene
+   * to per-archetype payload schemas.
+   */
+  private payloadDenominator(): number | null {
+    const payload = this.currentTemplate?.payload as Record<string, unknown> | undefined;
+    if (!payload) return null;
+    for (const key of ['targetPartitions', 'targetParts', 'denominator', 'parts', 'totalParts']) {
+      const v = payload[key];
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
   }
 
   private onCorrectAnswer(): void {
@@ -562,117 +668,130 @@ export class LevelScene extends Phaser.Scene {
     const archetype = this.currentTemplate?.archetype ?? 'partition';
     let msg = '';
 
-    // Fix G-Hints: branch on archetype so messages are contextually correct
-    switch (archetype) {
-      case 'compare':
-        switch (tier) {
-          case 'verbal':
-            msg =
-              'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.';
-            break;
-          case 'visual_overlay':
-            msg = 'Try drawing both fractions as a picture — which takes up more space?';
-            break;
-          case 'worked_example':
-            msg = 'If the bottom numbers are the same, the bigger top number wins.';
-            break;
-        }
-        break;
-      case 'benchmark':
-        switch (tier) {
-          case 'verbal':
-            msg = 'Is this fraction closer to 0, to ½, or to 1?';
-            break;
-          case 'visual_overlay':
-            msg =
-              '½ means equal parts. Is your fraction less than half, about half, or more than half?';
-            break;
-          case 'worked_example':
-            msg =
-              "Try: if the top is much smaller than the bottom, it's near 0. If they're almost equal, it's near 1.";
-            break;
-        }
-        break;
-      case 'order':
-        switch (tier) {
-          case 'verbal':
-            msg = 'Which fraction is smallest? Start by placing it first.';
-            break;
-          case 'visual_overlay':
-            msg = 'Try converting to the same denominator — then compare the top numbers.';
-            break;
-          case 'worked_example':
-            msg = 'Draw each fraction as a picture to see which is smallest, middle, and largest.';
-            break;
-        }
-        break;
-      case 'equal_or_not':
-        switch (tier) {
-          case 'verbal':
-            msg = 'Look carefully — are all the pieces exactly the same size?';
-            break;
-          case 'visual_overlay':
-            msg = 'Cover one piece with another in your mind — do they match?';
-            break;
-          case 'worked_example':
-            msg = 'Equal parts means every single piece is identical.';
-            break;
-        }
-        break;
-      case 'label':
-        switch (tier) {
-          case 'verbal':
-            msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.';
-            break;
-          case 'visual_overlay':
-            msg = 'The bottom number is total pieces. The top number is shaded pieces.';
-            break;
-          case 'worked_example':
-            msg = 'Write shaded / total.';
-            break;
-        }
-        break;
-      case 'make':
-        switch (tier) {
-          case 'verbal':
-            msg =
-              'The bottom number tells you how many pieces total. The top tells you how many to shade.';
-            break;
-          case 'visual_overlay':
-            msg = 'Shade exactly the number on top.';
-            break;
-          case 'worked_example':
-            msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.';
-            break;
-        }
-        break;
-      case 'snap_match':
-        switch (tier) {
-          case 'verbal':
-            msg = 'Find the picture where the shaded part matches the fraction.';
-            break;
-          case 'visual_overlay':
-            msg = 'Count the total pieces (bottom number) and shaded pieces (top number).';
-            break;
-          case 'worked_example':
-            msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.';
-            break;
-        }
-        break;
-      case 'partition':
-      default:
-        switch (tier) {
-          case 'verbal':
-            msg = 'Tip: Equal parts means each piece is the same size. Try the middle!';
-            break;
-          case 'visual_overlay':
-            msg = 'Look for the center of the shape.';
-            break;
-          case 'worked_example':
-            msg = 'Watch where to place the line, then try yourself.';
-            break;
-        }
-        break;
+    // Quest-voiced hint per ux-elevation §9 T28. The catalog only ships
+    // partition-family hint copy today (split2/3/4); for everything else
+    // we fall through to the strategy-tiered text below. This is gated on
+    // copy-review; tracked as follow-up to extend coverage.
+    const questMsg = this.questHintText(archetype);
+    if (questMsg !== null) {
+      msg = questMsg;
+    }
+
+    // Fix G-Hints: branch on archetype so messages are contextually correct.
+    // Skipped when a Quest line was found above so we don't overwrite it.
+    if (msg === '') {
+      switch (archetype) {
+        case 'compare':
+          switch (tier) {
+            case 'verbal':
+              msg =
+                'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.';
+              break;
+            case 'visual_overlay':
+              msg = 'Try drawing both fractions as a picture — which takes up more space?';
+              break;
+            case 'worked_example':
+              msg = 'If the bottom numbers are the same, the bigger top number wins.';
+              break;
+          }
+          break;
+        case 'benchmark':
+          switch (tier) {
+            case 'verbal':
+              msg = 'Is this fraction closer to 0, to ½, or to 1?';
+              break;
+            case 'visual_overlay':
+              msg =
+                '½ means equal parts. Is your fraction less than half, about half, or more than half?';
+              break;
+            case 'worked_example':
+              msg =
+                "Try: if the top is much smaller than the bottom, it's near 0. If they're almost equal, it's near 1.";
+              break;
+          }
+          break;
+        case 'order':
+          switch (tier) {
+            case 'verbal':
+              msg = 'Which fraction is smallest? Start by placing it first.';
+              break;
+            case 'visual_overlay':
+              msg = 'Try converting to the same denominator — then compare the top numbers.';
+              break;
+            case 'worked_example':
+              msg =
+                'Draw each fraction as a picture to see which is smallest, middle, and largest.';
+              break;
+          }
+          break;
+        case 'equal_or_not':
+          switch (tier) {
+            case 'verbal':
+              msg = 'Look carefully — are all the pieces exactly the same size?';
+              break;
+            case 'visual_overlay':
+              msg = 'Cover one piece with another in your mind — do they match?';
+              break;
+            case 'worked_example':
+              msg = 'Equal parts means every single piece is identical.';
+              break;
+          }
+          break;
+        case 'label':
+          switch (tier) {
+            case 'verbal':
+              msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.';
+              break;
+            case 'visual_overlay':
+              msg = 'The bottom number is total pieces. The top number is shaded pieces.';
+              break;
+            case 'worked_example':
+              msg = 'Write shaded / total.';
+              break;
+          }
+          break;
+        case 'make':
+          switch (tier) {
+            case 'verbal':
+              msg =
+                'The bottom number tells you how many pieces total. The top tells you how many to shade.';
+              break;
+            case 'visual_overlay':
+              msg = 'Shade exactly the number on top.';
+              break;
+            case 'worked_example':
+              msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.';
+              break;
+          }
+          break;
+        case 'snap_match':
+          switch (tier) {
+            case 'verbal':
+              msg = 'Find the picture where the shaded part matches the fraction.';
+              break;
+            case 'visual_overlay':
+              msg = 'Count the total pieces (bottom number) and shaded pieces (top number).';
+              break;
+            case 'worked_example':
+              msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.';
+              break;
+          }
+          break;
+        case 'partition':
+        default:
+          switch (tier) {
+            case 'verbal':
+              msg = 'Tip: Equal parts means each piece is the same size. Try the middle!';
+              break;
+            case 'visual_overlay':
+              msg = 'Look for the center of the shape.';
+              break;
+            case 'worked_example':
+              msg = 'Watch where to place the line, then try yourself.';
+              break;
+          }
+          break;
+      }
     }
 
     this.hintTextGO.setText(msg);
@@ -722,6 +841,18 @@ export class LevelScene extends Phaser.Scene {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
+
+      // Resolve the Quest-facing display name once, here, before any
+      // gameplay can fire `showSessionComplete()`. Failures are non-fatal —
+      // `resolveQuestName(null)` falls back to "friend" at render time.
+      try {
+        const { studentRepo } = await import('../persistence/repositories/student');
+        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+        this.studentDisplayName = student?.displayName ?? null;
+      } catch (err) {
+        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
+        this.studentDisplayName = null;
+      }
 
       const { sessionRepo } = await import('../persistence/repositories/session');
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
@@ -908,6 +1039,13 @@ export class LevelScene extends Phaser.Scene {
     cardG.lineStyle(5, 0x1e3a8a, 1);
     cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
 
+    // Quest closes the session per ux-elevation §4: she names the player
+    // *exactly once* per session, here. `resolveQuestName` falls back to
+    // "friend" when no display name is on file.
+    const completionLine = getCopy('quest.complete.named', {
+      name: resolveQuestName(this.studentDisplayName),
+    });
+
     this.add
       .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
         fontSize: '36px',
@@ -919,8 +1057,18 @@ export class LevelScene extends Phaser.Scene {
       .setDepth(52);
 
     this.add
-      .text(CW / 2, CH / 2 - 60, `You finished ${this.attemptCount} problems!`, {
-        fontSize: '22px',
+      .text(CW / 2, CH / 2 - 60, completionLine, {
+        fontSize: '24px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
+
+    this.add
+      .text(CW / 2, CH / 2 - 20, `You finished ${this.attemptCount} problems!`, {
+        fontSize: '20px',
         fontFamily: BODY_FONT,
         color: NAVY_HEX,
       })
@@ -957,8 +1105,10 @@ export class LevelScene extends Phaser.Scene {
       this.scene.start('MenuScene', { lastStudentId: this.studentId });
     });
 
+    // Lead the screen-reader announcement with Quest's voice (the named
+    // closing line) and append the factual problem count for context.
     AccessibilityAnnouncer.announce(
-      `Session complete! You finished ${this.attemptCount} problems.`
+      `${completionLine} You finished ${this.attemptCount} problems.`
     );
     void this.closeSession();
   }

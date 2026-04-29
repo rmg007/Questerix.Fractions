@@ -1,4 +1,9 @@
 import './styles/index.css';
+// Side-effect import: registers Quest microcopy in the typed i18n catalog.
+// Per ux-elevation §9 T28 — keys must be available before any scene calls
+// catalog.get('quest.…'). registerCatalog is HMR-safe (idempotent on
+// deep-equal content), so re-evaluation under Vite hot reload is fine.
+import './lib/i18n/keys/quest';
 
 // Swallow unhandled storage errors from third-party / sandboxed contexts
 // (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
