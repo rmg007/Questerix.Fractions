@@ -117,7 +117,12 @@ export class BootScene extends Phaser.Scene {
     // ── Step 3: Transition to PreloadScene ─────────────────────────────────
     // per runtime-architecture.md §5 — BootScene → PreloadScene → MenuScene
     // Only block auto-advance when ?testHooks=1 is explicitly in the URL
-    // (i.e. a Playwright e2e run). Normal dev/prod mode auto-starts.
+    // (i.e. a Playwright e2e run, where we wait for an explicit engagement
+    // click to ensure reliable testing of the engagement flow and audio
+    // context). In regular dev/prod mode the game auto-starts so the
+    // developer can see it without a test harness — using
+    // TestHooks.isEnabled() here re-introduces a blank-screen bug because
+    // it returns true in dev mode.
     const isExplicitTestRun =
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).get('testHooks') === '1';

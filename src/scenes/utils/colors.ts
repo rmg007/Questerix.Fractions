@@ -31,6 +31,17 @@ export const HEX = {
   neutral300: '#C5CAD3',
   neutral600: '#5B6478',
   neutral900: '#101521',
+
+  // ux-elevation tokens — referenced by Quest persona constants and
+  // upcoming celebration/sparkle PRs. Values per PLANS/ux-elevation.md
+  // §"Tokens to add" (joy/gold/goldDim/sparkle); coralCheek picked to
+  // match the §4 "pale-coral cheek dots" description on Quest's idle face.
+  joy: '#FF5E9C', // hot pink — celebration accent (T26)
+  gold: '#FBBF24', // amber-400 — star fill / Quest body (T25.C, T26.B)
+  goldDim: '#FDE68A', // amber-200 — empty star outline shimmer
+  sparkle: '#FEF3C7', // pale gold — sparkle particles (T26.A)
+  coralCheek: '#FCA5A5', // rose-300 — Quest idle cheek dots (§4)
+  unfilled: '#E5E7EB', // gray-200 — empty fraction-part fill placeholder
 } as const;
 
 // ── Phaser number colors (0xRRGGBB) ───────────────────────────────────────
