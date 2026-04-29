@@ -5,7 +5,14 @@ owner: solo
 last_reviewed: 2026-04-24
 applies_to: [mvp]
 constraint_refs: [C1, C2, C3, C4, C9, C10]
-related: [../00-foundation/constraints.md, ../10-curriculum/scope-and-sequence.md, ../40-validation/playtest-protocol.md, ../40-validation/learning-hypotheses.md, post-mvp-2029.md]
+related:
+  [
+    ../00-foundation/constraints.md,
+    ../10-curriculum/scope-and-sequence.md,
+    ../40-validation/playtest-protocol.md,
+    ../40-validation/learning-hypotheses.md,
+    post-mvp-2029.md,
+  ]
 ---
 
 # MVP Roadmap — Levels 1–9
@@ -38,15 +45,15 @@ The goal (per **C10**) is **validation, not feature completeness**.
        Wall-clock: ~5–6 months. Calendar dates depend on start.
 ```
 
-| Phase | Wall-clock | Calendar (illustrative) | Cumulative effort |
-|-------|-----------|------------------------|-------------------|
-| 0 — Foundation | (current) | Apr 24, 2026 | ~80 hours |
-| 1 — Build L1–L2 | ~6 weeks | through early Jun | ~170 hours |
-| 2 — Build L3–L5 + Cycle A | ~4 weeks | through early Jul | ~230 hours |
-| 3 — Build L6–L9 + Cycle B | ~6 weeks | through mid Aug | ~320 hours |
-| 4 — Validation analysis + release | ~4 weeks | through mid Sep | ~380 hours |
+| Phase                             | Wall-clock | Calendar (illustrative) | Cumulative effort |
+| --------------------------------- | ---------- | ----------------------- | ----------------- |
+| 0 — Foundation                    | (current)  | Apr 24, 2026            | ~80 hours         |
+| 1 — Build L1–L2                   | ~6 weeks   | through early Jun       | ~170 hours        |
+| 2 — Build L3–L5 + Cycle A         | ~4 weeks   | through early Jul       | ~230 hours        |
+| 3 — Build L6–L9 + Cycle B         | ~6 weeks   | through mid Aug         | ~320 hours        |
+| 4 — Validation analysis + release | ~4 weeks   | through mid Sep         | ~380 hours        |
 
-Total: ~380 hours over ~5 months. **Not 52 weeks.** The inherited "52 weeks of curriculum" was a *teacher-facing year of instruction* — not a build plan.
+Total: ~380 hours over ~5 months. **Not 52 weeks.** The inherited "52 weeks of curriculum" was a _teacher-facing year of instruction_ — not a build plan.
 
 ---
 
@@ -101,6 +108,7 @@ No external review needed. The owner self-reviews against the exit criteria and 
 ### 3.1 Deliverables
 
 #### Code
+
 - [ ] Phaser 4 + TypeScript + Vite scaffolding hooked up against existing `src/`.
 - [ ] Dexie.js initialization with all 17 stores from `data-schema.md §6`.
 - [ ] Curriculum seed loader: reads bundled JSON of L1 question bank into `questionTemplates` and `activities` stores on first launch.
@@ -113,21 +121,23 @@ No external review needed. The owner self-reviews against the exit criteria and 
 - [ ] "Backup My Progress" button (per `in-app-telemetry.md §5`).
 
 #### Curriculum content
+
 - [ ] L1 question bank fully authored: 12 templates × 3 activities = 36 templates + ~108 hints.
 - [ ] L2 question bank fully authored: ~36 templates for `identify_half` continued + new `match_half` activity.
 
 #### Visual
+
 - [ ] Per C6, simple bright design language: white background, primary fills, sans-serif text. No neon.
 - [ ] Pre-Level-1 onboarding scene (≤ 60 seconds, skippable).
 
 ### 3.2 Phase 1 Gates
 
-| Gate | Test |
-|------|------|
-| **Tech stack works** | `npm run dev` opens the app, plays a session, persists data, exports JSON. Confirmed on iPad Safari and desktop Chrome. |
-| **One end-to-end loop** | Start → complete 5 problems → see session summary → relaunch app → resume from same place. |
-| **Data integrity** | Exported JSON passes the sanity check from `in-app-telemetry.md §7`. |
-| **C9 budget** | Internal walkthrough of L1: 10–13 minutes for a competent adult to complete a session. (Children take longer; that's OK; the budget is on UI density, not children's pace.) |
+| Gate                    | Test                                                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tech stack works**    | `npm run dev` opens the app, plays a session, persists data, exports JSON. Confirmed on iPad Safari and desktop Chrome.                                                     |
+| **One end-to-end loop** | Start → complete 5 problems → see session summary → relaunch app → resume from same place.                                                                                  |
+| **Data integrity**      | Exported JSON passes the sanity check from `in-app-telemetry.md §7`.                                                                                                        |
+| **C9 budget**           | Internal walkthrough of L1: 10–13 minutes for a competent adult to complete a session. (Children take longer; that's OK; the budget is on UI density, not children's pace.) |
 
 ### 3.3 Phase 1 Exit Criteria
 
@@ -150,16 +160,19 @@ No external review needed. The owner self-reviews against the exit criteria and 
 ### 4.1 Deliverables
 
 #### Code
+
 - [ ] Activity scenes for `identify_third`, `identify_fourth`, `partition_thirds`, `partition_fourths`, `match_quarter`, `make_thirds`.
 - [ ] Difficulty tier system (Easy/Medium/Hard) with adaptive selection (more wrong answers → present easier templates).
 - [ ] Misconception detection runners for `MC-EOL-01..03`, `MC-WHB-01`, `MC-VOC-01` (subset of `misconceptions.md`).
 - [ ] Backup / restore round-trip: import a JSON file back into IndexedDB.
 
 #### Curriculum content
+
 - [ ] L3, L4, L5 question banks: ~36 templates each (~108 templates total).
 - [ ] Hint authoring for all new templates.
 
 #### Validation prep
+
 - [ ] Pre/post test paper instrument printed (8-item form per `playtest-protocol.md §3`).
 - [ ] Observer notes form printed.
 - [ ] Consent form drafted.
@@ -199,6 +212,7 @@ Per `playtest-protocol.md §9`, this is the truncated cycle:
 ### 5.1 Deliverables
 
 #### Code
+
 - [ ] Activity scenes for L6–L9: `compare_same_denominator`, `compare_same_numerator`, `benchmark_sort`, `ordering_tournament`, number-line `placement` activity.
 - [ ] Symbolic notation introduction at L6 (per `scope-and-sequence.md §7.2` — symbols arrive at Grade 2).
 - [ ] Misconception detection runners for `MC-WHB-01`, `MC-WHB-02`, `MC-MAG-01`, `MC-PRX-01` (the magnitude-family detectors most central to validation).
@@ -206,10 +220,12 @@ Per `playtest-protocol.md §9`, this is the truncated cycle:
 - [ ] PWA manifest + `navigator.storage.persist()` call (per C5).
 
 #### Curriculum content
+
 - [ ] L6, L7, L8, L9 question banks: ~36 templates each (~144 total).
 - [ ] Final hint authoring.
 
 #### Validation prep
+
 - [ ] Recruit 8–10 students (broader network than Cycle A).
 - [ ] Schedule 3 sessions per student over 2 weeks.
 - [ ] Print and prep 8–10 consent forms, pre/post test packets.
@@ -239,16 +255,19 @@ Per `playtest-protocol.md`. Full protocol: 8–10 students × 3 sessions × 2 we
 ### 6.1 Deliverables
 
 #### Analysis
+
 - [ ] `validation-data/cycle-b/analysis.ipynb` notebook computes every metric called for in `learning-hypotheses.md`.
 - [ ] Per-hypothesis pass/fail report.
 - [ ] `validation-data/cycle-b/REPORT.md` per `playtest-protocol.md §8`.
 
 #### Decision point
+
 - [ ] Validated → proceed to release.
 - [ ] Invalidated → stop, write a post-mortem, plan a mechanic revision.
 - [ ] Inconclusive → expand cohort, run Cycle C.
 
 #### Release (only if validated)
+
 - [ ] Production build of the app (Vite production mode).
 - [ ] Deploy to a static host (Netlify / Cloudflare Pages — both fit C1: static asset CDN only).
 - [ ] Simple landing page with the app embedded.
@@ -274,14 +293,14 @@ Per `playtest-protocol.md`. Full protocol: 8–10 students × 3 sessions × 2 we
 
 ## 7. Per-Phase Effort Sketch
 
-| Phase | Code (h) | Content (h) | Validation (h) | Doc (h) | Total |
-|-------|---------|-------------|----------------|---------|-------|
-| 0 | 0 | 0 | 0 | 80 | 80 |
-| 1 | 60 | 25 | 0 | 5 | 90 |
-| 2 | 30 | 25 | 5 | 0 | 60 |
-| 3 | 50 | 30 | 10 | 0 | 90 |
-| 4 | 20 | 0 | 30 | 10 | 60 |
-| **Total** | **160** | **80** | **45** | **95** | **380** |
+| Phase     | Code (h) | Content (h) | Validation (h) | Doc (h) | Total   |
+| --------- | -------- | ----------- | -------------- | ------- | ------- |
+| 0         | 0        | 0           | 0              | 80      | 80      |
+| 1         | 60       | 25          | 0              | 5       | 90      |
+| 2         | 30       | 25          | 5              | 0       | 60      |
+| 3         | 50       | 30          | 10             | 0       | 90      |
+| 4         | 20       | 0           | 30             | 10      | 60      |
+| **Total** | **160**  | **80**      | **45**         | **95**  | **380** |
 
 These are rough estimates by an experienced solo developer. Pad by 25% if uncertain about Phaser 4 fluency or if the recruit pipeline is unproven.
 

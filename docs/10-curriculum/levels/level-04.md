@@ -5,7 +5,14 @@ owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
-related: [./level-03.md, ./level-05.md, ./level-01.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
+related:
+  [
+    ./level-03.md,
+    ./level-05.md,
+    ./level-01.md,
+    ../scope-and-sequence.md,
+    ../../30-architecture/data-schema.md,
+  ]
 ---
 
 # Level 4 — Make Halves
@@ -16,7 +23,7 @@ Per C8, Level 4 stays on halves. This is intentional: the student has already me
 
 This level is the bridge between the Discovery and Formalization phases of the salvaged Learning Trajectory. From `02_LEARNING_TRAJECTORY.md` Level 3 (Body Math Halves) and Level 4 (Halving Across Contexts):
 
-> *A concept is not mastered until it transfers. Children who can halve a circle cannot necessarily halve a rectangle, a ribbon, a set of blocks, or a dough ball — each transfer is a learning event.*
+> _A concept is not mastered until it transfers. Children who can halve a circle cannot necessarily halve a rectangle, a ribbon, a set of blocks, or a dough ball — each transfer is a learning event._
 
 Per the Learning Trajectory, **symbolic notation is still not introduced**. All prompts use words.
 
@@ -43,12 +50,12 @@ Per Learning Trajectory Levels 3–4 (Body Math Halves, Halving Across Contexts)
 
 Skill IDs continue from Level 3. See `../skills.md` for canonical definitions. (audit §1.1 fix — resolved collision with former L6/L7 SK-IDs)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-11` | Produce equal halves of a region (rectangle, square, circle) | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.15` |
-| `SK-12` | Produce equal halves under varied orientations and irregular shapes | `pInit=0.10, pTransit=0.20, pSlip=0.12, pGuess=0.10` |
-| `SK-13` | Halve a length (find the midpoint of a strip or ribbon) | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.15` |
-| `SK-14` | Self-check: recognize when produced halves are unequal and revise | `pInit=0.05, pTransit=0.18, pSlip=0.15, pGuess=0.05` |
+| Skill ID | Name                                                                | BKT priors                                           |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------- |
+| `SK-11`  | Produce equal halves of a region (rectangle, square, circle)        | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.15` |
+| `SK-12`  | Produce equal halves under varied orientations and irregular shapes | `pInit=0.10, pTransit=0.20, pSlip=0.12, pGuess=0.10` |
+| `SK-13`  | Halve a length (find the midpoint of a strip or ribbon)             | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.15` |
+| `SK-14`  | Self-check: recognize when produced halves are unequal and revise   | `pInit=0.05, pTransit=0.18, pSlip=0.15, pGuess=0.05` |
 
 **Note (audit §1.6):** The former `SK-14` (Halve a set) and its associated `halve_the_set` activity have been **cut** from this level. `misconceptions.md` M8 declares set-fraction active-halving out of MVP scope. Former `SK-15` (self-check) is renumbered `SK-14` here. See `../skills.md` for the canonical registry.
 
@@ -62,12 +69,12 @@ Mastery of `SK-11`, `SK-12`, `SK-13`, **and** `SK-14` is required to unlock Leve
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.1.G.A.3** (partition into 2 equal shares; describe as halves) | Primary — production focus |
-| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Primary — diagonal halves, irregular shapes |
-| **CCSS.1.MD.A.2** (length as whole-number units) | Light — length-halving connects to measurement |
-| **CCSS.K.G.A.2** (orientation invariance) | Light — partition under rotation |
+| Standard                                                                                   | Coverage                                       |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| **CCSS.1.G.A.3** (partition into 2 equal shares; describe as halves)                       | Primary — production focus                     |
+| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Primary — diagonal halves, irregular shapes    |
+| **CCSS.1.MD.A.2** (length as whole-number units)                                           | Light — length-halving connects to measurement |
+| **CCSS.K.G.A.2** (orientation invariance)                                                  | Light — partition under rotation               |
 
 This level is the most direct match to **CCSS.1.G.A.3** — it is the active partitioning skill the standard explicitly requires.
 
@@ -88,11 +95,11 @@ The student sees a whole shape. They drag a single line across it to split into 
 
 #### Difficulty tiers
 
-| Tier | Shape pool | Drag affordance | Tolerance | Hint budget |
-|------|-----------|----------------|-----------|-------------|
-| Easy | Rectangle, square (axis-aligned) | Soft snap to centerlines (vertical, horizontal) | ±5% area | 3 |
-| Medium | Rectangle, square, circle | No snap | ±5% area | 2 |
-| Hard | Triangle, irregular blob, rotated rectangle (15°+ off axis) | No snap | ±3% area | 1 |
+| Tier   | Shape pool                                                  | Drag affordance                                 | Tolerance | Hint budget |
+| ------ | ----------------------------------------------------------- | ----------------------------------------------- | --------- | ----------- |
+| Easy   | Rectangle, square (axis-aligned)                            | Soft snap to centerlines (vertical, horizontal) | ±5% area  | 3           |
+| Medium | Rectangle, square, circle                                   | No snap                                         | ±5% area  | 2           |
+| Hard   | Triangle, irregular blob, rotated rectangle (15°+ off axis) | No snap                                         | ±3% area  | 1           |
 
 #### Question template archetype
 
@@ -173,15 +180,15 @@ The student sees a whole shape. They drag a single line across it to split into 
 
 A horizontal ribbon (a long thin rectangle) is shown. The student drags a marker along the ribbon to mark the midpoint. Validator checks distance from true midpoint.
 
-This activity targets a different mental model than region halving. From the Learning Trajectory's F2 objective: *"Halve a length (ribbon, line, string)."* The salvaged Activity 03 Day 4 Station 3 (Ribbon Halving) is the source.
+This activity targets a different mental model than region halving. From the Learning Trajectory's F2 objective: _"Halve a length (ribbon, line, string)."_ The salvaged Activity 03 Day 4 Station 3 (Ribbon Halving) is the source.
 
 #### Difficulty tiers
 
-| Tier | Length & cues | Marker behavior | Tolerance | Hint budget |
-|------|--------------|----------------|-----------|-------------|
-| Easy | 200px ribbon, tick marks at every 25% | Soft snap to nearest tick | ±5% length | 3 |
-| Medium | 300px ribbon, no tick marks | Free drag | ±5% length | 2 |
-| Hard | 400px ribbon, no ticks, slight visual distractors (shading) | Free drag | ±3% length | 1 |
+| Tier   | Length & cues                                               | Marker behavior           | Tolerance  | Hint budget |
+| ------ | ----------------------------------------------------------- | ------------------------- | ---------- | ----------- |
+| Easy   | 200px ribbon, tick marks at every 25%                       | Soft snap to nearest tick | ±5% length | 3           |
+| Medium | 300px ribbon, no tick marks                                 | Free drag                 | ±5% length | 2           |
+| Hard   | 400px ribbon, no ticks, slight visual distractors (shading) | Free drag                 | ±3% length | 1           |
 
 #### Question template archetype
 
@@ -268,11 +275,11 @@ The salvaged source for this is `RoadMap/02_Level_03_05/activities/03_Body_Math_
 
 #### Difficulty tiers
 
-| Tier | N | Layout | Tap affordance | Hint budget |
-|------|---|--------|---------------|-------------|
-| Easy | 4 or 6 | Single row | Tap object → it animates into one of two groups | 3 |
-| Medium | 6, 8, or 10 | Grid (2×N/2) | Same | 2 |
-| Hard | 10 or 12 | Scatter | Same; running count not displayed | 1 |
+| Tier   | N           | Layout       | Tap affordance                                  | Hint budget |
+| ------ | ----------- | ------------ | ----------------------------------------------- | ----------- |
+| Easy   | 4 or 6      | Single row   | Tap object → it animates into one of two groups | 3           |
+| Medium | 6, 8, or 10 | Grid (2×N/2) | Same                                            | 2           |
+| Hard   | 10 or 12    | Scatter      | Same; running count not displayed               | 1           |
 
 #### Question template archetype
 
@@ -333,6 +340,7 @@ The salvaged source for this is `RoadMap/02_Level_03_05/activities/03_Body_Math_
 Because Level 4 returns to halves-only after Level 3 introduced thirds/fourths, the progression engine **interleaves identification questions** from Level 3 every 4–5 attempts. This keeps `SK-07`, `SK-08`, `SK-09`, `SK-10` warm and prevents premature decay (`SkillMastery.state` dropping to `"DECAYED"`).
 
 Specifically:
+
 - After every 4 successful Level-4 attempts, one Level-3 identify-fourths or identify-thirds question is interleaved
 - After every 6 attempts, one Level-3 `name_the_fraction` question is interleaved
 - Interleaved questions are scored toward Level-3 skills, not Level-4 mastery gates
@@ -343,13 +351,13 @@ This is consistent with Pedagogical Philosophy §IV (Universal Design for Learni
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-L4-CENTER-01` | "Off-center halves are halves" — student drops the partition line within 5–15% of center and accepts it without retry | `outcome === "WRONG"` on `make_halves` Medium with `errorMagnitude` between 0.05 and 0.15, and student does not retry |
-| `MC-L4-SYMMETRY-01` | "Visual symmetry alone = equal halves" — for irregular blobs, student picks the visually obvious axis even when areas are unequal | Wrong on `make_halves` Hard with irregular blob and partition along visual axis-of-symmetry |
-| `MC-L4-LEFTBIAS-01` | "Left-of-center bias" — student systematically places midpoint marker leftward (cultural/reading-direction artifact) | Average `errorMagnitude` on `halve_the_length` is consistently negative (leftward) across 5+ attempts |
-| `MC-L4-NORETRY-01` | "First answer = final answer" — failure to self-check (M3 generalized) | Low retry rate on `make_halves` after WRONG outcome; `SK-14` not advancing |
-| `MC-L4-AXIS-01` | "Halving means vertical-line-down-middle only" (M2 generalized) — student always drags vertical lines even on rotated shapes | Wrong on `make_halves` Hard with rotated rectangles when student draws the world-vertical (not shape-vertical) axis |
+| MC ID               | Name                                                                                                                              | Detection signal                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `MC-L4-CENTER-01`   | "Off-center halves are halves" — student drops the partition line within 5–15% of center and accepts it without retry             | `outcome === "WRONG"` on `make_halves` Medium with `errorMagnitude` between 0.05 and 0.15, and student does not retry |
+| `MC-L4-SYMMETRY-01` | "Visual symmetry alone = equal halves" — for irregular blobs, student picks the visually obvious axis even when areas are unequal | Wrong on `make_halves` Hard with irregular blob and partition along visual axis-of-symmetry                           |
+| `MC-L4-LEFTBIAS-01` | "Left-of-center bias" — student systematically places midpoint marker leftward (cultural/reading-direction artifact)              | Average `errorMagnitude` on `halve_the_length` is consistently negative (leftward) across 5+ attempts                 |
+| `MC-L4-NORETRY-01`  | "First answer = final answer" — failure to self-check (M3 generalized)                                                            | Low retry rate on `make_halves` after WRONG outcome; `SK-14` not advancing                                            |
+| `MC-L4-AXIS-01`     | "Halving means vertical-line-down-middle only" (M2 generalized) — student always drags vertical lines even on rotated shapes      | Wrong on `make_halves` Hard with rotated rectangles when student draws the world-vertical (not shape-vertical) axis   |
 
 These map to misconceptions **M3, M7, M8** in `MISCONCEPTIONS_FRAMEWORK.md`, plus two new L4-specific ones (CENTER-01, LEFTBIAS-01).
 
@@ -361,8 +369,22 @@ Per C8, Level 4 stays on halves only:
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "halves" },
-  { "id": "frac:2/2", "numerator": 2, "denominator": 2, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "halves" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:2/2",
+    "numerator": 2,
+    "denominator": 2,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "halves"
+  }
 ]
 ```
 
@@ -400,15 +422,15 @@ Level 4 sessions tend to run slightly longer than identification levels because 
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `make_halves` templates | 14 | 3 examples shown | Need 11 more |
-| `halve_the_length` templates | 10 | 3 examples shown | Need 7 more |
-| ~~`halve_the_set` templates~~ | ~~10~~ | ~~3 examples shown~~ | **CUT** (audit §1.6): M8 out-of-scope. |
-| Irregular blob asset definitions | 6 | 0 | Need to author and store as static SVG paths |
-| TTS audio scripts | 34 | 0 | Generate via SpeechSynthesis API at runtime |
-| Hint definitions | ~102 (3 per template) | 0 | Should include "drag to the center" and "two halves should match" overlay hints |
-| Validator function specs | 3 (one new: `placement.midpoint`, `halving.evenSplit`) | High-level only | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
+| Item                             | Required                                               | Authored             | Notes                                                                           |
+| -------------------------------- | ------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------- |
+| `make_halves` templates          | 14                                                     | 3 examples shown     | Need 11 more                                                                    |
+| `halve_the_length` templates     | 10                                                     | 3 examples shown     | Need 7 more                                                                     |
+| ~~`halve_the_set` templates~~    | ~~10~~                                                 | ~~3 examples shown~~ | **CUT** (audit §1.6): M8 out-of-scope.                                          |
+| Irregular blob asset definitions | 6                                                      | 0                    | Need to author and store as static SVG paths                                    |
+| TTS audio scripts                | 34                                                     | 0                    | Generate via SpeechSynthesis API at runtime                                     |
+| Hint definitions                 | ~102 (3 per template)                                  | 0                    | Should include "drag to the center" and "two halves should match" overlay hints |
+| Validator function specs         | 3 (one new: `placement.midpoint`, `halving.evenSplit`) | High-level only      | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md`          |
 
 ---
 

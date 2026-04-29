@@ -10,31 +10,31 @@ related: [data-schema.md, ../00-foundation/constraints.md]
 
 # Persistence Spec
 
-How data is stored on the device. Defines the storage stack, durability strategy, and backup mechanism. Does **not** repeat what's in `data-schema.md` — this is the *how*, that is the *what*.
+How data is stored on the device. Defines the storage stack, durability strategy, and backup mechanism. Does **not** repeat what's in `data-schema.md` — this is the _how_, that is the _what_.
 
 ---
 
 ## 1. The Stack
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| **API surface** | Dexie.js (v4) | Fluent typed queries, declarative migrations, ~22 KB gzipped |
-| **Storage backend** | IndexedDB (browser-native) | 50+ MB capacity, structured records, async, universally supported |
-| **Persistence guarantee** | Installable PWA + `navigator.storage.persist()` | Survives Safari ITP 7-day eviction |
-| **Backup format** | JSON export to file (Dexie export-import addon) | User-controlled disaster recovery |
-| **What we don't use** | localStorage, sessionStorage, OPFS, SQLite WASM, PGLite | See rejected alternatives below |
+| Layer                     | Choice                                                  | Why                                                               |
+| ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| **API surface**           | Dexie.js (v4)                                           | Fluent typed queries, declarative migrations, ~22 KB gzipped      |
+| **Storage backend**       | IndexedDB (browser-native)                              | 50+ MB capacity, structured records, async, universally supported |
+| **Persistence guarantee** | Installable PWA + `navigator.storage.persist()`         | Survives Safari ITP 7-day eviction                                |
+| **Backup format**         | JSON export to file (Dexie export-import addon)         | User-controlled disaster recovery                                 |
+| **What we don't use**     | localStorage, sessionStorage, OPFS, SQLite WASM, PGLite | See rejected alternatives below                                   |
 
 ---
 
 ## 2. Why Not Other Options
 
-| Rejected | Reason |
-|----------|--------|
-| **localStorage** | 5 MB cap, strings only, no transactions, evicted by iOS Safari ITP after 7 days unused. Cannot hold our schema. |
-| **OPFS (Origin Private File System) raw** | Would force us to reinvent indexing/queries. Useful only as a SQLite VFS backend. |
+| Rejected                                      | Reason                                                                                                                                                                 |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **localStorage**                              | 5 MB cap, strings only, no transactions, evicted by iOS Safari ITP after 7 days unused. Cannot hold our schema.                                                        |
+| **OPFS (Origin Private File System) raw**     | Would force us to reinvent indexing/queries. Useful only as a SQLite VFS backend.                                                                                      |
 | **SQLite WASM (wa-sqlite, sql.js, official)** | 400 KB–1 MB bundle for capabilities (joins, window functions) we do not need. Sync access handles require Worker context, complicating Phaser main-thread integration. |
-| **PGLite (Postgres in WASM)** | ~3 MB bundle. Massive overkill for single-user offline. Reconsider if 2029 brings advanced offline analytics. |
-| **Raw IndexedDB** | Callback soup, transaction auto-close on awaited non-IDB promises, manual migrations. Too painful in TypeScript. |
+| **PGLite (Postgres in WASM)**                 | ~3 MB bundle. Massive overkill for single-user offline. Reconsider if 2029 brings advanced offline analytics.                                                          |
+| **Raw IndexedDB**                             | Callback soup, transaction auto-close on awaited non-IDB promises, manual migrations. Too painful in TypeScript.                                                       |
 
 The 22 KB Dexie.js cost is trivial against a Phaser 4 bundle (~900 KB) and buys typed queries, migrations, and excellent debugging.
 
@@ -42,9 +42,10 @@ The 22 KB Dexie.js cost is trivial against a Phaser 4 bundle (~900 KB) and buys 
 
 ## 3. The iOS Safari ITP Problem
 
-Apple's Intelligent Tracking Prevention (ITP) **evicts IndexedDB stores after 7 days of non-use** unless the site is installed as a PWA *and* has been granted persistent storage.
+Apple's Intelligent Tracking Prevention (ITP) **evicts IndexedDB stores after 7 days of non-use** unless the site is installed as a PWA _and_ has been granted persistent storage.
 
 Realistic scenario without mitigation:
+
 - Day 0: Maya plays for 15 minutes, Dexie writes session data
 - Day 1–7: Maya doesn't open the app (school break, weekend stretches)
 - Day 8: Maya reopens — all her progress is gone
@@ -78,6 +79,7 @@ When granted, the browser commits to not evicting our storage automatically. Bro
 ### 3.3 Backup as a Safety Net
 
 Even with PWA + persist(), data can still be lost:
+
 - User uninstalls the PWA
 - User clears site data manually
 - OS storage pressure forces eviction in extreme cases
@@ -89,7 +91,7 @@ The mitigation is a user-controlled JSON export. See §6.
 
 ## 4. Dexie Schema Declaration (sketch)
 
-This is a *spec sketch*, not the source code. The actual TypeScript implementation lives in `src/persistence/db.ts` (to be written, not now).
+This is a _spec sketch_, not the source code. The actual TypeScript implementation lives in `src/persistence/db.ts` (to be written, not now).
 
 ```ts
 import Dexie, { Table } from 'dexie';
@@ -149,6 +151,7 @@ export const db = new QuesterixDB();
 ```
 
 Index syntax notes:
+
 - `*field` = multiEntry index for array fields
 - `[a+b]` = compound index
 - First field is the primary key
@@ -208,17 +211,17 @@ The export only includes dynamic stores by default (configurable). Static curric
 
 Realistic per-user storage after 6 months of active use:
 
-| Store | Records | Per-record bytes | Total |
-|-------|---------|------------------|-------|
-| Static curriculum (one copy) | ~2,500 | ~600 | ~1.5 MB |
-| `students` | 1–3 | ~500 | <2 KB |
-| `sessions` | ~150 | ~600 | ~90 KB |
-| `attempts` | ~3,000 | ~700 | ~2 MB |
-| `hintEvents` | ~500 | ~200 | ~100 KB |
-| `misconceptionFlags` | ~30 | ~400 | ~12 KB |
-| `skillMastery` | ~50 | ~300 | ~15 KB |
-| `progressionStat` | ~10 | ~300 | ~3 KB |
-| **Total** | | | **~3.7 MB** |
+| Store                        | Records | Per-record bytes | Total       |
+| ---------------------------- | ------- | ---------------- | ----------- |
+| Static curriculum (one copy) | ~2,500  | ~600             | ~1.5 MB     |
+| `students`                   | 1–3     | ~500             | <2 KB       |
+| `sessions`                   | ~150    | ~600             | ~90 KB      |
+| `attempts`                   | ~3,000  | ~700             | ~2 MB       |
+| `hintEvents`                 | ~500    | ~200             | ~100 KB     |
+| `misconceptionFlags`         | ~30     | ~400             | ~12 KB      |
+| `skillMastery`               | ~50     | ~300             | ~15 KB      |
+| `progressionStat`            | ~10     | ~300             | ~3 KB       |
+| **Total**                    |         |                  | **~3.7 MB** |
 
 Well within IndexedDB's 50 MB+ default quota on every supported browser. No archival/pruning logic required for MVP.
 
@@ -236,13 +239,13 @@ Well within IndexedDB's 50 MB+ default quota on every supported browser. No arch
 
 ## 9. Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|-----------|
-| iOS Safari evicts IndexedDB before user installs PWA | Medium | High (lose progress) | Surface install prompt on Day 1; don't treat first session as durable |
-| User declines `persist()` request | Low | High | Auto-prompt JSON backup after 5 sessions if persist not granted |
-| Schema migration corrupts data | Low | Critical | All migrations run in `versionchange` transaction; tested with snapshot fixtures before each release |
-| Quota exceeded (very heavy user) | Very Low | Medium | Surface storage estimate via `navigator.storage.estimate()` in settings; offer "clear old sessions" option |
-| User clears browser data | Medium | High | Backup button; in-app "Last backup was X days ago" reminder if >30 days |
+| Risk                                                 | Likelihood | Impact               | Mitigation                                                                                                 |
+| ---------------------------------------------------- | ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| iOS Safari evicts IndexedDB before user installs PWA | Medium     | High (lose progress) | Surface install prompt on Day 1; don't treat first session as durable                                      |
+| User declines `persist()` request                    | Low        | High                 | Auto-prompt JSON backup after 5 sessions if persist not granted                                            |
+| Schema migration corrupts data                       | Low        | Critical             | All migrations run in `versionchange` transaction; tested with snapshot fixtures before each release       |
+| Quota exceeded (very heavy user)                     | Very Low   | Medium               | Surface storage estimate via `navigator.storage.estimate()` in settings; offer "clear old sessions" option |
+| User clears browser data                             | Medium     | High                 | Backup button; in-app "Last backup was X days ago" reminder if >30 days                                    |
 
 ---
 

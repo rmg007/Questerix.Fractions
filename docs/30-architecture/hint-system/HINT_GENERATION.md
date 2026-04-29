@@ -5,6 +5,7 @@
 This document describes the hint-generation pipeline for Questerix Fractions. The system automatically generates 3-tier hint cascades (Tier 1: mild, Tier 2: moderate, Tier 3: heavy scaffolding) for all 216 question templates across Levels 1–9.
 
 **Current Status:**
+
 - Hint prompt: ✓ Created (`pipeline/prompts/hint-generation.md`)
 - Extended generate.py: ✓ Added `--hints-only` mode with batch generation
 - Validation: ✓ Built-in word count, uniqueness, cascade checks
@@ -18,6 +19,7 @@ This document describes the hint-generation pipeline for Questerix Fractions. Th
 ### Prerequisites
 
 Ensure you have:
+
 - ANTHROPIC_API_KEY in `.env` or environment
 - Pipeline dependencies: `python -m pip install -r pipeline/requirements.txt`
 
@@ -36,6 +38,7 @@ python -m pipeline.generate --hints-only --out pipeline/output
 ```
 
 This generates all 648 hints across 9 batches (~30 templates per batch) and writes to:
+
 - `pipeline/output/hints.json` — all 648 HintTemplate records
 - `pipeline/output/hint_generation_report.json` — stats and validation results
 
@@ -54,6 +57,7 @@ python -m pipeline.generate --hints-only --dry-run
 Location: `pipeline/prompts/hint-generation.md`
 
 The system prompt instructs Claude to:
+
 1. Generate exactly 3 hints per input template (one per tier)
 2. Respect word-count limits (≤15 words per hint)
 3. Counter misconception traps listed in the template
@@ -61,6 +65,7 @@ The system prompt instructs Claude to:
 5. Use K–2 vocabulary and conversational tone
 
 **Tier Definitions:**
+
 - **Tier 1 (order: 1):** Mild scaffolding. Ask a guiding question; do NOT reveal the answer.
   - Example: "What does 'equal parts' mean to you?"
   - Target: 5–10 words
@@ -77,17 +82,17 @@ The system prompt instructs Claude to:
 
 New functions added to `pipeline/generate.py`:
 
-| Function | Purpose |
-|----------|---------|
-| `_load_hint_generation_prompt()` | Load system prompt from markdown |
-| `_extract_archetype_short()` | Map archetype to 2–4 char code (e.g., `partition` → `pt`) |
-| `_count_words()` | Count words in hint text |
-| `_validate_hint()` | Validate single hint against schema + constraints |
-| `_validate_hint_cascade()` | Validate 3-hint cascade (uniqueness, progression) |
-| `_load_curriculum_templates()` | Load all 216 templates from `public/curriculum/v1.json` |
-| `_build_hints_user_message()` | Build user message for Claude API |
-| `_try_generate_hints()` | Call Claude API with retries & rate-limit handling |
-| `generate_hints()` | Main orchestration: batch, validate, report |
+| Function                         | Purpose                                                   |
+| -------------------------------- | --------------------------------------------------------- |
+| `_load_hint_generation_prompt()` | Load system prompt from markdown                          |
+| `_extract_archetype_short()`     | Map archetype to 2–4 char code (e.g., `partition` → `pt`) |
+| `_count_words()`                 | Count words in hint text                                  |
+| `_validate_hint()`               | Validate single hint against schema + constraints         |
+| `_validate_hint_cascade()`       | Validate 3-hint cascade (uniqueness, progression)         |
+| `_load_curriculum_templates()`   | Load all 216 templates from `public/curriculum/v1.json`   |
+| `_build_hints_user_message()`    | Build user message for Claude API                         |
+| `_try_generate_hints()`          | Call Claude API with retries & rate-limit handling        |
+| `generate_hints()`               | Main orchestration: batch, validate, report               |
 
 ### Validation Checks
 
@@ -127,6 +132,7 @@ A JSON array of 648 `HintTemplate` records:
 ```
 
 Each `HintTemplate` record includes:
+
 - **id** — Unique hint ID (format: `h:<archetype-short>:L{level}:NNNN:T{tier}`)
 - **questionTemplateId** — Reference to the question it hints for
 - **type** — Always "verbal" (visual_overlay and worked_example reserved for future)
@@ -174,6 +180,7 @@ python -m pipeline.generate --hints-only [OPTIONS]
 ```
 
 **Options:**
+
 - `--out DIR` (default: `pipeline/output`) — Output directory
 - `--model {haiku|sonnet}` (default: `haiku`) — Model tier
 - `--hints-batch N` (default: `30`) — Templates per API call batch
@@ -204,19 +211,20 @@ python -m pipeline.generate --hints-only --hints-batch 10 --out pipeline/output
 
 Using **Anthropic Haiku** (early 2025 pricing):
 
-| Metric | Value |
-|--------|-------|
-| Templates | 216 |
-| Hints | 648 (3 per template) |
-| Est. input tokens | ~108,000 |
-| Est. output tokens | ~129,600 |
-| Input cost | $0.09 |
-| Output cost | $0.52 |
-| **Total cost** | **~$0.60** |
-| API batches (30 templates/batch) | 8 |
-| Est. wall-clock time | 18–40 minutes |
+| Metric                           | Value                |
+| -------------------------------- | -------------------- |
+| Templates                        | 216                  |
+| Hints                            | 648 (3 per template) |
+| Est. input tokens                | ~108,000             |
+| Est. output tokens               | ~129,600             |
+| Input cost                       | $0.09                |
+| Output cost                      | $0.52                |
+| **Total cost**                   | **~$0.60**           |
+| API batches (30 templates/batch) | 8                    |
+| Est. wall-clock time             | 18–40 minutes        |
 
 **Note:** Actual costs vary based on:
+
 - Model tier (Sonnet is ~3–5x more expensive)
 - Batch size (smaller batches = more API calls = higher overhead)
 - Token efficiency of Claude's output
@@ -263,6 +271,7 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."
 ### Batch fails with "Rate limited"
 
 The system will automatically backoff and retry. If the full run hits rate limits:
+
 - Reduce `--hints-batch` (fewer templates per call, slower but more resilient)
 - Increase `--max-retries` (default is 3)
 - Wait a few minutes before retrying
@@ -342,6 +351,7 @@ python test_hints.py
 ```
 
 This verifies:
+
 - Curriculum loads correctly
 - Hint prompt exists and has required sections
 - Validation functions work
@@ -365,6 +375,7 @@ python -m pipeline.generate --hints-only --hints-batch 50
 ```
 
 **Tradeoff:**
+
 - Smaller batch = more granular progress updates, easier to debug failures
 - Larger batch = lower total API calls, faster overall (if rate limits allow)
 
@@ -388,6 +399,7 @@ python -m pipeline.generate --hints-only --dry-run
 ```
 
 This runs the full batch logic but mocks the API call, printing JSON to stdout. Useful for:
+
 - Testing the system before committing to API costs
 - Validating the prompt structure
 - Benchmarking batch processing speed
@@ -407,6 +419,7 @@ Example:
 
 ```markdown
 ### new_archetype (nx)
+
 - Focuses on [concept].
 - Hints should emphasize [key insight].
 - Reference [domain-specific terminology].
@@ -439,6 +452,7 @@ To understand token usage:
 3. Actual cost = (input_tokens × input_price) + (output_tokens × output_price)
 
 Example calculation (Haiku pricing):
+
 ```
 input_tokens = 108,000
 output_tokens = 129,600
@@ -451,6 +465,7 @@ cost = (108,000 / 1M) × $0.80 + (129,600 / 1M) × $4.00
 ```
 
 If actual cost is significantly higher:
+
 - Check that batches aren't too large (more tokens per batch)
 - Verify API key is using Haiku tier (not Opus/Sonnet)
 - Reduce `--hints-batch` to lower tokens per call

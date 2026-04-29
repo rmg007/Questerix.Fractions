@@ -12,6 +12,7 @@ related: [constraints.md, open-questions.md]
 Append-only record of every notable planning decision. Once a decision is here, it's the answer until explicitly revised in a new entry.
 
 Format:
+
 - **Date** of decision
 - **Decision ID** (`D-NN`) for cross-reference
 - **What was decided**
@@ -109,7 +110,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 **Decision:** Generated `QuestionTemplate` records are verified by Python clones of the runtime validators, not by LLM "accuracy reviewer" agents.
 
-**Why:** K–2 fraction math is finitely verifiable. `1/2 + 1/4 = 3/4` is a one-line check. An LLM reviewer is slower, more expensive, and *less* reliable than executable code.
+**Why:** K–2 fraction math is finitely verifiable. `1/2 + 1/4 = 3/4` is a one-line check. An LLM reviewer is slower, more expensive, and _less_ reliable than executable code.
 
 **Alternatives:** 3-agent reviewer team from the inherited LangGraph plan. Rejected — over-engineering for trivially-verifiable content.
 
@@ -186,6 +187,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 ## D-07 — 2026-04-24 — Storage: Dexie.js on IndexedDB + PWA + persist + JSON export
 
 **Decision:** Persistence stack:
+
 - **Dexie.js v4** wrapping IndexedDB (~22 KB gzipped)
 - App ships as installable **PWA** with valid manifest
 - App calls `navigator.storage.persist()` after first engagement
@@ -239,7 +241,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 **Decision:** MVP covers Levels 1–9 (Grade K through Grade 2 fraction concepts). Levels 10+ (Grade 3 operations, Grade 4 reduction, Grade 5 decimals) are post-MVP-2029.
 
-**Why:** Levels 1–5 build the partition+identify+make schema. Levels 6–9 prove that schema teaches *magnitude* (the only outcome that matters). Operations are a different mechanic and a different validation question.
+**Why:** Levels 1–5 build the partition+identify+make schema. Levels 6–9 prove that schema teaches _magnitude_ (the only outcome that matters). Operations are a different mechanic and a different validation question.
 
 **Alternatives:** L1–L5 only (faster) or L1–L15 (broader). Rejected — L1–L9 is the smallest scope that proves the mechanic actually teaches.
 

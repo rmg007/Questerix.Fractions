@@ -229,4 +229,3 @@ export const A11yLayer = {
     return container ? (registries.get(container)?.size ?? 0) : 0;
   },
 };
-

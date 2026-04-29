@@ -114,18 +114,18 @@ Three LLM calls per template (generate + maybe regenerate + polish), not ten. Fo
 
 ## 4. Why Programmatic Verification Replaces Three LLM Reviewers
 
-K–2 fraction content is *finitely verifiable*. Every generated record is checkable in code:
+K–2 fraction content is _finitely verifiable_. Every generated record is checkable in code:
 
-| Check | How |
-|-------|-----|
-| Math is correct | Each `payload` and `correctAnswer` is exercised against a Python validator clone of `validator.placement.snap8`, `validator.equal_or_not.areaTolerance`, etc. If the LLM-generated answer doesn't match the validator's computed answer, regenerate. |
-| Schema conforms | JSON-schema validation against the QuestionTemplate shape (see `data-schema.md §2.7`). |
-| Fraction pool respected | All fractions referenced in `payload` must be IDs in `fractionPoolIds` for the parent ActivityLevel (per C8). |
-| `validatorId` is known | Cross-check against `activity-archetypes.md` registry. |
-| `skillIds` are real | Cross-check against the `skills` records being emitted in the same pack. |
-| `misconceptionTraps` are real | Cross-check against the `misconceptions` records. |
-| Difficulty tier label matches expected distribution | Per-tier templates count matches the level spec's authoring targets. |
-| Prompt text passes basic constraints | Length 5–25 words; reading level ≤ Grade 2; no banned vocab from `glossary.md` |
+| Check                                               | How                                                                                                                                                                                                                                                  |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Math is correct                                     | Each `payload` and `correctAnswer` is exercised against a Python validator clone of `validator.placement.snap8`, `validator.equal_or_not.areaTolerance`, etc. If the LLM-generated answer doesn't match the validator's computed answer, regenerate. |
+| Schema conforms                                     | JSON-schema validation against the QuestionTemplate shape (see `data-schema.md §2.7`).                                                                                                                                                               |
+| Fraction pool respected                             | All fractions referenced in `payload` must be IDs in `fractionPoolIds` for the parent ActivityLevel (per C8).                                                                                                                                        |
+| `validatorId` is known                              | Cross-check against `activity-archetypes.md` registry.                                                                                                                                                                                               |
+| `skillIds` are real                                 | Cross-check against the `skills` records being emitted in the same pack.                                                                                                                                                                             |
+| `misconceptionTraps` are real                       | Cross-check against the `misconceptions` records.                                                                                                                                                                                                    |
+| Difficulty tier label matches expected distribution | Per-tier templates count matches the level spec's authoring targets.                                                                                                                                                                                 |
+| Prompt text passes basic constraints                | Length 5–25 words; reading level ≤ Grade 2; no banned vocab from `glossary.md`                                                                                                                                                                       |
 
 If a check fails, regenerate **just that template**, not the whole pipeline run. Three retries; if still failing, log and skip with `manual_review: true` flagged so I author it by hand.
 
@@ -233,6 +233,7 @@ This lives **outside `src/`** because it's a build tool, not part of the runtime
 ### 6.2 Why Python and not TypeScript?
 
 The pipeline benefits from:
+
 - Anthropic SDK is mature in both, but the Python ecosystem for batch ETL/data work is denser
 - `jsonschema`, `jinja2`, `pydantic` are first-class
 - Throwaway scripts and notebooks for iteration
@@ -241,11 +242,11 @@ But: validators must match the TS runtime exactly. We mitigate by writing a smal
 
 ### 6.3 Models
 
-| Stage | Model | Why |
-|-------|-------|-----|
-| Generation | Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Fast, cheap, sufficient for templated structured output |
-| Editorial polish | Claude Sonnet 4.6 (`claude-sonnet-4-6`) | Better at nuanced kid-language phrasing |
-| Manual fallback (when verifier fails 3×) | Hand-author the record yourself | Some templates are easier to write than to coax |
+| Stage                                    | Model                                          | Why                                                     |
+| ---------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
+| Generation                               | Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Fast, cheap, sufficient for templated structured output |
+| Editorial polish                         | Claude Sonnet 4.6 (`claude-sonnet-4-6`)        | Better at nuanced kid-language phrasing                 |
+| Manual fallback (when verifier fails 3×) | Hand-author the record yourself                | Some templates are easier to write than to coax         |
 
 Claude 3.5 Sonnet (Oct 2024) — the model in the inherited LangGraph plan — is two generations behind and ~10× more expensive per token than Haiku 4.5 for the same job.
 
@@ -267,6 +268,7 @@ The inherited plan's 10-call-per-topic design with Sonnet 3.5 would cost ~10× m
 ### 7.1 Full build (`python -m pipeline build`)
 
 Reads all level specs, regenerates all templates, writes a new `v{n}.json`. Used when:
+
 - Schema versions bump
 - Multiple level specs change
 - A fresh run is needed
@@ -291,7 +293,7 @@ Generates without writing the seed file. Outputs to stdout. Used when iterating 
 
 CI runs only the verifier (`python -m pipeline verify`) to catch drift. Generation is a deliberate, audited operation triggered by the developer.
 
-The output `public/curriculum/v{n}.json` is **committed to the repo**. The seed file is the source of truth for what ships; the pipeline is the *means* of producing it. A reviewer reads the JSON, not the prompts, when reviewing curriculum changes.
+The output `public/curriculum/v{n}.json` is **committed to the repo**. The seed file is the source of truth for what ships; the pipeline is the _means_ of producing it. A reviewer reads the JSON, not the prompts, when reviewing curriculum changes.
 
 ---
 
@@ -324,23 +326,23 @@ A `CHANGELOG-CURRICULUM.md` (separate from code changelog) records what changed 
 - **No content beyond MVP scope.** Topics like "addition with unlike denominators" return an error from the level parser.
 - **No teacher-facing lesson plans.** Out per C2.
 - **No on-the-fly question generation in the runtime.** All content is pre-generated; the app ships with everything it needs.
-- **No image generation.** Visual assets are SVG-rendered procedurally by Phaser at runtime, not pre-rendered images. The pipeline emits *parameters* (shape type, partition coordinates, rotation), Phaser draws the visuals.
+- **No image generation.** Visual assets are SVG-rendered procedurally by Phaser at runtime, not pre-rendered images. The pipeline emits _parameters_ (shape type, partition coordinates, rotation), Phaser draws the visuals.
 - **No translation.** Locales are post-MVP-2029. The pipeline emits English only; future runs may add `localeStrings` arrays.
 
 ---
 
 ## 12. Failure Modes
 
-| Failure | Detection | Response |
-|---------|-----------|----------|
-| LLM produces invalid JSON | `json.loads` fails | Retry with stricter prompt; max 3 retries; flag for manual authoring |
-| LLM math wrong | Validator clone returns mismatch | Regenerate that template; max 3 retries; flag |
-| LLM hallucinates skill or misconception ID | Cross-check fails | Regenerate; max 3 retries; flag |
-| Fraction outside pool | Cross-check fails | Regenerate (LLM ignored constraint); max 3 retries; flag |
-| LLM response truncates | Token limit hit | Reduce `count_needed` per call; chunk into multiple calls |
-| Anthropic API rate limit | 429 response | Exponential backoff, 5s → 30s → 120s |
-| Anthropic API down | Connection error | Pause pipeline; do not write partial output; resume later |
-| Catastrophic — multiple stages fail | Run aborts cleanly | Previous `v{n}.json` is unaffected; never write half-finished seed |
+| Failure                                    | Detection                        | Response                                                             |
+| ------------------------------------------ | -------------------------------- | -------------------------------------------------------------------- |
+| LLM produces invalid JSON                  | `json.loads` fails               | Retry with stricter prompt; max 3 retries; flag for manual authoring |
+| LLM math wrong                             | Validator clone returns mismatch | Regenerate that template; max 3 retries; flag                        |
+| LLM hallucinates skill or misconception ID | Cross-check fails                | Regenerate; max 3 retries; flag                                      |
+| Fraction outside pool                      | Cross-check fails                | Regenerate (LLM ignored constraint); max 3 retries; flag             |
+| LLM response truncates                     | Token limit hit                  | Reduce `count_needed` per call; chunk into multiple calls            |
+| Anthropic API rate limit                   | 429 response                     | Exponential backoff, 5s → 30s → 120s                                 |
+| Anthropic API down                         | Connection error                 | Pause pipeline; do not write partial output; resume later            |
+| Catastrophic — multiple stages fail        | Run aborts cleanly               | Previous `v{n}.json` is unaffected; never write half-finished seed   |
 
 ---
 
@@ -358,16 +360,16 @@ A `CHANGELOG-CURRICULUM.md` (separate from code changelog) records what changed 
 
 ## 14. Comparison to the Inherited LangGraph Plan
 
-| Dimension | Inherited plan | This plan |
-|-----------|---------------|-----------|
-| Output schema | Generic explanation+MCQ quiz | Questerix QuestionTemplate types |
-| Input format | Freeform `.txt` topic files | Structured `level-NN.md` specs |
-| Models | Claude 3.5 Sonnet (Oct 2024) | Haiku 4.5 + Sonnet 4.6 |
-| Calls per template | ~10 (educator + 3 reviewers + 3 fixers + 3 QA) | ~2.5 (generator + maybe regen + polish) |
-| Verification | LLM accuracy reviewer | Programmatic validator clone |
-| Storage | Standalone SQLite | Direct seed for Dexie/IndexedDB |
-| Estimated cost (full build) | ~$50–$80 | ~$4–$11 (audit §2.5 fix) |
-| Estimated time (~320 templates) | ~8 hours | ~30–45 minutes (audit §2.5 fix) |
-| Adaptation needed for Questerix | Substantial | None (designed for it) |
+| Dimension                       | Inherited plan                                 | This plan                               |
+| ------------------------------- | ---------------------------------------------- | --------------------------------------- |
+| Output schema                   | Generic explanation+MCQ quiz                   | Questerix QuestionTemplate types        |
+| Input format                    | Freeform `.txt` topic files                    | Structured `level-NN.md` specs          |
+| Models                          | Claude 3.5 Sonnet (Oct 2024)                   | Haiku 4.5 + Sonnet 4.6                  |
+| Calls per template              | ~10 (educator + 3 reviewers + 3 fixers + 3 QA) | ~2.5 (generator + maybe regen + polish) |
+| Verification                    | LLM accuracy reviewer                          | Programmatic validator clone            |
+| Storage                         | Standalone SQLite                              | Direct seed for Dexie/IndexedDB         |
+| Estimated cost (full build)     | ~$50–$80                                       | ~$4–$11 (audit §2.5 fix)                |
+| Estimated time (~320 templates) | ~8 hours                                       | ~30–45 minutes (audit §2.5 fix)         |
+| Adaptation needed for Questerix | Substantial                                    | None (designed for it)                  |
 
-The inherited plan is a strong skeleton for a *generic* content service. Adapting to Questerix means replacing 80% of it. This doc is that replacement.
+The inherited plan is a strong skeleton for a _generic_ content service. Adapting to Questerix means replacing 80% of it. This doc is that replacement.

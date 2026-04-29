@@ -8,20 +8,21 @@
 
 ## Key Numbers
 
-| What | Count | Status |
-|------|-------|--------|
-| Hints seeded | 213 | ✓ All |
-| Question templates | 71 | ✓ All unique |
-| Escalation tiers | 3 (order 1, 2, 3) | ✓ Balanced 71/71/71 |
-| Test cases | 8 | ✓ All passing |
-| Query tests | 10 | ✓ 100% pass |
-| Errors | 0 | ✓ None |
+| What               | Count             | Status              |
+| ------------------ | ----------------- | ------------------- |
+| Hints seeded       | 213               | ✓ All               |
+| Question templates | 71                | ✓ All unique        |
+| Escalation tiers   | 3 (order 1, 2, 3) | ✓ Balanced 71/71/71 |
+| Test cases         | 8                 | ✓ All passing       |
+| Query tests        | 10                | ✓ 100% pass         |
+| Errors             | 0                 | ✓ None              |
 
 ---
 
 ## How It Works
 
 ### Load Hints
+
 ```bash
 # From pipeline output
 pipeline/output/hints.json (213 records)
@@ -34,6 +35,7 @@ src/persistence/repositories/hint.ts → hintRepo.bulkPut(hints)
 ```
 
 ### Query Hints
+
 ```typescript
 // Get one hint
 const hint = await hintRepo.get('h:pt:L1:0001:T1');
@@ -48,12 +50,14 @@ const empty = await hintRepo.getForQuestion('q:xx:L0:0000');
 ```
 
 ### Run Tests
+
 ```bash
 npm run test:integration -- hints_seed.test.ts
 # Result: 8/8 passing
 ```
 
 ### Run Seeding Script
+
 ```bash
 npx tsx .claude/seed_hints.ts
 # Output: .claude/reports/hints_seed_report.json
@@ -63,27 +67,30 @@ npx tsx .claude/seed_hints.ts
 
 ## Files
 
-| File | Purpose | Type |
-|------|---------|------|
-| `.claude/seed_hints.ts` | Standalone seed script | Script (218 lines) |
-| `tests/integration/hints_seed.test.ts` | 8 integration tests | Test (231 lines) |
-| `.claude/HINTS_SEEDING_REPORT.md` | Detailed technical doc | Report (280 lines) |
-| `.claude/IMPLEMENTATION_SUMMARY.md` | Complete overview | Report (430 lines) |
-| `src/persistence/repositories/hint.ts` | Query API | Existing (unchanged) |
-| `src/persistence/db.ts` | Dexie schema | Existing (unchanged) |
-| `pipeline/output/hints.json` | Source data | Generated |
+| File                                   | Purpose                | Type                 |
+| -------------------------------------- | ---------------------- | -------------------- |
+| `.claude/seed_hints.ts`                | Standalone seed script | Script (218 lines)   |
+| `tests/integration/hints_seed.test.ts` | 8 integration tests    | Test (231 lines)     |
+| `.claude/HINTS_SEEDING_REPORT.md`      | Detailed technical doc | Report (280 lines)   |
+| `.claude/IMPLEMENTATION_SUMMARY.md`    | Complete overview      | Report (430 lines)   |
+| `src/persistence/repositories/hint.ts` | Query API              | Existing (unchanged) |
+| `src/persistence/db.ts`                | Dexie schema           | Existing (unchanged) |
+| `pipeline/output/hints.json`           | Source data            | Generated            |
 
 ---
 
 ## Integration Points
 
 ### 1. Curriculum Bootstrap
+
 App launch → `src/curriculum/seed.ts` → `seedIfEmpty()` → Step 4 → `seedAllStores()` → `db.hints.bulkPut()`
 
 ### 2. Runtime Queries
+
 Interaction system → `hintRepo.getForQuestion(templateId)` → Dexie compound index → 3 hints (order 1, 2, 3)
 
 ### 3. Error Handling
+
 Missing `hints.json` → loader returns `[]` → seed skips → game continues with synthetic fallback
 
 ---
@@ -92,21 +99,21 @@ Missing `hints.json` → loader returns `[]` → seed skips → game continues w
 
 ```typescript
 // Primary key
-id: string  // "h:pt:L1:0001:T1"
-
-// Compound index (efficient query)
-[questionTemplateId+order]  // Query by "q:pt:L1:0001" returns all orders
+id: string[ // "h:pt:L1:0001:T1"
+  // Compound index (efficient query)
+  questionTemplateId + order
+]; // Query by "q:pt:L1:0001" returns all orders
 
 // Fields
-questionTemplateId: string   // "q:pt:L1:0001"
-type: 'verbal'               // (only type present)
-order: 1 | 2 | 3             // Escalation tier
+questionTemplateId: string; // "q:pt:L1:0001"
+type: 'verbal'; // (only type present)
+order: 1 | 2 | 3; // Escalation tier
 content: {
-  text: string               // Verbal prompt
-  ttsKey: string             // "tts.hint.pt.l1.0001.t1"
-  assetUrl: null             // Reserved for visual overlays
+  text: string; // Verbal prompt
+  ttsKey: string; // "tts.hint.pt.l1.0001.t1"
+  assetUrl: null; // Reserved for visual overlays
 }
-pointCost: 0.0               // No penalties
+pointCost: 0.0; // No penalties
 ```
 
 ---
@@ -114,6 +121,7 @@ pointCost: 0.0               // No penalties
 ## Data Distribution
 
 **By Archetype** (9 activity types):
+
 - `pt` (parts): 36 hints
 - `id` (identify): 36 hints
 - `lb` (locate): 33 hints
@@ -121,11 +129,13 @@ pointCost: 0.0               // No penalties
 - `bm`, `ord`, `sm` (12 hints each)
 
 **By Escalation Tier**:
+
 - Order 1 (verbal): 71 hints
 - Order 2 (verbal): 71 hints
 - Order 3 (verbal): 71 hints
 
 **Content**:
+
 - All 213 have text ✓
 - All 213 have TTS keys ✓
 - All 213 have pointCost = 0.0 ✓

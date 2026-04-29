@@ -28,14 +28,14 @@ Minimum interactive target size: **44 × 44 CSS px** (Apple HIG / WCAG 2.5.5 enh
 
 The design language recommends **48 × 48** as the design target so the visible element plus comfortable padding still clears the 44 px minimum. Per `../20-mechanic/design-language.md §5`:
 
-| Element | Minimum hit area |
-|---------|-----------------|
-| Primary button | 56 × 48 px |
-| Icon button | 48 × 48 px |
-| Option card (identify mechanic) | 88 × 88 px |
-| Drag handle | 44 × 44 px |
-| Number-line tick label | 44 × 44 px hit area |
-| Compare-relation buttons (< = >) | 56 × 56 px |
+| Element                          | Minimum hit area    |
+| -------------------------------- | ------------------- |
+| Primary button                   | 56 × 48 px          |
+| Icon button                      | 48 × 48 px          |
+| Option card (identify mechanic)  | 88 × 88 px          |
+| Drag handle                      | 44 × 44 px          |
+| Number-line tick label           | 44 × 44 px hit area |
+| Compare-relation buttons (< = >) | 56 × 56 px          |
 
 When a visible element is smaller than 44 px (e.g., a partition line stroke), an invisible padded hit area extends it. This applies to both the HTML/Tailwind UI and Phaser interactive objects.
 
@@ -49,12 +49,12 @@ When a visible element is smaller than 44 px (e.g., a partition line stroke), an
 
 Measured with **axe-core** in CI (see §7). Token values from `../20-mechanic/design-language.md §2` are pre-verified:
 
-| Pair | Contrast ratio | Notes |
-|------|---------------|-------|
-| `neutral-900` (#101521) on `neutral-0` (#FFFFFF) | 19.2:1 | Primary text — well above threshold |
-| `primary` (#2F6FED) on `neutral-0` (#FFFFFF) | 4.6:1 | Button fills — passes AA normal |
-| `success` (#1FAA59) on `neutral-0` (#FFFFFF) | 4.7:1 | Passes AA normal |
-| `error` (#E5484D) on `neutral-0` (#FFFFFF) | 4.5:1 | Passes AA normal |
+| Pair                                             | Contrast ratio | Notes                               |
+| ------------------------------------------------ | -------------- | ----------------------------------- |
+| `neutral-900` (#101521) on `neutral-0` (#FFFFFF) | 19.2:1         | Primary text — well above threshold |
+| `primary` (#2F6FED) on `neutral-0` (#FFFFFF)     | 4.6:1          | Button fills — passes AA normal     |
+| `success` (#1FAA59) on `neutral-0` (#FFFFFF)     | 4.7:1          | Passes AA normal                    |
+| `error` (#E5484D) on `neutral-0` (#FFFFFF)       | 4.5:1          | Passes AA normal                    |
 
 The deprecated neon palette from `src/data/config.ts THEME` (e.g., cyan `#00FFD1` on dark `#050810`) must not appear in MVP — contrast is un-audited and likely non-compliant.
 
@@ -109,14 +109,14 @@ Full keyboard parity with touch is not required for MVP (drag precision cannot b
 
 ## 7. Test Plan
 
-| Test | Tool | When |
-|------|------|------|
-| Automated contrast + ARIA checks on HTML/Tailwind UI | axe-core (Playwright integration) | Every CI run |
-| Touch-target size audit | Playwright screenshot + manual measurement | Before each phase gate |
-| Keyboard navigation walkthrough | Manual (tester with keyboard only) | Before each phase gate |
-| Screen reader pass — HTML UI only | NVDA (Windows) + VoiceOver (iOS) | Manual; before each phase gate |
-| Reduced-motion manual toggle test | DevTools `prefers-reduced-motion` override + in-app toggle | Before each phase gate |
-| Color contrast spot-check for new tokens | axe-core in CI + manual verification | On any palette change |
+| Test                                                 | Tool                                                       | When                           |
+| ---------------------------------------------------- | ---------------------------------------------------------- | ------------------------------ |
+| Automated contrast + ARIA checks on HTML/Tailwind UI | axe-core (Playwright integration)                          | Every CI run                   |
+| Touch-target size audit                              | Playwright screenshot + manual measurement                 | Before each phase gate         |
+| Keyboard navigation walkthrough                      | Manual (tester with keyboard only)                         | Before each phase gate         |
+| Screen reader pass — HTML UI only                    | NVDA (Windows) + VoiceOver (iOS)                           | Manual; before each phase gate |
+| Reduced-motion manual toggle test                    | DevTools `prefers-reduced-motion` override + in-app toggle | Before each phase gate         |
+| Color contrast spot-check for new tokens             | axe-core in CI + manual verification                       | On any palette change          |
 
 axe-core is integrated via `@axe-core/playwright` in the Playwright E2E suite. It runs on every page load and navigation in the test suite and fails the test run if any violations at the "critical" or "serious" levels are detected.
 

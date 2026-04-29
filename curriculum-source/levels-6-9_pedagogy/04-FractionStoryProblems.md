@@ -1,6 +1,7 @@
 # Fraction Story Problems
 
 ## Overview
+
 Real-world contexts anchor fraction comparison in everyday life. Kids read a short story, choose which fraction is bigger or smaller, and explain using a model, number line, written text, or voice. The feedback engine validates the choice and scaffolds the explanation. Level 4 extends to 3-way comparison.
 
 ---
@@ -650,7 +651,15 @@ Abstract fraction comparison (e.g., "Is 3/5 > 2/3?") and contextualized comparis
 ## 3. Prompt Selection Algorithm
 
 ```typescript
-type Category = 'Cooking' | 'Distance' | 'Time' | 'Sharing' | 'Crafts' | 'Sports' | 'Science' | 'Shopping';
+type Category =
+  | 'Cooking'
+  | 'Distance'
+  | 'Time'
+  | 'Sharing'
+  | 'Crafts'
+  | 'Sports'
+  | 'Science'
+  | 'Shopping';
 
 interface StoryAttempt {
   storyId: string;
@@ -669,13 +678,11 @@ function selectNextProblem(
 ): StoryProblem {
   const now = Date.now();
   const seenRecently = new Set(
-    studentHistory
-      .filter(a => now - a.timestamp < STALENESS_THRESHOLD_MS)
-      .map(a => a.storyId)
+    studentHistory.filter((a) => now - a.timestamp < STALENESS_THRESHOLD_MS).map((a) => a.storyId)
   );
 
-  const levelPool = problemLibrary.filter(p => p.difficulty === currentLevel);
-  const unseen = levelPool.filter(p => !seenRecently.has(p.storyId));
+  const levelPool = problemLibrary.filter((p) => p.difficulty === currentLevel);
+  const unseen = levelPool.filter((p) => !seenRecently.has(p.storyId));
 
   // Category rotation: avoid repeating same category twice in a row
   const lastCategory = studentHistory.at(-1)?.context;
@@ -683,7 +690,7 @@ function selectNextProblem(
   const avoidCategories = new Set([lastCategory, secondLastCategory].filter(Boolean) as Category[]);
 
   // Priority 1: unseen, different category
-  const freshDifferentCategory = unseen.filter(p => !avoidCategories.has(p.context as Category));
+  const freshDifferentCategory = unseen.filter((p) => !avoidCategories.has(p.context as Category));
   if (freshDifferentCategory.length > 0) {
     return freshDifferentCategory[Math.floor(Math.random() * freshDifferentCategory.length)];
   }
@@ -694,9 +701,9 @@ function selectNextProblem(
   }
 
   // Priority 3: stale (seen > 1 week ago), different category — staleness reset
-  const stale = levelPool.filter(p => !seenRecently.has(p.storyId) || true); // all after reset
-  const recent3 = new Set(studentHistory.slice(-3).map(a => a.storyId));
-  const fallback = stale.filter(p => !recent3.has(p.storyId));
+  const stale = levelPool.filter((p) => !seenRecently.has(p.storyId) || true); // all after reset
+  const recent3 = new Set(studentHistory.slice(-3).map((a) => a.storyId));
+  const fallback = stale.filter((p) => !recent3.has(p.storyId));
   return fallback.length > 0 ? fallback[0] : levelPool[0];
 }
 ```
@@ -707,40 +714,40 @@ function selectNextProblem(
 
 ### Level 1 — Same-Denominator or Related-Denominator Fractions
 
-| Property | Value |
-|----------|-------|
-| Denominator type | Same denominator (e.g., 1/4 vs. 3/4) or halves-family (1/2, 1/4, 3/4) |
-| Decimal spread | ≥ 0.25 between fractions |
-| Near-miss problems | None |
-| Question types | "bigger" only |
-| Explanation required | Model click (guided, pre-selected model) |
-| Model default | Bar model ON |
+| Property             | Value                                                                 |
+| -------------------- | --------------------------------------------------------------------- |
+| Denominator type     | Same denominator (e.g., 1/4 vs. 3/4) or halves-family (1/2, 1/4, 3/4) |
+| Decimal spread       | ≥ 0.25 between fractions                                              |
+| Near-miss problems   | None                                                                  |
+| Question types       | "bigger" only                                                         |
+| Explanation required | Model click (guided, pre-selected model)                              |
+| Model default        | Bar model ON                                                          |
 
 **Example problem (L1):** "Priya got 3/8 of a watermelon. Kevin got 1/2 of the same watermelon. Who got MORE?" (3/8 vs. 4/8 — same denominator strategy is accessible)
 
 ### Level 2 — Related or Unrelated Denominators, Clear Spread
 
-| Property | Value |
-|----------|-------|
-| Denominator type | Unrelated (e.g., 2/3 vs. 3/5) but decimal spread ≥ 0.05 |
-| Decimal spread | 0.05–0.30 |
-| Near-miss problems | Up to 20% of problems |
-| Question types | "bigger" and "smaller" (alternating) |
-| Explanation required | Model or number line (student chooses) |
-| Model default | Bar model ON, can toggle |
+| Property             | Value                                                   |
+| -------------------- | ------------------------------------------------------- |
+| Denominator type     | Unrelated (e.g., 2/3 vs. 3/5) but decimal spread ≥ 0.05 |
+| Decimal spread       | 0.05–0.30                                               |
+| Near-miss problems   | Up to 20% of problems                                   |
+| Question types       | "bigger" and "smaller" (alternating)                    |
+| Explanation required | Model or number line (student chooses)                  |
+| Model default        | Bar model ON, can toggle                                |
 
 **Example problem (L2):** "Maya ran 3/5 of a mile. Jordan ran 4/7 of a mile. Who ran FARTHER?" (3/5 = 0.60 vs. 4/7 ≈ 0.571, clear winner)
 
 ### Level 3 — Unrelated Denominators, Narrow Spread
 
-| Property | Value |
-|----------|-------|
-| Denominator type | Unrelated, often larger denominators (7, 8, 9, 11) |
-| Decimal spread | 0.01–0.10 (near-misses common) |
-| Near-miss problems | Up to 50% of problems |
-| Question types | "bigger", "smaller", and equivalence check |
-| Explanation required | Any mode; "Write it" accepted |
-| Model default | OFF (toggle available) |
+| Property             | Value                                              |
+| -------------------- | -------------------------------------------------- |
+| Denominator type     | Unrelated, often larger denominators (7, 8, 9, 11) |
+| Decimal spread       | 0.01–0.10 (near-misses common)                     |
+| Near-miss problems   | Up to 50% of problems                              |
+| Question types       | "bigger", "smaller", and equivalence check         |
+| Explanation required | Any mode; "Write it" accepted                      |
+| Model default        | OFF (toggle available)                             |
 
 **Example problem (L3):** "Finn swam 4/9 of the pool. Grace swam 3/7 of the pool. Who swam farther?" (4/9 ≈ 0.444 vs. 3/7 ≈ 0.429, spread = 0.015)
 
@@ -780,11 +787,11 @@ const TAP_DEBOUNCE_MS = 500;
 
 function handleAnswerTap(buttonId: 'A' | 'B' | 'equal') {
   const now = Date.now();
-  if (now - lastTapTime < TAP_DEBOUNCE_MS) return;  // ignore rapid taps
+  if (now - lastTapTime < TAP_DEBOUNCE_MS) return; // ignore rapid taps
   lastTapTime = now;
 
   recordAnswer(buttonId);
-  disableAllButtons();        // prevent any further taps
+  disableAllButtons(); // prevent any further taps
   // Re-enable via timeout only if student must select explanation mode
 }
 ```
@@ -821,7 +828,7 @@ New recipe: 3/4
 [████████████████░░░░░░]   3 of 4 parts filled
 ```
 
-Student interaction: tap "This shows [label] is bigger." to confirm the model matches their answer. If the model contradicts their answer (they tapped B but model shows A is clearly bigger), a gentle prompt: *"Take another look at the bars — which one shows more filled?"*
+Student interaction: tap "This shows [label] is bigger." to confirm the model matches their answer. If the model contradicts their answer (they tapped B but model shows A is clearly bigger), a gentle prompt: _"Take another look at the bars — which one shows more filled?"_
 
 ### Number Line Mode
 
@@ -831,7 +838,7 @@ Validation: dot position must be within 0.05 of the true decimal value. If out o
 
 ### Written Explanation Mode
 
-A text field with placeholder: *"I know because..."*. Max 200 characters. No minimum length enforced.
+A text field with placeholder: _"I know because..."_. Max 200 characters. No minimum length enforced.
 
 See Section 7 for keyword validation algorithm.
 
@@ -851,35 +858,81 @@ type ExplanationQuality = 'good' | 'partially_valid' | 'too_vague' | 'contradict
 interface KeywordCategory {
   name: string;
   keywords: string[];
-  weight: number;   // contribution to overall quality score
+  weight: number; // contribution to overall quality score
 }
 
 const keywordBank: KeywordCategory[] = [
   {
     name: 'comparison_language',
-    keywords: ['bigger', 'larger', 'greater', 'more', 'less', 'smaller', 'fewer', 'higher', 'lower', 'than', '>', '<'],
-    weight: 0.35
+    keywords: [
+      'bigger',
+      'larger',
+      'greater',
+      'more',
+      'less',
+      'smaller',
+      'fewer',
+      'higher',
+      'lower',
+      'than',
+      '>',
+      '<',
+    ],
+    weight: 0.35,
   },
   {
     name: 'decimal_reasoning',
     keywords: ['decimal', '0.', 'point', 'percent', '%', 'hundredths', 'tenths'],
-    weight: 0.20
+    weight: 0.2,
   },
   {
     name: 'model_reference',
-    keywords: ['bar', 'model', 'pie', 'chart', 'parts', 'shaded', 'filled', 'pieces', 'number line', 'dot'],
-    weight: 0.20
+    keywords: [
+      'bar',
+      'model',
+      'pie',
+      'chart',
+      'parts',
+      'shaded',
+      'filled',
+      'pieces',
+      'number line',
+      'dot',
+    ],
+    weight: 0.2,
   },
   {
     name: 'fraction_structure',
-    keywords: ['numerator', 'denominator', 'top', 'bottom', 'out of', 'divided', 'halves', 'thirds', 'quarters', 'fifths', 'sixths', 'eighths'],
-    weight: 0.15
+    keywords: [
+      'numerator',
+      'denominator',
+      'top',
+      'bottom',
+      'out of',
+      'divided',
+      'halves',
+      'thirds',
+      'quarters',
+      'fifths',
+      'sixths',
+      'eighths',
+    ],
+    weight: 0.15,
   },
   {
     name: 'benchmark_reasoning',
-    keywords: ['half', 'halfway', 'whole', 'close to 1', 'close to 0', 'benchmark', 'near', 'almost'],
-    weight: 0.10
-  }
+    keywords: [
+      'half',
+      'halfway',
+      'whole',
+      'close to 1',
+      'close to 0',
+      'benchmark',
+      'near',
+      'almost',
+    ],
+    weight: 0.1,
+  },
 ];
 
 function validateExplanation(
@@ -893,24 +946,26 @@ function validateExplanation(
 
   const lower = text.toLowerCase();
   const totalWeight = keywordBank.reduce((sum, cat) => {
-    const found = cat.keywords.some(kw => lower.includes(kw));
+    const found = cat.keywords.some((kw) => lower.includes(kw));
     return sum + (found ? cat.weight : 0);
   }, 0);
 
   // Check for contradictions (student says "smaller" but answer is the bigger one)
-  const saysBigger = ['bigger', 'larger', 'greater', 'more'].some(kw => lower.includes(kw));
-  const saysSmaller = ['smaller', 'less', 'fewer', 'lower'].some(kw => lower.includes(kw));
+  const saysBigger = ['bigger', 'larger', 'greater', 'more'].some((kw) => lower.includes(kw));
+  const saysSmaller = ['smaller', 'less', 'fewer', 'lower'].some((kw) => lower.includes(kw));
   if (correctAnswer === studentAnswer) {
     // Correct answer: check explanation polarity matches
     const correctIsA = correctAnswer === 'A';
-    const correctDecimal = correctIsA ? fractionA.num / fractionA.den : fractionB.num / fractionB.den;
+    const correctDecimal = correctIsA
+      ? fractionA.num / fractionA.den
+      : fractionB.num / fractionB.den;
     const wrongDecimal = correctIsA ? fractionB.num / fractionB.den : fractionA.num / fractionA.den;
     if (saysBigger && correctDecimal < wrongDecimal) return 'contradicts_answer';
     if (saysSmaller && correctDecimal > wrongDecimal) return 'contradicts_answer';
   }
 
-  if (totalWeight >= 0.50) return 'good';
-  if (totalWeight >= 0.20) return 'partially_valid';
+  if (totalWeight >= 0.5) return 'good';
+  if (totalWeight >= 0.2) return 'partially_valid';
   return 'too_vague';
 }
 ```
@@ -934,6 +989,7 @@ Quality: contradicts_answer
 ### Partial Credit
 
 For level advancement, explanation quality contributes:
+
 - `good` = full credit toward consecutive-correct count
 - `partially_valid` = half credit (2 partially_valid = 1 good for advancement)
 - `too_vague` = no credit; explanation re-prompt offered once
@@ -984,19 +1040,19 @@ For problems where `nearMiss: true` (fractions within 0.03 of each other):
 
 Each problem in the library has a `contextualErrorMsg` field used when the student answers incorrectly. Examples:
 
-- Cook: *"That would mean Sofia ate more pizza than the whole pizza!"* (if answer > 1)
-- Distance: *"If Maya ran less, that would mean she barely moved! Check the bar model."*
-- Sharing: *"That would give Ana more than the whole chocolate bar — impossible!"*
-- Time: *"That would mean Carlos practiced for longer than one hour — check the fractions again."*
+- Cook: _"That would mean Sofia ate more pizza than the whole pizza!"_ (if answer > 1)
+- Distance: _"If Maya ran less, that would mean she barely moved! Check the bar model."_
+- Sharing: _"That would give Ana more than the whole chocolate bar — impossible!"_
+- Time: _"That would mean Carlos practiced for longer than one hour — check the fractions again."_
 
 ### Feedback Delays
 
-| Event | Delay | Purpose |
-|-------|-------|---------|
-| Correct answer | 800ms pause | Student absorbs success |
-| Incorrect answer | 0ms delay | Immediate redirect |
+| Event                | Delay                   | Purpose                                |
+| -------------------- | ----------------------- | -------------------------------------- |
+| Correct answer       | 800ms pause             | Student absorbs success                |
+| Incorrect answer     | 0ms delay               | Immediate redirect                     |
 | Explanation feedback | 1200ms after submission | Student processes explanation response |
-| Auto-model reveal | 600ms after incorrect | Model "animates in" after shock |
+| Auto-model reveal    | 600ms after incorrect   | Model "animates in" after shock        |
 
 ---
 
@@ -1004,40 +1060,40 @@ Each problem in the library has a `contextualErrorMsg` field used when the stude
 
 ### 20 Image Keys with Descriptions
 
-| imageKey | Description | Fraction context |
-|----------|-------------|-----------------|
-| measuring_cups | Three graduated measuring cups (1/4, 1/2, 1 cup) on a counter | Volume/cooking |
-| pizza_slices | A whole pizza divided into 8 equal slices; 3 slices highlighted | Equal parts, food |
-| juice_glasses | Two identical glasses, partially filled with orange juice at different heights | Volume comparison |
-| cake_slices | A round birthday cake cut into equal pieces; some removed | Sharing, parts |
-| flour_bags | Two bags of flour with level indicators | Cooking, volume |
-| running_track | An oval track with two runners at different positions | Distance |
-| hiking_trail | A forested trail map with two colored paths labeled with lengths | Distance |
-| school_map | Top-down view of a school and surrounding blocks with a dotted path | Distance |
-| bike_path | A city park map showing two cycling routes | Distance |
-| swimming_pool | A lap pool with a swimmer marked partway along | Distance |
-| clock_faces | Two analog clocks showing different times, with elapsed time shaded | Time |
-| sand_timer | An hourglass with sand partially through | Time |
-| stopwatch | A digital stopwatch showing elapsed time | Time |
-| recess_bell | A school bell with two time bars beneath | Time |
-| chocolate_bar | A rectangular chocolate bar with a breakpoint marked | Sharing |
-| watermelon_slices | A sliced watermelon, pieces separated and counted | Sharing |
-| apple_halves | An apple cut into 4 quarters; some pieces held by illustrated characters | Sharing |
-| ribbon_spool | Two spools of ribbon with length cut off and laid flat | Crafts |
-| rain_gauge | A clear cylindrical rain gauge with measurement markings | Science |
-| plant_growth | Two potted plants against a ruler background | Science |
+| imageKey          | Description                                                                    | Fraction context  |
+| ----------------- | ------------------------------------------------------------------------------ | ----------------- |
+| measuring_cups    | Three graduated measuring cups (1/4, 1/2, 1 cup) on a counter                  | Volume/cooking    |
+| pizza_slices      | A whole pizza divided into 8 equal slices; 3 slices highlighted                | Equal parts, food |
+| juice_glasses     | Two identical glasses, partially filled with orange juice at different heights | Volume comparison |
+| cake_slices       | A round birthday cake cut into equal pieces; some removed                      | Sharing, parts    |
+| flour_bags        | Two bags of flour with level indicators                                        | Cooking, volume   |
+| running_track     | An oval track with two runners at different positions                          | Distance          |
+| hiking_trail      | A forested trail map with two colored paths labeled with lengths               | Distance          |
+| school_map        | Top-down view of a school and surrounding blocks with a dotted path            | Distance          |
+| bike_path         | A city park map showing two cycling routes                                     | Distance          |
+| swimming_pool     | A lap pool with a swimmer marked partway along                                 | Distance          |
+| clock_faces       | Two analog clocks showing different times, with elapsed time shaded            | Time              |
+| sand_timer        | An hourglass with sand partially through                                       | Time              |
+| stopwatch         | A digital stopwatch showing elapsed time                                       | Time              |
+| recess_bell       | A school bell with two time bars beneath                                       | Time              |
+| chocolate_bar     | A rectangular chocolate bar with a breakpoint marked                           | Sharing           |
+| watermelon_slices | A sliced watermelon, pieces separated and counted                              | Sharing           |
+| apple_halves      | An apple cut into 4 quarters; some pieces held by illustrated characters       | Sharing           |
+| ribbon_spool      | Two spools of ribbon with length cut off and laid flat                         | Crafts            |
+| rain_gauge        | A clear cylindrical rain gauge with measurement markings                       | Science           |
+| plant_growth      | Two potted plants against a ruler background                                   | Science           |
 
 ### Image Scaling
 
-| Screen width | Image area | Max image height | Alt text always shown |
-|-------------|------------|-----------------|----------------------|
-| ≥ 768px | 40% of content width | 300px | Below image |
-| 480–767px | 60% of content width | 200px | Below image |
-| < 480px | Full content width | 160px | Above problem text |
+| Screen width | Image area           | Max image height | Alt text always shown |
+| ------------ | -------------------- | ---------------- | --------------------- |
+| ≥ 768px      | 40% of content width | 300px            | Below image           |
+| 480–767px    | 60% of content width | 200px            | Below image           |
+| < 480px      | Full content width   | 160px            | Above problem text    |
 
 ### Fallback Text Descriptions
 
-Each image key has a fallback text description for low-bandwidth or screen-reader contexts. Example for `pizza_slices`: *"Illustration: A whole pizza cut into 8 equal slices. 3 slices are highlighted in a different color."*
+Each image key has a fallback text description for low-bandwidth or screen-reader contexts. Example for `pizza_slices`: _"Illustration: A whole pizza cut into 8 equal slices. 3 slices are highlighted in a different color."_
 
 ---
 
@@ -1047,16 +1103,16 @@ Each image key has a fallback text description for low-bandwidth or screen-reade
 
 ```typescript
 interface LevelAdvancementTracker {
-  consecutiveGoodAnswers: number;       // full-credit correct + good explanation
-  consecutivePartialAnswers: number;    // partial credit accumulator (2 = 1 good)
+  consecutiveGoodAnswers: number; // full-credit correct + good explanation
+  consecutivePartialAnswers: number; // partial credit accumulator (2 = 1 good)
   consecutiveWrong: number;
   reviewModeActive: boolean;
   reviewProblemsRemaining: number;
 }
 
 function checkAdvancement(tracker: LevelAdvancementTracker): 'advance' | 'stay' | 'regress' {
-  const effectiveGood = tracker.consecutiveGoodAnswers +
-    Math.floor(tracker.consecutivePartialAnswers / 2);
+  const effectiveGood =
+    tracker.consecutiveGoodAnswers + Math.floor(tracker.consecutivePartialAnswers / 2);
 
   if (effectiveGood >= 4) return 'advance';
   if (tracker.consecutiveWrong >= 2) return 'regress';
@@ -1074,12 +1130,13 @@ function checkAdvancement(tracker: LevelAdvancementTracker): 'advance' | 'stay' 
 
 - Problem selection: the two most-recently-failed story IDs are re-queued
 - Bar model is forced ON and cannot be toggled off
-- A soft banner displays: *"Let's review — take your time and use the model."*
+- A soft banner displays: _"Let's review — take your time and use the model."_
 - Review Mode ends automatically after 3 problems
 
 ### Manual Level Selection
 
 Available in Settings → "Choose My Level":
+
 - Student can select any level from 1–3 (Level 4 requires unlocking via Level 3 completion)
 - Manual selection overrides auto-advancement for current session only
 - Next session resumes from auto-calculated level
@@ -1091,6 +1148,7 @@ Available in Settings → "Choose My Level":
 ### Overview
 
 Level 4 introduces three fractions per problem. New question types:
+
 - "Which is the BIGGEST?" (pick one of three)
 - "Which is the SMALLEST?" (pick one of three)
 - "Put them in order: smallest, middle, biggest" (three-button ordering)
@@ -1147,6 +1205,7 @@ For "put in order" questions, a simplified drag-sort interface (3 slots: Smalles
 Story contexts are reviewed against these criteria before inclusion:
 
 **1. Plausible denominator-context pairings:**
+
 - Pizzas: 4, 6, 8, 12 slices (not 7 or 11)
 - Cups in a recipe: 2, 3, 4, 8 (not 7 or 9 — uncommon in cooking)
 - Miles/km for children: denominators 2–8 (large denominators imply very precise measurement, unusual for casual distance)
@@ -1158,6 +1217,7 @@ Story contexts are reviewed against these criteria before inclusion:
 ### Avoided Clichés
 
 The following over-used problem framings were deliberately excluded from the library:
+
 - "If you had N pizzas and ate M/N..." (circular reasoning, unrealistic)
 - "Jenny has M/N of a dollar" without monetary context
 - Abstract number line problems disguised as story problems
@@ -1178,13 +1238,19 @@ interface StoryProblem {
   prompt: string;
   fractionA: FractionWithLabel;
   fractionB: FractionWithLabel;
-  fractionC?: FractionWithLabel;   // Level 4 only
-  question: 'bigger' | 'smaller' | 'equal' | 'biggest_of_three' | 'smallest_of_three' | 'rank_three';
+  fractionC?: FractionWithLabel; // Level 4 only
+  question:
+    | 'bigger'
+    | 'smaller'
+    | 'equal'
+    | 'biggest_of_three'
+    | 'smallest_of_three'
+    | 'rank_three';
   correctAnswer: 'A' | 'B' | 'C';
   explanation: string;
   nearMiss: boolean;
   contextualErrorMsg: string;
-  sortedOrder?: string[];          // Level 4 rank questions
+  sortedOrder?: string[]; // Level 4 rank questions
 }
 
 interface FractionWithLabel extends Fraction {
@@ -1232,7 +1298,7 @@ interface StorySessionSummary {
   regressedLevel: boolean;
   reviewModeTriggered: boolean;
   timeSpentMs: number;
-  nearMissAccuracy: number;   // accuracy on near-miss problems specifically
+  nearMissAccuracy: number; // accuracy on near-miss problems specifically
 }
 ```
 
@@ -1240,11 +1306,11 @@ interface StorySessionSummary {
 
 ```typescript
 type ExplanationQuality =
-  | 'good'             // Strong keywords, directionally correct
-  | 'partially_valid'  // Some keywords, needs more detail
-  | 'too_vague'        // Very short or no meaningful keywords
-  | 'contradicts_answer'  // Keywords contradict the selected answer
-  | 'skipped';         // Student skipped explanation
+  | 'good' // Strong keywords, directionally correct
+  | 'partially_valid' // Some keywords, needs more detail
+  | 'too_vague' // Very short or no meaningful keywords
+  | 'contradicts_answer' // Keywords contradict the selected answer
+  | 'skipped'; // Student skipped explanation
 ```
 
 ---
@@ -1339,6 +1405,7 @@ A speaker icon (🔊) in the top-right reads the full story prompt via the brows
 ### High-Contrast Image Mode
 
 A toggle (in Settings → Accessibility → "High Contrast Images") replaces standard story images with high-contrast versions:
+
 - Black outlines on white backgrounds
 - Pattern fills instead of color fills for bar models
 - All illustrations removed (text-description fallback shown instead)
@@ -1346,6 +1413,7 @@ A toggle (in Settings → Accessibility → "High Contrast Images") replaces sta
 ### Simplified Language Mode (ELL Support)
 
 Enabling Settings → Accessibility → "Simple Language" modifies problem prompts:
+
 - Reduces sentence complexity (max 1 clause per sentence)
 - Adds parenthetical fraction-value hints: "2/3 cup (about 0.67 cup)"
 - Highlights key question words in **bold**
@@ -1353,11 +1421,11 @@ Enabling Settings → Accessibility → "Simple Language" modifies problem promp
 
 ### Keyboard Navigation
 
-| Key | Action |
-|-----|--------|
-| Tab | Move between answer buttons |
-| Enter / Space | Select answer button |
-| M | Toggle bar model on/off |
-| R | Replay TTS read-aloud |
-| H | Request hint |
-| Escape | Cancel current explanation mode, return to mode selection |
+| Key           | Action                                                    |
+| ------------- | --------------------------------------------------------- |
+| Tab           | Move between answer buttons                               |
+| Enter / Space | Select answer button                                      |
+| M             | Toggle bar model on/off                                   |
+| R             | Replay TTS read-aloud                                     |
+| H             | Request hint                                              |
+| Escape        | Cancel current explanation mode, return to mode selection |

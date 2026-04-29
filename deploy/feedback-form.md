@@ -31,6 +31,7 @@ In-app link text: "Share feedback (opens GitHub)"
 **Optional. For structured parent and teacher feedback only.**
 
 Setup:
+
 1. Create a Google Form at forms.google.com with your personal Google account.
 2. Fields (keep minimal; no kid PII):
    - Grade band of student (Kindergarten / Grade 1 / Grade 2 / Grade 3+)
@@ -44,6 +45,7 @@ Setup:
    "Optional: Parent/teacher feedback form (Google)"
 
 **Do NOT embed the Google Form in the app.** This would:
+
 - Violate the CSP (`connect-src 'self'` blocks accounts.google.com).
 - Violate `privacy-notice.md` ("no third parties" and "no cookies of any kind").
 

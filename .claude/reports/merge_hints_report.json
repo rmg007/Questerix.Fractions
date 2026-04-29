@@ -10,10 +10,7 @@
   },
   "validation": {
     "status": "WARNING",
-    "issues": [
-      "Unmatched hint template IDs: 15",
-      "Templates without hints: 17"
-    ]
+    "issues": ["Unmatched hint template IDs: 15", "Templates without hints: 17"]
   },
   "details": {
     "templates_without_hints_sample": [

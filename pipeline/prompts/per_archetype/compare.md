@@ -1,9 +1,11 @@
 # Archetype: compare
 
 ## Validator
+
 `validator.compare.greaterThan` — checks student picks the larger fraction.
 
 ## Payload shape
+
 ```json
 {
   "fractionA": "frac:1/2",
@@ -11,14 +13,17 @@
   "sameDenominator": false
 }
 ```
+
 `correctAnswer`: `"A"` | `"B"` | `"equal"`
 
 ## Typical combos by difficulty
+
 - easy: same denominator (1/4 vs 3/4), halves family
 - medium: same numerator different denominator (1/3 vs 1/4)
 - hard: cross-denominator near-benchmark pairs (3/8 vs 1/3)
 
 ## Misconception triggers to surface
+
 - MC-WHB-01: student picks fraction with larger denominator as "bigger"
 - MC-WHB-03: student picks fraction with larger numerator regardless of denominator
 

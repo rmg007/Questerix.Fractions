@@ -1,6 +1,6 @@
 # EXTENSION ACTIVITIES — ENRICHMENT FOR GRADE 1 FRACTIONS
 
-> *"Extensions are not 'more work.' They are deeper thinking. A true extension asks the child to see the SAME concept from a new angle — not to accelerate to new content."*
+> _"Extensions are not 'more work.' They are deeper thinking. A true extension asks the child to see the SAME concept from a new angle — not to accelerate to new content."_
 
 ---
 
@@ -18,11 +18,13 @@ Extensions in this curriculum are:
 ## WHO USES EXTENSIONS?
 
 ### Primary audience:
+
 - Advanced students who finish regular activities quickly
 - Students who need additional challenge to stay engaged
 - Students who show unusual curiosity about fractions
 
 ### Secondary audience:
+
 - Entire class, occasionally, as enrichment
 - Small groups as a choice activity
 - Home enrichment (shared with families)
@@ -39,6 +41,7 @@ Extensions in this curriculum are:
 "How many DIFFERENT ways can you halve a square?"
 
 Children discover:
+
 - Vertical fold → 2 rectangles
 - Horizontal fold → 2 rectangles
 - Diagonal fold → 2 triangles
@@ -62,6 +65,7 @@ Four ways! Children draw all four on a mat.
 Give child an irregular "blob" shape. Can they halve it? How?
 
 **Methods children discover:**
+
 - Estimating and folding
 - Cutting into pieces and rearranging
 - "If I put the pieces on a scale, they'd weigh the same"
@@ -78,11 +82,13 @@ Give child an irregular "blob" shape. Can they halve it? How?
 "What if THREE friends came to Pia's party, not two or four? How would we share?"
 
 Introduce thirds conceptually (NOT by name at first). Children try:
+
 - Folding a circle into thirds (harder than halves or fourths)
 - Sharing 6 cookies among 3 friends
 - Dividing a ribbon into three equal parts
 
 **Carefully:**
+
 - Do NOT teach this as required Grade 1 content
 - Do NOT introduce the word "third" until kids have wrestled with the concept
 - Frame as "Pia's new puzzle" — it's harder, but we can think about it
@@ -97,12 +103,14 @@ Introduce thirds conceptually (NOT by name at first). Children try:
 
 **Activity:**
 Children meet the entire Fraction Family:
+
 - Wholes (biggest)
 - Halves
 - Thirds
 - Fourths (smallest so far)
 
 And are introduced conceptually to:
+
 - Eighths (halve a fourth)
 - Fifths (tricky — requires careful measurement)
 - Sixths (halve a third)
@@ -122,6 +130,7 @@ Make a "Fraction Family Tree" showing how fractions relate.
 Child creates a new "Crumb mistake" card for classmates to correct.
 
 **Examples kids create:**
+
 - "Crumb says a pizza cut into 3 pieces is halved."
 - "Crumb says 1/4 of a set of 8 is 4."
 - "Crumb says a really small piece is a 'mini-whole.'"
@@ -138,11 +147,13 @@ Child creates a new "Crumb mistake" card for classmates to correct.
 
 **Activity:**
 Child writes (or dictates) a fraction story problem. Must include:
+
 - A whole to be divided
 - A number of sharers
 - A question
 
 **Examples:**
+
 - "Pia has 1 pizza and 4 hungry friends. How much does each friend get?"
 - "Halvo has 8 cookies. He wants to share with 1 friend (his twin!). How many cookies each?"
 
@@ -160,6 +171,7 @@ Child writes (or dictates) a fraction story problem. Must include:
 Given pieces, child figures out how many of each make a whole.
 
 **Examples:**
+
 - "If I have 1 half, how many fourths do I need to make a whole?" (2 fourths to match the half + 1 half already = 4 fourths total OR reframe: 2 more fourths to complete the whole)
 - "If I have 3 fourths, how much more do I need for a whole?" (1 more fourth)
 - "Can I use 2 halves AND 1 fourth?" (No — that's more than a whole)
@@ -176,6 +188,7 @@ Given pieces, child figures out how many of each make a whole.
 Children create art using only halves and fourths.
 
 **Examples:**
+
 - A "Fraction Quilt": a rectangular paper divided into halves and fourths, colored artistically
 - A "Half-and-Half Face": a face where the left half is drawn one way, right half another
 - A "Fourth Flag": a flag with four equal fourths in different colors/patterns
@@ -194,6 +207,7 @@ Children create art using only halves and fourths.
 Children identify halves of songs, rhymes, dances.
 
 **Extension:**
+
 - Take a 4-line poem. Read the first fourth. The second fourth. Etc.
 - Clap a rhythm. Halve it.
 
@@ -222,6 +236,7 @@ Children draw a self-portrait with halves and fourths labeled.
 
 **Activity:**
 The large Halving Kingdom map in the classroom is divided into regions. Ask:
+
 - "What fraction of the map is Halving Hills?"
 - "What fraction is Fourths Forest?"
 - "Are the regions equal or unequal?"
@@ -236,11 +251,13 @@ The large Halving Kingdom map in the classroom is divided into regions. Ask:
 
 **Activity:**
 Explore time fractions beyond "half hour":
+
 - Quarter of a day (6 hours — what do you do?)
 - Half of a year (6 months)
 - Fourth of a year (3 months — a season!)
 
 **Extension:**
+
 - "What's half of YOUR age?" (3 if the child is 6)
 - "What's a fourth of a minute?" (15 seconds)
 
@@ -256,6 +273,7 @@ Explore time fractions beyond "half hour":
 Philosophical question: "Can you halve FOREVER? Is there a smallest fraction?"
 
 Children experiment:
+
 - Halve a piece of paper
 - Halve the half
 - Halve the fourth (= eighth)
@@ -272,17 +290,20 @@ Eventually, they realize you could keep going forever (in theory — in practice
 ## EXTENSION INTEGRATION
 
 ### Teacher workflow:
+
 - Mention available extensions in the weekly plan
 - Offer as "choice" activity in independent work time
 - Let children select what interests them
 - Celebrate extension work alongside core work
 
 ### Do NOT:
+
 - Require extensions
 - Rank children by how many extensions they complete
 - Present as "advanced" (implying others are "below")
 
 ### DO:
+
 - Let every child try extensions sometimes
 - Celebrate creativity in extension work
 - Use extensions as rich conference fodder
@@ -309,6 +330,7 @@ Extensions can go home as optional family activities. The parent companion (`par
 - Tell Pia stories
 
 For advanced families, additional extension ideas:
+
 - E2 (Irregular shapes with play-dough)
 - E8 (Family fraction quilt)
 - E12 (Fractions of time in your day)
@@ -328,6 +350,7 @@ Extensions support BOTH gifted development and general curiosity-driven learning
 ## WHEN EXTENSIONS ARE NOT WORKING
 
 If extensions are being used BADLY (competitive, stressful, sorting):
+
 - STOP using them as individual challenges
 - Re-present as whole-class explorations
 - Re-center the joy of thinking
@@ -336,4 +359,4 @@ Extensions should ADD to the year, not poison it.
 
 ---
 
-*Next: see `INDEX.md` for complete curriculum navigation.*
+_Next: see `INDEX.md` for complete curriculum navigation._

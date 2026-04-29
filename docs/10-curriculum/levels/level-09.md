@@ -5,7 +5,13 @@ owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9, C10]
-related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md, level-08.md, ../../50-roadmap/mvp-l1-l9.md]
+related:
+  [
+    ../scope-and-sequence.md,
+    ../../30-architecture/data-schema.md,
+    level-08.md,
+    ../../50-roadmap/mvp-l1-l9.md,
+  ]
 ---
 
 # Level 9 — Order 3+ Fractions
@@ -26,7 +32,7 @@ By the end of Level 9, the student can:
 - **G9.2** — Order four or five fractions with mixed denominators in either direction (smallest-first or largest-first, as prompted)
 - **G9.3** — Recognise equivalent fractions during ordering (e.g., `1/2` and `2/4` are interchangeable in the sequence) and use the "either order accepted" rule
 - **G9.4** — Apply benchmark reasoning (`SK-29` from L8) **as a strategy** during ordering: identify the fractions near 0, near 1/2, near 1, then order within each cluster
-- **G9.5** — Articulate, when prompted, *why* one fraction is larger than another using one of the rules learned in L6 (same-denominator), L7 (same-numerator), or L8 (benchmark)
+- **G9.5** — Articulate, when prompted, _why_ one fraction is larger than another using one of the rules learned in L6 (same-denominator), L7 (same-numerator), or L8 (benchmark)
 
 The level does **not** require the student to compute common denominators, perform fraction arithmetic, or work with improper fractions. All four are post-MVP per **C3**.
 
@@ -36,12 +42,12 @@ The level does **not** require the student to compute common denominators, perfo
 
 See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-19..SK-22 renumbered SK-30..SK-33 to be sequential after L8's SK-27..SK-29)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-30` | Order 3 fractions, mixed denominators | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.17` |
-| `SK-31` | Order 4–5 fractions, mixed denominators | `pInit=0.05, pTransit=0.15, pSlip=0.20, pGuess=0.04` |
-| `SK-32` | Equivalent-fraction recognition during ordering | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
-| `SK-33` | Strategy: benchmark-cluster-then-order | `pInit=0.05, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| Skill ID | Name                                            | BKT priors                                           |
+| -------- | ----------------------------------------------- | ---------------------------------------------------- |
+| `SK-30`  | Order 3 fractions, mixed denominators           | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.17` |
+| `SK-31`  | Order 4–5 fractions, mixed denominators         | `pInit=0.05, pTransit=0.15, pSlip=0.20, pGuess=0.04` |
+| `SK-32`  | Equivalent-fraction recognition during ordering | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| `SK-33`  | Strategy: benchmark-cluster-then-order          | `pInit=0.05, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
 
 `pGuess` for `SK-30` is `0.17` (= 1/6, since there are 6 permutations of 3 cards). `pGuess` for `SK-31` is `0.04` (= 1/24 for 4 cards; for 5 cards it would be 1/120 ≈ 0.008, averaged here). These low guess priors reflect that ordering tasks are nearly impossible to fluke.
 
@@ -53,13 +59,13 @@ Mastery of `SK-30` **and** `SK-31` at `state: "MASTERED"`, with `SK-32` and `SK-
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.3.NF.A.3.d** (compare fractions by reasoning about their size; record the results of comparisons with the symbols `<`, `=`, `>`) | **Primary, full coverage** |
-| **CCSS.3.NF.A.3.b** (recognise simple equivalent fractions, e.g., `1/2 = 2/4`) | Touched (the equivalence-during-ordering pattern in `SK-32`) |
-| **CCSS.4.NF.A.2** (compare two fractions with different numerators and different denominators) | Anticipatory — Level 9 demands this skill informally, even though the standard is officially Grade 4 |
+| Standard                                                                                                                                | Coverage                                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **CCSS.3.NF.A.3.d** (compare fractions by reasoning about their size; record the results of comparisons with the symbols `<`, `=`, `>`) | **Primary, full coverage**                                                                           |
+| **CCSS.3.NF.A.3.b** (recognise simple equivalent fractions, e.g., `1/2 = 2/4`)                                                          | Touched (the equivalence-during-ordering pattern in `SK-32`)                                         |
+| **CCSS.4.NF.A.2** (compare two fractions with different numerators and different denominators)                                          | Anticipatory — Level 9 demands this skill informally, even though the standard is officially Grade 4 |
 
-The Grade 4 anticipatory coverage is intentional and defensible: the validation question (**C10**) is about whether the mechanic can teach the *concept* of magnitude, and the concept does not respect grade boundaries. Students who cannot order mixed-denominator fractions have not learned magnitude in any meaningful sense.
+The Grade 4 anticipatory coverage is intentional and defensible: the validation question (**C10**) is about whether the mechanic can teach the _concept_ of magnitude, and the concept does not respect grade boundaries. Students who cannot order mixed-denominator fractions have not learned magnitude in any meaningful sense.
 
 ---
 
@@ -80,11 +86,11 @@ The full UI spec — card sizes, drag/lift animations, swap behaviour, ghost pla
 
 #### Difficulty tiers
 
-| Tier | Default model | Direction prompt | Feedback verbosity | Hint budget |
-|------|--------------|------------------|--------------------|-------------|
-| Easy | Bars on | Smallest → Largest only | Verbose (per-slot as placed) | 3 |
-| Medium | Off (toggle available) | Mixed direction | Summary only (after Check!) | 2 |
-| Hard | Off | Mixed direction | "Correct" / "Try again" only | 1 |
+| Tier   | Default model          | Direction prompt        | Feedback verbosity           | Hint budget |
+| ------ | ---------------------- | ----------------------- | ---------------------------- | ----------- |
+| Easy   | Bars on                | Smallest → Largest only | Verbose (per-slot as placed) | 3           |
+| Medium | Off (toggle available) | Mixed direction         | Summary only (after Check!)  | 2           |
+| Hard   | Off                    | Mixed direction         | "Correct" / "Try again" only | 1           |
 
 #### Question template archetype
 
@@ -193,11 +199,11 @@ The number-line model view becomes especially valuable here per the source doc �
 
 #### Difficulty tiers
 
-| Tier | Card count | Default model | Spread (decimal) | Hint budget |
-|------|-----------|---------------|------------------|-------------|
-| Easy | 4 cards | Bars on | Wide spread (min adjacent gap ≥ 0.10) | 3 |
-| Medium | 4 cards | Off (toggle available) | Medium spread (min adjacent gap ≥ 0.07) | 2 |
-| Hard | 5 cards | Off | Tight spread (min adjacent gap ≥ 0.05); includes one equivalence pair in ~25% of items | 1 |
+| Tier   | Card count | Default model          | Spread (decimal)                                                                       | Hint budget |
+| ------ | ---------- | ---------------------- | -------------------------------------------------------------------------------------- | ----------- |
+| Easy   | 4 cards    | Bars on                | Wide spread (min adjacent gap ≥ 0.10)                                                  | 3           |
+| Medium | 4 cards    | Off (toggle available) | Medium spread (min adjacent gap ≥ 0.07)                                                | 2           |
+| Hard   | 5 cards    | Off                    | Tight spread (min adjacent gap ≥ 0.05); includes one equivalence pair in ~25% of items | 1           |
 
 The spread parameters come directly from the source doc §8 generation table, restricted to MVP-pool denominators.
 
@@ -348,16 +354,17 @@ This activity is **gated**: it only runs after the student gets the ordering ste
 
 #### Difficulty tiers
 
-| Tier | Ordering pre-step | Rule options offered | Hint budget |
-|------|------------------|---------------------|-------------|
-| Easy | 3 cards, all same denominator | 2 rule choices (correct + 1 distractor) | 2 |
-| Medium | 3 cards, mixed denominator | 3 rule choices | 1 |
-| Hard | 4 cards, mixed denominator with one benchmark cue | 4 rule choices (all four rule families above) | 0 |
+| Tier   | Ordering pre-step                                 | Rule options offered                          | Hint budget |
+| ------ | ------------------------------------------------- | --------------------------------------------- | ----------- |
+| Easy   | 3 cards, all same denominator                     | 2 rule choices (correct + 1 distractor)       | 2           |
+| Medium | 3 cards, mixed denominator                        | 3 rule choices                                | 1           |
+| Hard   | 4 cards, mixed denominator with one benchmark cue | 4 rule choices (all four rule families above) | 0           |
 
 #### Question template archetype
 
 **Type:** `ordering` (with embedded post-step `identify`)
 **Payload shape:**
+
 ```
 {
   cards: [{ num, den }, ...],
@@ -369,6 +376,7 @@ This activity is **gated**: it only runs after the student gets the ordering ste
   }
 }
 ```
+
 **Correct answer shape:** `{ ordering: [{ num, den }, ...], rule: string }`
 **Validator:** `validator.ordering.withRuleExplanation`
 
@@ -446,13 +454,13 @@ This activity is **gated**: it only runs after the student gets the ordering ste
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-WHB-01` | (carried) "Whole-number bias on numerator" | Wrong relative position of cards where the larger numerator is placed later in the ascending order regardless of denominator |
-| `MC-WHB-02` | (carried) "Whole-number bias on denominator" | Wrong relative position of cards where the larger-denominator unit fraction is placed later in ascending order |
-| `MC-EQ-02` | (carried) "Equal benchmarks unrecognised" | In `ordering_tournament_5` Hard with equivalence pair: student places one of the equal cards far from the other, resulting in a wrong ordering even though the validator would have accepted either equivalent permutation |
-| `MC-PRX-01` | (carried) "Proximity-to-1 confusion" | `5/6` or `7/8` placed before `1/2` in ascending order |
-| `MC-STRAT-01` | "No strategy" — student drag-pattern shows trial and error rather than benchmark-cluster strategy | `SK-33` mastery state stays `"NOT_STARTED"` despite `SK-30` and `SK-31` reaching `"LEARNING"` or higher |
+| MC ID         | Name                                                                                              | Detection signal                                                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MC-WHB-01`   | (carried) "Whole-number bias on numerator"                                                        | Wrong relative position of cards where the larger numerator is placed later in the ascending order regardless of denominator                                                                                               |
+| `MC-WHB-02`   | (carried) "Whole-number bias on denominator"                                                      | Wrong relative position of cards where the larger-denominator unit fraction is placed later in ascending order                                                                                                             |
+| `MC-EQ-02`    | (carried) "Equal benchmarks unrecognised"                                                         | In `ordering_tournament_5` Hard with equivalence pair: student places one of the equal cards far from the other, resulting in a wrong ordering even though the validator would have accepted either equivalent permutation |
+| `MC-PRX-01`   | (carried) "Proximity-to-1 confusion"                                                              | `5/6` or `7/8` placed before `1/2` in ascending order                                                                                                                                                                      |
+| `MC-STRAT-01` | "No strategy" — student drag-pattern shows trial and error rather than benchmark-cluster strategy | `SK-33` mastery state stays `"NOT_STARTED"` despite `SK-30` and `SK-31` reaching `"LEARNING"` or higher                                                                                                                    |
 
 `MC-STRAT-01` is the only Level-9-original misconception. Its detection is via the drag-pattern signal: a strategic student picks up a benchmark fraction first and places it; an unstrategic student picks up cards in tray order and tests them against slot 1, then 2, etc. The progression engine reads the `roundEvents` array on the Attempt record (sequence of pickUp/place events) to compute this.
 
@@ -464,22 +472,134 @@ The full Level 9 pool is the union of all earlier levels' pools — every fracti
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "halves"  },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25,   "benchmark": "almost_zero",  "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75,   "benchmark": "almost_one",   "denominatorFamily": "fourths" },
-  { "id": "frac:1/6", "numerator": 1, "denominator": 6, "decimalValue": 0.167,  "benchmark": "almost_zero",  "denominatorFamily": "sixths"  },
-  { "id": "frac:2/6", "numerator": 2, "denominator": 6, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "sixths"  },
-  { "id": "frac:3/6", "numerator": 3, "denominator": 6, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "sixths"  },
-  { "id": "frac:4/6", "numerator": 4, "denominator": 6, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "sixths"  },
-  { "id": "frac:5/6", "numerator": 5, "denominator": 6, "decimalValue": 0.833,  "benchmark": "almost_one",   "denominatorFamily": "sixths"  },
-  { "id": "frac:1/8", "numerator": 1, "denominator": 8, "decimalValue": 0.125,  "benchmark": "almost_zero",  "denominatorFamily": "eighths" },
-  { "id": "frac:3/8", "numerator": 3, "denominator": 8, "decimalValue": 0.375,  "benchmark": "almost_half",  "denominatorFamily": "eighths" },
-  { "id": "frac:4/8", "numerator": 4, "denominator": 8, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "eighths" },
-  { "id": "frac:5/8", "numerator": 5, "denominator": 8, "decimalValue": 0.625,  "benchmark": "almost_half",  "denominatorFamily": "eighths" },
-  { "id": "frac:7/8", "numerator": 7, "denominator": 8, "decimalValue": 0.875,  "benchmark": "almost_one",   "denominatorFamily": "eighths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:1/6",
+    "numerator": 1,
+    "denominator": 6,
+    "decimalValue": 0.167,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:2/6",
+    "numerator": 2,
+    "denominator": 6,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:3/6",
+    "numerator": 3,
+    "denominator": 6,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:4/6",
+    "numerator": 4,
+    "denominator": 6,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:5/6",
+    "numerator": 5,
+    "denominator": 6,
+    "decimalValue": 0.833,
+    "benchmark": "almost_one",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:1/8",
+    "numerator": 1,
+    "denominator": 8,
+    "decimalValue": 0.125,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:3/8",
+    "numerator": 3,
+    "denominator": 8,
+    "decimalValue": 0.375,
+    "benchmark": "almost_half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:4/8",
+    "numerator": 4,
+    "denominator": 8,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:5/8",
+    "numerator": 5,
+    "denominator": 8,
+    "decimalValue": 0.625,
+    "benchmark": "almost_half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:7/8",
+    "numerator": 7,
+    "denominator": 8,
+    "decimalValue": 0.875,
+    "benchmark": "almost_one",
+    "denominatorFamily": "eighths"
+  }
 ]
 ```
 
@@ -516,17 +636,17 @@ Level 9 is the longest mastery horizon in the MVP. A 6-week classroom playtest a
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `ordering_tournament_3` templates | 12 | 3 examples shown | Need 9 more |
-| `ordering_tournament_5` templates | 14 | 4 examples shown | Need 10 more |
-| `explain_your_order` templates | 8 | 2 examples shown | Need 6 more |
-| TTS audio scripts | 34 | 0 | SpeechSynthesis API at runtime |
-| Hint definitions | ~102 (3 per template) | 0 | TBD; for ordering use the three-tier hint system from source doc §9 (number-line auto-show / swap suggestion / direct reveal) |
-| Validator function specs | 2 (3 with `withRuleExplanation`) | High-level only | `acceptableOrders` validator must implement `buildAcceptableOrders` from source §5; `withRuleExplanation` is a composite validator |
-| Drag-sort UI component | 1 | 0 | Reuse spec from `03-FractionOrderingTournament.md` §2 |
-| Number-line model component | 1 | 0 | Shared with L8 `magnitude_scales` — implement once, use in both |
-| MVP-completion celebration scene | 1 | 0 | One-time per student per device; salvage Quex narrative beat from `00-MASTER_PLAN.md` §6 week-6 |
+| Item                              | Required                         | Authored         | Notes                                                                                                                              |
+| --------------------------------- | -------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `ordering_tournament_3` templates | 12                               | 3 examples shown | Need 9 more                                                                                                                        |
+| `ordering_tournament_5` templates | 14                               | 4 examples shown | Need 10 more                                                                                                                       |
+| `explain_your_order` templates    | 8                                | 2 examples shown | Need 6 more                                                                                                                        |
+| TTS audio scripts                 | 34                               | 0                | SpeechSynthesis API at runtime                                                                                                     |
+| Hint definitions                  | ~102 (3 per template)            | 0                | TBD; for ordering use the three-tier hint system from source doc §9 (number-line auto-show / swap suggestion / direct reveal)      |
+| Validator function specs          | 2 (3 with `withRuleExplanation`) | High-level only  | `acceptableOrders` validator must implement `buildAcceptableOrders` from source §5; `withRuleExplanation` is a composite validator |
+| Drag-sort UI component            | 1                                | 0                | Reuse spec from `03-FractionOrderingTournament.md` §2                                                                              |
+| Number-line model component       | 1                                | 0                | Shared with L8 `magnitude_scales` — implement once, use in both                                                                    |
+| MVP-completion celebration scene  | 1                                | 0                | One-time per student per device; salvage Quex narrative beat from `00-MASTER_PLAN.md` §6 week-6                                    |
 
 ---
 

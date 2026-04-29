@@ -1,4 +1,3 @@
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../db';
 import { deviceMetaRepo } from './deviceMeta';
@@ -20,7 +19,7 @@ describe('deviceMetaRepo', () => {
     // Verify
     const meta2 = await deviceMetaRepo.get();
     expect(meta2.preferences.persistGranted).toBe(true);
-    
+
     // Double verify directly from DB
     const dbRow = await db.deviceMeta.get('device');
     expect(dbRow?.preferences.persistGranted).toBe(true);

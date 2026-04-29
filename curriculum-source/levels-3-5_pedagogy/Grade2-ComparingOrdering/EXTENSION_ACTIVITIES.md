@@ -7,9 +7,11 @@ Five additional game variations and skill-builders beyond the core 5 activities.
 ## 6. FRACTION SNAP BATTLE (Multiplayer)
 
 ### Overview
+
 Competitive 1v1 version of Fraction Snap. Two players see the same fraction comparison problem; first correct answer wins point. Real-time scoring and trash talk (emoji reactions).
 
 ### Game Flow
+
 ```
 1. MATCHMAKING
    ├─ Play against: AI (Easy/Med/Hard) | Friend | Random | Class
@@ -37,6 +39,7 @@ Competitive 1v1 version of Fraction Snap. Two players see the same fraction comp
 ```
 
 ### Real-Time Social Features
+
 ```
 DURING GAME (Trash Talk Allowed)
 ├─ Chat (monitored for profanity)
@@ -52,6 +55,7 @@ AFTER GAME
 ```
 
 ### Matchmaking & Rating System
+
 ```
 ELO Rating (Chess-style):
 ├─ Start: 1600 rating
@@ -69,6 +73,7 @@ Divisions (for display):
 ```
 
 ### Progression & Unlocks
+
 ```
 Level 1–2: AI opponents only (safe, no pressure)
 Level 3–4: Optional peer play, ranked or casual
@@ -86,9 +91,11 @@ Seasonal Tournament:
 ## 7. FRACTION WAR (Card Game)
 
 ### Overview
+
 Turn-based card game where players flip fraction cards. Highest fraction wins the round. Teaches comparison quickly and suits hands-on learners.
 
 ### Gameplay
+
 ```
 SETUP
 ├─ Deck: 40 cards (1/2, 1/3, 2/3, 1/4, 2/4, 3/4, 1/5, 2/5, etc.)
@@ -118,6 +125,7 @@ GAME END
 ```
 
 ### Variants
+
 ```
 DOUBLE WAR (Harder)
 ├─ Each player flips 2 cards
@@ -140,6 +148,7 @@ TARGET WAR (Reverse Challenge)
 ```
 
 ### Learning Benefits
+
 ```
 Quick Comparisons: Playing many rounds fast = fluency
 Diverse Fractions: Deck variety builds broad mastery
@@ -152,9 +161,11 @@ Retro Fun: Card games feel "real," boost engagement
 ## 8. BUILD-A-FRACTION (Inverse Problem)
 
 ### Overview
+
 Given a constraint, kid builds the fraction. E.g., "Create a fraction bigger than 1/2 but smaller than 3/4." Develops number sense and inverse thinking.
 
 ### Gameplay
+
 ```
 PROMPT 1: "Make a fraction bigger than 1/2"
 ├─ Kid types or drags: 3/5 (correct)
@@ -177,6 +188,7 @@ PROMPT 3: "Build a fraction with denominator 8 that's bigger than 1/2"
 ```
 
 ### Input Methods
+
 ```
 1. TYPE
    ├─ Input: "3/5" or "3 out of 5"
@@ -200,6 +212,7 @@ PROMPT 3: "Build a fraction with denominator 8 that's bigger than 1/2"
 ```
 
 ### Scaffolding & Hints
+
 ```
 NO HINTS (Advanced)
 ├─ Just prompt: "Make a fraction between 1/3 and 2/3"
@@ -223,6 +236,7 @@ HINT 3: Show constraint as equation
 ```
 
 ### Progression
+
 ```
 Level 1: Single constraint, simple fractions
 ├─ "Bigger than 1/2" → test with 2/3, 3/4, 1/3, etc.
@@ -247,9 +261,11 @@ Level 4: Creative building
 ## 9. FRACTION DETECTIVE (Error Analysis)
 
 ### Overview
+
 Metacognitive activity where kids diagnose mistakes in fraction comparisons. Builds understanding of errors and reasoning.
 
 ### Gameplay
+
 ```
 SHOW ERROR (from real student work or AI-generated)
 ├─ Problem: "Compare 2/5 and 1/3"
@@ -278,6 +294,7 @@ KID'S REFLECTION
 ```
 
 ### Error Types Catalogued
+
 ```
 PROCEDURAL ERRORS
 ├─ Wrong button (clicked opposite answer)
@@ -305,6 +322,7 @@ ATTRIBUTION ERRORS
 ```
 
 ### Learning Benefits
+
 ```
 Metacognition: Kids reflect on HOW they think
 Error Normalization: "Everyone makes mistakes" → reduces anxiety
@@ -313,6 +331,7 @@ Transfer: Apply error-pattern recognition to own work
 ```
 
 ### Difficulty Progression
+
 ```
 Level 1: Simple errors, obvious wrong answers
 ├─ "Is 1/4 bigger than 1/2?" → Answered "yes"
@@ -332,9 +351,11 @@ Level 3: Subtle errors, requires deep thinking
 ## 10. EQUIVALENT FRACTIONS TOURNAMENT (Foundation Skill)
 
 ### Overview
+
 Prerequisite to comparisons: finding & creating equivalent fractions. Builds the foundational concept that 1/2 = 2/4 = 4/8.
 
 ### Activities
+
 ```
 MATCH EQUIVALENT FRACTIONS
 ├─ Show: 1/2
@@ -369,6 +390,7 @@ EQUIVALENCE SNAP
 ```
 
 ### Why It Matters
+
 ```
 Prerequisite for Comparisons:
 ├─ Can't compare 2/3 and 4/9 without finding common denominator
@@ -387,6 +409,7 @@ Prerequisite for Addition:
 ## 11. FUTURE EXTENSIONS (Phase 3+)
 
 ### Possible Activities
+
 ```
 FRACTION GOLF
 ├─ Hole: Land fraction on target
@@ -425,21 +448,17 @@ REAL-WORLD FRACTION HUNTS
   - [ ] Real-time network synchronization
   - [ ] ELO rating system
   - [ ] Social chat & emoji reactions
-  
 - [ ] Fraction War card game
   - [ ] Deck generation & shuffling
   - [ ] Variants (Double War, Speed, Target)
-  
 - [ ] Build-a-Fraction
   - [ ] Multiple input methods (type, drag, slider, pie)
   - [ ] Constraint validation system
   - [ ] Hint strategies
-  
 - [ ] Fraction Detective
   - [ ] Error database (real student errors)
   - [ ] Error-type classification
   - [ ] Reflection prompts & saving
-  
 - [ ] Equivalent Fractions Tournament
   - [ ] Model generation (visual equivalence proof)
   - [ ] GCD calculation engine

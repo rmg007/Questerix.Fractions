@@ -10,7 +10,7 @@ related: [activity-archetypes.md, design-language.md, ../00-foundation/constrain
 
 # Interaction Model
 
-How student input becomes a validated answer, uniformly across mechanics. This is the *behavioral* contract; `activity-archetypes.md` is the *per-mechanic* contract; `design-language.md` is the *visual* contract.
+How student input becomes a validated answer, uniformly across mechanics. This is the _behavioral_ contract; `activity-archetypes.md` is the _per-mechanic_ contract; `design-language.md` is the _visual_ contract.
 
 The goal: a K–2 student who learns the gestures in Level 1 carries that gesture vocabulary intact through Level 9. Drag means the same thing in `partition_halves` as it does in `magnitude_scales:L8`.
 
@@ -20,13 +20,13 @@ The goal: a K–2 student who learns the gestures in Level 1 carries that gestur
 
 The MVP uses a deliberately small set of gestures. Each mechanic in `activity-archetypes.md` selects from this vocabulary; no mechanic invents new gestures.
 
-| Gesture | Behavior | Used by mechanics |
-|---------|----------|-------------------|
-| **Tap** | Single click/touch; submits a discrete choice | identify, equal_or_not, compare |
-| **Drag** | `pointerdown` → move → `pointerup`; relocates an object | partition, label, make/fold, snap_match, benchmark, order, placement |
-| **Long-press** | `pointerdown` held ≥ 350 ms; engages secondary action (e.g., re-pick a placed card) | order |
-| **Hint-request** | Tap on the dedicated hint button (icon: `help-circle`) | All mechanics |
-| **Audio-replay** | Tap on the dedicated speaker button (icon: `volume-2`) | All mechanics |
+| Gesture          | Behavior                                                                            | Used by mechanics                                                    |
+| ---------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Tap**          | Single click/touch; submits a discrete choice                                       | identify, equal_or_not, compare                                      |
+| **Drag**         | `pointerdown` → move → `pointerup`; relocates an object                             | partition, label, make/fold, snap_match, benchmark, order, placement |
+| **Long-press**   | `pointerdown` held ≥ 350 ms; engages secondary action (e.g., re-pick a placed card) | order                                                                |
+| **Hint-request** | Tap on the dedicated hint button (icon: `help-circle`)                              | All mechanics                                                        |
+| **Audio-replay** | Tap on the dedicated speaker button (icon: `volume-2`)                              | All mechanics                                                        |
 
 ### 1.1 Drag semantics
 
@@ -38,7 +38,7 @@ The MVP uses a deliberately small set of gestures. Each mechanic in `activity-ar
 
 ### 1.2 Tap targets
 
-All tap targets respect `design-language.md §5` minimums (44 × 44 hit area). A tap is registered on `pointerup` *inside* the same target the `pointerdown` started on. Sliding off cancels the tap (avoids accidental fires from finger drift).
+All tap targets respect `design-language.md §5` minimums (44 × 44 hit area). A tap is registered on `pointerup` _inside_ the same target the `pointerdown` started on. Sliding off cancels the tap (avoids accidental fires from finger drift).
 
 ### 1.3 Multi-touch policy
 
@@ -52,12 +52,12 @@ Per cognitive-science research on novice learners (e.g., Anderson 1989, Shute 20
 
 The MVP feedback budget:
 
-| Stage | Max latency | What happens |
-|-------|-------------|--------------|
-| **Visual acknowledge** | 100 ms | Submit button depresses; dragged object freezes |
-| **Validation** | 200 ms | Validator returns outcome (in-process; no I/O) |
-| **Outcome animation begins** | 300 ms total | Snap pulse / shake / etc. starts |
-| **Outcome animation ends** | < 1000 ms total | Student is ready for next action |
+| Stage                        | Max latency     | What happens                                    |
+| ---------------------------- | --------------- | ----------------------------------------------- |
+| **Visual acknowledge**       | 100 ms          | Submit button depresses; dragged object freezes |
+| **Validation**               | 200 ms          | Validator returns outcome (in-process; no I/O)  |
+| **Outcome animation begins** | 300 ms total    | Snap pulse / shake / etc. starts                |
+| **Outcome animation ends**   | < 1000 ms total | Student is ready for next action                |
 
 If validation cannot return in 200 ms (it always should — validators are pure functions over local state), the system shows a "thinking…" indicator. This should be a debugging signal, not an expected user experience.
 
@@ -73,12 +73,12 @@ The prototype already implements a magnetic snap engine in `src/data/config.ts E
 
 ### 3.1 Snap zones (per current prototype, retained)
 
-| Phase | Range | Behavior |
-|-------|-------|----------|
-| Detection | 320 px | Drop target is highlighted with `primary-soft` |
-| Magnetic pull | 220 px | Dragged object accelerates toward target center (cubic ease) |
-| Auto-snap | 40 px | Object locks into target without requiring `pointerup` |
-| Manual drop | 90 px on `pointerup` | Object locks if released within this radius |
+| Phase         | Range                | Behavior                                                     |
+| ------------- | -------------------- | ------------------------------------------------------------ |
+| Detection     | 320 px               | Drop target is highlighted with `primary-soft`               |
+| Magnetic pull | 220 px               | Dragged object accelerates toward target center (cubic ease) |
+| Auto-snap     | 40 px                | Object locks into target without requiring `pointerup`       |
+| Manual drop   | 90 px on `pointerup` | Object locks if released within this radius                  |
 
 ### 3.2 What changes from the prototype
 
@@ -96,11 +96,11 @@ Some mechanics (e.g., `placement` on a number line) deliberately disable snap so
 
 Three tiers, escalating in directness. Each `QuestionTemplate` has up to three associated `Hint` records (per `data-schema §2.9`); each tap on the hint button reveals the next tier.
 
-| Tier | Type | Cost (points) | Example for `partition_halves` |
-|------|------|---------------|-------------------------------|
-| 1 | **Verbal** prompt re-phrased + concept reminder | 5 pts | "Equal parts means each piece is the same size." |
-| 2 | **Visual overlay** — semi-transparent ghost showing target structure | 15 pts | A faint dashed line appears at the centerline, hinting where to draw |
-| 3 | **Worked example / animation** — the answer is demonstrated, not delivered | 30 pts | The dividing line animates into the correct position; student must then re-create it themselves |
+| Tier | Type                                                                       | Cost (points) | Example for `partition_halves`                                                                  |
+| ---- | -------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
+| 1    | **Verbal** prompt re-phrased + concept reminder                            | 5 pts         | "Equal parts means each piece is the same size."                                                |
+| 2    | **Visual overlay** — semi-transparent ghost showing target structure       | 15 pts        | A faint dashed line appears at the centerline, hinting where to draw                            |
+| 3    | **Worked example / animation** — the answer is demonstrated, not delivered | 30 pts        | The dividing line animates into the correct position; student must then re-create it themselves |
 
 > **Cross-reference (audit §2.1 fix):** `Hint.type` values (`"verbal"` | `"visual_overlay"` | `"worked_example"`) are defined in `data-schema.md §2.9` and map 1:1 to the three tiers above.
 
@@ -108,7 +108,7 @@ Three tiers, escalating in directness. Each `QuestionTemplate` has up to three a
 
 - **Hint button is always present**, even before any wrong attempt. Asking for help is encouraged, not a recovery action.
 - **Tier 3 never auto-completes the answer.** After the demonstration, the canvas resets and the student attempts the action themselves.
-- **Hint cost is deducted from the question's potential points**, not from the student's running XP. Asking for help reduces what you *can earn*, never what you *have earned*.
+- **Hint cost is deducted from the question's potential points**, not from the student's running XP. Asking for help reduces what you _can earn_, never what you _have earned_.
 - **One hint per question per tier.** Repeated hint button taps after Tier 3 do nothing (or re-show the same Tier 3 demo).
 - **Hint usage is recorded** as a `HintEvent` (per `data-schema §3.4`) tied to the current `Attempt`.
 
@@ -117,10 +117,10 @@ Three tiers, escalating in directness. Each `QuestionTemplate` has up to three a
 Per `level-01.md §4` examples:
 
 | Difficulty | Available tiers |
-|------------|----------------|
-| Easy | All 3 |
-| Medium | 1 and 2 only |
-| Hard | 1 only |
+| ---------- | --------------- |
+| Easy       | All 3           |
+| Medium     | 1 and 2 only    |
+| Hard       | 1 only          |
 
 This forces increasingly independent reasoning as scaffolding decreases.
 
@@ -133,7 +133,7 @@ K–2 learners are particularly sensitive to negative feedback framing. The MVP'
 ### 5.1 Rules
 
 1. **Never use the word "wrong."** Use "Not quite," "Almost!", or "Try again." The validator's `outcome: "WRONG"` is an internal label, never student-facing copy.
-2. **Show, don't tell, the error.** When a `compare` answer is wrong, don't display "WRONG"; instead, animate the bar models to align so the student *sees* the magnitude difference (per `activity-archetypes §5`).
+2. **Show, don't tell, the error.** When a `compare` answer is wrong, don't display "WRONG"; instead, animate the bar models to align so the student _sees_ the magnitude difference (per `activity-archetypes §5`).
 3. **Always allow retry.** No question is marked permanently incorrect after one attempt. Retry is free except for any hint costs already incurred.
 
 ### 5.2 Visual treatment
@@ -151,6 +151,7 @@ K–2 learners are particularly sensitive to negative feedback framing. The MVP'
 ### 5.4 Streak handling
 
 After 3 consecutive wrong attempts on the same question:
+
 - Hint button auto-pulses to draw attention (one-time, 1 second pulse, then static)
 - A "Show me how" prompt appears, offering the Tier 3 hint immediately if not already used
 - The session-level progression engine is notified (potential `regress` recommendation; see `runtime-architecture.md §progression-engine`)
@@ -178,7 +179,7 @@ When a session ends (5+ problems attempted, per C9), a single end-of-session car
 - A simple star or two-star indicator if mastery criteria advanced
 - A "Keep going" or "Take a break" CTA
 
-The session-end card is the *one* place where slightly more elaborate visual celebration (a brief star animation) is appropriate, since the student has earned 10–15 minutes of focused effort.
+The session-end card is the _one_ place where slightly more elaborate visual celebration (a brief star animation) is appropriate, since the student has earned 10–15 minutes of focused effort.
 
 ### 6.3 Per-level success
 
@@ -187,7 +188,7 @@ When a student first reaches `MASTERED` on the gating skills for a level (per `l
 - A "You did it!" modal appears with the level number unlocked
 - Includes a 2–3 second animation of the new shape primitive (e.g., a circle splitting into thirds for L3)
 - Modal can be dismissed with a single tap
-- This is *the* big celebration moment; it should feel meaningfully different from per-question feedback
+- This is _the_ big celebration moment; it should feel meaningfully different from per-question feedback
 
 ---
 
@@ -195,18 +196,18 @@ When a student first reaches `MASTERED` on the gating skills for a level (per `l
 
 When `DeviceMeta.preferences.reduceMotion === true` (or the OS-level `prefers-reduced-motion: reduce` media query is set), the following changes apply uniformly:
 
-| Default | Reduced Motion |
-|---------|----------------|
-| Snap pulse (200 ms) | Instant color change |
-| Card return-to-tray (350 ms ease) | 80 ms fade-and-reposition |
-| Shake on wrong (160 ms) | Single border flash, 80 ms |
-| Reorder slide animation (600 ms) | Instant reorder |
-| Success scale-up (200 ms) | Instant ✓ icon, no scale |
-| Magnetic pull cubic ease | Object teleports on drop |
-| Partition demonstration (hint Tier 3) | Static dashed overlay |
-| Level-success animation (2–3 s) | Static graphic + text |
+| Default                               | Reduced Motion             |
+| ------------------------------------- | -------------------------- |
+| Snap pulse (200 ms)                   | Instant color change       |
+| Card return-to-tray (350 ms ease)     | 80 ms fade-and-reposition  |
+| Shake on wrong (160 ms)               | Single border flash, 80 ms |
+| Reorder slide animation (600 ms)      | Instant reorder            |
+| Success scale-up (200 ms)             | Instant ✓ icon, no scale   |
+| Magnetic pull cubic ease              | Object teleports on drop   |
+| Partition demonstration (hint Tier 3) | Static dashed overlay      |
+| Level-success animation (2–3 s)       | Static graphic + text      |
 
-The `prefers-reduced-motion` query is the *upstream* signal; the in-app preference can override either direction (force reduce, or force allow regardless of OS setting). The in-app preference is stored in `DeviceMeta.preferences.reduceMotion` (per `data-schema §3.8`).
+The `prefers-reduced-motion` query is the _upstream_ signal; the in-app preference can override either direction (force reduce, or force allow regardless of OS setting). The in-app preference is stored in `DeviceMeta.preferences.reduceMotion` (per `data-schema §3.8`).
 
 ---
 
@@ -218,7 +219,7 @@ Every question prompt is paired with a TTS-generated audio rendering of `prompt.
 
 - A `volume-2` icon button sits adjacent to the prompt text
 - Tapping replays the prompt audio
-- No auto-replay; no auto-play on first display unless `DeviceMeta.preferences.audio === true` *and* this is the first display of the question
+- No auto-replay; no auto-play on first display unless `DeviceMeta.preferences.audio === true` _and_ this is the first display of the question
 - Audio is paused when the user begins any interaction (tap or drag start)
 
 ### 8.2 Sound effects
@@ -254,7 +255,7 @@ Minimum keyboard support:
 - Arrow keys move a focused draggable in 8-px increments; Enter "drops" it
 - Escape cancels an active drag
 
-Full keyboard *parity* with touch is not an MVP goal — only baseline access is.
+Full keyboard _parity_ with touch is not an MVP goal — only baseline access is.
 
 ---
 

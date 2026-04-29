@@ -65,13 +65,13 @@ export const deviceMetaRepo = {
     try {
       // Ensure the singleton exists
       await deviceMetaRepo.get();
-      
+
       // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
       const atomicPatch: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(prefPatch)) {
         atomicPatch[`preferences.${k}`] = v;
       }
-      
+
       const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
       return updated > 0;
     } catch (err) {

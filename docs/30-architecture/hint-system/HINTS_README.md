@@ -8,6 +8,7 @@
 This directory now contains a complete hint-generation system for Questerix Fractions. The system automatically generates 3-tier hint cascades (Tier 1: mild, Tier 2: moderate, Tier 3: heavy scaffolding) for all 216+ question templates across Levels 1–9.
 
 **Key Facts:**
+
 - Templates: 216 (across 9 levels, 10 archetypes)
 - Hints to generate: 648 (3 per template)
 - Cost estimate: ~$0.60 (Anthropic Haiku)
@@ -130,11 +131,13 @@ Summary with validation stats and token usage
 ## Cost & Time
 
 **Haiku (default):**
+
 - Cost: ~$0.60
 - Time: 18–40 minutes
 - Batches: 8 (30 templates each)
 
 **Sonnet (higher quality):**
+
 - Cost: ~$2.27
 - Time: 30–60 minutes
 
@@ -166,6 +169,7 @@ print(f"Merged {len(hints)} hints")
 ## Files
 
 **Created:**
+
 - `pipeline/prompts/hint-generation.md` — System prompt
 - `pipeline/hints.py` — Core module
 - `test_hints.py` — Verification script

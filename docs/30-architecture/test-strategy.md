@@ -69,30 +69,30 @@ Conformance tests that prove the Python pipeline validators (`tools/content-pipe
 
 ## 2. What Gets Which Test
 
-| Code | Test Layer | Rationale |
-|------|-----------|-----------|
-| All validator functions (`src/validators/`) | Unit (Vitest) + Parity (Python↔TS) | Pure; highest correctness risk; cheap to test |
-| BKT formulas (`src/progression/bkt.ts`) | Unit (Vitest) + Property (fast-check) | Pure math; edge cases matter for mastery gating |
-| Dexie repos + schema migrations | Integration (fake-indexeddb) | High-impact; requires real IndexedDB behavior |
-| Backup / restore round-trip | Integration (fake-indexeddb) | Data loss risk; must be exercised end-to-end |
-| Bootstrap / seed sequence | Integration (fake-indexeddb) | Content version reconciliation is complex |
-| Phaser activity scenes | E2E (Playwright) | UI-expensive; happy path only |
-| HTML/Tailwind UI (menus, modals) | E2E (Playwright) | DOM interactions, accessibility hooks |
-| Content pipeline Python scripts | Unit (pytest) in `tools/content-pipeline/test/` | Build-time tool; schema + math checks |
-| Archetype validator parity | Parity (TS↔Python) — CI-gated | Cross-language conformance critical |
+| Code                                        | Test Layer                                      | Rationale                                       |
+| ------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
+| All validator functions (`src/validators/`) | Unit (Vitest) + Parity (Python↔TS)              | Pure; highest correctness risk; cheap to test   |
+| BKT formulas (`src/progression/bkt.ts`)     | Unit (Vitest) + Property (fast-check)           | Pure math; edge cases matter for mastery gating |
+| Dexie repos + schema migrations             | Integration (fake-indexeddb)                    | High-impact; requires real IndexedDB behavior   |
+| Backup / restore round-trip                 | Integration (fake-indexeddb)                    | Data loss risk; must be exercised end-to-end    |
+| Bootstrap / seed sequence                   | Integration (fake-indexeddb)                    | Content version reconciliation is complex       |
+| Phaser activity scenes                      | E2E (Playwright)                                | UI-expensive; happy path only                   |
+| HTML/Tailwind UI (menus, modals)            | E2E (Playwright)                                | DOM interactions, accessibility hooks           |
+| Content pipeline Python scripts             | Unit (pytest) in `tools/content-pipeline/test/` | Build-time tool; schema + math checks           |
+| Archetype validator parity                  | Parity (TS↔Python) — CI-gated                   | Cross-language conformance critical             |
 
 ---
 
 ## 3. Coverage Targets
 
-| Layer | Target | Rationale |
-|-------|--------|-----------|
-| Validators (pure code) | 90% line coverage | Cheap to cover; high correctness risk |
-| BKT / progression math | 90% line coverage | Same: pure and critical |
-| Persistence layer (Dexie repos) | 70% line coverage | Integration tests cover key paths |
-| Phaser scenes | 70% line coverage (E2E proxy) | UI-heavy code is expensive to test exhaustively |
-| UI-only code (visual chrome, animations) | No numeric target | Motion and visual polish not unit-testable |
-| Content pipeline (Python) | 80% statement coverage (pytest-cov) | Build tool; regression risk on schema change |
+| Layer                                    | Target                              | Rationale                                       |
+| ---------------------------------------- | ----------------------------------- | ----------------------------------------------- |
+| Validators (pure code)                   | 90% line coverage                   | Cheap to cover; high correctness risk           |
+| BKT / progression math                   | 90% line coverage                   | Same: pure and critical                         |
+| Persistence layer (Dexie repos)          | 70% line coverage                   | Integration tests cover key paths               |
+| Phaser scenes                            | 70% line coverage (E2E proxy)       | UI-heavy code is expensive to test exhaustively |
+| UI-only code (visual chrome, animations) | No numeric target                   | Motion and visual polish not unit-testable      |
+| Content pipeline (Python)                | 80% statement coverage (pytest-cov) | Build tool; regression risk on schema change    |
 
 Coverage is measured by Vitest's `--coverage` flag (Istanbul provider). Reports are generated in CI but do not block PRs unless validators fall below 90%.
 
@@ -109,14 +109,14 @@ Coverage is measured by Vitest's `--coverage` flag (Istanbul provider). Reports 
 
 ## 5. CI Gating
 
-| Gate | Effect |
-|------|--------|
-| Validator parity tests fail | PR blocked — merge forbidden |
-| Vitest unit/integration suite fails | PR blocked |
-| Playwright E2E suite fails | PR blocked |
-| Validator line coverage drops below 90% | PR blocked |
-| Bundle size over 1.0 MB gzipped | PR blocked (see `performance-budget.md`) |
-| fast-check property test fails | PR blocked |
-| `python -m pipeline verify` fails | PR blocked |
+| Gate                                    | Effect                                   |
+| --------------------------------------- | ---------------------------------------- |
+| Validator parity tests fail             | PR blocked — merge forbidden             |
+| Vitest unit/integration suite fails     | PR blocked                               |
+| Playwright E2E suite fails              | PR blocked                               |
+| Validator line coverage drops below 90% | PR blocked                               |
+| Bundle size over 1.0 MB gzipped         | PR blocked (see `performance-budget.md`) |
+| fast-check property test fails          | PR blocked                               |
+| `python -m pipeline verify` fails       | PR blocked                               |
 
 Playwright runs in CI against `playwright.config.ts` using the installed Chromium, WebKit, and Firefox binaries. E2E tests are intentionally limited to the happy path and critical regression scenarios to keep CI time under 5 minutes.

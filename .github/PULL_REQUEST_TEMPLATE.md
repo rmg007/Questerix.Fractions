@@ -8,11 +8,11 @@
      List the relevant constraints and confirm they are still satisfied.
      Constraints are defined in docs/00-foundation/constraints.md. -->
 
-| Constraint | Status |
-|-----------|--------|
-| C1 — no backend | not affected / verified |
+| Constraint                     | Status                  |
+| ------------------------------ | ----------------------- |
+| C1 — no backend                | not affected / verified |
 | C2 — no teacher/parent surface | not affected / verified |
-| C3 — fractions only | not affected / verified |
+| C3 — fractions only            | not affected / verified |
 
 ## Test Plan
 
@@ -30,11 +30,11 @@
 <!-- Run `npm run build` before and after your change.
      Paste the gzipped JS total from each. -->
 
-| | Gzipped JS (bytes) |
-|---|---|
-| Before | |
-| After | |
-| Delta | |
+|        | Gzipped JS (bytes) |
+| ------ | ------------------ |
+| Before |                    |
+| After  |                    |
+| Delta  |                    |
 
 If the delta is > 10% of any single budget slice, add a written justification here.
 Per `docs/30-architecture/performance-budget.md §5`.

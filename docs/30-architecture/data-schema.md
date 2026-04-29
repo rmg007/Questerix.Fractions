@@ -83,84 +83,84 @@ Foreign keys are **strings** (slugs or UUIDs), never autoincrement integers. Thi
 
 Top-level container. One pack per app release.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | Pack slug, e.g. `"qx.fractions.k2"` |
-| `schemaVersion` | number | Bumped on breaking shape change |
-| `contentVersion` | string | Semver of curriculum content, e.g. `"1.4.2"` |
-| `gradeBand` | `"K"` \| `"1"` \| `"2"` \| `"K-2"` | Targeted grade band |
-| `publishedAt` | string (ISO date) | When this pack was finalized |
-| `locales` | string[] | Supported locales, MVP ships `["en"]` |
+| Field            | Type                               | Purpose                                      |
+| ---------------- | ---------------------------------- | -------------------------------------------- |
+| `id`             | string                             | Pack slug, e.g. `"qx.fractions.k2"`          |
+| `schemaVersion`  | number                             | Bumped on breaking shape change              |
+| `contentVersion` | string                             | Semver of curriculum content, e.g. `"1.4.2"` |
+| `gradeBand`      | `"K"` \| `"1"` \| `"2"` \| `"K-2"` | Targeted grade band                          |
+| `publishedAt`    | string (ISO date)                  | When this pack was finalized                 |
+| `locales`        | string[]                           | Supported locales, MVP ships `["en"]`        |
 
 ### 2.2 Standard
 
 External standard reference (CCSS). Informational only — students never see this.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"CCSS.2.NF.2"` |
-| `framework` | `"CCSS"` \| `"NCTM"` \| `"STATE"` | Source standard system |
-| `code` | string | Human-readable code |
-| `text` | string | Standard description |
-| `gradeLevel` | `0 \| 1 \| 2` | Grade level (K=0) |
+| Field        | Type                              | Purpose                |
+| ------------ | --------------------------------- | ---------------------- |
+| `id`         | string                            | E.g. `"CCSS.2.NF.2"`   |
+| `framework`  | `"CCSS"` \| `"NCTM"` \| `"STATE"` | Source standard system |
+| `code`       | string                            | Human-readable code    |
+| `text`       | string                            | Standard description   |
+| `gradeLevel` | `0 \| 1 \| 2`                     | Grade level (K=0)      |
 
 ### 2.3 Skill
 
 A discrete fraction skill the student must develop. Tracked individually for mastery.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"SK-03"` |
-| `name` | string | Internal label, e.g. `"Same-denominator comparison"` |
-| `description` | string | Pedagogical purpose |
-| `gradeLevel` | `0 \| 1 \| 2` | Earliest grade where skill is taught |
-| `prerequisites` | string[] | Skill IDs that must precede |
-| `standardIds` | string[] | Standards this skill maps to |
-| `bktParams` | `{ pInit, pTransit, pSlip, pGuess }` | Bayesian Knowledge Tracing priors |
+| Field           | Type                                 | Purpose                                              |
+| --------------- | ------------------------------------ | ---------------------------------------------------- |
+| `id`            | string                               | E.g. `"SK-03"`                                       |
+| `name`          | string                               | Internal label, e.g. `"Same-denominator comparison"` |
+| `description`   | string                               | Pedagogical purpose                                  |
+| `gradeLevel`    | `0 \| 1 \| 2`                        | Earliest grade where skill is taught                 |
+| `prerequisites` | string[]                             | Skill IDs that must precede                          |
+| `standardIds`   | string[]                             | Standards this skill maps to                         |
+| `bktParams`     | `{ pInit, pTransit, pSlip, pGuess }` | Bayesian Knowledge Tracing priors                    |
 
 ### 2.4 Activity
 
 A self-contained game type (e.g. drag-to-snap, comparison battle, ordering tournament).
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | Slug, e.g. `"magnitude_scales"` |
-| `title` | string | Student-facing name |
-| `gradeBand` | (`"K"` \| `"1"` \| `"2"`)[] | Grade(s) this activity addresses |
-| `levelGroup` | `"01-02"` \| `"03-05"` \| `"06-09"` | Which MVP level group |
-| `skillIds` | string[] | Skills this activity exercises |
-| `unlockRule` | UnlockRule \| null | Prerequisites; null = always unlocked |
-| `isCore` | boolean | False for extension/optional activities |
-| `archetype` | `ArchetypeId` | Interaction type — one of the 10 canonical archetypes (audit §1.5 fix) |
+| Field        | Type                                | Purpose                                                                |
+| ------------ | ----------------------------------- | ---------------------------------------------------------------------- |
+| `id`         | string                              | Slug, e.g. `"magnitude_scales"`                                        |
+| `title`      | string                              | Student-facing name                                                    |
+| `gradeBand`  | (`"K"` \| `"1"` \| `"2"`)[]         | Grade(s) this activity addresses                                       |
+| `levelGroup` | `"01-02"` \| `"03-05"` \| `"06-09"` | Which MVP level group                                                  |
+| `skillIds`   | string[]                            | Skills this activity exercises                                         |
+| `unlockRule` | UnlockRule \| null                  | Prerequisites; null = always unlocked                                  |
+| `isCore`     | boolean                             | False for extension/optional activities                                |
+| `archetype`  | `ArchetypeId`                       | Interaction type — one of the 10 canonical archetypes (audit §1.5 fix) |
 
 ### 2.5 ActivityLevel
 
 A specific difficulty configuration within an activity. Each level has a distinct fraction pool, scaffolding, and advancement gate.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"magnitude_scales:L1"` |
-| `activityId` | string | Parent activity |
-| `levelNumber` | 1–9 | Maps to overall MVP level number |
-| `scaffoldLevel` | 1–5 | 1 = max scaffolding, 5 = none |
-| `fractionPoolIds` | string[] | FractionBank refs available at this level |
-| `questionTemplateIds` | string[] | Template refs for this level |
-| `difficultyConfig` | DifficultyConfig | Timer, hints, tolerance, problem count |
-| `advanceCriteria` | `{ minAccuracy, minProblems, maxAvgHints }` | Mastery gate to unlock next level |
+| Field                 | Type                                        | Purpose                                   |
+| --------------------- | ------------------------------------------- | ----------------------------------------- |
+| `id`                  | string                                      | E.g. `"magnitude_scales:L1"`              |
+| `activityId`          | string                                      | Parent activity                           |
+| `levelNumber`         | 1–9                                         | Maps to overall MVP level number          |
+| `scaffoldLevel`       | 1–5                                         | 1 = max scaffolding, 5 = none             |
+| `fractionPoolIds`     | string[]                                    | FractionBank refs available at this level |
+| `questionTemplateIds` | string[]                                    | Template refs for this level              |
+| `difficultyConfig`    | DifficultyConfig                            | Timer, hints, tolerance, problem count    |
+| `advanceCriteria`     | `{ minAccuracy, minProblems, maxAvgHints }` | Mastery gate to unlock next level         |
 
 ### 2.6 FractionBank
 
 Every fraction the app can ever show. Precomputed values for fast comparison.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"frac:3/4"` |
-| `numerator` | number | Top |
-| `denominator` | number | Bottom |
-| `decimalValue` | number | Precomputed for sort/distance ops |
-| `benchmark` | `"zero"` \| `"almost_zero"` \| `"almost_half"` \| `"half"` \| `"almost_one"` \| `"one"` | Closest benchmark category |
-| `denominatorFamily` | `"halves"` \| `"thirds"` \| `"fourths"` \| `"sixths"` \| `"eighths"` | Used by C8 progression rules |
-| `visualAssets` | `{ barUrl, circleUrl, setUrl }` | Pre-rendered visual assets if any |
+| Field               | Type                                                                                    | Purpose                           |
+| ------------------- | --------------------------------------------------------------------------------------- | --------------------------------- |
+| `id`                | string                                                                                  | E.g. `"frac:3/4"`                 |
+| `numerator`         | number                                                                                  | Top                               |
+| `denominator`       | number                                                                                  | Bottom                            |
+| `decimalValue`      | number                                                                                  | Precomputed for sort/distance ops |
+| `benchmark`         | `"zero"` \| `"almost_zero"` \| `"almost_half"` \| `"half"` \| `"almost_one"` \| `"one"` | Closest benchmark category        |
+| `denominatorFamily` | `"halves"` \| `"thirds"` \| `"fourths"` \| `"sixths"` \| `"eighths"`                    | Used by C8 progression rules      |
+| `visualAssets`      | `{ barUrl, circleUrl, setUrl }`                                                         | Pre-rendered visual assets if any |
 
 ### 2.7 QuestionTemplate
 
@@ -168,43 +168,43 @@ A single question definition. The `payload` shape varies by `archetype`.
 
 > **Note (audit §1.5 fix):** Earlier drafts split the interaction type into two separate fields — `Activity.mechanic` and `QuestionTemplate.type` (also called `QuestionType`). They are now one field: `archetype: ArchetypeId`. The canonical 10 values are: `partition` | `identify` | `label` | `make` | `compare` | `benchmark` | `order` | `snap_match` | `equal_or_not` | `placement`.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"q:ms:L1:0001"` |
-| `archetype` | `ArchetypeId` | One of the 10 canonical archetypes (see note above) |
-| `prompt` | `{ text, ttsKey, localeStrings? }` | Display text + TTS key |
-| `payload` | union of typed payloads | Question-type-specific data |
-| `correctAnswer` | unknown | Shape varies by type |
-| `validatorId` | string | References a code-side validator function |
-| `skillIds` | string[] | Skills this question exercises |
-| `misconceptionTraps` | string[] | Misconception IDs detectable from this question |
-| `difficultyTier` | `"easy"` \| `"medium"` \| `"hard"` | Within-level difficulty band |
+| Field                | Type                               | Purpose                                             |
+| -------------------- | ---------------------------------- | --------------------------------------------------- |
+| `id`                 | string                             | E.g. `"q:ms:L1:0001"`                               |
+| `archetype`          | `ArchetypeId`                      | One of the 10 canonical archetypes (see note above) |
+| `prompt`             | `{ text, ttsKey, localeStrings? }` | Display text + TTS key                              |
+| `payload`            | union of typed payloads            | Question-type-specific data                         |
+| `correctAnswer`      | unknown                            | Shape varies by type                                |
+| `validatorId`        | string                             | References a code-side validator function           |
+| `skillIds`           | string[]                           | Skills this question exercises                      |
+| `misconceptionTraps` | string[]                           | Misconception IDs detectable from this question     |
+| `difficultyTier`     | `"easy"` \| `"medium"` \| `"hard"` | Within-level difficulty band                        |
 
 ### 2.8 Misconception
 
 Common student errors. Used to flag learning gaps and route to remediation.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"MC-01"` (whole-number bias) |
-| `name` | string | Short label |
-| `description` | string | What this misconception looks like |
-| `detectionPattern` | `{ signalType, rule }` | How the app detects it from attempts |
-| `interventionActivityIds` | string[] | Suggested remediation activities |
-| `gradeLevel` | (`0 \| 1 \| 2`)[] | Grade(s) where this misconception is observed |
+| Field                     | Type                   | Purpose                                       |
+| ------------------------- | ---------------------- | --------------------------------------------- |
+| `id`                      | string                 | E.g. `"MC-01"` (whole-number bias)            |
+| `name`                    | string                 | Short label                                   |
+| `description`             | string                 | What this misconception looks like            |
+| `detectionPattern`        | `{ signalType, rule }` | How the app detects it from attempts          |
+| `interventionActivityIds` | string[]               | Suggested remediation activities              |
+| `gradeLevel`              | (`0 \| 1 \| 2`)[]      | Grade(s) where this misconception is observed |
 
 ### 2.9 Hint
 
 Pre-defined hints for question templates. Escalating support when student struggles.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | E.g. `"hint:ms:0042:1"` |
-| `questionTemplateId` | string | Parent question |
-| `type` | `"verbal"` \| `"visual_overlay"` \| `"worked_example"` | Hint modality — maps 1:1 to the 3-tier escalation ladder in `interaction-model.md §4` (audit §2.1 fix) |
-| `order` | 1–3 | Escalation tier |
-| `content` | `{ text?, assetUrl?, ttsKey? }` | What to show |
-| `pointCost` | number | Score deduction when used |
+| Field                | Type                                                   | Purpose                                                                                                |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `id`                 | string                                                 | E.g. `"hint:ms:0042:1"`                                                                                |
+| `questionTemplateId` | string                                                 | Parent question                                                                                        |
+| `type`               | `"verbal"` \| `"visual_overlay"` \| `"worked_example"` | Hint modality — maps 1:1 to the 3-tier escalation ladder in `interaction-model.md §4` (audit §2.1 fix) |
+| `order`              | 1–3                                                    | Escalation tier                                                                                        |
+| `content`            | `{ text?, assetUrl?, ttsKey? }`                        | What to show                                                                                           |
+| `pointCost`          | number                                                 | Score deduction when used                                                                              |
 
 ---
 
@@ -214,138 +214,138 @@ Every dynamic entity carries a `syncState: "local" | "queued" | "synced"` field,
 
 ### 3.1 Student
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | UUIDv4, generated client-side |
-| `displayName` | string | Self-set or default |
-| `avatarConfig` | Record<string, string> | Visual customization |
-| `gradeLevel` | `0 \| 1 \| 2` | Self-reported or inferred |
-| `createdAt` | number (epoch ms) | Profile creation timestamp |
-| `lastActiveAt` | number (epoch ms) | Last session start |
-| `localOnly` | boolean | Always `true` during MVP |
-| `remoteId?` | string | Populated post-2029 if cloud-synced |
+| Field          | Type                   | Purpose                             |
+| -------------- | ---------------------- | ----------------------------------- |
+| `id`           | string                 | UUIDv4, generated client-side       |
+| `displayName`  | string                 | Self-set or default                 |
+| `avatarConfig` | Record<string, string> | Visual customization                |
+| `gradeLevel`   | `0 \| 1 \| 2`          | Self-reported or inferred           |
+| `createdAt`    | number (epoch ms)      | Profile creation timestamp          |
+| `lastActiveAt` | number (epoch ms)      | Last session start                  |
+| `localOnly`    | boolean                | Always `true` during MVP            |
+| `remoteId?`    | string                 | Populated post-2029 if cloud-synced |
 
 ### 3.2 Session
 
 A continuous play period for one activity at one level.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | UUID, prefixed with activityId for debugging |
-| `studentId` | string | Player |
-| `activityId` | string | Activity slug |
-| `levelNumber` | 1–9 | Level played |
-| `scaffoldLevel` | 1–5 | Scaffolding active during session |
-| `startedAt` | number | Session start |
-| `endedAt?` | number | null while in progress |
-| `totalAttempts` | number | Denormalized count |
-| `correctAttempts` | number | Denormalized count |
-| `accuracy` | number \| null | Computed at session close |
-| `avgResponseMs` | number \| null | Computed at session close |
-| `xpEarned` | number | Score for the session |
-| `scaffoldRecommendation` | `"advance"` \| `"stay"` \| `"regress"` \| null | Engine recommendation for next session |
-| `endLevel` | integer | The highest level reached during this session (may differ from startLevel if the engine auto-routed). (audit §5 fix) |
-| `device` | `{ type, viewport }` | Device profile |
-| `syncState` | SyncState | Always `"local"` in MVP |
+| Field                    | Type                                           | Purpose                                                                                                              |
+| ------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `id`                     | string                                         | UUID, prefixed with activityId for debugging                                                                         |
+| `studentId`              | string                                         | Player                                                                                                               |
+| `activityId`             | string                                         | Activity slug                                                                                                        |
+| `levelNumber`            | 1–9                                            | Level played                                                                                                         |
+| `scaffoldLevel`          | 1–5                                            | Scaffolding active during session                                                                                    |
+| `startedAt`              | number                                         | Session start                                                                                                        |
+| `endedAt?`               | number                                         | null while in progress                                                                                               |
+| `totalAttempts`          | number                                         | Denormalized count                                                                                                   |
+| `correctAttempts`        | number                                         | Denormalized count                                                                                                   |
+| `accuracy`               | number \| null                                 | Computed at session close                                                                                            |
+| `avgResponseMs`          | number \| null                                 | Computed at session close                                                                                            |
+| `xpEarned`               | number                                         | Score for the session                                                                                                |
+| `scaffoldRecommendation` | `"advance"` \| `"stay"` \| `"regress"` \| null | Engine recommendation for next session                                                                               |
+| `endLevel`               | integer                                        | The highest level reached during this session (may differ from startLevel if the engine auto-routed). (audit §5 fix) |
+| `device`                 | `{ type, viewport }`                           | Device profile                                                                                                       |
+| `syncState`              | SyncState                                      | Always `"local"` in MVP                                                                                              |
 
 ### 3.3 Attempt
 
 One student answer to one question instance. Append-only.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | UUID |
-| `sessionId` | string | Parent session |
-| `studentId` | string | Player (denormalized for fast queries) |
-| `questionTemplateId` | string | Question shown |
-| `roundNumber` | number | Round index within session |
-| `attemptNumber` | 1–4 | Retry index for this question |
-| `startedAt` | number | When question shown |
-| `submittedAt` | number | When answer submitted |
-| `responseMs` | number | Computed time-to-answer |
-| `studentAnswerRaw` | unknown | Mirrors payload type |
-| `correctAnswerRaw` | unknown | Snapshot for replay |
-| `outcome` | `"EXACT"` \| `"CLOSE"` \| `"WRONG"` \| `"ASSISTED"` \| `"ABANDONED"` | Result |
-| `errorMagnitude` | number \| null | E.g., placement off by 0.125 |
-| `pointsEarned` | number | Score awarded |
-| `hintsUsedIds` | string[] | HintEvent refs |
-| `flaggedMisconceptionIds` | string[] | Misconceptions detected |
-| `syncState` | SyncState | Always `"local"` in MVP |
+| Field                     | Type                                                                 | Purpose                                |
+| ------------------------- | -------------------------------------------------------------------- | -------------------------------------- |
+| `id`                      | string                                                               | UUID                                   |
+| `sessionId`               | string                                                               | Parent session                         |
+| `studentId`               | string                                                               | Player (denormalized for fast queries) |
+| `questionTemplateId`      | string                                                               | Question shown                         |
+| `roundNumber`             | number                                                               | Round index within session             |
+| `attemptNumber`           | 1–4                                                                  | Retry index for this question          |
+| `startedAt`               | number                                                               | When question shown                    |
+| `submittedAt`             | number                                                               | When answer submitted                  |
+| `responseMs`              | number                                                               | Computed time-to-answer                |
+| `studentAnswerRaw`        | unknown                                                              | Mirrors payload type                   |
+| `correctAnswerRaw`        | unknown                                                              | Snapshot for replay                    |
+| `outcome`                 | `"EXACT"` \| `"CLOSE"` \| `"WRONG"` \| `"ASSISTED"` \| `"ABANDONED"` | Result                                 |
+| `errorMagnitude`          | number \| null                                                       | E.g., placement off by 0.125           |
+| `pointsEarned`            | number                                                               | Score awarded                          |
+| `hintsUsedIds`            | string[]                                                             | HintEvent refs                         |
+| `flaggedMisconceptionIds` | string[]                                                             | Misconceptions detected                |
+| `syncState`               | SyncState                                                            | Always `"local"` in MVP                |
 
 ### 3.4 HintEvent
 
 Records when a student requests/accepts a hint.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | UUID |
-| `attemptId` | string | Parent attempt |
-| `hintId` | string | Hint shown |
-| `shownAt` | number | When displayed |
+| Field               | Type    | Purpose                      |
+| ------------------- | ------- | ---------------------------- |
+| `id`                | string  | UUID                         |
+| `attemptId`         | string  | Parent attempt               |
+| `hintId`            | string  | Hint shown                   |
+| `shownAt`           | number  | When displayed               |
 | `acceptedByStudent` | boolean | Whether student kept it open |
-| `pointCostApplied` | number | Penalty applied |
+| `pointCostApplied`  | number  | Penalty applied              |
 
 ### 3.5 MisconceptionFlag
 
 A confirmed misconception observed across multiple attempts.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | string | UUID |
-| `studentId` | string | Player |
-| `misconceptionId` | string | Type of misconception |
-| `firstObservedAt` | number | First detection timestamp |
-| `lastObservedAt` | number | Most recent detection |
-| `observationCount` | number | How many times observed |
-| `resolvedAt` | number \| null | null = active, set when remediated |
-| `evidenceAttemptIds` | string[] | Last N supporting attempts |
+| Field                | Type           | Purpose                            |
+| -------------------- | -------------- | ---------------------------------- |
+| `id`                 | string         | UUID                               |
+| `studentId`          | string         | Player                             |
+| `misconceptionId`    | string         | Type of misconception              |
+| `firstObservedAt`    | number         | First detection timestamp          |
+| `lastObservedAt`     | number         | Most recent detection              |
+| `observationCount`   | number         | How many times observed            |
+| `resolvedAt`         | number \| null | null = active, set when remediated |
+| `evidenceAttemptIds` | string[]       | Last N supporting attempts         |
 
 ### 3.6 SkillMastery
 
 One row per `(studentId, skillId)`. Tracks BKT mastery state.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `studentId` | string | Player |
-| `skillId` | string | Skill being tracked |
-| `masteryEstimate` | number (0.0–1.0) | BKT posterior |
-| `state` | `"NOT_STARTED"` \| `"LEARNING"` \| `"APPROACHING"` \| `"MASTERED"` \| `"DECAYED"` | Discrete state machine |
-| `consecutiveCorrectUnassisted` | number | Streak without hints |
-| `totalAttempts` | number | Lifetime count |
-| `correctAttempts` | number | Lifetime count |
-| `lastAttemptAt` | number | Most recent attempt |
-| `masteredAt` | number \| null | When mastery first reached |
-| `decayedAt` | number \| null | When mastery dropped (no recent practice) |
+| Field                          | Type                                                                              | Purpose                                   |
+| ------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------- |
+| `studentId`                    | string                                                                            | Player                                    |
+| `skillId`                      | string                                                                            | Skill being tracked                       |
+| `masteryEstimate`              | number (0.0–1.0)                                                                  | BKT posterior                             |
+| `state`                        | `"NOT_STARTED"` \| `"LEARNING"` \| `"APPROACHING"` \| `"MASTERED"` \| `"DECAYED"` | Discrete state machine                    |
+| `consecutiveCorrectUnassisted` | number                                                                            | Streak without hints                      |
+| `totalAttempts`                | number                                                                            | Lifetime count                            |
+| `correctAttempts`              | number                                                                            | Lifetime count                            |
+| `lastAttemptAt`                | number                                                                            | Most recent attempt                       |
+| `masteredAt`                   | number \| null                                                                    | When mastery first reached                |
+| `decayedAt`                    | number \| null                                                                    | When mastery dropped (no recent practice) |
 
 ### 3.7 ProgressionStat
 
 One row per `(studentId, activityId)`. Tracks where in the level ladder the student is.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `studentId` | string | Player |
-| `activityId` | string | Activity |
-| `currentLevel` | number | Level student is on |
-| `highestLevelReached` | number | Furthest the student got |
-| `sessionsAtCurrentLevel` | number | Repetition count |
-| `totalSessions` | number | Lifetime session count |
-| `totalXp` | number | Lifetime score |
-| `lastSessionAt` | number | Most recent session |
+| Field                      | Type   | Purpose                                                  |
+| -------------------------- | ------ | -------------------------------------------------------- |
+| `studentId`                | string | Player                                                   |
+| `activityId`               | string | Activity                                                 |
+| `currentLevel`             | number | Level student is on                                      |
+| `highestLevelReached`      | number | Furthest the student got                                 |
+| `sessionsAtCurrentLevel`   | number | Repetition count                                         |
+| `totalSessions`            | number | Lifetime session count                                   |
+| `totalXp`                  | number | Lifetime score                                           |
+| `lastSessionAt`            | number | Most recent session                                      |
 | `consecutiveRegressEvents` | number | How many times engine has regressed (signal of struggle) |
 
 ### 3.8 DeviceMeta
 
 Singleton per device. App-wide settings + sync metadata.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `installId` | string | UUID per install |
-| `schemaVersion` | number | Current DB schema version on this device |
-| `contentVersion` | string | Currently loaded curriculum pack |
-| `preferences` | `{ audio, reduceMotion, highContrast, ttsLocale, largeTouchTargets, persistGranted: boolean }` | User settings; `persistGranted` records whether IndexedDB persistence was granted via `navigator.storage.persist()` (see `persistence-spec.md §3.2`) (audit §5 fix) |
-| `lastBackupAt` | number \| null | Most recent JSON export |
-| `lastRestoredAt` | number \| null | Timestamp set when `restoreFromFile` completes successfully; null if never restored (see `persistence-spec.md §6`) (audit §5 fix) |
-| `pendingSyncCount` | number | Always 0 during MVP |
+| Field              | Type                                                                                           | Purpose                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `installId`        | string                                                                                         | UUID per install                                                                                                                                                    |
+| `schemaVersion`    | number                                                                                         | Current DB schema version on this device                                                                                                                            |
+| `contentVersion`   | string                                                                                         | Currently loaded curriculum pack                                                                                                                                    |
+| `preferences`      | `{ audio, reduceMotion, highContrast, ttsLocale, largeTouchTargets, persistGranted: boolean }` | User settings; `persistGranted` records whether IndexedDB persistence was granted via `navigator.storage.persist()` (see `persistence-spec.md §3.2`) (audit §5 fix) |
+| `lastBackupAt`     | number \| null                                                                                 | Most recent JSON export                                                                                                                                             |
+| `lastRestoredAt`   | number \| null                                                                                 | Timestamp set when `restoreFromFile` completes successfully; null if never restored (see `persistence-spec.md §6`) (audit §5 fix)                                   |
+| `pendingSyncCount` | number                                                                                         | Always 0 during MVP                                                                                                                                                 |
 
 > **EXCEPTION TO C5:** `lastUsedStudentId` (a non-sensitive UI hint) is stored in localStorage rather than IndexedDB to survive Dexie initialization races. See `constraints.md C5 (note 1)` for the full carve-out. (audit §5 fix)
 
@@ -428,24 +428,24 @@ Singleton per device. App-wide settings + sync metadata.
 
 One Dexie table per entity. Indexes only on fields needed for runtime queries.
 
-| Store | Primary Key | Indexes |
-|-------|------------|---------|
-| `curriculumPacks` | `id` | — |
-| `standards` | `id` | — |
-| `skills` | `id` | `gradeLevel` |
-| `activities` | `id` | `levelGroup`, `archetype` |
-| `activityLevels` | `id` | `activityId+levelNumber` |
-| `fractionBank` | `id` | `denominatorFamily`, `benchmark` |
-| `questionTemplates` | `id` | `archetype`, `[skillIds*+difficultyTier]` |
-| `misconceptions` | `id` | — |
-| `hints` | `id` | `questionTemplateId+order` |
-| `students` | `id` | `lastActiveAt` |
-| `sessions` | `id` | `studentId+startedAt`, `activityId+startedAt` |
-| `attempts` | `id` | `sessionId`, `studentId+submittedAt`, `[skillIds*]` |
-| `hintEvents` | `id` | `attemptId` |
-| `misconceptionFlags` | `id` | `studentId+misconceptionId`, `studentId+resolvedAt` |
-| `skillMastery` | `[studentId+skillId]` | `studentId+state` |
-| `progressionStat` | `[studentId+activityId]` | `studentId+lastSessionAt` |
-| `deviceMeta` | `installId` | — (singleton) |
+| Store                | Primary Key              | Indexes                                             |
+| -------------------- | ------------------------ | --------------------------------------------------- |
+| `curriculumPacks`    | `id`                     | —                                                   |
+| `standards`          | `id`                     | —                                                   |
+| `skills`             | `id`                     | `gradeLevel`                                        |
+| `activities`         | `id`                     | `levelGroup`, `archetype`                           |
+| `activityLevels`     | `id`                     | `activityId+levelNumber`                            |
+| `fractionBank`       | `id`                     | `denominatorFamily`, `benchmark`                    |
+| `questionTemplates`  | `id`                     | `archetype`, `[skillIds*+difficultyTier]`           |
+| `misconceptions`     | `id`                     | —                                                   |
+| `hints`              | `id`                     | `questionTemplateId+order`                          |
+| `students`           | `id`                     | `lastActiveAt`                                      |
+| `sessions`           | `id`                     | `studentId+startedAt`, `activityId+startedAt`       |
+| `attempts`           | `id`                     | `sessionId`, `studentId+submittedAt`, `[skillIds*]` |
+| `hintEvents`         | `id`                     | `attemptId`                                         |
+| `misconceptionFlags` | `id`                     | `studentId+misconceptionId`, `studentId+resolvedAt` |
+| `skillMastery`       | `[studentId+skillId]`    | `studentId+state`                                   |
+| `progressionStat`    | `[studentId+activityId]` | `studentId+lastSessionAt`                           |
+| `deviceMeta`         | `installId`              | — (singleton)                                       |
 
 Detailed Dexie schema declarations live in `persistence-spec.md`.

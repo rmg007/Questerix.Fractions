@@ -21,14 +21,14 @@ This document is a **planning artifact**, not a question bank. Detailed question
 
 The original `Topics.docx` contained **422 topic headings** with **844 example questions** (2 per topic). After categorizing against the MVP scope (C3):
 
-| Category | Topics | Notes |
-|----------|--------|-------|
-| **Level 1-5 (Grade K-1)** — partition, identify, make | 38 + ~50 from "uncategorized" review | Within scope |
-| **Level 6-9 (Grade 2)** — compare, order, benchmark | 62 + ~30 from "uncategorized" review | Within scope |
-| **Out of scope** — Grade 3+ | 238 | Defer to post-MVP-2029 |
-| **Uncategorized** | 4 | Truly ambiguous, mark as "review" |
+| Category                                              | Topics                               | Notes                             |
+| ----------------------------------------------------- | ------------------------------------ | --------------------------------- |
+| **Level 1-5 (Grade K-1)** — partition, identify, make | 38 + ~50 from "uncategorized" review | Within scope                      |
+| **Level 6-9 (Grade 2)** — compare, order, benchmark   | 62 + ~30 from "uncategorized" review | Within scope                      |
+| **Out of scope** — Grade 3+                           | 238                                  | Defer to post-MVP-2029            |
+| **Uncategorized**                                     | 4                                    | Truly ambiguous, mark as "review" |
 
-**Key finding:** The Topics inventory is *broad but shallow*. 2 examples per topic is **not enough** for adaptive difficulty, retry on failure, or session variety. We need 10–15 questions per topic minimum for a usable MVP.
+**Key finding:** The Topics inventory is _broad but shallow_. 2 examples per topic is **not enough** for adaptive difficulty, retry on failure, or session variety. We need 10–15 questions per topic minimum for a usable MVP.
 
 ---
 
@@ -38,13 +38,13 @@ The original `Topics.docx` contained **422 topic headings** with **844 example q
 
 The mechanic is mostly drag-snap and shape partitioning. ~88 topics fit here.
 
-| Level | Concept Cluster | Topic Count (approx) | Mechanics in Scope |
-|-------|----------------|----------------------|--------------------|
-| **L1** | Equal parts: 2 | ~6 | partition, identify-equal |
-| **L2** | Identify halves | ~12 | identify, label, match |
-| **L3** | Identify thirds and fourths | ~14 | identify, label, match |
-| **L4** | Make halves | ~8 | make, fold, partition |
-| **L5** | Make thirds and fourths | ~12 | make, fold, partition |
+| Level  | Concept Cluster             | Topic Count (approx) | Mechanics in Scope        |
+| ------ | --------------------------- | -------------------- | ------------------------- |
+| **L1** | Equal parts: 2              | ~6                   | partition, identify-equal |
+| **L2** | Identify halves             | ~12                  | identify, label, match    |
+| **L3** | Identify thirds and fourths | ~14                  | identify, label, match    |
+| **L4** | Make halves                 | ~8                   | make, fold, partition     |
+| **L5** | Make thirds and fourths     | ~12                  | make, fold, partition     |
 
 Per C8, denominators are introduced linearly: halves first (L1–L2), thirds (L3), fourths (L3–L4), then mixed practice (L5).
 
@@ -52,12 +52,12 @@ Per C8, denominators are introduced linearly: halves first (L1–L2), thirds (L3
 
 The mechanic shifts: drag-snap on a number line, comparison battles, ordering tournaments. ~92 topics fit here.
 
-| Level | Concept Cluster | Topic Count (approx) | Mechanics in Scope |
-|-------|----------------|----------------------|--------------------|
-| **L6** | Compare same denominator | ~10 | compare, side-by-side |
-| **L7** | Compare same numerator | ~12 | compare, magnitude reasoning |
-| **L8** | Benchmark to 0, 1/2, 1 | ~16 | benchmark sort, number line |
-| **L9** | Order 3+ fractions | ~14 | ordering, tournament bracket |
+| Level  | Concept Cluster          | Topic Count (approx) | Mechanics in Scope           |
+| ------ | ------------------------ | -------------------- | ---------------------------- |
+| **L6** | Compare same denominator | ~10                  | compare, side-by-side        |
+| **L7** | Compare same numerator   | ~12                  | compare, magnitude reasoning |
+| **L8** | Benchmark to 0, 1/2, 1   | ~16                  | benchmark sort, number line  |
+| **L9** | Order 3+ fractions       | ~14                  | ordering, tournament bracket |
 
 ### 2.3 Out of Scope (Post-MVP 2029)
 
@@ -80,18 +80,18 @@ These are valid future work but are explicitly excluded from MVP per C3.
 
 The original Topics.docx assumes a paper-and-pencil context ("Draw a line", "Shade 1/2 of..."). The app needs digital equivalents. This table maps topic verbs to app mechanics:
 
-| Topic verb | App mechanic | Question type |
-|------------|--------------|---------------|
-| "Identify..." | tap-select | `identify` |
-| "Shade..." | tap-cell | `shade` |
-| "Match..." | drag-pair | `snap_match` |
-| "Draw a line to split..." | drag-divider | `partition` |
-| "Fold..." | drag-fold-line | `fold` |
-| "Label..." | drag-label-to-target | `label` |
-| "Compare..." | tap-greater \| less \| equal | `comparison` |
-| "Order..." | drag-to-sequence | `ordering` |
-| "Place on number line" | drag-to-position | `placement` |
-| "Is X bigger or smaller than 1/2?" | tap-zone | `benchmark_sort` |
+| Topic verb                         | App mechanic                 | Question type    |
+| ---------------------------------- | ---------------------------- | ---------------- |
+| "Identify..."                      | tap-select                   | `identify`       |
+| "Shade..."                         | tap-cell                     | `shade`          |
+| "Match..."                         | drag-pair                    | `snap_match`     |
+| "Draw a line to split..."          | drag-divider                 | `partition`      |
+| "Fold..."                          | drag-fold-line               | `fold`           |
+| "Label..."                         | drag-label-to-target         | `label`          |
+| "Compare..."                       | tap-greater \| less \| equal | `comparison`     |
+| "Order..."                         | drag-to-sequence             | `ordering`       |
+| "Place on number line"             | drag-to-position             | `placement`      |
+| "Is X bigger or smaller than 1/2?" | tap-zone                     | `benchmark_sort` |
 
 A topic that requires a mechanic not on this list is flagged and either dropped or rewritten.
 
@@ -101,16 +101,16 @@ A topic that requires a mechanic not on this list is flagged and either dropped 
 
 The Topics.docx delivers 2 examples per topic. That is insufficient. Recommended density per topic:
 
-| Tier | Examples needed | Purpose |
-|------|----------------|---------|
-| **Tier 1: Easy** | 4–5 | First-encounter, scaffolded |
-| **Tier 2: Medium** | 4–5 | Practice with reduced scaffolding |
-| **Tier 3: Hard** | 3–4 | Mastery check, no scaffolding |
-| **Total per topic** | **12–14** | Allows adaptive difficulty + retry without repeats |
+| Tier                | Examples needed | Purpose                                            |
+| ------------------- | --------------- | -------------------------------------------------- |
+| **Tier 1: Easy**    | 4–5             | First-encounter, scaffolded                        |
+| **Tier 2: Medium**  | 4–5             | Practice with reduced scaffolding                  |
+| **Tier 3: Hard**    | 3–4             | Mastery check, no scaffolding                      |
+| **Total per topic** | **12–14**       | Allows adaptive difficulty + retry without repeats |
 
 For ~180 in-scope topics across MVP, this means **~2,200 question instances** (180 × 12). That's a content-authoring workload measured in weeks, not days.
 
-**Mitigation strategy:** Many questions are *parameterized* (e.g., "Place X on the number line" works for any X in the fraction pool). A single QuestionTemplate with parameter substitution can generate 5–20 instances. Realistic authoring effort is closer to **~250 unique templates** producing ~2,000 instances.
+**Mitigation strategy:** Many questions are _parameterized_ (e.g., "Place X on the number line" works for any X in the fraction pool). A single QuestionTemplate with parameter substitution can generate 5–20 instances. Realistic authoring effort is closer to **~250 unique templates** producing ~2,000 instances.
 
 ---
 
@@ -133,20 +133,20 @@ Authoring order: **L1 first** (smallest scope, simplest mechanic). Don't open L2
 
 ## 6. What Lives Where
 
-| Concern | Document | Relationship |
-|---------|----------|--------------|
-| Topic inventory + grouping (this doc) | `scope-and-sequence.md` | Source of truth for what's in scope |
-| Per-level question banks | `levels/level-NN.md` | Concrete templates, validators, fraction pools |
-| Skill taxonomy (SK-* IDs) | `skills.md` (canonical registry — 33 skills, SK-01 through SK-33) | Each question is tagged with skills; level files reference IDs defined here |
-| Standards crosswalk | `standards-map.md` (TBD) | Each topic linked to CCSS code |
-| Misconceptions | `misconceptions.md` (TBD) | Salvaged from `RoadMap/02_Level_03_05/misconceptions/` |
-| Mechanic specifications | `../20-mechanic/activity-archetypes.md` | How each mechanic actually works |
+| Concern                               | Document                                                          | Relationship                                                                |
+| ------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Topic inventory + grouping (this doc) | `scope-and-sequence.md`                                           | Source of truth for what's in scope                                         |
+| Per-level question banks              | `levels/level-NN.md`                                              | Concrete templates, validators, fraction pools                              |
+| Skill taxonomy (SK-\* IDs)            | `skills.md` (canonical registry — 33 skills, SK-01 through SK-33) | Each question is tagged with skills; level files reference IDs defined here |
+| Standards crosswalk                   | `standards-map.md` (TBD)                                          | Each topic linked to CCSS code                                              |
+| Misconceptions                        | `misconceptions.md` (TBD)                                         | Salvaged from `RoadMap/02_Level_03_05/misconceptions/`                      |
+| Mechanic specifications               | `../20-mechanic/activity-archetypes.md`                           | How each mechanic actually works                                            |
 
 ---
 
 ## 7. Open Questions to Resolve Before Authoring L1
 
-1. **Visual model preference.** Topics.docx mixes circles, rectangles, bars, sets, and number lines. Pick a *primary* visual model per level, with secondary models gated behind mastery. Recommended: rectangles primary in L1–L2 (easiest to partition geometrically), circles secondary in L3+ (introduces angle reasoning).
+1. **Visual model preference.** Topics.docx mixes circles, rectangles, bars, sets, and number lines. Pick a _primary_ visual model per level, with secondary models gated behind mastery. Recommended: rectangles primary in L1–L2 (easiest to partition geometrically), circles secondary in L3+ (introduces angle reasoning).
 
 2. **Symbolic notation introduction.** Per `RoadMap/02_Level_03_05/02_LEARNING_TRAJECTORY.md`, formal "1/2" notation is delayed to Grade 2. For MVP this means L1–L5 use **labels and words** ("one half", "1 of 2 equal parts") and **L6+ uses symbols**. This is a real constraint; many Topics.docx items show "1/2" in early grades.
 

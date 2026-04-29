@@ -12,7 +12,7 @@ related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md, level-
 
 The counter-intuitive level. Goal: when two fractions share the **same numerator**, the one with the **larger denominator is smaller**. The classic Grade 2 trap is `1/4 > 1/3` — false, because each fourth is smaller than each third.
 
-This level is where **whole-number bias on the denominator** (`MC-WHB-02`) is first directly attacked. The pedagogical strategy, salvaged from `RoadMap/02_Level_03_05/Grade2-ComparingOrdering/01-FractionMagnitudeScales.md` and `RoadMap/03_Level_06_09/00-MASTER_PLAN.md` §8 (R-03), is to *pre-empt* the misconception with a "flip rule" micro-lesson before the student encounters their first same-numerator pair, then provide visual side-by-side bar models on every wrong answer until the rule is internalised.
+This level is where **whole-number bias on the denominator** (`MC-WHB-02`) is first directly attacked. The pedagogical strategy, salvaged from `RoadMap/02_Level_03_05/Grade2-ComparingOrdering/01-FractionMagnitudeScales.md` and `RoadMap/03_Level_06_09/00-MASTER_PLAN.md` §8 (R-03), is to _pre-empt_ the misconception with a "flip rule" micro-lesson before the student encounters their first same-numerator pair, then provide visual side-by-side bar models on every wrong answer until the rule is internalised.
 
 Per **C8**, this is the first level where a single comparison **mixes denominators**. The comparison `1/3` vs `1/4` necessarily uses two denominator families; that mixing is the entire pedagogical point of the level.
 
@@ -36,13 +36,13 @@ The level does **not** ask the student to compare across denominators when **bot
 
 See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-13/SK-14/SK-15 at L7 collided with L4 IDs; renumbered SK-24/SK-25/SK-26)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-24` | Same-numerator comparison (inverse-denominator rule) | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.33` |
-| `SK-25` | Unit-fraction ordering (1/2, 1/3, 1/4, 1/6, 1/8) | `pInit=0.15, pTransit=0.25, pSlip=0.10, pGuess=0.20` |
-| `SK-26` | Resisting whole-number bias on the denominator | `pInit=0.20, pTransit=0.30, pSlip=0.15, pGuess=0.50` |
+| Skill ID | Name                                                 | BKT priors                                           |
+| -------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| `SK-24`  | Same-numerator comparison (inverse-denominator rule) | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.33` |
+| `SK-25`  | Unit-fraction ordering (1/2, 1/3, 1/4, 1/6, 1/8)     | `pInit=0.15, pTransit=0.25, pSlip=0.10, pGuess=0.20` |
+| `SK-26`  | Resisting whole-number bias on the denominator       | `pInit=0.20, pTransit=0.30, pSlip=0.15, pGuess=0.50` |
 
-`SK-24` carries forward into Level 8 (benchmarks) and Level 9 (ordering). `SK-26` is a *negative* skill — its mastery is signalled by the *absence* of `MC-WHB-02` flags across the last 8 attempts. The high `pSlip` (0.15) on `SK-24` reflects that even students who understand the rule sometimes default to the whole-number bias under timer pressure.
+`SK-24` carries forward into Level 8 (benchmarks) and Level 9 (ordering). `SK-26` is a _negative_ skill — its mastery is signalled by the _absence_ of `MC-WHB-02` flags across the last 8 attempts. The high `pSlip` (0.15) on `SK-24` reflects that even students who understand the rule sometimes default to the whole-number bias under timer pressure.
 
 The `pGuess` on `SK-26` is `0.50` because the binary "did the student fall for the trap or not" has two possible outcomes.
 
@@ -52,9 +52,9 @@ Mastery of `SK-24` and `SK-25` at `state: "MASTERED"`, **and** at most one `MC-W
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.3.NF.A.3.d** (compare two fractions with the same numerator by reasoning about their size) | **Primary** |
+| Standard                                                                                                                          | Coverage                                                                       |
+| --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **CCSS.3.NF.A.3.d** (compare two fractions with the same numerator by reasoning about their size)                                 | **Primary**                                                                    |
 | **CCSS.2.NF.A.1** (understand a fraction `1/b` as the quantity formed by 1 part when a whole is partitioned into `b` equal parts) | Reinforced (the unit-fraction inverse relationship is the heart of this level) |
 
 ---
@@ -76,11 +76,11 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
 
 #### Difficulty tiers
 
-| Tier | Visual support | Comparison structure | Hint budget |
-|------|---------------|---------------------|-------------|
-| Easy | Bar models, identical scale, both bars on screen | Unit fractions only (`1/2`, `1/3`, `1/4`); large denominator gap (e.g., `1/2` vs `1/4`) | 3 |
-| Medium | Bar models, smaller | Unit fractions, adjacent denominators (`1/3` vs `1/4`); also non-unit pairs with matching numerators (`2/3` vs `2/4`) | 2 |
-| Hard | Symbolic only (bar via hint) | Includes `1/6` and `1/8`; denominator gap of 1 (`1/6` vs `1/7` is **not** in MVP — sevenths are out of scope per C8); the trap "tops match → look at the bottoms backwards" is the explicit target | 1 |
+| Tier   | Visual support                                   | Comparison structure                                                                                                                                                                               | Hint budget |
+| ------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Easy   | Bar models, identical scale, both bars on screen | Unit fractions only (`1/2`, `1/3`, `1/4`); large denominator gap (e.g., `1/2` vs `1/4`)                                                                                                            | 3           |
+| Medium | Bar models, smaller                              | Unit fractions, adjacent denominators (`1/3` vs `1/4`); also non-unit pairs with matching numerators (`2/3` vs `2/4`)                                                                              | 2           |
+| Hard   | Symbolic only (bar via hint)                     | Includes `1/6` and `1/8`; denominator gap of 1 (`1/6` vs `1/7` is **not** in MVP — sevenths are out of scope per C8); the trap "tops match → look at the bottoms backwards" is the explicit target | 1           |
 
 #### Question template archetype
 
@@ -178,11 +178,11 @@ A bar-model strip down the right side of the screen shows each fraction's bar at
 
 #### Difficulty tiers
 
-| Tier | Card count | Bars visible | Hint budget |
-|------|-----------|-------------|-------------|
-| Easy | 3 cards (`1/2`, `1/3`, `1/4`) | Always shown | 3 |
-| Medium | 4 cards (adds `1/6`) | Shown after 1st wrong placement | 2 |
-| Hard | 5 cards (adds `1/8`) | Shown only via hint | 1 |
+| Tier   | Card count                    | Bars visible                    | Hint budget |
+| ------ | ----------------------------- | ------------------------------- | ----------- |
+| Easy   | 3 cards (`1/2`, `1/3`, `1/4`) | Always shown                    | 3           |
+| Medium | 4 cards (adds `1/6`)          | Shown after 1st wrong placement | 2           |
+| Hard   | 5 cards (adds `1/8`)          | Shown only via hint             | 1           |
 
 The vertical ladder framing is a deliberate choice: a horizontal slot row (as in Level 9 ordering) introduces a **left-to-right reading bias** that competes with the actual rule. A vertical ladder labelled "TOP = BIGGEST" makes the magnitude direction explicit.
 
@@ -286,17 +286,17 @@ The vertical ladder framing is a deliberate choice: a horizontal slot row (as in
 **Title:** "Spot the Trap"
 **Levels in app:** L7 only
 
-A diagnostic activity that *targets* `MC-WHB-02`. The student is shown a "what someone said" speech bubble with a wrong claim like "**1/4 is bigger than 1/3 because 4 is bigger than 3.**" Two buttons: "I AGREE" and "I DISAGREE — that's the trap." The student picks. If they tap "DISAGREE," they then see a second screen asking them to drag a bar model to the side that is actually larger. The activity is therefore **two-step**: detect the misconception, then correct it.
+A diagnostic activity that _targets_ `MC-WHB-02`. The student is shown a "what someone said" speech bubble with a wrong claim like "**1/4 is bigger than 1/3 because 4 is bigger than 3.**" Two buttons: "I AGREE" and "I DISAGREE — that's the trap." The student picks. If they tap "DISAGREE," they then see a second screen asking them to drag a bar model to the side that is actually larger. The activity is therefore **two-step**: detect the misconception, then correct it.
 
-This is the only L7 activity that is explicitly *about* the misconception rather than implicitly trapping it. Its purpose is metacognitive: the student names the trap so the next time it appears in `comparison_battle_same_num` they can recognise it.
+This is the only L7 activity that is explicitly _about_ the misconception rather than implicitly trapping it. Its purpose is metacognitive: the student names the trap so the next time it appears in `comparison_battle_same_num` they can recognise it.
 
 #### Difficulty tiers
 
-| Tier | Trap framing | Correction step | Hint budget |
-|------|-------------|----------------|-------------|
-| Easy | Speech bubble + obvious bar disparity (`1/4` vs `1/2`) | Tap correct side | 3 |
-| Medium | Speech bubble; bar model shown only after disagree | Tap correct side | 2 |
-| Hard | Speech bubble alone; symbolic statement only; correction step requires reading the symbol | Tap correct side | 1 |
+| Tier   | Trap framing                                                                              | Correction step  | Hint budget |
+| ------ | ----------------------------------------------------------------------------------------- | ---------------- | ----------- |
+| Easy   | Speech bubble + obvious bar disparity (`1/4` vs `1/2`)                                    | Tap correct side | 3           |
+| Medium | Speech bubble; bar model shown only after disagree                                        | Tap correct side | 2           |
+| Hard   | Speech bubble alone; symbolic statement only; correction step requires reading the symbol | Tap correct side | 1           |
 
 #### Question template archetype
 
@@ -365,31 +365,87 @@ This is the only L7 activity that is explicitly *about* the misconception rather
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-WHB-02` | "Whole-number bias on denominator" — student picks `1/4 > 1/3` because `4 > 3` | Wrong answer with the explicit pattern (larger denominator chosen as larger fraction) on `comparison_battle_same_num` Easy or Medium |
-| `MC-INV-01` | "Inverse relationship not internalised" — student gets unit-fraction comparisons right when bars are visible but consistently wrong when symbolic-only | Accuracy gap > 30% between Medium (bars on miss) and Hard (bars only via hint) on `comparison_battle_same_num` |
-| `MC-NUM-01` | "Non-unit numerator-bias" — student applies the same-numerator rule correctly to `1/3` vs `1/4` but fails on `2/3` vs `2/4` | Wrong on `comparison_battle_same_num` Hard non-unit items while correct on equivalent unit items |
-| `MC-EQ-01` | (carried from L6) "Equal looks the same" | Wrong "=" on items where bar lengths are perceptually similar but not equal |
+| MC ID       | Name                                                                                                                                                   | Detection signal                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `MC-WHB-02` | "Whole-number bias on denominator" — student picks `1/4 > 1/3` because `4 > 3`                                                                         | Wrong answer with the explicit pattern (larger denominator chosen as larger fraction) on `comparison_battle_same_num` Easy or Medium |
+| `MC-INV-01` | "Inverse relationship not internalised" — student gets unit-fraction comparisons right when bars are visible but consistently wrong when symbolic-only | Accuracy gap > 30% between Medium (bars on miss) and Hard (bars only via hint) on `comparison_battle_same_num`                       |
+| `MC-NUM-01` | "Non-unit numerator-bias" — student applies the same-numerator rule correctly to `1/3` vs `1/4` but fails on `2/3` vs `2/4`                            | Wrong on `comparison_battle_same_num` Hard non-unit items while correct on equivalent unit items                                     |
+| `MC-EQ-01`  | (carried from L6) "Equal looks the same"                                                                                                               | Wrong "=" on items where bar lengths are perceptually similar but not equal                                                          |
 
-`MC-WHB-02` is the *flagship* misconception of this level. The intervention strategy (per `00-MASTER_PLAN.md` R-03) is the pre-emptive micro-lesson before the activity starts, plus the `flip_rule_check` activity, plus mandatory bar-model display on every wrong answer at Tier 1–2.
+`MC-WHB-02` is the _flagship_ misconception of this level. The intervention strategy (per `00-MASTER_PLAN.md` R-03) is the pre-emptive micro-lesson before the activity starts, plus the `flip_rule_check` activity, plus mandatory bar-model display on every wrong answer at Tier 1–2.
 
 ---
 
 ## 6. Fraction Pool
 
-Per **C8**, Level 7 introduces sixths and eighths in the unit-fraction context. Non-unit sixths and eighths are *not* in the pool yet — they arrive at Level 8 (benchmark reasoning) and Level 9 (full ordering).
+Per **C8**, Level 7 introduces sixths and eighths in the unit-fraction context. Non-unit sixths and eighths are _not_ in the pool yet — they arrive at Level 8 (benchmark reasoning) and Level 9 (full ordering).
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "halves"  },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25,   "benchmark": "almost_zero",  "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75,   "benchmark": "almost_one",   "denominatorFamily": "fourths" },
-  { "id": "frac:1/6", "numerator": 1, "denominator": 6, "decimalValue": 0.167,  "benchmark": "almost_zero",  "denominatorFamily": "sixths"  },
-  { "id": "frac:1/8", "numerator": 1, "denominator": 8, "decimalValue": 0.125,  "benchmark": "almost_zero",  "denominatorFamily": "eighths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:1/6",
+    "numerator": 1,
+    "denominator": 6,
+    "decimalValue": 0.167,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:1/8",
+    "numerator": 1,
+    "denominator": 8,
+    "decimalValue": 0.125,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "eighths"
+  }
 ]
 ```
 
@@ -407,7 +463,7 @@ A student unlocks Level 8 when **all** are true:
 - At least 20 attempts across at least 2 different activities at this level
 - Tier 3 (Hard) accuracy ≥ 65% across the last 6 hard attempts (lower than L6's 70% because L7 is genuinely harder, and a student who reaches 65% Hard with no recent MC-WHB-02 flags has the schema)
 
-The advancement bar for `SK-26` is intentionally `"APPROACHING"` not `"MASTERED"` — full mastery of "do not fall for the bias" is a multi-year process, and demanding it gates students out of Level 8 unnecessarily. What matters is that the student *recognises* the trap, which `"APPROACHING"` captures.
+The advancement bar for `SK-26` is intentionally `"APPROACHING"` not `"MASTERED"` — full mastery of "do not fall for the bias" is a multi-year process, and demanding it gates students out of Level 8 unnecessarily. What matters is that the student _recognises_ the trap, which `"APPROACHING"` captures.
 
 ---
 
@@ -424,15 +480,15 @@ Mastering `MC-WHB-02` typically requires more sessions than mastering a positive
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `comparison_battle_same_num` templates | 14 | 4 examples shown | Need 10 more |
-| `unit_fraction_ladder` templates | 10 | 3 examples shown | Need 7 more |
-| `flip_rule_check` templates | 8 | 2 examples shown | Need 6 more |
-| Pre-activity micro-lesson scene | 1 (one-time per device) | 0 | 25 seconds; non-graded; salvage Maya pizza scene from `00-MASTER_PLAN.md` §6 narrative |
-| TTS audio scripts | 32 | 0 | SpeechSynthesis API at runtime |
-| Hint definitions | ~96 (3 per template) | 0 | TBD |
-| Validator function specs | 3 | High-level only | `flipRuleTwoStep` is new — needs careful spec, two-state machine |
+| Item                                   | Required                | Authored         | Notes                                                                                  |
+| -------------------------------------- | ----------------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| `comparison_battle_same_num` templates | 14                      | 4 examples shown | Need 10 more                                                                           |
+| `unit_fraction_ladder` templates       | 10                      | 3 examples shown | Need 7 more                                                                            |
+| `flip_rule_check` templates            | 8                       | 2 examples shown | Need 6 more                                                                            |
+| Pre-activity micro-lesson scene        | 1 (one-time per device) | 0                | 25 seconds; non-graded; salvage Maya pizza scene from `00-MASTER_PLAN.md` §6 narrative |
+| TTS audio scripts                      | 32                      | 0                | SpeechSynthesis API at runtime                                                         |
+| Hint definitions                       | ~96 (3 per template)    | 0                | TBD                                                                                    |
+| Validator function specs               | 3                       | High-level only  | `flipRuleTwoStep` is new — needs careful spec, two-state machine                       |
 
 ---
 

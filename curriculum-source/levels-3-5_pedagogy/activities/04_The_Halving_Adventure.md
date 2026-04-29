@@ -1,6 +1,6 @@
 # ACTIVITY 04 — THE HALVING ADVENTURE
 
-> *"Competence, once found, must be exercised. The child who has halved one pizza has not yet halved. The child who has halved many, has."*
+> _"Competence, once found, must be exercised. The child who has halved one pizza has not yet halved. The child who has halved many, has."_
 
 **Phase:** Discovery | **Week:** 4 | **Duration:** 5 days (40-50 min/day) | **Standard:** CCSS 1.G.A.3
 
@@ -16,6 +16,7 @@ One week of halving instruction (Activity 03) is not enough for durable mastery.
 This is the curriculum's first full-week "application week" — a deliberate shift from "learn" to "apply."
 
 **Learning Objectives:**
+
 - **F1:** Halve regions of multiple shapes with confidence.
 - **F2:** Halve lengths (ribbons, paths, paper strips).
 - **F3:** Halve sets (groups of objects, counted fairly).
@@ -49,6 +50,7 @@ This is **gamification with integrity** — the adventure arises from the story,
 **Duration:** 45 minutes
 
 **Materials:**
+
 - Adventure Journal (prepared booklet with space for 5 quests)
 - 3 paper pizzas per child (different sizes: small, medium, large)
 - Crayons
@@ -57,7 +59,7 @@ This is **gamification with integrity** — the adventure arises from the story,
 
 **Opening Story (10 min):**
 
-> *"Whola the Wise has given Pia a special mission. The Halving Kingdom needs help. Some regions don't know how to share. Pia will travel to FIVE places this week and teach halving. YOU are Pia's helper. Ready?"*
+> _"Whola the Wise has given Pia a special mission. The Halving Kingdom needs help. Some regions don't know how to share. Pia will travel to FIVE places this week and teach halving. YOU are Pia's helper. Ready?"_
 
 [Read Day 1 adventure script]
 
@@ -79,11 +81,12 @@ Each child receives 3 pizzas (small, medium, large). They must:
 Different-sized pizzas can ALL be halved. The "half" depends on the whole. This is a profound insight and must be drawn out explicitly.
 
 Teacher:
-> *"Sophie halved the SMALL pizza. Her half is small. Miguel halved the LARGE pizza. His half is big. Are they both halves?"*
+
+> _"Sophie halved the SMALL pizza. Her half is small. Miguel halved the LARGE pizza. His half is big. Are they both halves?"_
 
 Class: "YES!"
 
-> *"Why?"*
+> _"Why?"_
 
 Children: "Because each child halved THEIR OWN WHOLE."
 
@@ -94,7 +97,8 @@ This plants the seed for the later insight: "1/2 of a small pizza ≠ 1/2 of a l
 Children who successfully halved all 3 receive the **Whole Hearth Badge** (sticker in Adventure Journal).
 
 **Closure:**
-> *"You've proven yourself at the Hearth. Tomorrow, we journey to the Ribbon Road."*
+
+> _"You've proven yourself at the Hearth. Tomorrow, we journey to the Ribbon Road."_
 
 ---
 
@@ -103,6 +107,7 @@ Children who successfully halved all 3 receive the **Whole Hearth Badge** (stick
 **Duration:** 45 minutes
 
 **Materials:**
+
 - 3 ribbons per child, different lengths (6-inch, 12-inch, 18-inch), in different colors
 - Scissors (teacher assist)
 - Rulers (teacher use)
@@ -110,7 +115,7 @@ Children who successfully halved all 3 receive the **Whole Hearth Badge** (stick
 
 **Opening Story (10 min):**
 
-> *"Pia and her helper [the child] set out from the Hearth. The path goes through the RIBBON ROAD. This road is paved with long silk ribbons that must be halved to fit through the gate."*
+> _"Pia and her helper [the child] set out from the Hearth. The path goes through the RIBBON ROAD. This road is paved with long silk ribbons that must be halved to fit through the gate."_
 
 [Read Day 2 script — the Ribbon Gate Guard demands halved ribbons]
 
@@ -128,7 +133,8 @@ Each child receives 3 ribbons of different lengths. For each ribbon:
 Long ribbons can tangle. Shorter ribbons are easier. Teacher uses rulers to verify equality for a few samples — children see mathematical confirmation.
 
 **Extension Discussion:**
-> *"The 18-inch ribbon is longer than the 6-inch ribbon. So the halves of the 18-inch ribbon are also LONGER than the halves of the 6-inch ribbon. But they are BOTH HALVES. Why?"*
+
+> _"The 18-inch ribbon is longer than the 6-inch ribbon. So the halves of the 18-inch ribbon are also LONGER than the halves of the 6-inch ribbon. But they are BOTH HALVES. Why?"_
 
 Children articulate: "Because each is half of ITS OWN ribbon."
 
@@ -138,7 +144,8 @@ This reinforces Day 1's lesson in a new context.
 **Ribbon Road Badge** for successful completion.
 
 **Closure:**
-> *"We have earned passage through the Ribbon Gate. Tomorrow, we cross the Equal Lake."*
+
+> _"We have earned passage through the Ribbon Gate. Tomorrow, we cross the Equal Lake."_
 
 ---
 
@@ -147,6 +154,7 @@ This reinforces Day 1's lesson in a new context.
 **Duration:** 50 minutes
 
 **Materials:**
+
 - "Lake Scene" mats (large blue paper or fabric)
 - Foam or paper fish (30 per group, different colors)
 - Groups of 6 pebble-like counters per pair (will vary: some pairs get 6, some 8, some 10, some 4)
@@ -154,7 +162,7 @@ This reinforces Day 1's lesson in a new context.
 
 **Opening Story (10 min):**
 
-> *"The Equal Lake is surrounded by MANY LAKE CREATURES who share the lake together. But lately, they have been fighting about how to divide the fish they catch. They need Pia's help. If you can halve the fish fairly, the lake creatures will let you cross."*
+> _"The Equal Lake is surrounded by MANY LAKE CREATURES who share the lake together. But lately, they have been fighting about how to divide the fish they catch. They need Pia's help. If you can halve the fish fairly, the lake creatures will let you cross."_
 
 [Read Day 3 script]
 
@@ -170,9 +178,11 @@ Children work in pairs. Each pair receives a "Lake" with a varying number of fis
 Some pairs receive 5 or 7 fish. They CAN'T easily halve with whole fish. What do they do?
 
 Teacher facilitates:
-> *"The lake creatures are stuck. What can we do?"*
+
+> _"The lake creatures are stuck. What can we do?"_
 
 Children propose:
+
 - "We could share the extra fish — cut it in half!"
 - "One creature gets one more — but that's not fair."
 - "We need to give them an EVEN number of fish."
@@ -185,7 +195,8 @@ Teacher validates: "Smart thinking. Sometimes when a set is odd, we have to do s
 **Equal Lake Badge** for successful halving of even sets; special "Problem Solver" badge for students who reasoned well about odd sets.
 
 **Closure:**
-> *"Halfway through our adventure! Tomorrow, the Fold Forest awaits."*
+
+> _"Halfway through our adventure! Tomorrow, the Fold Forest awaits."_
 
 ---
 
@@ -194,6 +205,7 @@ Teacher validates: "Smart thinking. Sometimes when a set is odd, we have to do s
 **Duration:** 50 minutes
 
 **Materials:**
+
 - Large leaves and paper trees (printed, 10x per child)
 - Pre-cut paper trees with symmetric designs (butterflies, hearts, trees)
 - Irregular paper shapes ("tricky leaves")
@@ -201,7 +213,7 @@ Teacher validates: "Smart thinking. Sometimes when a set is odd, we have to do s
 
 **Opening Story (10 min):**
 
-> *"The Fold Forest is the most magical region of the kingdom. Here, every leaf has a PERFECT fold line, and every tree splits into TWO EQUAL HALVES. The Fold Folk (tiny people who live in folds) need a helper to fold every leaf in the forest. Will you help?"*
+> _"The Fold Forest is the most magical region of the kingdom. Here, every leaf has a PERFECT fold line, and every tree splits into TWO EQUAL HALVES. The Fold Folk (tiny people who live in folds) need a helper to fold every leaf in the forest. Will you help?"_
 
 [Read Day 4 script]
 
@@ -217,16 +229,19 @@ Children work at tables with piles of paper leaves and shapes. They must:
 4. Note: some irregular shapes CAN be halved (if you find the right line); some cannot be easily halved through one fold.
 
 **Station Variations:**
+
 - **Station A:** Symmetric butterflies — easy folds
 - **Station B:** Symmetric trees and hearts — many fold options
 - **Station C:** Rectangles — fold vertically, horizontally, diagonally?
 - **Station D:** Irregular blob shapes — can we halve?
 
 **Teacher-Led Discussion:**
-> *"Is every shape halvable with one fold?"*
+
+> _"Is every shape halvable with one fold?"_
 
 Children discover: most symmetric shapes yes; irregular shapes no easily.
-> *"For irregular shapes, we need CAREFUL MEASUREMENT or LOTS OF FOLDS or a DIFFERENT METHOD. We'll learn more."*
+
+> _"For irregular shapes, we need CAREFUL MEASUREMENT or LOTS OF FOLDS or a DIFFERENT METHOD. We'll learn more."_
 
 This is an honest acknowledgment of complexity. We don't oversimplify.
 
@@ -234,7 +249,8 @@ This is an honest acknowledgment of complexity. We don't oversimplify.
 **Fold Forest Badge** for completing 5+ folds successfully.
 
 **Closure:**
-> *"Tomorrow — the final quest. The Halving Hills await."*
+
+> _"Tomorrow — the final quest. The Halving Hills await."_
 
 ---
 
@@ -243,6 +259,7 @@ This is an honest acknowledgment of complexity. We don't oversimplify.
 **Duration:** 50 minutes
 
 **Materials:**
+
 - All 4 prior badges in Adventure Journals
 - Halfie and Halvo plush/puppet
 - A special "Halving Hills Quest" pizza (large, prepared with 10 colorful toppings)
@@ -252,12 +269,13 @@ This is an honest acknowledgment of complexity. We don't oversimplify.
 
 **Opening Story (10 min):**
 
-> *"We have arrived. The Halving Hills. Halfie and Halvo are waiting. They have baked ONE SPECIAL PIZZA for you — and they want YOU to halve it for them. This is your final quest."*
+> _"We have arrived. The Halving Hills. Halfie and Halvo are waiting. They have baked ONE SPECIAL PIZZA for you — and they want YOU to halve it for them. This is your final quest."_
 
 [Read Day 5 script — the Halving Hills welcome]
 
 Halfie and Halvo (puppets or teacher voices):
-> *"Hello, friend! We've heard about you! We heard you halved pizzas, ribbons, fish, and leaves. Can you halve ONE MORE THING for us? This special pizza, here. Halve it so we can BOTH eat. Please?"*
+
+> _"Hello, friend! We've heard about you! We heard you halved pizzas, ribbons, fish, and leaves. Can you halve ONE MORE THING for us? This special pizza, here. Halve it so we can BOTH eat. Please?"_
 
 **The Final Quest (25 min):**
 
@@ -270,43 +288,49 @@ Each child receives a special pizza (or works in pairs). They must:
 5. Present to Halfie and Halvo on plates.
 
 Teacher as Halfie/Halvo:
-> *"These halves are EQUAL! We are both happy! You have MASTERED halving!"*
+
+> _"These halves are EQUAL! We are both happy! You have MASTERED halving!"_
 
 **The Fraction Fairy Visit (10 min):**
 
 Teacher (or guest teacher/aide) enters as the Fraction Fairy. Sprinkles "fraction dust" over each child's head:
 
-> *"I am the Fraction Fairy. You have earned five badges. You have halved five things. You are now a MASTER HALVER. Take this mastery into your heart. Remember: you can halve anything fairly."*
+> _"I am the Fraction Fairy. You have earned five badges. You have halved five things. You are now a MASTER HALVER. Take this mastery into your heart. Remember: you can halve anything fairly."_
 
 **Certificate Ceremony (5 min):**
 
 Teacher hands each child a Halver Mastery Certificate (hand-signed) and places all 5 badges in a "Halving Hills Badge Book" display.
 
 **Closure:**
-> *"You have completed the Halving Adventure. Next week, you will meet NEW friends — four of them — and learn something new called FOURTHS."*
+
+> _"You have completed the Halving Adventure. Next week, you will meet NEW friends — four of them — and learn something new called FOURTHS."_
 
 ---
 
 ## DIFFERENTIATION
 
 ### For English Language Learners:
+
 - Pre-teach adventure vocabulary: "quest," "journey," "badge," "region"
 - Partner ELLs with bilingual peers for quest navigation
 - Provide picture-based Adventure Journal templates
 - Use gestures consistently for "half" (chop), "whole" (circle), "equal" (match hands)
 
 ### For Students with Motor Challenges:
+
 - Pre-folded materials available at each station
 - Larger ribbons, larger shapes, larger counters
 - Adaptive scissors or teacher-cut options
 - Extra time at each station
 
 ### For Advanced Students:
+
 - Bonus Quest: Halve an IRREGULAR shape (provided template). What's your method?
 - Journal Challenge: "Explain the hardest thing you halved this week and how you solved it."
 - Lead role: Help Crumb understand halving (peer teaching).
 
 ### For Students Struggling:
+
 - Focus on Monday (Hearth) and Friday (Hills) — don't feel pressured to complete all five
 - Modified badge criteria: completing 3 of 5 quests earns full celebration
 - Small-group intervention Wednesday evening (after Day 3) to catch up
@@ -316,16 +340,16 @@ Teacher hands each child a Halver Mastery Certificate (hand-signed) and places a
 ## COMMON MISCONCEPTIONS ADDRESSED
 
 **M1: "A half is a specific size."**
-*Addressed Day 1:* Different-size pizzas, all halved — halves vary by whole.
+_Addressed Day 1:_ Different-size pizzas, all halved — halves vary by whole.
 
 **M2: "Halving means cutting with a knife."**
-*Addressed throughout:* Halving happens through folding, counting, sorting, measuring. It's a CONCEPT, not a tool.
+_Addressed throughout:_ Halving happens through folding, counting, sorting, measuring. It's a CONCEPT, not a tool.
 
 **M3: "A half looks like a half-circle."**
-*Addressed Day 4:* Halves of different shapes look DIFFERENT.
+_Addressed Day 4:_ Halves of different shapes look DIFFERENT.
 
 **M4: "Odd numbers can't be halved."**
-*Addressed Day 3:* Complex territory. We acknowledge the challenge honestly; full resolution comes later.
+_Addressed Day 3:_ Complex territory. We acknowledge the challenge honestly; full resolution comes later.
 
 ---
 
@@ -368,10 +392,12 @@ This extended application week is supported by:
 ## TEACHER PREP CHECKLIST
 
 **Two Weeks Before:**
+
 - [ ] Prepare Adventure Journals (print, staple, label)
 - [ ] Print all badges (5 per child)
 
 **One Week Before:**
+
 - [ ] Cut ribbons in 3 lengths
 - [ ] Prepare Lake mats and fish
 - [ ] Cut leaf and tree shapes
@@ -381,6 +407,7 @@ This extended application week is supported by:
 - [ ] Review all 5 daily read-aloud scripts
 
 **Day Of:**
+
 - [ ] Materials staged by day
 - [ ] Story scripts bookmarked
 - [ ] Adventure Journals distributed Monday
@@ -395,4 +422,4 @@ By end of Week 4, children have **fluent halving**. They are ready for the compo
 
 ---
 
-*End of Activity 04. Next: Activity 05 — Pizza Party Protocol.*
+_End of Activity 04. Next: Activity 05 — Pizza Party Protocol._

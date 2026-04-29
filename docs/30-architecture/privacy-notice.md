@@ -14,11 +14,13 @@ Questerix Fractions is designed to collect **minimal data** and respect student 
 ## What We Store
 
 ### On Device (IndexedDB)
+
 - **Session records**: activity history, question responses, hint usage (per student)
 - **Device metadata**: one-time installation ID (`installId`), locale, accessibility preferences
 - **Curriculum data**: questions, answers, hints (static, read-only after boot)
 
-### What We *Never* Collect
+### What We _Never_ Collect
+
 - Student names or identifying information
 - Email addresses or contact details
 - Device serial numbers or OS identifiers
@@ -28,12 +30,14 @@ Questerix Fractions is designed to collect **minimal data** and respect student 
 ## Local-Only Data
 
 **Installation ID (`installId`)**
+
 - Generated once on first boot
 - Stored locally in IndexedDB
 - Used to correlate sessions within the same device
 - Never transmitted to servers or analytics platforms
 
 **Per-Session Data**
+
 - All data is stored locally on the device
 - No cloud sync or server upload by default
 - Manual backup (Settings > Download Backup) is user-initiated only
@@ -51,6 +55,7 @@ See `src/persistence/db.ts::ensurePersistenceGranted()` for implementation.
 ## Data Backup & Restore
 
 Students can download a JSON backup file from Settings. The file contains:
+
 - Session history
 - Attempt records
 - Progress stats
@@ -59,6 +64,7 @@ Students can download a JSON backup file from Settings. The file contains:
 **The backup is NOT encrypted.** Recommend device-level encryption (FileVault, BitLocker) for sensitive environments.
 
 Backups can be:
+
 - Stored securely (cloud storage, USB drive)
 - Restored to another device running Questerix
 

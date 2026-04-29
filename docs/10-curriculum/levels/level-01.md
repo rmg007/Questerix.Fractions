@@ -35,11 +35,11 @@ Symbolic notation `1/2` is **not introduced at this level** (per `RoadMap/02_Lev
 
 See `../skills.md` for canonical definitions.
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-01` | Recognize equal partitioning | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
-| `SK-02` | Identify halves visually | `pInit=0.15, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
-| `SK-03` | Use the word "half" for one of two equal parts | `pInit=0.10, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
+| Skill ID | Name                                           | BKT priors                                           |
+| -------- | ---------------------------------------------- | ---------------------------------------------------- |
+| `SK-01`  | Recognize equal partitioning                   | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
+| `SK-02`  | Identify halves visually                       | `pInit=0.15, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
+| `SK-03`  | Use the word "half" for one of two equal parts | `pInit=0.10, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
 
 Mastery of all three skills at `state: "MASTERED"` is the gate to unlock Level 2.
 
@@ -47,11 +47,11 @@ Mastery of all three skills at `state: "MASTERED"` is the gate to unlock Level 2
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.K.G.A.2** (identify shapes regardless of orientation) | Touched (rotated rectangles) |
-| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves and fourths) | Primary |
-| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Light extension at Tier 3 |
+| Standard                                                                                   | Coverage                     |
+| ------------------------------------------------------------------------------------------ | ---------------------------- |
+| **CCSS.K.G.A.2** (identify shapes regardless of orientation)                               | Touched (rotated rectangles) |
+| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves and fourths)      | Primary                      |
+| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Light extension at Tier 3    |
 
 ---
 
@@ -66,15 +66,15 @@ Three core activities. A session uses one activity; a full level pass touches al
 **Title:** "Are These Parts Equal?"
 **Levels in app:** L1 only
 
-The student sees a partitioned shape and answers a binary question: *Are the parts equal in size?* Tap the green check or red X.
+The student sees a partitioned shape and answers a binary question: _Are the parts equal in size?_ Tap the green check or red X.
 
 #### Difficulty tiers
 
-| Tier | Scaffolding | Visual | Hint budget |
-|------|-------------|--------|-------------|
-| Easy | Highlight grid lines | Always-on | 3 |
-| Medium | No grid | Always-on | 2 |
-| Hard | No grid, rotated/skewed shapes | Always-on | 1 |
+| Tier   | Scaffolding                    | Visual    | Hint budget |
+| ------ | ------------------------------ | --------- | ----------- |
+| Easy   | Highlight grid lines           | Always-on | 3           |
+| Medium | No grid                        | Always-on | 2           |
+| Hard   | No grid, rotated/skewed shapes | Always-on | 1           |
 
 #### Question template archetype
 
@@ -170,11 +170,11 @@ The student sees 3 shapes side by side. One has 1/2 highlighted (correctly: one 
 
 #### Difficulty tiers
 
-| Tier | Distractor strategy | Hint budget |
-|------|--------------------|-------------|
-| Easy | One option is unpartitioned, one is partitioned but not into 2 | 3 |
-| Medium | All options partitioned into 2, but only one has equal parts | 2 |
-| Hard | All options have 2 equal parts but only one has 1 of 2 highlighted | 1 |
+| Tier   | Distractor strategy                                                | Hint budget |
+| ------ | ------------------------------------------------------------------ | ----------- |
+| Easy   | One option is unpartitioned, one is partitioned but not into 2     | 3           |
+| Medium | All options partitioned into 2, but only one has equal parts       | 2           |
+| Hard   | All options have 2 equal parts but only one has 1 of 2 highlighted | 1           |
 
 #### Question template archetype
 
@@ -193,16 +193,38 @@ The student sees 3 shapes side by side. One has 1/2 highlighted (correctly: one 
   "payload": {
     "options": [
       { "shapeType": "rectangle", "partitionLines": [], "highlightedRegions": [] },
-      { "shapeType": "rectangle", "partitionLines": [[[0.5,0],[0.5,1]]], "highlightedRegions": [0] },
-      { "shapeType": "rectangle", "partitionLines": [[[0.33,0],[0.33,1]],[[0.66,0],[0.66,1]]], "highlightedRegions": [0] }
+      {
+        "shapeType": "rectangle",
+        "partitionLines": [
+          [
+            [0.5, 0],
+            [0.5, 1],
+          ],
+        ],
+        "highlightedRegions": [0],
+      },
+      {
+        "shapeType": "rectangle",
+        "partitionLines": [
+          [
+            [0.33, 0],
+            [0.33, 1],
+          ],
+          [
+            [0.66, 0],
+            [0.66, 1],
+          ],
+        ],
+        "highlightedRegions": [0],
+      },
     ],
-    "targetIndex": 1
+    "targetIndex": 1,
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["SK-02", "SK-03"],
   "misconceptionTraps": ["MC-WHB-01"],
-  "difficultyTier": "easy"
+  "difficultyTier": "easy",
 }
 ```
 
@@ -221,11 +243,11 @@ The student sees a whole shape and drags a line across it to split it into 2 equ
 
 #### Difficulty tiers
 
-| Tier | Shape | Drag affordance | Tolerance | Hint budget |
-|------|-------|----------------|-----------|-------------|
-| Easy | Rectangle, axis-aligned | Drag-to-snap to vertical or horizontal centerline | ±5% area | 3 |
-| Medium | Rectangle, axis-aligned | Free drag, no snap | ±5% area | 2 |
-| Hard | Circle, rotated rectangle, irregular | Free drag, no snap | ±3% area | 1 |
+| Tier   | Shape                                | Drag affordance                                   | Tolerance | Hint budget |
+| ------ | ------------------------------------ | ------------------------------------------------- | --------- | ----------- |
+| Easy   | Rectangle, axis-aligned              | Drag-to-snap to vertical or horizontal centerline | ±5% area  | 3           |
+| Medium | Rectangle, axis-aligned              | Free drag, no snap                                | ±5% area  | 2           |
+| Hard   | Circle, rotated rectangle, irregular | Free drag, no snap                                | ±3% area  | 1           |
 
 #### Question template archetype
 
@@ -278,12 +300,12 @@ The student sees a whole shape and drags a line across it to split it into 2 equ
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-EOL-01` | "More pieces = bigger" — student says unequal partition is equal because there are more lines | Wrong "yes" on `equal_or_not` Tier 1 cases with skewed partition |
-| `MC-EOL-02` | "Rotated halves are unequal" — student says rotated 50/50 is unequal | Wrong "no" on `equal_or_not` Tier 2 with non-zero rotation |
-| `MC-EOL-03` | "Visual symmetry = equality" — student misjudges curved partitions | Wrong on Tier 3 curved/skewed cases |
-| `MC-WHB-01` | "Whole-number bias" — student picks shape with most highlighted regions, ignoring count | Wrong on `identify_half` distractors with multiple highlighted regions |
+| MC ID       | Name                                                                                          | Detection signal                                                       |
+| ----------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `MC-EOL-01` | "More pieces = bigger" — student says unequal partition is equal because there are more lines | Wrong "yes" on `equal_or_not` Tier 1 cases with skewed partition       |
+| `MC-EOL-02` | "Rotated halves are unequal" — student says rotated 50/50 is unequal                          | Wrong "no" on `equal_or_not` Tier 2 with non-zero rotation             |
+| `MC-EOL-03` | "Visual symmetry = equality" — student misjudges curved partitions                            | Wrong on Tier 3 curved/skewed cases                                    |
+| `MC-WHB-01` | "Whole-number bias" — student picks shape with most highlighted regions, ignoring count       | Wrong on `identify_half` distractors with multiple highlighted regions |
 
 Detail and intervention activities live in `../misconceptions.md` (TBD; salvage from `RoadMap/02_Level_03_05/misconceptions/MISCONCEPTIONS_FRAMEWORK.md`).
 
@@ -294,7 +316,15 @@ Detail and intervention activities live in `../misconceptions.md` (TBD; salvage 
 Level 1 uses only one fraction record:
 
 ```json
-{ "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "halves", "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." } }
+{
+  "id": "frac:1/2",
+  "numerator": 1,
+  "denominator": 2,
+  "decimalValue": 0.5,
+  "benchmark": "half",
+  "denominatorFamily": "halves",
+  "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." }
+}
 ```
 
 Per C8, denominators 3+ do not appear at this level.
@@ -324,14 +354,14 @@ Per C9:
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `equal_or_not` templates | 12 | 4 examples shown | Need 8 more |
-| `identify_half` templates | 12 | 1 example shown | Need 11 more |
-| `partition_halves` templates | 12 | 2 examples shown | Need 10 more |
-| TTS audio scripts | 36 | 0 | Generate from prompt.text via SpeechSynthesis API at runtime (per scope-and-sequence §7) |
-| Hint definitions | ~108 (3 per template) | 0 | TBD |
-| Validator function specs | 3 | High-level only | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
+| Item                         | Required              | Authored         | Notes                                                                                    |
+| ---------------------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------------------- |
+| `equal_or_not` templates     | 12                    | 4 examples shown | Need 8 more                                                                              |
+| `identify_half` templates    | 12                    | 1 example shown  | Need 11 more                                                                             |
+| `partition_halves` templates | 12                    | 2 examples shown | Need 10 more                                                                             |
+| TTS audio scripts            | 36                    | 0                | Generate from prompt.text via SpeechSynthesis API at runtime (per scope-and-sequence §7) |
+| Hint definitions             | ~108 (3 per template) | 0                | TBD                                                                                      |
+| Validator function specs     | 3                     | High-level only  | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md`                   |
 
 ---
 

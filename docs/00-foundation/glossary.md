@@ -76,19 +76,19 @@ A specific, pre-written piece of help available on demand within a Question. Tra
 ## Pedagogical Terms
 
 **CRA (Concrete-Representational-Abstract)**
-A learning progression where students first manipulate concrete objects, then work with visual representations of those objects, then with abstract symbols. Questerix's drag-and-drop mechanic occupies the *concrete* and *representational* zones; symbolic notation `1/2` is introduced only at L6+, marking entry to the *abstract* zone.
+A learning progression where students first manipulate concrete objects, then work with visual representations of those objects, then with abstract symbols. Questerix's drag-and-drop mechanic occupies the _concrete_ and _representational_ zones; symbolic notation `1/2` is introduced only at L6+, marking entry to the _abstract_ zone.
 
 **Whole-Number Bias**
 The systematic error where students apply whole-number reasoning to fractions, e.g. believing 1/4 > 1/2 because 4 > 2. Addressed throughout L6–L9.
 
 **Magnitude Understanding**
-The ability to reason about *how much* a fraction is, not just what it is named. Tested by placement on a number line, comparison without computation, and benchmark estimation. The primary outcome we are trying to teach.
+The ability to reason about _how much_ a fraction is, not just what it is named. Tested by placement on a number line, comparison without computation, and benchmark estimation. The primary outcome we are trying to teach.
 
 **Benchmark Fraction**
 A fraction used as a reference point for estimation. The MVP uses three: 0, 1/2, 1. Comparisons like "is 3/8 closer to 0 or to 1/2?" are benchmark reasoning.
 
 **Equal Partitioning**
-The action of splitting a whole into parts of *equal area* (or equal length, in number-line contexts). Distinct from *equal counts* (4 pieces ≠ 4 equal pieces).
+The action of splitting a whole into parts of _equal area_ (or equal length, in number-line contexts). Distinct from _equal counts_ (4 pieces ≠ 4 equal pieces).
 
 **Unit Fraction**
 A fraction with numerator 1, e.g. 1/2, 1/3, 1/4. The pedagogical foundation of fraction reasoning.
@@ -186,18 +186,18 @@ A specific historical word for a planning approach. Not the same thing as the fi
 
 This section locks the canonical `archetype` enum values and their downstream contracts. It is the single source of truth. Any document or codebase value that diverges from this table is wrong.
 
-| Archetype | Validator ID | Primary Phaser Scene | Levels in scope |
-|-----------|-------------|---------------------|-----------------|
-| `partition` | `validator.partition.equalAreas` | `PartitionScene` | L1, L4, L5 |
-| `identify` | `validator.identify.exactIndex` | `IdentifyScene` | L1, L2, L3 |
-| `label` | `validator.label.matchTarget` | `LabelScene` | L2, L3 |
-| `make` | `validator.make.foldAndShade` | `MakeScene` | L4, L5 |
-| `compare` | `validator.compare.relation` | `CompareScene` | L6, L7 |
-| `benchmark` | `validator.benchmark.sortToZone` | `BenchmarkScene` | L8 |
-| `order` | `validator.order.sequence` | `OrderScene` | L9 |
-| `snap_match` | `validator.snap_match.allPairs` | `SnapMatchScene` | L2, L3 |
-| `equal_or_not` | `validator.equal_or_not.areaTolerance` | `EqualOrNotScene` | L1 |
-| `placement` | `validator.placement.tolerance` | `PlacementScene` | L8, L9 |
+| Archetype      | Validator ID                           | Primary Phaser Scene | Levels in scope |
+| -------------- | -------------------------------------- | -------------------- | --------------- |
+| `partition`    | `validator.partition.equalAreas`       | `PartitionScene`     | L1, L4, L5      |
+| `identify`     | `validator.identify.exactIndex`        | `IdentifyScene`      | L1, L2, L3      |
+| `label`        | `validator.label.matchTarget`          | `LabelScene`         | L2, L3          |
+| `make`         | `validator.make.foldAndShade`          | `MakeScene`          | L4, L5          |
+| `compare`      | `validator.compare.relation`           | `CompareScene`       | L6, L7          |
+| `benchmark`    | `validator.benchmark.sortToZone`       | `BenchmarkScene`     | L8              |
+| `order`        | `validator.order.sequence`             | `OrderScene`         | L9              |
+| `snap_match`   | `validator.snap_match.allPairs`        | `SnapMatchScene`     | L2, L3          |
+| `equal_or_not` | `validator.equal_or_not.areaTolerance` | `EqualOrNotScene`    | L1              |
+| `placement`    | `validator.placement.tolerance`        | `PlacementScene`     | L8, L9          |
 
 **Deprecated synonyms:** `mechanic` and `QuestionType` are invalid names for this enum. They are preserved here for historical reference only. All occurrences in code and docs must be replaced with `archetype`. See D-17.
 
@@ -207,16 +207,16 @@ This section locks the canonical `archetype` enum values and their downstream co
 
 The following terms are **not used in current MVP docs**. If found in a draft, they are replaced with the listed term:
 
-| Banned | Use Instead | Reason |
-|--------|-------------|--------|
-| Module | Activity or Level | Inherited from enterprise plans |
-| Grade | Level (in user-facing) / acceptable internally | Per Levels-not-Grades decision |
-| Master Plan | Roadmap | Inherited enterprise jargon |
-| Executive Summary | Vision | Same |
-| Strategic Audit | Constraints | Same |
-| Procurement | (drop entirely) | Out of MVP scope |
-| District | (drop entirely) | Out of MVP scope |
-| ESSA Tier | (drop entirely) | Post-validation concern |
-| Premortem | (drop entirely) | Use a Risks section instead |
-| Premium / Tier 1-2-3 | (drop entirely) | Monetization is post-MVP |
-| Backend / Server / API endpoint | (drop or qualify "post-MVP-2029") | Per C1 |
+| Banned                          | Use Instead                                    | Reason                          |
+| ------------------------------- | ---------------------------------------------- | ------------------------------- |
+| Module                          | Activity or Level                              | Inherited from enterprise plans |
+| Grade                           | Level (in user-facing) / acceptable internally | Per Levels-not-Grades decision  |
+| Master Plan                     | Roadmap                                        | Inherited enterprise jargon     |
+| Executive Summary               | Vision                                         | Same                            |
+| Strategic Audit                 | Constraints                                    | Same                            |
+| Procurement                     | (drop entirely)                                | Out of MVP scope                |
+| District                        | (drop entirely)                                | Out of MVP scope                |
+| ESSA Tier                       | (drop entirely)                                | Post-validation concern         |
+| Premortem                       | (drop entirely)                                | Use a Risks section instead     |
+| Premium / Tier 1-2-3            | (drop entirely)                                | Monetization is post-MVP        |
+| Backend / Server / API endpoint | (drop or qualify "post-MVP-2029")              | Per C1                          |

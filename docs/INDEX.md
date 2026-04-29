@@ -32,17 +32,17 @@ Complete map of `/docs`. Read in the order shown for the first pass; jump around
 
 ### Per-Level Specs
 
-| Level | File | Concept | Mechanic family |
-|-------|------|---------|-----------------|
-| L1 | [level-01](./10-curriculum/levels/level-01.md) | Halves: equal parts | partition, identify |
-| L2 | [level-02](./10-curriculum/levels/level-02.md) | Identify halves (depth) | identify, label, match |
-| L3 | [level-03](./10-curriculum/levels/level-03.md) | Thirds and fourths (identify) | identify, name |
-| L4 | [level-04](./10-curriculum/levels/level-04.md) | Make halves | make, fold |
-| L5 | [level-05](./10-curriculum/levels/level-05.md) | Make thirds and fourths | make, fold, compositional |
-| L6 | [level-06](./10-curriculum/levels/level-06.md) | Compare same-denominator (symbols arrive) | compare, snap_match |
-| L7 | [level-07](./10-curriculum/levels/level-07.md) | Compare same-numerator | compare, ladder |
-| L8 | [level-08](./10-curriculum/levels/level-08.md) | Benchmarks (0, 1/2, 1) | placement, benchmark_sort |
-| L9 | [level-09](./10-curriculum/levels/level-09.md) | Order 3+ fractions (capstone) | order, explain |
+| Level | File                                           | Concept                                   | Mechanic family           |
+| ----- | ---------------------------------------------- | ----------------------------------------- | ------------------------- |
+| L1    | [level-01](./10-curriculum/levels/level-01.md) | Halves: equal parts                       | partition, identify       |
+| L2    | [level-02](./10-curriculum/levels/level-02.md) | Identify halves (depth)                   | identify, label, match    |
+| L3    | [level-03](./10-curriculum/levels/level-03.md) | Thirds and fourths (identify)             | identify, name            |
+| L4    | [level-04](./10-curriculum/levels/level-04.md) | Make halves                               | make, fold                |
+| L5    | [level-05](./10-curriculum/levels/level-05.md) | Make thirds and fourths                   | make, fold, compositional |
+| L6    | [level-06](./10-curriculum/levels/level-06.md) | Compare same-denominator (symbols arrive) | compare, snap_match       |
+| L7    | [level-07](./10-curriculum/levels/level-07.md) | Compare same-numerator                    | compare, ladder           |
+| L8    | [level-08](./10-curriculum/levels/level-08.md) | Benchmarks (0, 1/2, 1)                    | placement, benchmark_sort |
+| L9    | [level-09](./10-curriculum/levels/level-09.md) | Order 3+ fractions (capstone)             | order, explain            |
 
 ## Mechanic
 
@@ -102,10 +102,10 @@ title: <human-readable title>
 status: active | draft | parking-lot | superseded | archived
 owner: solo
 last_reviewed: YYYY-MM-DD
-applies_to: [mvp]                # or [post-mvp-2029]
-constraint_refs: [C1, C3]        # optional
-related: [path/to/doc.md, ...]   # optional
-supersedes: []                   # optional
+applies_to: [mvp] # or [post-mvp-2029]
+constraint_refs: [C1, C3] # optional
+related: [path/to/doc.md, ...] # optional
+supersedes: [] # optional
 ---
 ```
 
@@ -115,15 +115,15 @@ A doc tagged `applies_to: [post-mvp-2029]` may not be referenced by an `[mvp]` d
 
 ## ID Schemas
 
-| Type | Pattern | Example | Defined In |
-|------|---------|---------|------------|
-| Constraint | `C{N}` | `C8` | `00-foundation/constraints.md` |
-| Decision | `D-{NN}` | `D-09` | `00-foundation/decision-log.md` |
-| Open Question | `Q{N}` | `Q3` | `00-foundation/open-questions.md` |
-| Skill | `SK-{NN}` | `SK-02` | `10-curriculum/skills.md` (canonical registry) |
-| Misconception | `MC-{FAM}-{NN}` | `MC-WHB-01` | `10-curriculum/misconceptions.md` |
-| Activity | `<slug>` | `magnitude_scales` | per-level specs + `20-mechanic/activity-archetypes.md` |
-| Validator | `validator.<archetype>.<variant>` | `validator.placement.snapTolerance` | `20-mechanic/activity-archetypes.md` |
-| Question Template | `q:<archetype-short>:L{N}:NNNN` | `q:ms:L1:0001` | per-level specs |
-| Hypothesis | `H-{NN}` | `H-03` | `40-validation/learning-hypotheses.md` |
-| Risk | `R-{NN}` | `R-04` | `00-foundation/risk-register.md` |
+| Type              | Pattern                           | Example                             | Defined In                                             |
+| ----------------- | --------------------------------- | ----------------------------------- | ------------------------------------------------------ |
+| Constraint        | `C{N}`                            | `C8`                                | `00-foundation/constraints.md`                         |
+| Decision          | `D-{NN}`                          | `D-09`                              | `00-foundation/decision-log.md`                        |
+| Open Question     | `Q{N}`                            | `Q3`                                | `00-foundation/open-questions.md`                      |
+| Skill             | `SK-{NN}`                         | `SK-02`                             | `10-curriculum/skills.md` (canonical registry)         |
+| Misconception     | `MC-{FAM}-{NN}`                   | `MC-WHB-01`                         | `10-curriculum/misconceptions.md`                      |
+| Activity          | `<slug>`                          | `magnitude_scales`                  | per-level specs + `20-mechanic/activity-archetypes.md` |
+| Validator         | `validator.<archetype>.<variant>` | `validator.placement.snapTolerance` | `20-mechanic/activity-archetypes.md`                   |
+| Question Template | `q:<archetype-short>:L{N}:NNNN`   | `q:ms:L1:0001`                      | per-level specs                                        |
+| Hypothesis        | `H-{NN}`                          | `H-03`                              | `40-validation/learning-hypotheses.md`                 |
+| Risk              | `R-{NN}`                          | `R-04`                              | `00-foundation/risk-register.md`                       |

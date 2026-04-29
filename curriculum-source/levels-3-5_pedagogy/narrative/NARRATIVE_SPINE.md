@@ -1,6 +1,6 @@
 # THE HALVING KINGDOM — YEAR-LONG NARRATIVE SPINE
 
-> *"Once upon a fraction, in a kingdom shaped like a perfect circle, lived a little chef who learned the most important secret in all the land: how to share."*
+> _"Once upon a fraction, in a kingdom shaped like a perfect circle, lived a little chef who learned the most important secret in all the land: how to share."_
 
 ---
 
@@ -47,7 +47,8 @@ The Halving Kingdom is a perfect circle, divided by ancient ley lines into regio
 ### The Kingdom's Law
 
 In ancient times, when the kingdom was founded, Queen Equallia decreed:
-> *"In this kingdom, when there is one of something and two who need it, we do not fight. We halve. When there is one and four are hungry, we fourth. We are the people of equal shares, and as long as we share equally, the kingdom shall stand."*
+
+> _"In this kingdom, when there is one of something and two who need it, we do not fight. We halve. When there is one and four are hungry, we fourth. We are the people of equal shares, and as long as we share equally, the kingdom shall stand."_
 
 This is the **moral spine** of the curriculum. Fractions are not just math — they are the kingdom's social contract. Equal sharing is **fair**, **right**, and **what good people do**.
 
@@ -59,7 +60,7 @@ This is the **moral spine** of the curriculum. Fractions are not just math — t
 
 Pia is the apprentice baker at the Whole Hearth. She is six years old (the child's age — deliberate). She is curious, kind, and a little impatient. She wants to share with everyone, but she does not yet know HOW.
 
-**Phase 1 — Discovery (Sept-Oct):** Pia receives her first real task: feed the Halving Hills. She bakes one pizza, but two friends (Halfie and Halvo) arrive hungry. She panics. *How do I share one with two?* The phase ends when Pia, with the child's help, discovers halving.
+**Phase 1 — Discovery (Sept-Oct):** Pia receives her first real task: feed the Halving Hills. She bakes one pizza, but two friends (Halfie and Halvo) arrive hungry. She panics. _How do I share one with two?_ The phase ends when Pia, with the child's help, discovers halving.
 
 **Phase 2 — Formalization (Nov-Feb):** Pia is now a junior chef. She learns to halve and fourth reliably. She meets Lord Notenough's tricks (fake-equal pieces, divisions that aren't fair) and learns to detect them. The phase ends when Pia is named **Apprentice to Queen Equallia**.
 
@@ -69,7 +70,7 @@ Pia is the apprentice baker at the Whole Hearth. She is six years old (the child
 
 Pia speaks in simple, kid-natural language. She makes mistakes. She gets frustrated. She celebrates. She invites the child to help:
 
-> *"Hmm. I have one pizza but TWO hungry friends. Halfie wants some. Halvo wants some. I can't give them each a whole pizza — I only have ONE. What do I do? ... Oh! Can you help me?"*
+> _"Hmm. I have one pizza but TWO hungry friends. Halfie wants some. Halvo wants some. I can't give them each a whole pizza — I only have ONE. What do I do? ... Oh! Can you help me?"_
 
 This invitation is the **pedagogical pivot**. Every activity has a moment where Pia turns to the child.
 
@@ -88,6 +89,7 @@ This invitation is the **pedagogical pivot**. Every activity has a moment where 
 **Act I Climax (Week 6):** Pia is invited to the Equal Lake for her first ceremony. She must halve a ceremonial pie in front of the kingdom. Will she succeed? (Of course — but the suspense matters to the child.)
 
 **Mathematical Content of Act I:**
+
 - The whole as a single, unified, complete thing
 - Equal vs. unequal sharing (intuitive, before formal language)
 - Halving (one whole → two equal parts)
@@ -101,6 +103,7 @@ This invitation is the **pedagogical pivot**. Every activity has a moment where 
 **Inciting Incident (Week 7):** Lord Notenough launches his first attack: he sends fake pieces into the kingdom. They LOOK like halves but are not equal. The kingdom is in danger. Pia must learn to detect fakes.
 
 **Rising Action (Weeks 8-19):** Pia learns:
+
 - The word "half" applies to MORE than pizzas (rectangles, ribbons, groups, time)
 - "Half of half is fourth"
 - Halving works on MANY shapes
@@ -111,6 +114,7 @@ This invitation is the **pedagogical pivot**. Every activity has a moment where 
 **Act II Climax (Week 20):** The Halving Detective Trial. Pia must judge fifty pieces submitted by Lord Notenough's spies, identifying which are true halves and fourths and which are fakes. Queen Equallia presides.
 
 **Mathematical Content of Act II:**
+
 - Halves and fourths in multiple contexts (shapes, sets, time, length)
 - Equal partitioning across shape types
 - Recognition under perceptual variation (rotated, different shapes)
@@ -125,6 +129,7 @@ This invitation is the **pedagogical pivot**. Every activity has a moment where 
 **Inciting Incident (Week 21):** Whola the Wise grows ill. She summons Pia: "The Hunger Storm comes in twelve weeks. Only equal sharing can save the kingdom. You must learn to share EVERYTHING."
 
 **Rising Action (Weeks 22-31):** Pia's challenges expand:
+
 - Sharing a long ribbon among friends (length)
 - Sharing a garden among neighbors (area, irregular shapes)
 - Sharing time (half an hour, quarter past)
@@ -135,6 +140,7 @@ This invitation is the **pedagogical pivot**. Every activity has a moment where 
 **Act III Climax (Week 32):** The Hunger Storm arrives. The entire kingdom comes to the Whole Hearth. Pia must lead the great sharing — every food, every resource, every fair piece. With the child's help, she succeeds. The kingdom is saved. Queen Equallia crowns Pia **Royal Sharemaster**.
 
 **Mathematical Content of Act III:**
+
 - Halves and fourths in NEW contexts (length, time, money, area, music)
 - Word problem solving with fractional language
 - Compositional fluency across contexts
@@ -162,14 +168,16 @@ Each week of the curriculum follows a story-shaped pattern:
 ### The "Pia Turns to You" Moment
 
 Once per activity, Pia explicitly turns to the child:
-> *"I'm stuck. Can you help me?"*
+
+> _"I'm stuck. Can you help me?"_
 
 This is sacred. It transforms passive viewing into active problem-solving. It signals to the child: **YOU are needed. YOU have power. YOU are the hero too.**
 
 ### The Crumb Misconception Beat
 
 Once per week, Crumb the Confused enters with a wrong fraction:
-> *"Look! I cut my cookie in HALF!"* [shows a tiny piece and a huge piece]
+
+> _"Look! I cut my cookie in HALF!"_ [shows a tiny piece and a huge piece]
 
 The child must correct Crumb. This is **misconception confrontation as game**. Crumb is never shamed — he is loved and gently taught. Children learn that **mistakes are part of learning**, not signs of failure.
 
@@ -181,17 +189,17 @@ At every milestone (every 4 weeks), Queen Equallia appears at the Equal Lake. Sh
 
 ## CHARACTER ECOSYSTEM (BRIEF — see CHARACTER_GUIDE.md for full detail)
 
-| Character | Role | Mathematical Embodiment | When Introduced |
-|-----------|------|------------------------|-----------------|
-| **Pia** | Protagonist, child's avatar | The learner | Week 1 |
-| **Whola the Wise** | Mentor, elder baker | The whole / unity | Week 1 |
-| **Halfie** | Twin friend | One half | Week 1 |
-| **Halvo** | Twin friend | The other half | Week 1 |
-| **Fee, Fi, Fo, Fum** | Quadruplet friends | The four fourths | Week 5 |
-| **Queen Equallia** | Ruler, judge of equality | The principle of equal-ness | Week 6 |
-| **Lord Notenough** | Antagonist | Inequality, scarcity, unfair sharing | Week 7 |
-| **Crumb the Confused** | Lovable misconception generator | Common misconceptions | Week 2 |
-| **The Fraction Fairy** | Reward giver | Celebration of mastery | Week 4+ |
+| Character              | Role                            | Mathematical Embodiment              | When Introduced |
+| ---------------------- | ------------------------------- | ------------------------------------ | --------------- |
+| **Pia**                | Protagonist, child's avatar     | The learner                          | Week 1          |
+| **Whola the Wise**     | Mentor, elder baker             | The whole / unity                    | Week 1          |
+| **Halfie**             | Twin friend                     | One half                             | Week 1          |
+| **Halvo**              | Twin friend                     | The other half                       | Week 1          |
+| **Fee, Fi, Fo, Fum**   | Quadruplet friends              | The four fourths                     | Week 5          |
+| **Queen Equallia**     | Ruler, judge of equality        | The principle of equal-ness          | Week 6          |
+| **Lord Notenough**     | Antagonist                      | Inequality, scarcity, unfair sharing | Week 7          |
+| **Crumb the Confused** | Lovable misconception generator | Common misconceptions                | Week 2          |
+| **The Fraction Fairy** | Reward giver                    | Celebration of mastery               | Week 4+         |
 
 ---
 
@@ -253,4 +261,4 @@ If any test fails, the scene is rewritten.
 
 ---
 
-*Next: see `CHARACTER_GUIDE.md` for full character profiles and `STORY_SCRIPTS.md` for week-by-week read-aloud scripts.*
+_Next: see `CHARACTER_GUIDE.md` for full character profiles and `STORY_SCRIPTS.md` for week-by-week read-aloud scripts._

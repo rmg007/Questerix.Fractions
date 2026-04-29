@@ -24,11 +24,11 @@ npm run deploy
 
 **What it does automatically:**
 
-| Stage        | Steps                                                                      | Blocks on failure? |
-| ------------ | -------------------------------------------------------------------------- | ------------------ |
+| Stage        | Steps                                                                                                     | Blocks on failure? |
+| ------------ | --------------------------------------------------------------------------------------------------------- | ------------------ |
 | `predeploy`  | typecheck → lint → unit tests (173) → curriculum schema validation → build → bundle size guard (≤1 MB gz) | Yes                |
-| `deploy`     | `wrangler pages deploy dist` → Cloudflare Pages                            | Yes                |
-| `postdeploy` | 18 live checks (see below)                                                 | Reports only       |
+| `deploy`     | `wrangler pages deploy dist` → Cloudflare Pages                                                           | Yes                |
+| `postdeploy` | 18 live checks (see below)                                                                                | Reports only       |
 
 To target a preview deployment instead of production:
 
@@ -42,20 +42,20 @@ DEPLOY_URL=https://<hash>.questerix-fractions.pages.dev node scripts/postdeploy-
 
 `scripts/postdeploy-check.mjs` verifies the live site after every deploy:
 
-| Check                               | What it catches                                                     |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| Root HTTP 200                       | Site is up                                                          |
-| 5 security headers                  | HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy |
-| `/sw.js` — JS MIME                  | Service worker reachable as JavaScript (not SPA fallback HTML)      |
-| `/registerSW.js` — JS MIME          | SW registration script reachable (not SPA fallback HTML)            |
-| `/manifest.json` — JSON MIME        | Web app manifest reachable                                          |
-| `/manifest.webmanifest` — JSON MIME | Alias rewrite working (`_redirects` rule)                           |
-| `/curriculum/v1.json` — JSON MIME   | Curriculum data reachable                                           |
-| SPA fallback                        | Unknown paths return `200 text/html` (not 404)                      |
-| No CF Analytics beacon              | `cloudflareinsights.com` absent from HTML (privacy constraint C4)   |
-| LCP splash present                  | `#splash` + `<h1>` in HTML for instant first paint                  |
-| Build SHA + time                    | Verify which commit is actually live                                |
-| A11yLayer shipped                   | Walks code-split chunks for DOM-parallel a11y button markers        |
+| Check                               | What it catches                                                                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------- |
+| Root HTTP 200                       | Site is up                                                                             |
+| 5 security headers                  | HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy                    |
+| `/sw.js` — JS MIME                  | Service worker reachable as JavaScript (not SPA fallback HTML)                         |
+| `/registerSW.js` — JS MIME          | SW registration script reachable (not SPA fallback HTML)                               |
+| `/manifest.json` — JSON MIME        | Web app manifest reachable                                                             |
+| `/manifest.webmanifest` — JSON MIME | Alias rewrite working (`_redirects` rule)                                              |
+| `/curriculum/v1.json` — JSON MIME   | Curriculum data reachable                                                              |
+| SPA fallback                        | Unknown paths return `200 text/html` (not 404)                                         |
+| No CF Analytics beacon              | `cloudflareinsights.com` absent from HTML (privacy constraint C4)                      |
+| LCP splash present                  | `#splash` + `<h1>` in HTML for instant first paint                                     |
+| Build SHA + time                    | Verify which commit is actually live                                                   |
+| A11yLayer shipped                   | Walks code-split chunks for DOM-parallel a11y button markers                           |
 | No restrictive COEP                 | `cross-origin-embedder-policy: require-corp` would break IndexedDB in embedded testers |
 
 ---

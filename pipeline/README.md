@@ -27,29 +27,35 @@ cp .env.example .env
 ## Commands
 
 ### Generate — all levels (full build)
+
 ```bash
 python -m pipeline generate --model haiku --count 4
 ```
+
 Estimated runtime: ~30–45 min. Estimated cost: ~$4–$11.
 (per content-pipeline.md §6.4, audit §2.5 fix)
 
 ### Generate — targeted rebuild (one level, one archetype)
+
 ```bash
 python -m pipeline generate --level 3 --archetype placement --model haiku
 ```
 
 ### Generate — dry run (stdout only, no files written)
+
 ```bash
 python -m pipeline generate --level 1 --archetype placement --dry-run
 ```
 
 ### Verify a seed file (no LLM, safe for CI)
+
 ```bash
 python -m pipeline verify --in src/assets/curriculum/v1.0.0.json
 python -m pipeline verify --in pipeline/output/level_01/all.json --templates-only
 ```
 
 ### Parity test (Python↔TS validator conformance)
+
 ```bash
 python -m pipeline parity
 # or via pytest:
@@ -69,10 +75,10 @@ The final assembled seed file goes to `src/assets/curriculum/v{N}.json`.
 
 ## Model notes
 
-| Stage | Model | Tier |
-|-------|-------|------|
-| Generation | `claude-haiku-4-5-20251001` | haiku |
-| Polish | `claude-sonnet-4-6` | sonnet |
+| Stage      | Model                       | Tier   |
+| ---------- | --------------------------- | ------ |
+| Generation | `claude-haiku-4-5-20251001` | haiku  |
+| Polish     | `claude-sonnet-4-6`         | sonnet |
 
 Fallback: if a slug is deprecated, the next-newest in the same tier is tried automatically.
 Cross-tier fallback is forbidden. (per content-pipeline.md §6.3, audit §5 fix)
@@ -80,6 +86,7 @@ Cross-tier fallback is forbidden. (per content-pipeline.md §6.3, audit §5 fix)
 ---
 
 ## §13 Checklist Before First Run
+
 per content-pipeline.md §13
 
 - [ ] Schema is locked (don't run against a schema in flux)

@@ -1,10 +1,12 @@
-import React from "react";
-import { Play, PlayCircle, Settings, MapPin, Flag, Rocket } from "lucide-react";
+import React from 'react';
+import { Play, PlayCircle, Settings, MapPin, Flag, Rocket } from 'lucide-react';
 
 export function NumberLineQuest() {
   return (
     <div className="w-[420px] h-[780px] bg-[#E0F2FE] relative overflow-hidden font-['Nunito'] flex flex-col items-center">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
         
         .title-stroke {
@@ -26,12 +28,16 @@ export function NumberLineQuest() {
             animation: none;
           }
         }
-      `}} />
+      `,
+        }}
+      />
 
       {/* Header / Title */}
       <div className="mt-12 z-20 flex flex-col items-center text-center px-4">
         <h1 className="font-['Fredoka_One'] text-5xl text-white leading-tight drop-shadow-[0_4px_0px_#1E3A8A] title-stroke">
-          Questerix<br/>Fractions
+          Questerix
+          <br />
+          Fractions
         </h1>
         <div className="bg-white/90 text-[#1E3A8A] px-4 py-2 rounded-full mt-4 font-bold text-lg shadow-md border-2 border-[#1E3A8A] transform -rotate-2">
           A math adventure! 🚀
@@ -42,19 +48,19 @@ export function NumberLineQuest() {
       <div className="absolute inset-0 top-32 z-10">
         <svg className="w-full h-full" viewBox="0 0 420 600" preserveAspectRatio="xMidYMax slice">
           {/* Main path line */}
-          <path 
-            d="M 210 500 C 100 450, 100 350, 210 300 C 320 250, 320 150, 210 100" 
-            fill="none" 
-            stroke="#93C5FD" 
-            strokeWidth="24" 
-            strokeLinecap="round" 
+          <path
+            d="M 210 500 C 100 450, 100 350, 210 300 C 320 250, 320 150, 210 100"
+            fill="none"
+            stroke="#93C5FD"
+            strokeWidth="24"
+            strokeLinecap="round"
           />
-          <path 
-            d="M 210 500 C 100 450, 100 350, 210 300 C 320 250, 320 150, 210 100" 
-            fill="none" 
-            stroke="#FFFFFF" 
-            strokeWidth="10" 
-            strokeLinecap="round" 
+          <path
+            d="M 210 500 C 100 450, 100 350, 210 300 C 320 250, 320 150, 210 100"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth="10"
+            strokeLinecap="round"
             className="path-line"
           />
         </svg>
@@ -62,7 +68,6 @@ export function NumberLineQuest() {
 
       {/* Interactive Elements on Path */}
       <div className="absolute inset-0 top-32 z-20 pointer-events-none">
-        
         {/* Point 1: END (Top) */}
         <div className="absolute top-[80px] left-[210px] transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto">
           <div className="bg-white text-blue-900 font-bold text-2xl px-3 py-1 rounded-xl mb-2 border-4 border-blue-900 shadow-[0_4px_0_#1E3A8A]">
@@ -71,13 +76,17 @@ export function NumberLineQuest() {
           <button className="flex flex-col items-center justify-center w-[80px] h-[80px] bg-blue-400 hover:bg-blue-300 text-white rounded-full border-4 border-blue-900 shadow-[0_6px_0_#1E3A8A] transition-all active:translate-y-[6px] active:shadow-none group">
             <Settings className="w-10 h-10 group-hover:rotate-45 transition-transform" />
           </button>
-          <span className="font-['Fredoka_One'] text-blue-900 text-lg mt-2 bg-white/80 px-3 py-1 rounded-full border-2 border-blue-900">Settings</span>
+          <span className="font-['Fredoka_One'] text-blue-900 text-lg mt-2 bg-white/80 px-3 py-1 rounded-full border-2 border-blue-900">
+            Settings
+          </span>
         </div>
 
         {/* Point 1/2: MIDDLE */}
         <div className="absolute top-[280px] left-[210px] transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto">
           <div className="flex items-center gap-1 bg-white text-emerald-700 font-bold text-xl px-3 py-1 rounded-xl mb-2 border-4 border-emerald-800 shadow-[0_4px_0_#065F46]">
-            <span className="text-sm">1</span><span className="text-2xl leading-none">/</span><span className="text-sm">2</span>
+            <span className="text-sm">1</span>
+            <span className="text-2xl leading-none">/</span>
+            <span className="text-sm">2</span>
           </div>
           <button className="flex items-center justify-center gap-2 px-6 h-[72px] bg-emerald-400 hover:bg-emerald-300 text-white font-['Fredoka_One'] text-2xl rounded-full border-4 border-emerald-900 shadow-[0_6px_0_#064E3B] transition-all active:translate-y-[6px] active:shadow-none">
             <MapPin className="w-8 h-8" />
@@ -95,7 +104,6 @@ export function NumberLineQuest() {
             Play!
           </button>
         </div>
-
       </div>
 
       {/* Decorative background elements */}

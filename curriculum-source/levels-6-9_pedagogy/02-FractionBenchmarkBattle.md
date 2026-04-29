@@ -1,6 +1,7 @@
 # Fraction Benchmark Battle — Full Design Document
 
 ## Table of Contents
+
 1. Overview & Pedagogical Rationale
 2. The 1/2 Rule System
 3. Complete Fraction Bank
@@ -22,6 +23,7 @@
 ## 1. Overview & Pedagogical Rationale
 
 ### Core Activity Summary
+
 Students are shown a single fraction and must decide: is it **bigger than 1/2**, **smaller than 1/2**, or (at Level 3+) **equal to 1/2**? The benchmark 1/2 is always visible as a reference. The activity trains a rapid mental shortcut that bypasses the need to convert to decimals or find common denominators.
 
 ### The Benchmark Strategy in Numeracy Research
@@ -78,22 +80,24 @@ The bars are rendered at identical width with equal-height segments so the visua
 ### Worked Examples
 
 **Even denominator (easy):** Is 3/8 bigger or smaller than 1/2?
+
 - Half of 8 = 4. Is 3 more or less than 4? Less. → Smaller.
 - Bar model: 3 of 8 parts vs 4 of 8 parts — visually clear.
 
 **Odd denominator (requires rounding):** Is 4/9 bigger or smaller than 1/2?
+
 - Half of 9 = 4.5. Is 4 more or less than 4.5? Less. → Smaller.
 - The rule card says: "Half of 9 is about 4.5. Is 4 more or less than 4.5?"
 - For Grade 2, "about 4.5" is simplified to "between 4 and 5" with the instruction: "If the number is between 4 and 5, a top number of 4 is smaller and a top number of 5 is bigger."
 
 ### Scaffold Removal Timeline for the Rule Card
 
-| Round Range | Rule Card Visibility                     |
-|-------------|------------------------------------------|
-| Round 1     | Fully expanded, uncollapssable           |
-| Rounds 2–4  | Collapsed by default; tap to expand      |
+| Round Range | Rule Card Visibility                         |
+| ----------- | -------------------------------------------- |
+| Round 1     | Fully expanded, uncollapssable               |
+| Rounds 2–4  | Collapsed by default; tap to expand          |
 | Rounds 5–8  | Rule card hidden; "Show rule" button present |
-| Round 9+    | No rule card or button; student must recall |
+| Round 9+    | No rule card or button; student must recall  |
 
 The escalation is per-session within a difficulty tier, not global. If a student regresses to an easier tier, the rule card reappears at its Round 1 state for that tier.
 
@@ -115,38 +119,38 @@ The bank is organized into four tiers based on distance from 1/2 and denominator
 
 Fractions clearly on one side of 1/2; denominator halving gives a whole number.
 
-| Fraction | Decimal | Distance from 0.5 | Answer  | Why this tier                     |
-|----------|---------|-------------------|---------|-----------------------------------|
-| 1/4      | 0.250   | 0.250             | smaller | Iconic; matches tick mark in act.01 |
-| 3/4      | 0.750   | 0.250             | bigger  | Mirror of 1/4; symmetric          |
-| 1/5      | 0.200   | 0.300             | smaller | Far left; den. halving: 2.5 (half rule)|
-| 4/5      | 0.800   | 0.300             | bigger  | Mirror of 1/5                     |
-| 1/6      | 0.167   | 0.333             | smaller | Very small; easy visually          |
-| 5/6      | 0.833   | 0.333             | bigger  | Mirror of 1/6                     |
-| 1/3      | 0.333   | 0.167             | smaller | Common denominator; den=3, half=1.5|
-| 2/3      | 0.667   | 0.167             | bigger  | Mirror of 1/3                     |
+| Fraction | Decimal | Distance from 0.5 | Answer  | Why this tier                           |
+| -------- | ------- | ----------------- | ------- | --------------------------------------- |
+| 1/4      | 0.250   | 0.250             | smaller | Iconic; matches tick mark in act.01     |
+| 3/4      | 0.750   | 0.250             | bigger  | Mirror of 1/4; symmetric                |
+| 1/5      | 0.200   | 0.300             | smaller | Far left; den. halving: 2.5 (half rule) |
+| 4/5      | 0.800   | 0.300             | bigger  | Mirror of 1/5                           |
+| 1/6      | 0.167   | 0.333             | smaller | Very small; easy visually               |
+| 5/6      | 0.833   | 0.333             | bigger  | Mirror of 1/6                           |
+| 1/3      | 0.333   | 0.167             | smaller | Common denominator; den=3, half=1.5     |
+| 2/3      | 0.667   | 0.167             | bigger  | Mirror of 1/3                           |
 
 ### Medium Pool (distance from 1/2: 0.08–0.20)
 
 Requires applying the rule; denominator halving may be non-integer.
 
-| Fraction | Decimal | Distance | Answer  | Why this tier                        |
-|----------|---------|----------|---------|--------------------------------------|
-| 3/8      | 0.375   | 0.125    | smaller | Half of 8 = 4; 3 < 4 → smaller       |
-| 5/8      | 0.625   | 0.125    | bigger  | Half of 8 = 4; 5 > 4 → bigger        |
-| 2/5      | 0.400   | 0.100    | smaller | Half of 5 = 2.5; 2 < 2.5             |
-| 3/5      | 0.600   | 0.100    | bigger  | Half of 5 = 2.5; 3 > 2.5             |
-| 3/7      | 0.429   | 0.071    | smaller | Half of 7 = 3.5; 3 < 3.5             |
-| 4/7      | 0.571   | 0.071    | bigger  | Half of 7 = 3.5; 4 > 3.5             |
-| 4/9      | 0.444   | 0.056    | smaller | Half of 9 = 4.5; 4 < 4.5             |
-| 5/9      | 0.556   | 0.056    | bigger  | Half of 9 = 4.5; 5 > 4.5             |
+| Fraction | Decimal | Distance | Answer  | Why this tier                  |
+| -------- | ------- | -------- | ------- | ------------------------------ |
+| 3/8      | 0.375   | 0.125    | smaller | Half of 8 = 4; 3 < 4 → smaller |
+| 5/8      | 0.625   | 0.125    | bigger  | Half of 8 = 4; 5 > 4 → bigger  |
+| 2/5      | 0.400   | 0.100    | smaller | Half of 5 = 2.5; 2 < 2.5       |
+| 3/5      | 0.600   | 0.100    | bigger  | Half of 5 = 2.5; 3 > 2.5       |
+| 3/7      | 0.429   | 0.071    | smaller | Half of 7 = 3.5; 3 < 3.5       |
+| 4/7      | 0.571   | 0.071    | bigger  | Half of 7 = 3.5; 4 > 3.5       |
+| 4/9      | 0.444   | 0.056    | smaller | Half of 9 = 4.5; 4 < 4.5       |
+| 5/9      | 0.556   | 0.056    | bigger  | Half of 9 = 4.5; 5 > 4.5       |
 
 ### Hard Pool (distance from 1/2: 0.02–0.08)
 
 Very close to 1/2; requires careful rule application; includes twist "Equal" cards.
 
 | Fraction | Decimal | Distance | Answer  | Why this tier                        |
-|----------|---------|----------|---------|--------------------------------------|
+| -------- | ------- | -------- | ------- | ------------------------------------ |
 | 5/11     | 0.454   | 0.046    | smaller | Half of 11 = 5.5; 5 < 5.5            |
 | 6/11     | 0.545   | 0.045    | bigger  | Half of 11 = 5.5; 6 > 5.5            |
 | 6/13     | 0.462   | 0.038    | smaller | Half of 13 = 6.5; 6 < 6.5            |
@@ -163,7 +167,7 @@ Very close to 1/2; requires careful rule application; includes twist "Equal" car
 Reserved for Benchmark Challenge mode only. Not shown in standard rounds.
 
 | Fraction | Decimal | Distance | Answer  |
-|----------|---------|----------|---------|
+| -------- | ------- | -------- | ------- |
 | 10/21    | 0.476   | 0.024    | smaller |
 | 11/21    | 0.524   | 0.024    | bigger  |
 | 9/19     | 0.474   | 0.026    | smaller |
@@ -206,11 +210,11 @@ The reason for the staged introduction: presenting three options at Level 1 incr
 
 ### Scoring for Equal Pairs
 
-| Answer Given  | Correct Answer | Result   | Points         |
-|---------------|---------------|----------|----------------|
-| Equal         | equal         | Correct  | Full points    |
-| Bigger/Smaller| equal         | Wrong    | 0 pts + explain|
-| Equal         | bigger/smaller| Wrong    | 0 pts + explain|
+| Answer Given   | Correct Answer | Result  | Points          |
+| -------------- | -------------- | ------- | --------------- |
+| Equal          | equal          | Correct | Full points     |
+| Bigger/Smaller | equal          | Wrong   | 0 pts + explain |
+| Equal          | bigger/smaller | Wrong   | 0 pts + explain |
 
 When a student selects "Bigger" or "Smaller" for an equal fraction, the explanation modal shows:
 
@@ -243,6 +247,7 @@ Hints are triggered by wrong answers, not by request (at Level 1–2). At Level 
 **Prompt text:** "Look at the shaded part — which bar is filled more?"
 
 **When triggered:**
+
 - Level 1–2: automatically after the 1st wrong attempt
 - Level 3+: available via Hint button after 1st wrong attempt
 
@@ -298,17 +303,17 @@ function shouldOfferHint(state: HintState, gameLevel: number): HintLevel | null 
 
   // Auto-trigger at Level 1-2; manual button at Level 3+
   if (gameLevel <= 2) {
-    if (wrongAttempts >= 1 && !offered('bar_model'))      return 'bar_model';
-    if (wrongAttempts >= 2 && !offered('denominator'))    return 'denominator';
-    if (wrongAttempts >= 3 && !offered('number_line'))    return 'number_line';
-    if (wrongAttempts >= 4 && !offered('rule_reminder'))  return 'rule_reminder';
+    if (wrongAttempts >= 1 && !offered('bar_model')) return 'bar_model';
+    if (wrongAttempts >= 2 && !offered('denominator')) return 'denominator';
+    if (wrongAttempts >= 3 && !offered('number_line')) return 'number_line';
+    if (wrongAttempts >= 4 && !offered('rule_reminder')) return 'rule_reminder';
   } else {
     // Level 3+: hints only become available after wrong attempts
     // Student must click the Hint button to actually see them
-    if (wrongAttempts >= 1 && !offered('bar_model'))      return 'bar_model';
-    if (wrongAttempts >= 2 && !offered('denominator'))    return 'denominator';
-    if (wrongAttempts >= 3 && !offered('number_line'))    return 'number_line';
-    if (wrongAttempts >= 4 && !offered('rule_reminder'))  return 'rule_reminder';
+    if (wrongAttempts >= 1 && !offered('bar_model')) return 'bar_model';
+    if (wrongAttempts >= 2 && !offered('denominator')) return 'denominator';
+    if (wrongAttempts >= 3 && !offered('number_line')) return 'number_line';
+    if (wrongAttempts >= 4 && !offered('rule_reminder')) return 'rule_reminder';
   }
 
   return null;
@@ -317,12 +322,12 @@ function shouldOfferHint(state: HintState, gameLevel: number): HintLevel | null 
 
 ### Hint Cost Model (Summary)
 
-| Hint             | Level 1 | Level 2 | Level 3 | Level 4 | Level 5 |
-|------------------|---------|---------|---------|---------|---------|
-| Bar Model        | 0 pts   | 0 pts   | 0 pts   | 0 pts   | 0 pts   |
-| Denominator      | 0 pts   | 0 pts   | 0 pts   | 5 pts   | 5 pts   |
-| Number Line      | 0 pts   | 0 pts   | 1 star  | 1 star  | 1 star  |
-| Rule Reminder    | 0 pts   | 0 pts   | 0 pts   | 0 pts   | 0 pts   |
+| Hint          | Level 1 | Level 2 | Level 3 | Level 4 | Level 5 |
+| ------------- | ------- | ------- | ------- | ------- | ------- |
+| Bar Model     | 0 pts   | 0 pts   | 0 pts   | 0 pts   | 0 pts   |
+| Denominator   | 0 pts   | 0 pts   | 0 pts   | 5 pts   | 5 pts   |
+| Number Line   | 0 pts   | 0 pts   | 1 star  | 1 star  | 1 star  |
+| Rule Reminder | 0 pts   | 0 pts   | 0 pts   | 0 pts   | 0 pts   |
 
 ---
 
@@ -330,14 +335,14 @@ function shouldOfferHint(state: HintState, gameLevel: number): HintLevel | null 
 
 ### Per-Difficulty Timer Values
 
-| Round Range         | Difficulty     | Timer    | Notes                          |
-|---------------------|----------------|----------|--------------------------------|
-| Rounds 1–3          | Easy           | None     | No time pressure, learning mode|
-| Rounds 4–6          | Easy/Medium    | None     | Still no timer                 |
-| Rounds 7–9          | Medium         | 20 sec   | First introduction of timer    |
-| Rounds 10–12        | Medium/Hard    | 15 sec   | Increasing pressure            |
-| Rounds 13+          | Hard           | 10 sec   | Benchmark Challenge prep       |
-| Benchmark Challenge | Extreme        | 10 sec   | Fixed, no extensions           |
+| Round Range         | Difficulty  | Timer  | Notes                           |
+| ------------------- | ----------- | ------ | ------------------------------- |
+| Rounds 1–3          | Easy        | None   | No time pressure, learning mode |
+| Rounds 4–6          | Easy/Medium | None   | Still no timer                  |
+| Rounds 7–9          | Medium      | 20 sec | First introduction of timer     |
+| Rounds 10–12        | Medium/Hard | 15 sec | Increasing pressure             |
+| Rounds 13+          | Hard        | 10 sec | Benchmark Challenge prep        |
+| Benchmark Challenge | Extreme     | 10 sec | Fixed, no extensions            |
 
 The timer value is per-question, not per-round. The countdown resets for each new fraction.
 
@@ -353,12 +358,12 @@ The bar is a CSS-animated `div` with `width` transitioning from 100% to 0% over 
 
 **Color Transitions:**
 
-| Time Remaining      | Bar Color          | Background Glow       |
-|---------------------|--------------------|-----------------------|
-| > 50% of duration   | `#22c55e` (green)  | None                  |
-| 25%–50%             | `#eab308` (yellow) | None                  |
-| 10%–25%             | `#f97316` (orange) | Subtle orange pulse   |
-| < 10%               | `#ef4444` (red)    | Red pulse, 0.5s period|
+| Time Remaining    | Bar Color          | Background Glow        |
+| ----------------- | ------------------ | ---------------------- |
+| > 50% of duration | `#22c55e` (green)  | None                   |
+| 25%–50%           | `#eab308` (yellow) | None                   |
+| 10%–25%           | `#f97316` (orange) | Subtle orange pulse    |
+| < 10%             | `#ef4444` (red)    | Red pulse, 0.5s period |
 
 The color transitions are implemented as CSS `@keyframes` triggered by JavaScript class additions when each threshold is crossed, rather than continuous property interpolation (which would cause performance issues on low-end tablets).
 
@@ -369,6 +374,7 @@ The color transitions are implemented as CSS `@keyframes` triggered by JavaScrip
 Each round allows **one pause** (two pauses with accessibility settings enabled). The pause button is always visible in the UI but is only active when the timer is running.
 
 On pause:
+
 - Timer state is frozen
 - All interactive elements become non-interactive
 - A dim overlay covers the question panel (so students cannot read the fraction while paused)
@@ -376,6 +382,7 @@ On pause:
 - Screen reader announces: "Game paused. Press Resume to continue."
 
 On resume:
+
 - Overlay fades over 200ms
 - A 3-2-1 countdown displays (1 second per number) before the timer restarts
 - Timer continues from paused value
@@ -409,13 +416,13 @@ If time expires before the student answers, the response is treated as WRONG (no
 
 ### Round Structure Table
 
-| Rounds | Difficulty Pool      | Timer    | Benchmark Rule | Equal Button |
-|--------|---------------------|----------|----------------|--------------|
-| 1–3    | Easy                | None     | Fully visible  | Hidden       |
-| 4–6    | Easy + Medium       | None     | Collapsed      | Hidden       |
-| 7–9    | Medium              | 20 sec   | Hidden         | Hidden       |
-| 10–12  | Medium + Hard       | 15 sec   | Hidden         | Shown (L3+)  |
-| 13+    | Hard                | 10 sec   | Hidden         | Shown        |
+| Rounds | Difficulty Pool | Timer  | Benchmark Rule | Equal Button |
+| ------ | --------------- | ------ | -------------- | ------------ |
+| 1–3    | Easy            | None   | Fully visible  | Hidden       |
+| 4–6    | Easy + Medium   | None   | Collapsed      | Hidden       |
+| 7–9    | Medium          | 20 sec | Hidden         | Hidden       |
+| 10–12  | Medium + Hard   | 15 sec | Hidden         | Shown (L3+)  |
+| 13+    | Hard            | 10 sec | Hidden         | Shown        |
 
 Each "round" is one question (one fraction to judge). A "session" typically contains 12–18 rounds.
 
@@ -436,6 +443,7 @@ Each "round" is one question (one fraction to judge). A "session" typically cont
 **Unlock condition:** Student completes Round 12+ in a session, with final difficulty reaching "Hard" and session accuracy ≥ 70%.
 
 **Characteristics:**
+
 - All fractions drawn from the Hard and Extreme pools
 - 10-second timer (fixed, no extensions)
 - No hints available (hint button is hidden)
@@ -443,6 +451,7 @@ Each "round" is one question (one fraction to judge). A "session" typically cont
 - Leaderboard entry: score = (correct_count × 100) + total_time_bonus
 
 **Leaderboard formula:**
+
 ```typescript
 function challengeScore(correctCount: number, avgTimeUsedMs: number, timerMs: number): number {
   const base = correctCount * 100;
@@ -460,12 +469,15 @@ function challengeScore(correctCount: number, avgTimeUsedMs: number, timerMs: nu
 
 ```typescript
 const correctFeedback: Record<string, string> = {
-  easy_smaller: "Right! {num}/{den} is smaller than 1/2. {num} is less than half of {den} ({halfDen}).",
-  easy_bigger:  "Yes! {num}/{den} is bigger than 1/2. {num} is more than half of {den} ({halfDen}).",
-  medium_any:   "Nice work! {num}/{den} ≈ {decimal}. Half of {den} is {halfDen}. Since {num} {cmp} {halfDen}, it's {answer}.",
-  hard_any:     "Excellent — that was close! {num}/{den} ≈ {decimal}. {num} {cmp} {halfDen}, so it's {answer}.",
-  equal:        "Exactly right! {num}/{den} = 1/2. {num} is exactly half of {den}.",
-  timed_fast:   "Great — and fast! Only {timeSec} seconds. {num}/{den} is {answer} than 1/2.",
+  easy_smaller:
+    'Right! {num}/{den} is smaller than 1/2. {num} is less than half of {den} ({halfDen}).',
+  easy_bigger: 'Yes! {num}/{den} is bigger than 1/2. {num} is more than half of {den} ({halfDen}).',
+  medium_any:
+    "Nice work! {num}/{den} ≈ {decimal}. Half of {den} is {halfDen}. Since {num} {cmp} {halfDen}, it's {answer}.",
+  hard_any:
+    "Excellent — that was close! {num}/{den} ≈ {decimal}. {num} {cmp} {halfDen}, so it's {answer}.",
+  equal: 'Exactly right! {num}/{den} = 1/2. {num} is exactly half of {den}.',
+  timed_fast: 'Great — and fast! Only {timeSec} seconds. {num}/{den} is {answer} than 1/2.',
 };
 ```
 
@@ -475,10 +487,12 @@ Variables: `{halfDen}` = b/2 formatted as decimal if odd denominator (e.g., 3.5)
 
 ```typescript
 const incorrectFeedback: Record<string, string> = {
-  wrong_first:  "Not quite. Let's use the model to check.",
-  wrong_second: "Let's think about the denominator. Half of {den} is {halfDen}. Is {num} more or less?",
-  wrong_third:  "Here's where {num}/{den} lives on the number line — see if it's on the left or right of 1/2.",
-  timed_out:    "Time's up! The answer was {answer}. {num}/{den} ≈ {decimal}.",
+  wrong_first: "Not quite. Let's use the model to check.",
+  wrong_second:
+    "Let's think about the denominator. Half of {den} is {halfDen}. Is {num} more or less?",
+  wrong_third:
+    "Here's where {num}/{den} lives on the number line — see if it's on the left or right of 1/2.",
+  timed_out: "Time's up! The answer was {answer}. {num}/{den} ≈ {decimal}.",
 };
 ```
 
@@ -487,17 +501,23 @@ const incorrectFeedback: Record<string, string> = {
 Fractions within 0.05 decimal distance of 1/2 (distance < 0.05) get a special near-miss message when answered incorrectly:
 
 ```typescript
-const nearMissMessage = (fraction: Fraction, givenAnswer: string, correctAnswer: string): string => {
+const nearMissMessage = (
+  fraction: Fraction,
+  givenAnswer: string,
+  correctAnswer: string
+): string => {
   const distance = Math.abs(fraction.num / fraction.den - 0.5);
   if (distance < 0.05 && givenAnswer !== correctAnswer) {
-    return `That one was really close! {num}/{den} ≈ {decimal}, which is just {distPct}% away from 1/2. ` +
-           `Half of {den} is {halfDen}. The numerator {num} is just barely ${correctAnswer === 'smaller' ? 'below' : 'above'} that.`;
+    return (
+      `That one was really close! {num}/{den} ≈ {decimal}, which is just {distPct}% away from 1/2. ` +
+      `Half of {den} is {halfDen}. The numerator {num} is just barely ${correctAnswer === 'smaller' ? 'below' : 'above'} that.`
+    );
   }
   return incorrectFeedback.wrong_first;
 };
 ```
 
-`{distPct}` = Math.round(distance * 100), e.g., "4% away from 1/2".
+`{distPct}` = Math.round(distance \* 100), e.g., "4% away from 1/2".
 
 ### Explanation Template (Full Reveal)
 
@@ -546,11 +566,13 @@ The answer buttons also update: "Bigger than 1/4" / "Smaller than 1/4" / "Equal 
 ### How the Fraction Bank Adapts
 
 For 1/4-benchmark rounds:
+
 - "Smaller than 1/4" fractions: 1/6, 1/5, 1/8, 1/10
 - "Bigger than 1/4" fractions: 1/3, 3/8, 2/5, 1/2, 3/5, 2/3, 3/4
 - "Equal to 1/4" fractions: 2/8, 3/12
 
 For 3/4-benchmark rounds:
+
 - "Smaller than 3/4" fractions: 1/2, 2/3, 5/8, 7/10
 - "Bigger than 3/4" fractions: 5/6, 7/8, 4/5, 9/10
 - "Equal to 3/4" fractions: 6/8, 9/12
@@ -573,6 +595,7 @@ The bar model hint also generalizes: the reference bar now shows the benchmark f
 ### 1/2 Benchmark Visual Behavior
 
 The 1/2 benchmark reference area sits at the top of the screen and is always visible. It displays:
+
 - A circular pie chart (88px diameter) with exactly half shaded in `#3b82f6` (blue)
 - A rectangular bar model (200px × 32px) with left half shaded in `#3b82f6`
 - The label "1/2" in 24px bold between the two visuals
@@ -586,6 +609,7 @@ The 1/2 benchmark reference area sits at the top of the screen and is always vis
 ### Transition When Secondary Benchmarks Appear
 
 When Level 4 is first entered and multi-benchmark mode activates:
+
 1. A celebratory animation plays: the single 1/2 benchmark slides to the center position of the three-benchmark row
 2. The 1/4 and 3/4 benchmarks materialize from left and right respectively, sliding in over 400ms
 3. A "New Challenge: Compare to different benchmarks!" banner appears for 2 seconds
@@ -600,15 +624,15 @@ When switching benchmarks mid-session (one question uses 1/4, the next uses 1/2)
 ### Base Points Per Question
 
 | Outcome         | Attempts | Hints Used | Base Points |
-|-----------------|----------|-----------|-------------|
-| Correct         | 1        | 0         | 100         |
-| Correct         | 1        | 1         | 75          |
-| Correct         | 2        | 0         | 60          |
-| Correct         | 2        | 1–2       | 40          |
-| Correct         | 3+       | any       | 20          |
-| Correct (equal) | 1        | 0         | 120         |
-| Time expired    | —        | —         | 0           |
-| Auto-revealed   | —        | —         | 0           |
+| --------------- | -------- | ---------- | ----------- |
+| Correct         | 1        | 0          | 100         |
+| Correct         | 1        | 1          | 75          |
+| Correct         | 2        | 0          | 60          |
+| Correct         | 2        | 1–2        | 40          |
+| Correct         | 3+       | any        | 20          |
+| Correct (equal) | 1        | 0          | 120         |
+| Time expired    | —        | —          | 0           |
+| Auto-revealed   | —        | —          | 0           |
 
 The +20 bonus for correctly identifying equal-to-1/2 fractions reflects the additional difficulty of the "equal" judgment.
 
@@ -633,17 +657,18 @@ The streak bonus is displayed as a "+25 STREAK!" pop-up animation above the scor
 
 Each session earns 1–5 stars based on session accuracy and hint usage:
 
-| Stars | Criteria                                                    |
-|-------|-------------------------------------------------------------|
-| 5 ★   | ≥ 90% accuracy, ≤ 1 hint used, all timed rounds completed  |
-| 4 ★   | ≥ 80% accuracy, ≤ 3 hints used                             |
-| 3 ★   | ≥ 70% accuracy                                             |
-| 2 ★   | 50–70% accuracy                                            |
-| 1 ★   | < 50% accuracy (session completed)                         |
+| Stars | Criteria                                                  |
+| ----- | --------------------------------------------------------- |
+| 5 ★   | ≥ 90% accuracy, ≤ 1 hint used, all timed rounds completed |
+| 4 ★   | ≥ 80% accuracy, ≤ 3 hints used                            |
+| 3 ★   | ≥ 70% accuracy                                            |
+| 2 ★   | 50–70% accuracy                                           |
+| 1 ★   | < 50% accuracy (session completed)                        |
 
 ### "Benchmark Master" Badge
 
 A persistent badge (displayed on the student's profile) unlocks when:
+
 - The student has completed 3 Benchmark Challenge sessions
 - With an average session score ≥ 500 points in those sessions
 - With no regressions during those sessions
@@ -668,7 +693,7 @@ Fractions > 1 are not valid inputs in the standard game. The fraction-bank valid
 function isValidBankEntry(num: number, den: number): boolean {
   if (den === 0) return false;
   if (num < 0 || den < 0) return false;
-  if (num / den > 1.0) return false;  // block improper fractions
+  if (num / den > 1.0) return false; // block improper fractions
   return true;
 }
 ```
@@ -731,7 +756,7 @@ interface SessionSummary {
   sessionId: string;
   studentId: string;
   activity: 'benchmark_battle';
-  date: string;                       // ISO 8601
+  date: string; // ISO 8601
   startDifficulty: 'easy' | 'medium' | 'hard';
   finalDifficulty: 'easy' | 'medium' | 'hard' | 'extreme';
   advancedToChallenge: boolean;
@@ -739,7 +764,7 @@ interface SessionSummary {
   correctRounds: number;
   incorrectRounds: number;
   timedOutRounds: number;
-  accuracy: number;                   // 0–1
+  accuracy: number; // 0–1
   unasissstedCorrect: number;
   avgTimeMs: number;
   fastestCorrectMs: number;
@@ -750,7 +775,7 @@ interface SessionSummary {
     number_line: number;
     rule_reminder: number;
   };
-  starsEarned: number;                // 1–5
+  starsEarned: number; // 1–5
   totalPoints: number;
   streakBonusPoints: number;
   timeBonusPoints: number;
@@ -770,7 +795,7 @@ interface HintRecord {
   sessionId: string;
   roundNum: number;
   hintType: 'bar_model' | 'denominator' | 'number_line' | 'rule_reminder';
-  triggeredBy: 'auto' | 'button';     // auto = wrong answer trigger; button = student request
+  triggeredBy: 'auto' | 'button'; // auto = wrong answer trigger; button = student request
   triggeredAtAttempt: number;
   targetFraction: { num: number; den: number };
   benchmark: { num: number; den: number };
@@ -858,7 +883,7 @@ interface HintRecord {
 ### Full Keyboard Map
 
 | Key           | Action                                              |
-|---------------|-----------------------------------------------------|
+| ------------- | --------------------------------------------------- |
 | B             | Press "Bigger than benchmark" button                |
 | S             | Press "Smaller than benchmark" button               |
 | E             | Press "Equal to benchmark" button (Level 3+ only)   |
@@ -875,6 +900,7 @@ All keyboard shortcuts display in a collapsible "Keyboard shortcuts" panel acces
 ### Screen Reader Scripts
 
 **On question load:**
+
 ```
 "New question. Is [fraction name] bigger, smaller, or equal to one half?
  The fraction [fraction name] has [num] parts out of [den] equal parts.
@@ -882,6 +908,7 @@ All keyboard shortcuts display in a collapsible "Keyboard shortcuts" panel acces
 ```
 
 **On correct answer:**
+
 ```
 "Correct! [fraction name] is [answer] than one half.
  [Full explanation, e.g.: 'Three is less than half of seven, which is three point five.']
@@ -890,13 +917,15 @@ All keyboard shortcuts display in a collapsible "Keyboard shortcuts" panel acces
 ```
 
 **On incorrect answer:**
+
 ```
 "Not quite. [hint instruction if auto-triggered]"
 ```
 
 **On time expiry:**
+
 ```
-"Time's up. The correct answer was [answer]. 
+"Time's up. The correct answer was [answer].
  [Explanation]. Loading next question."
 ```
 
@@ -905,6 +934,7 @@ All keyboard shortcuts display in a collapsible "Keyboard shortcuts" panel acces
 ### Timer Pause for Accessibility
 
 Students with documented accessibility needs (set by teacher in the accessibility panel) receive:
+
 - **Unlimited pauses** per round (no one-pause restriction)
 - **Extended time**: timer multiplied by 1.5× (configurable; 1.25×, 1.5×, 2×)
 - **Timer-off mode**: timer bar is hidden and no time pressure is applied; leaderboard entry is disabled, but full scoring otherwise applies

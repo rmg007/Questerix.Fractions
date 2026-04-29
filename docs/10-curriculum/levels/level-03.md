@@ -5,7 +5,8 @@ owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
-related: [./level-02.md, ./level-04.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
+related:
+  [./level-02.md, ./level-04.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 ---
 
 # Level 3 — Identify Thirds and Fourths
@@ -14,7 +15,7 @@ The student's **first encounter with denominators other than 2**. Level 3 introd
 
 Per C8, Level 3 is the entry point for non-halves denominators. The scope-and-sequence calls this cluster **"Identify thirds and fourths"** with ~14 topics. The pedagogical move follows the Learning Trajectory's compositional framing:
 
-> *A fourth is one of four equal parts. It's also half of a half.*
+> _A fourth is one of four equal parts. It's also half of a half._
 
 We honor this by presenting fourths as a continuation of the halving schema (compositional) while introducing thirds as a **new family with its own logic** (three equal parts cannot be reached by halving alone).
 
@@ -33,7 +34,7 @@ By the end of Level 3, the student can:
 - **G3.5** — Distinguish thirds from fourths in side-by-side comparisons
 - **G3.6** — Use the words **"one third"**, **"thirds"**, **"one fourth"**, **"one quarter"**, **"fourths"**, **"quarters"** consistently
 
-This level explicitly heads off misconception **M5 (more pieces = bigger fraction)** from the framework: from the trajectory, *"When you share with MORE friends, each friend gets LESS."* Some Tier 3 questions deliberately surface this trap.
+This level explicitly heads off misconception **M5 (more pieces = bigger fraction)** from the framework: from the trajectory, _"When you share with MORE friends, each friend gets LESS."_ Some Tier 3 questions deliberately surface this trap.
 
 Per C8 the level **does NOT mix denominators within a single question's correct answer** — but distractors at Tier 2-3 use other denominators to test discrimination. A `frac:1/3` question may have a `frac:1/4` distractor. This is identification, not comparison; comparison is Level 6+.
 
@@ -43,14 +44,15 @@ Per C8 the level **does NOT mix denominators within a single question's correct 
 
 Skill IDs continue from Level 2. See `../skills.md` for canonical definitions.
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-07` | Identify thirds (recognize 3 equal parts) | `pInit=0.10, pTransit=0.18, pSlip=0.10, pGuess=0.25` |
-| `SK-08` | Identify fourths / quarters (recognize 4 equal parts) | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.25` |
-| `SK-09` | Use the words "third" and "fourth/quarter" correctly | `pInit=0.08, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
-| `SK-10` | Discriminate thirds from fourths visually | `pInit=0.05, pTransit=0.18, pSlip=0.12, pGuess=0.25` |
+| Skill ID | Name                                                  | BKT priors                                           |
+| -------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| `SK-07`  | Identify thirds (recognize 3 equal parts)             | `pInit=0.10, pTransit=0.18, pSlip=0.10, pGuess=0.25` |
+| `SK-08`  | Identify fourths / quarters (recognize 4 equal parts) | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.25` |
+| `SK-09`  | Use the words "third" and "fourth/quarter" correctly  | `pInit=0.08, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
+| `SK-10`  | Discriminate thirds from fourths visually             | `pInit=0.05, pTransit=0.18, pSlip=0.12, pGuess=0.25` |
 
 Existing skills `SK-01` through `SK-06` remain tracked but are not the focus of this level. The pedagogical priors for thirds (`SK-07`) are notably lower than for fourths (`SK-08`) because:
+
 - Fourths inherit affordance from halves ("half of a half")
 - Thirds require a genuinely new mental model (no compositional shortcut from halves)
 
@@ -60,13 +62,14 @@ Mastery of **all four** new skills is required to unlock Level 4.
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves, fourths, quarters) | Primary — fourths portion |
+| Standard                                                                                       | Coverage                                          |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves, fourths, quarters)   | Primary — fourths portion                         |
 | **CCSS.2.G.A.3** (partition into 2, 3, or 4 equal shares; describe as halves, thirds, fourths) | Primary — adds thirds, exceeding Grade 1 standard |
-| **CCSS.K.G.A.2** (identify shapes regardless of orientation) | Light — re-applied to thirds/fourths |
+| **CCSS.K.G.A.2** (identify shapes regardless of orientation)                                   | Light — re-applied to thirds/fourths              |
 
 Note: CCSS 1.G.A.3 does **not** include thirds. Our scope-and-sequence (and the Learning Trajectory's "intentional rigor beyond the standard") includes thirds at this level for two reasons:
+
 1. The MVP serves K–2 broadly; Grade 2 students benefit from thirds early.
 2. Thirds prevent over-reliance on the halving schema and prepare students for Level 6+ comparison work.
 
@@ -87,11 +90,11 @@ The student sees 3 or 4 shapes. Exactly one is correctly partitioned into 3 equa
 
 #### Difficulty tiers
 
-| Tier | Distractor strategy | Hint budget |
-|------|--------------------|-------------|
-| Easy | One option is unpartitioned; others are clearly thirds vs. halves | 3 |
-| Medium | All options have 3 parts but only one has equal thirds | 2 |
-| Hard | Mix of thirds and fourths; correct one is thirds | 1 |
+| Tier   | Distractor strategy                                               | Hint budget |
+| ------ | ----------------------------------------------------------------- | ----------- |
+| Easy   | One option is unpartitioned; others are clearly thirds vs. halves | 3           |
+| Medium | All options have 3 parts but only one has equal thirds            | 2           |
+| Hard   | Mix of thirds and fourths; correct one is thirds                  | 1           |
 
 #### Question template archetype
 
@@ -182,11 +185,11 @@ Mirrors `identify_thirds` but for fourths. Distractors include halves, thirds, a
 
 #### Difficulty tiers
 
-| Tier | Distractor strategy | Hint budget |
-|------|--------------------|-------------|
-| Easy | Clearly fourths vs. unpartitioned vs. halves | 3 |
-| Medium | All 4-part, but only one with equal fourths; varied fold patterns (perpendicular, diagonal) | 2 |
-| Hard | Mix with thirds and fourths; alternating "fourths"/"quarters" wording | 1 |
+| Tier   | Distractor strategy                                                                         | Hint budget |
+| ------ | ------------------------------------------------------------------------------------------- | ----------- |
+| Easy   | Clearly fourths vs. unpartitioned vs. halves                                                | 3           |
+| Medium | All 4-part, but only one with equal fourths; varied fold patterns (perpendicular, diagonal) | 2           |
+| Hard   | Mix with thirds and fourths; alternating "fourths"/"quarters" wording                       | 1           |
 
 #### Question template archetype
 
@@ -282,11 +285,11 @@ This is the **vocabulary commitment** activity — it forces the student to pair
 
 #### Difficulty tiers
 
-| Tier | Variation | Hint budget |
-|------|-----------|-------------|
-| Easy | Distractors are very different (one half vs. one fourth) | 3 |
-| Medium | All three labels available; correct is one third or one fourth | 2 |
-| Hard | "Quarter" appears as a fourth label option; rotated/varied shapes | 1 |
+| Tier   | Variation                                                         | Hint budget |
+| ------ | ----------------------------------------------------------------- | ----------- |
+| Easy   | Distractors are very different (one half vs. one fourth)          | 3           |
+| Medium | All three labels available; correct is one third or one fourth    | 2           |
+| Hard   | "Quarter" appears as a fourth label option; rotated/varied shapes | 1           |
 
 #### Question template archetype
 
@@ -385,13 +388,13 @@ This is the **vocabulary commitment** activity — it forces the student to pair
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-L3-PARTCOUNT-01` | "More pieces = bigger" (M5) — student picks 4-part option when prompt asks for thirds, or vice-versa | Wrong answer on `identify_thirds` Hard or `identify_fourths` Hard with cross-denominator distractors |
-| `MC-L3-QTR-01` | "Quarter ≠ fourth" (M10) — student picks differently when synonym is used | Differential accuracy: "fourths" prompt > 80% correct, "quarters" prompt < 50% correct on same template structure |
-| `MC-L3-EQUAL-01` | "Three pieces = thirds, regardless of equality" (M3 generalized) — student accepts 3 unequal parts as thirds | Wrong answer on `identify_thirds` Medium with unequal-3-part distractors |
-| `MC-EOL-01` | (carryover) "More lines = equal" — student accepts unequal partitioning if line count is right | Wrong on Tier 2 across all activities |
-| `MC-L3-CIRCLEONLY-01` | "Thirds only happen in pie shapes" — student picks circle option even when wrong | Pattern of always-circle picks on `identify_thirds` Medium with mixed shapes |
+| MC ID                 | Name                                                                                                         | Detection signal                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `MC-L3-PARTCOUNT-01`  | "More pieces = bigger" (M5) — student picks 4-part option when prompt asks for thirds, or vice-versa         | Wrong answer on `identify_thirds` Hard or `identify_fourths` Hard with cross-denominator distractors              |
+| `MC-L3-QTR-01`        | "Quarter ≠ fourth" (M10) — student picks differently when synonym is used                                    | Differential accuracy: "fourths" prompt > 80% correct, "quarters" prompt < 50% correct on same template structure |
+| `MC-L3-EQUAL-01`      | "Three pieces = thirds, regardless of equality" (M3 generalized) — student accepts 3 unequal parts as thirds | Wrong answer on `identify_thirds` Medium with unequal-3-part distractors                                          |
+| `MC-EOL-01`           | (carryover) "More lines = equal" — student accepts unequal partitioning if line count is right               | Wrong on Tier 2 across all activities                                                                             |
+| `MC-L3-CIRCLEONLY-01` | "Thirds only happen in pie shapes" — student picks circle option even when wrong                             | Pattern of always-circle picks on `identify_thirds` Medium with mixed shapes                                      |
 
 These mostly map to misconceptions **M3, M5, M9, M10** in `MISCONCEPTIONS_FRAMEWORK.md`.
 
@@ -403,14 +406,70 @@ Per C8, Level 3 introduces thirds and fourths. Halves remain available as distra
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "halves" },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333, "benchmark": "almost_half", "denominatorFamily": "thirds" },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667, "benchmark": "almost_one", "denominatorFamily": "thirds" },
-  { "id": "frac:3/3", "numerator": 3, "denominator": 3, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "thirds" },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25, "benchmark": "almost_zero", "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75, "benchmark": "almost_one", "denominatorFamily": "fourths" },
-  { "id": "frac:4/4", "numerator": 4, "denominator": 4, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "fourths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_one",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:3/3",
+    "numerator": 3,
+    "denominator": 3,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:4/4",
+    "numerator": 4,
+    "denominator": 4,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "fourths"
+  }
 ]
 ```
 
@@ -447,14 +506,14 @@ Level 3 is genuinely harder than Levels 1–2 because thirds break the halving s
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `identify_thirds` templates | 14 | 3 examples shown | Need 11 more |
-| `identify_fourths` templates | 14 | 3 examples shown | Need 11 more |
-| `name_the_fraction` templates | 12 | 4 examples shown | Need 8 more |
-| TTS audio scripts | 40 | 0 | Generate via SpeechSynthesis API at runtime |
-| Hint definitions | ~120 (3 per template) | 0 | TBD |
-| Validator function specs | 1 new (`labelMatch`) | High-level only | Need detailed pseudocode |
+| Item                          | Required              | Authored         | Notes                                       |
+| ----------------------------- | --------------------- | ---------------- | ------------------------------------------- |
+| `identify_thirds` templates   | 14                    | 3 examples shown | Need 11 more                                |
+| `identify_fourths` templates  | 14                    | 3 examples shown | Need 11 more                                |
+| `name_the_fraction` templates | 12                    | 4 examples shown | Need 8 more                                 |
+| TTS audio scripts             | 40                    | 0                | Generate via SpeechSynthesis API at runtime |
+| Hint definitions              | ~120 (3 per template) | 0                | TBD                                         |
+| Validator function specs      | 1 new (`labelMatch`)  | High-level only  | Need detailed pseudocode                    |
 
 ---
 

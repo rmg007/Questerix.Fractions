@@ -59,7 +59,6 @@ export async function seedIfEmpty(): Promise<SeedResult> {
     const deviceMeta = await deviceMetaRepo.get();
     const isFirstBoot = deviceMeta.contentVersion === '';
 
-
     // ── Step 3: Compare versions and decide on wiping ──────────────────────
     // per persistence-spec.md §5 step 3
 

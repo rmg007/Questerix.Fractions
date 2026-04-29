@@ -1,6 +1,6 @@
 # ACTIVITY 09 — SNACK TIME MATH
 
-> *"Mathematics that doesn't touch lunch doesn't touch life."*
+> _"Mathematics that doesn't touch lunch doesn't touch life."_
 
 **Phase:** Formalization | **Weeks:** 15-17 (3-week cluster) | **Duration:** 30-45 min/day | **Standard:** CCSS 1.G.A.3
 
@@ -14,6 +14,7 @@
 By Weeks 15-17, children have vocabulary and skills. Now the curriculum makes the concept LIVED. Snack time is a daily classroom experience, laden with fairness concerns. Children already think about "who got more." This week harnesses that natural attention.
 
 **Learning Objectives:**
+
 - **F7:** Compose and decompose halves and fourths in set contexts
 - **F11-F12:** Articulate that halves and fourths make wholes
 - **T1 (pre):** Apply fraction language to food contexts
@@ -23,11 +24,13 @@ By Weeks 15-17, children have vocabulary and skills. Now the curriculum makes th
 ## WEEK 15 — THE FEAST WEEK
 
 ### Narrative Setup:
+
 Halfie and Halvo are having a birthday! Pia is organizing a feast. Pia needs help dividing snacks among many guests. The kingdom's feast-masters (students) will distribute food.
 
 ### Daily Structure:
 
 **Day 1:** Classroom feast planning. Students plan how to share:
+
 - 1 cake among 2 people (halves)
 - 1 pie among 4 people (fourths)
 - 8 cookies among 4 people (fourths-of-set)
@@ -42,6 +45,7 @@ Halfie and Halvo are having a birthday! Pia is organizing a feast. Pia needs hel
 **Day 5:** The birthday feast celebration! Real (or pretend) snack shared in halves and fourths.
 
 ### Assessment:
+
 - Feast Planning Sheet (Day 1)
 - Halving/fourthing accuracy (Days 2-4)
 - Language use during feast (Day 5)
@@ -51,6 +55,7 @@ Halfie and Halvo are having a birthday! Pia is organizing a feast. Pia needs hel
 ## WEEK 16 — FRACTIONS IN SETS (The Classroom Fraction)
 
 ### Narrative Setup:
+
 The kingdom's feast revealed a problem: when food comes in sets (a bag of cookies, a box of crayons), dividing is different. The Feast-Masters must learn this.
 
 ### Daily Structure:
@@ -66,13 +71,16 @@ The kingdom's feast revealed a problem: when food comes in sets (a bag of cookie
 **Day 5:** Real classroom sets: half the class, fourth of the class, half the crayons.
 
 ### Key Insight:
+
 "Half" applied to a set means "half the count." This extends halving from regions to counts. The word "half" now means two different operations:
+
 - Halve a region → cut the shape
 - Halve a set → split the count
 
 Teacher explicitly surfaces this: "Half can mean cut in half OR half of the count. Both are HALF."
 
 ### Assessment:
+
 - Set fraction problems (Days 2-3)
 - Word problem solutions (Day 4)
 - Classroom set identification (Day 5)
@@ -82,6 +90,7 @@ Teacher explicitly surfaces this: "Half can mean cut in half OR half of the coun
 ## WEEK 17 — PIZZA PREP WEEK
 
 ### Narrative Setup:
+
 Whola the Wise needs help preparing for the Kingdom's Big Pizza Day. Children become pizza chefs, practicing halving and fourthing at scale.
 
 ### Daily Structure:
@@ -89,6 +98,7 @@ Whola the Wise needs help preparing for the Kingdom's Big Pizza Day. Children be
 **Day 1:** Pizza Chef Orientation — review halving and fourthing.
 
 **Day 2-4:** Pizza Production Line — each child "makes" 5 pizzas/day, halving or fourthing each according to a "customer order." Customer orders are cards like:
+
 - "Customer wants TWO equal pieces" → halve
 - "Customer wants FOUR equal pieces" → fourth
 - "Customer wants to share with ONE friend" → halve
@@ -97,6 +107,7 @@ Whola the Wise needs help preparing for the Kingdom's Big Pizza Day. Children be
 **Day 5:** Pizza Party! Children serve their prepared pizzas at a class party (with appropriate dietary accommodations — see MATERIALS doc).
 
 ### Assessment:
+
 - Pizza production accuracy
 - Order-interpretation (halve vs. fourth)
 - Serving accuracy
@@ -106,26 +117,31 @@ Whola the Wise needs help preparing for the Kingdom's Big Pizza Day. Children be
 ## DIFFERENTIATION
 
 ### For ELLs:
+
 - Order cards with picture supports
 - Partner with bilingual peer during production
 - Focus on action words: "halve," "fourth," "serve"
 
 ### For Dietary Considerations:
+
 - All "snacks" in these weeks can be pretend/paper
 - For real snacks, pre-coordinate with families for allergies, dietary restrictions
 - Provide: gluten-free, dairy-free, halal, kosher, vegan options
 - Never exclude a child from sharing due to dietary needs
 
 ### For Motor Challenges:
+
 - Pre-cut paper snacks
 - Larger manipulatives
 - Adaptive cutters
 
 ### For Advanced:
+
 - Challenge: "You have 7 cookies and 4 friends. How do you share?" (extension to thirds-or-remainders)
 - Leadership: Run the Pizza Production quality check
 
 ### For Struggling:
+
 - Focus on whole-shape halving first; revisit sets later
 - Small groups for Day 4 word problems
 - Visual aids for every step
@@ -135,13 +151,13 @@ Whola the Wise needs help preparing for the Kingdom's Big Pizza Day. Children be
 ## COMMON MISCONCEPTIONS ADDRESSED
 
 **M1:** "Half a set means cut a counter in half."
-*Mitigation:* Week 16 explicitly contrasts region-halving vs. set-halving.
+_Mitigation:_ Week 16 explicitly contrasts region-halving vs. set-halving.
 
 **M2:** "If a set is odd, you can't halve it."
-*Mitigation:* Week 16 word problems occasionally include odd sets — children learn to be honest ("there's a leftover") rather than lying ("5 cookies halved is 2-and-a-half").
+_Mitigation:_ Week 16 word problems occasionally include odd sets — children learn to be honest ("there's a leftover") rather than lying ("5 cookies halved is 2-and-a-half").
 
 **M3:** "Fraction language only applies to food."
-*Mitigation:* Week 16 Day 5 classroom applications broaden the field.
+_Mitigation:_ Week 16 Day 5 classroom applications broaden the field.
 
 ---
 
@@ -167,16 +183,19 @@ These feed the Phase 2 midpoint assessment (Week 18).
 ## TEACHER PREP CHECKLIST
 
 **Before Week 15:**
+
 - [ ] Feast planning templates
 - [ ] Paper snack materials (cookies, crackers, cakes)
 - [ ] Halfie-Halvo birthday party decor
 
 **Before Week 16:**
+
 - [ ] Counter sets (various quantities)
 - [ ] Word problem cards
 - [ ] Classroom set inventory prep
 
 **Before Week 17:**
+
 - [ ] Paper pizzas (25+ per child)
 - [ ] "Customer order" cards
 - [ ] Pizza Party celebration materials
@@ -184,4 +203,4 @@ These feed the Phase 2 midpoint assessment (Week 18).
 
 ---
 
-*End of Activity 09. Next: Activity 10 — Story Solver.*
+_End of Activity 09. Next: Activity 10 — Story Solver._

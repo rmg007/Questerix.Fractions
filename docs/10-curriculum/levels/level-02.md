@@ -38,11 +38,11 @@ Per Learning Trajectory: this level corresponds to objectives **D7, F2, F3, F4**
 
 Skill IDs continue from Level 1. See `../skills.md` for canonical definitions.
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-04` | Identify halves across shape families (circle, rectangle, triangle, irregular) | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
-| `SK-05` | Identify halves under rotation and orientation variation | `pInit=0.15, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
-| `SK-06` | Identify halves of a set (count-based half) | `pInit=0.10, pTransit=0.18, pSlip=0.12, pGuess=0.30` |
+| Skill ID | Name                                                                           | BKT priors                                           |
+| -------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `SK-04`  | Identify halves across shape families (circle, rectangle, triangle, irregular) | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
+| `SK-05`  | Identify halves under rotation and orientation variation                       | `pInit=0.15, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
+| `SK-06`  | Identify halves of a set (count-based half)                                    | `pInit=0.10, pTransit=0.18, pSlip=0.12, pGuess=0.30` |
 
 Existing skills `SK-01`, `SK-02`, `SK-03` from Level 1 are **revisited and reinforced** but not retaught. Their BKT estimates continue to update.
 
@@ -52,12 +52,12 @@ Mastery of `SK-04`, `SK-05`, and `SK-06` at `state: "MASTERED"` is the gate to u
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves) | Primary — halves portion |
-| **CCSS.K.G.A.2** (identify shapes regardless of orientation) | Primary — orientation invariance |
-| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Primary — set-model halves |
-| **CCSS.1.G.A.2** (compose 2D shapes) | Light — recognition includes composed shapes |
+| Standard                                                                                   | Coverage                                     |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares; describe as halves)                  | Primary — halves portion                     |
+| **CCSS.K.G.A.2** (identify shapes regardless of orientation)                               | Primary — orientation invariance             |
+| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Primary — set-model halves                   |
+| **CCSS.1.G.A.2** (compose 2D shapes)                                                       | Light — recognition includes composed shapes |
 
 Level 2 is also where misconceptions **M2 (whole = circle)**, **M4 (equal means identical)**, and **M7 (position matters)** from `MISCONCEPTIONS_FRAMEWORK.md` are explicitly targeted.
 
@@ -78,11 +78,11 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
 
 #### Difficulty tiers
 
-| Tier | Distractor strategy | Hint budget |
-|------|--------------------|-------------|
-| Easy | One option is unpartitioned; one is partitioned but unequal; one is correct | 3 |
-| Medium | All options have 2 parts but only one is equal; mix of rectangles and circles | 2 |
-| Hard | Mix of shapes (triangle, irregular blob, rotated rectangle); all 2-part; only one equal | 1 |
+| Tier   | Distractor strategy                                                                     | Hint budget |
+| ------ | --------------------------------------------------------------------------------------- | ----------- |
+| Easy   | One option is unpartitioned; one is partitioned but unequal; one is correct             | 3           |
+| Medium | All options have 2 parts but only one is equal; mix of rectangles and circles           | 2           |
+| Hard   | Mix of shapes (triangle, irregular blob, rotated rectangle); all 2-part; only one equal | 1           |
 
 #### Question template archetype
 
@@ -168,15 +168,15 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
 
 A single shape is shown in two orientations (or with two different valid fold directions). The student answers a binary question: **does this still show one half?** Tap green check or red X.
 
-This activity directly targets misconception **M7 (position/orientation matters for fraction identity)** from the misconceptions framework. From the Learning Trajectory: *"They see different-looking halves and conclude they are different fractions. This is a profound misconception requiring explicit attention."*
+This activity directly targets misconception **M7 (position/orientation matters for fraction identity)** from the misconceptions framework. From the Learning Trajectory: _"They see different-looking halves and conclude they are different fractions. This is a profound misconception requiring explicit attention."_
 
 #### Difficulty tiers
 
-| Tier | Variation | Hint budget |
-|------|-----------|-------------|
-| Easy | One axis-aligned half + one obviously different orientation, but both valid | 3 |
-| Medium | Diagonal vs. vertical halves, both valid | 2 |
-| Hard | Mixed valid + invalid orientations; some are unequal | 1 |
+| Tier   | Variation                                                                   | Hint budget |
+| ------ | --------------------------------------------------------------------------- | ----------- |
+| Easy   | One axis-aligned half + one obviously different orientation, but both valid | 3           |
+| Medium | Diagonal vs. vertical halves, both valid                                    | 2           |
+| Hard   | Mixed valid + invalid orientations; some are unequal                        | 1           |
 
 #### Question template archetype
 
@@ -280,11 +280,11 @@ Even-count sets only at this level. Odd-count sets (where halving requires fract
 
 #### Difficulty tiers
 
-| Tier | Set size | Distractor strategy | Hint budget |
-|------|----------|--------------------|-------------|
-| Easy | 4 or 6 objects | Half is highlighted vs. less than half | 3 |
-| Medium | 6 or 8 objects | Half vs. more than half (e.g., 5 of 8 highlighted) | 2 |
-| Hard | 8, 10, or 12 objects; mixed grouping | Half vs. close-but-wrong (e.g., 5 of 12 highlighted) | 1 |
+| Tier   | Set size                             | Distractor strategy                                  | Hint budget |
+| ------ | ------------------------------------ | ---------------------------------------------------- | ----------- |
+| Easy   | 4 or 6 objects                       | Half is highlighted vs. less than half               | 3           |
+| Medium | 6 or 8 objects                       | Half vs. more than half (e.g., 5 of 8 highlighted)   | 2           |
+| Hard   | 8, 10, or 12 objects; mixed grouping | Half vs. close-but-wrong (e.g., 5 of 12 highlighted) | 1           |
 
 #### Question template archetype
 
@@ -355,13 +355,13 @@ Even-count sets only at this level. Odd-count sets (where halving requires fract
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-L2-ROT-01` | "Rotated halves are not halves" — student rejects valid halves shown at unfamiliar orientations | Wrong answer on `rotated_half` Tier 1-2 with two valid halves at different orientations |
-| `MC-L2-SHAPE-01` | "Halves only happen in circles" (M2 from framework) — student picks circle option even when wrong | Pattern of always-circle picks on `identify_half_v2` Medium with mixed shapes |
-| `MC-L2-IDENT-01` | "Equal means identical" (M4) — student rejects two pieces that look different in shape but are equal in area | Wrong "no" on `rotated_half` for diagonal-vs-axis halves |
-| `MC-L2-WNB-01` | "Whole-number bias on sets" — student picks higher count as "more half" | Wrong "yes" on `half_of_a_set` when `highlightedCount > setSize/2` |
-| `MC-EOL-01`, `MC-EOL-03`, `MC-WHB-01` | (re-detected from Level 1) | As described in `level-01.md` §5 |
+| MC ID                                 | Name                                                                                                         | Detection signal                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `MC-L2-ROT-01`                        | "Rotated halves are not halves" — student rejects valid halves shown at unfamiliar orientations              | Wrong answer on `rotated_half` Tier 1-2 with two valid halves at different orientations |
+| `MC-L2-SHAPE-01`                      | "Halves only happen in circles" (M2 from framework) — student picks circle option even when wrong            | Pattern of always-circle picks on `identify_half_v2` Medium with mixed shapes           |
+| `MC-L2-IDENT-01`                      | "Equal means identical" (M4) — student rejects two pieces that look different in shape but are equal in area | Wrong "no" on `rotated_half` for diagonal-vs-axis halves                                |
+| `MC-L2-WNB-01`                        | "Whole-number bias on sets" — student picks higher count as "more half"                                      | Wrong "yes" on `half_of_a_set` when `highlightedCount > setSize/2`                      |
+| `MC-EOL-01`, `MC-EOL-03`, `MC-WHB-01` | (re-detected from Level 1)                                                                                   | As described in `level-01.md` §5                                                        |
 
 Detail and intervention activities live in `../misconceptions.md` (TBD; salvage from `RoadMap/02_Level_03_05/misconceptions/MISCONCEPTIONS_FRAMEWORK.md`).
 
@@ -373,8 +373,24 @@ Per C8, Level 2 uses **only halves**:
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "halves", "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." } },
-  { "id": "frac:2/2", "numerator": 2, "denominator": 2, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "halves", "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." } }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves",
+    "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." }
+  },
+  {
+    "id": "frac:2/2",
+    "numerator": 2,
+    "denominator": 2,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "halves",
+    "visualAssets": { "barUrl": "...", "circleUrl": "...", "setUrl": "..." }
+  }
 ]
 ```
 
@@ -411,14 +427,14 @@ Most students spend 4 sessions at Level 2 — the rotation/orientation work tend
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `identify_half_v2` templates | 12 | 3 examples shown | Need 9 more |
-| `rotated_half` templates | 10 | 3 examples shown | Need 7 more |
-| `half_of_a_set` templates | 10 | 4 examples shown | Need 6 more |
-| TTS audio scripts | 32 | 0 | Generate via SpeechSynthesis API at runtime |
-| Hint definitions | ~96 (3 per template) | 0 | TBD |
-| Validator function specs | 3 (one new: `bothShowSameFraction`, `setHalf`) | High-level only | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
+| Item                         | Required                                       | Authored         | Notes                                                                  |
+| ---------------------------- | ---------------------------------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `identify_half_v2` templates | 12                                             | 3 examples shown | Need 9 more                                                            |
+| `rotated_half` templates     | 10                                             | 3 examples shown | Need 7 more                                                            |
+| `half_of_a_set` templates    | 10                                             | 4 examples shown | Need 6 more                                                            |
+| TTS audio scripts            | 32                                             | 0                | Generate via SpeechSynthesis API at runtime                            |
+| Hint definitions             | ~96 (3 per template)                           | 0                | TBD                                                                    |
+| Validator function specs     | 3 (one new: `bothShowSameFraction`, `setHalf`) | High-level only  | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
 
 ---
 

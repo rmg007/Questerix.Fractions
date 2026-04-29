@@ -40,6 +40,7 @@ You will receive a batch of QuestionTemplate records and must generate exactly 3
 ## Tier Definitions & Constraints
 
 ### Tier 1 (Mild Scaffolding) — `order: 1`
+
 - **Purpose:** Encourage student to re-read the prompt or think about what they know.
 - **Strategy:** Ask a guiding question; do NOT give away the answer.
 - **Examples:**
@@ -50,6 +51,7 @@ You will receive a batch of QuestionTemplate records and must generate exactly 3
 - **Vocabulary:** Simple K–2 language only. No jargon (e.g., "denominator", "fraction", "partition").
 
 ### Tier 2 (Moderate Scaffolding) — `order: 2`
+
 - **Purpose:** Gently push student toward the right reasoning path without revealing the answer.
 - **Strategy:** Reference a specific part of the problem; suggest an approach.
 - **Examples:**
@@ -60,6 +62,7 @@ You will receive a batch of QuestionTemplate records and must generate exactly 3
 - **Vocabulary:** Simple K–2 language. Avoid "equal parts"—say "same size" instead when possible.
 
 ### Tier 3 (Heavy Scaffolding) — `order: 3`
+
 - **Purpose:** Nearly direct answer without spoiling the learning moment.
 - **Strategy:** Break down the task into micro-steps; describe what success looks like.
 - **Examples:**
@@ -91,7 +94,7 @@ You will receive a batch of QuestionTemplate records and must generate exactly 3
 
 When you see a template with `misconceptionTraps: ["MC-WHB-01"]`, design hints that **counter** that trap:
 
-- **MC-WHB-01 (Whole Number Bias):** Student treats shaded regions as "pieces to count" rather than "parts of a whole". Counter by emphasizing *size equality*: "Make sure all parts are the same size, not just the same number of pieces."
+- **MC-WHB-01 (Whole Number Bias):** Student treats shaded regions as "pieces to count" rather than "parts of a whole". Counter by emphasizing _size equality_: "Make sure all parts are the same size, not just the same number of pieces."
 - **MC-EOL-01 (Eye of the Lemur):** Student eyeballs visual equality rather than measuring. Counter by suggesting careful placement: "Line up your divisions so each part looks exactly the same."
 - **MC-PNC-01 (Part–Never Coincides):** Student ignores overlap or boundary alignment. Counter by referencing clear boundaries: "Make sure your lines touch the edges so nothing is left out."
 
@@ -110,43 +113,53 @@ For a template with `id: "q:pt:L1:0023"` (archetype `pt`, level 1, sequence 0023
 ## Archetype-Specific Guidance
 
 ### partition (pt)
+
 - Focuses on equal-area subdivision.
-- Hints should emphasize *same size*, not counting.
+- Hints should emphasize _same size_, not counting.
 - Reference shapes explicitly: "all pieces in the circle".
 
 ### identify (id)
+
 - Student picks the shape that matches a verbal fraction description.
 - Hints: suggest comparing each option to the description; ask "which one shows...?"
 
 ### label (lb)
+
 - Student drags labels onto shaded regions.
 - Hints: help student count parts and match numerator/denominator.
 
 ### make (mk)
+
 - Student folds/shades a shape to show a fraction.
 - Hints: guide shading strategy; emphasize equal parts first, then shading count.
 
 ### compare (cmp)
+
 - Student compares two fractions.
 - Hints: suggest visual strategy ("which one takes up more space?") or number strategy.
 
 ### benchmark (bmk)
+
 - Student estimates if a fraction is closer to 0, 1/2, or 1.
 - Hints: reference visual landmarks ("Is it past the middle line?").
 
 ### order (ord)
+
 - Student sorts fractions on a number line.
 - Hints: guide comparison strategy; suggest thinking about halves, thirds, etc.
 
 ### snap_match (sm)
+
 - Student matches equivalent fraction forms.
 - Hints: guide visual pattern recognition ("Do these look the same size?").
 
 ### equal_or_not (eon)
+
 - Student judges if two parts are equal in size.
 - Hints: guide comparison method (overlay, side-by-side, measuring).
 
 ### placement (ms)
+
 - Student places a fraction card on a 0–1 number line.
 - Hints: reference landmarks (0, 1/2, 1); suggest estimation strategy.
 
@@ -182,43 +195,44 @@ For each template, emit 3 HintTemplate records (order 1, 2, 3).
 Input template: `q:pt:L1:0001` (partition, L1, easy tier, trap MC-WHB-01)
 
 Output:
+
 ```json
 [
   {
-    "id":                 "h:pt:L1:0001:T1",
+    "id": "h:pt:L1:0001:T1",
     "questionTemplateId": "q:pt:L1:0001",
-    "type":               "verbal",
-    "order":              1,
+    "type": "verbal",
+    "order": 1,
     "content": {
-      "text":            "What does 'equal' mean when you split a shape?",
-      "assetUrl":        null,
-      "ttsKey":          "tts.hint.pt.l1.0001.t1"
+      "text": "What does 'equal' mean when you split a shape?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t1"
     },
-    "pointCost":          0.0
+    "pointCost": 0.0
   },
   {
-    "id":                 "h:pt:L1:0001:T2",
+    "id": "h:pt:L1:0001:T2",
     "questionTemplateId": "q:pt:L1:0001",
-    "type":               "verbal",
-    "order":              2,
+    "type": "verbal",
+    "order": 2,
     "content": {
-      "text":            "Try making each piece the same size, not just 2 pieces.",
-      "assetUrl":        null,
-      "ttsKey":          "tts.hint.pt.l1.0001.t2"
+      "text": "Try making each piece the same size, not just 2 pieces.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t2"
     },
-    "pointCost":          0.0
+    "pointCost": 0.0
   },
   {
-    "id":                 "h:pt:L1:0001:T3",
+    "id": "h:pt:L1:0001:T3",
     "questionTemplateId": "q:pt:L1:0001",
-    "type":               "verbal",
-    "order":              3,
+    "type": "verbal",
+    "order": 3,
     "content": {
-      "text":            "Draw a straight line through the middle so both halves are the same.",
-      "assetUrl":        null,
-      "ttsKey":          "tts.hint.pt.l1.0001.t3"
+      "text": "Draw a straight line through the middle so both halves are the same.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t3"
     },
-    "pointCost":          0.0
+    "pointCost": 0.0
   }
 ]
 ```

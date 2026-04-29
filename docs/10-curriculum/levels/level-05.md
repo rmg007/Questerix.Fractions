@@ -5,14 +5,15 @@ owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
-related: [./level-04.md, ./level-03.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
+related:
+  [./level-04.md, ./level-03.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 ---
 
 # Level 5 — Make Thirds and Fourths
 
 The capstone of the **"Identify and Make"** band (Levels 1–5). Students now actively partition shapes into **thirds** and **fourths**. Both denominator families are covered within this level — the first time the student is asked to switch between denominators **within a session**.
 
-Per C8, Level 5 is the level where **review across halves/thirds/fourths** happens. The scope-and-sequence describes the cluster as "Make thirds and fourths" with ~12 topics. Note that this level still does not present a *comparison* mechanic (1/3 vs 1/4) — that is Level 6+. Within Level 5, each individual question targets exactly one denominator; the cross-denominator practice happens at the **session** level via question shuffling.
+Per C8, Level 5 is the level where **review across halves/thirds/fourths** happens. The scope-and-sequence describes the cluster as "Make thirds and fourths" with ~12 topics. Note that this level still does not present a _comparison_ mechanic (1/3 vs 1/4) — that is Level 6+. Within Level 5, each individual question targets exactly one denominator; the cross-denominator practice happens at the **session** level via question shuffling.
 
 Per the Learning Trajectory, **symbolic notation is still not introduced**. Symbols arrive at Level 6.
 
@@ -40,14 +41,14 @@ Per Learning Trajectory Levels 5 and 7 (Fourthing as Half-of-a-Half, Composition
 
 Skill IDs continue from Level 4. See `../skills.md` for canonical definitions. (audit §1.1 fix — SK-IDs renumbered to avoid collisions with former L8 definitions)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-15` | Produce equal thirds of a region | `pInit=0.08, pTransit=0.18, pSlip=0.12, pGuess=0.10` |
-| `SK-16` | Produce equal fourths of a region | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.10` |
-| `SK-17` | Compositional production: fourths as half-of-a-half | `pInit=0.05, pTransit=0.20, pSlip=0.10, pGuess=0.05` |
-| `SK-18` | Produce equal thirds/fourths of a length | `pInit=0.10, pTransit=0.20, pSlip=0.12, pGuess=0.10` |
-| `SK-19` | Split a set into 3 or 4 equal groups | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.15` |
-| `SK-20` | Denominator-switching fluency (halves ↔ thirds ↔ fourths within a session) | `pInit=0.05, pTransit=0.18, pSlip=0.15, pGuess=0.08` |
+| Skill ID | Name                                                                       | BKT priors                                           |
+| -------- | -------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `SK-15`  | Produce equal thirds of a region                                           | `pInit=0.08, pTransit=0.18, pSlip=0.12, pGuess=0.10` |
+| `SK-16`  | Produce equal fourths of a region                                          | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.10` |
+| `SK-17`  | Compositional production: fourths as half-of-a-half                        | `pInit=0.05, pTransit=0.20, pSlip=0.10, pGuess=0.05` |
+| `SK-18`  | Produce equal thirds/fourths of a length                                   | `pInit=0.10, pTransit=0.20, pSlip=0.12, pGuess=0.10` |
+| `SK-19`  | Split a set into 3 or 4 equal groups                                       | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.15` |
+| `SK-20`  | Denominator-switching fluency (halves ↔ thirds ↔ fourths within a session) | `pInit=0.05, pTransit=0.18, pSlip=0.15, pGuess=0.08` |
 
 > **MC-MAG-02 detection note:** Misconception MC-MAG-02 ("Whole Disappears When Divided") is detected via `SK-17` attempt logs. The two-step `compositional_fourths` activity requires the student to recognize that the original whole persists after partition, operationalizing "two halves make one whole" reasoning. See `../misconceptions.md` §3.3 MC-MAG-02. (audit §1.6 fix)
 
@@ -61,15 +62,15 @@ Mastery of all six skills — `SK-15` through `SK-20` — is required to unlock 
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares) | Primary — fourths production |
-| **CCSS.2.G.A.3** (partition into 2, 3, or 4 equal shares) | Primary — thirds production, exceeding Grade 1 |
-| **CCSS.1.G.A.2** (compose 2D shapes) | Light — compositional fourthing |
+| Standard                                                                                                          | Coverage                                                   |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **CCSS.1.G.A.3** (partition into 2 or 4 equal shares)                                                             | Primary — fourths production                               |
+| **CCSS.2.G.A.3** (partition into 2, 3, or 4 equal shares)                                                         | Primary — thirds production, exceeding Grade 1             |
+| **CCSS.1.G.A.2** (compose 2D shapes)                                                                              | Light — compositional fourthing                            |
 | **CCSS.2.G.A.3** secondary clause: "recognize that equal shares of identical wholes need not have the same shape" | Light — fourths via diagonal folds vs. perpendicular folds |
-| **NCTM PSSM PreK-2** Number and Operations: composing/decomposing | Primary — half-of-a-half framing |
+| **NCTM PSSM PreK-2** Number and Operations: composing/decomposing                                                 | Primary — half-of-a-half framing                           |
 
-This level explicitly addresses **CCSS.1.G.A.3**'s embedded clause: *"decomposing into more equal shares creates smaller shares"* — which is operationalized in `compositional_fourths` (§4.3) where the student physically sees two thirds vs. two fourths of the same whole.
+This level explicitly addresses **CCSS.1.G.A.3**'s embedded clause: _"decomposing into more equal shares creates smaller shares"_ — which is operationalized in `compositional_fourths` (§4.3) where the student physically sees two thirds vs. two fourths of the same whole.
 
 ---
 
@@ -90,11 +91,11 @@ This is the hardest production activity in the MVP through Level 5. There is no 
 
 #### Difficulty tiers
 
-| Tier | Shape pool | Drag affordance | Tolerance | Hint budget |
-|------|-----------|----------------|-----------|-------------|
-| Easy | Rectangle (axis-aligned) | Soft snap to thirds-grid (vertical lines at 0.333 and 0.667) | ±5% area on all 3 parts | 3 |
-| Medium | Rectangle, square, circle | No snap; visual ghost of partition guide on first drag | ±5% area | 2 |
-| Hard | Triangle, irregular blob, rotated rectangle | No snap, no guide | ±4% area | 1 |
+| Tier   | Shape pool                                  | Drag affordance                                              | Tolerance               | Hint budget |
+| ------ | ------------------------------------------- | ------------------------------------------------------------ | ----------------------- | ----------- |
+| Easy   | Rectangle (axis-aligned)                    | Soft snap to thirds-grid (vertical lines at 0.333 and 0.667) | ±5% area on all 3 parts | 3           |
+| Medium | Rectangle, square, circle                   | No snap; visual ghost of partition guide on first drag       | ±5% area                | 2           |
+| Hard   | Triangle, irregular blob, rotated rectangle | No snap, no guide                                            | ±4% area                | 1           |
 
 #### Question template archetype
 
@@ -186,11 +187,11 @@ The validator checks: are all 4 resulting areas within tolerance? If yes, the an
 
 #### Difficulty tiers
 
-| Tier | Shape pool | Affordance | Tolerance | Hint budget |
-|------|-----------|------------|-----------|-------------|
-| Easy | Rectangle, square (axis-aligned) | Snap to fourths grid (any of three valid grids) | ±5% area | 3 |
-| Medium | Square, circle | No snap; multi-config accepted | ±5% area | 2 |
-| Hard | Rotated rectangle, triangle, irregular blob | No snap, single valid config (parallel cuts) | ±3% area | 1 |
+| Tier   | Shape pool                                  | Affordance                                      | Tolerance | Hint budget |
+| ------ | ------------------------------------------- | ----------------------------------------------- | --------- | ----------- |
+| Easy   | Rectangle, square (axis-aligned)            | Snap to fourths grid (any of three valid grids) | ±5% area  | 3           |
+| Medium | Square, circle                              | No snap; multi-config accepted                  | ±5% area  | 2           |
+| Hard   | Rotated rectangle, triangle, irregular blob | No snap, single valid config (parallel cuts)    | ±3% area  | 1           |
 
 #### Question template archetype
 
@@ -271,22 +272,22 @@ The validator checks: are all 4 resulting areas within tolerance? If yes, the an
 **Title:** "Half of a Half"
 **Levels in app:** L5 only
 
-A two-step activity that operationalizes the salvaged Learning Trajectory's compositional insight: *"A fourth is half of a half."*
+A two-step activity that operationalizes the salvaged Learning Trajectory's compositional insight: _"A fourth is half of a half."_
 
 **Step 1:** The student halves a shape (single-line drag, like Level 4 `make_halves`).
 **Step 2:** Once the halves are accepted, the shape redraws with the centerline locked. The student now halves **each half** with a second drag (or two drags, one per half). This produces fourths.
 
 The student sees both steps as a single question; the validator checks the final configuration has 4 equal parts AND the first cut was a valid halving cut.
 
-This activity is pedagogically critical. It is the only place in the MVP where the *relationship between halves and fourths* is made visible through interaction. From the salvaged Activity 06 (Fourths Festival) Day 4: *"A fourth is HALF of a HALF."*
+This activity is pedagogically critical. It is the only place in the MVP where the _relationship between halves and fourths_ is made visible through interaction. From the salvaged Activity 06 (Fourths Festival) Day 4: _"A fourth is HALF of a HALF."_
 
 #### Difficulty tiers
 
-| Tier | Shape | Snap on step 1 | Snap on step 2 | Hint budget |
-|------|-------|---------------|----------------|-------------|
-| Easy | Rectangle (axis-aligned) | Axis snap | Snap to half-of-half centerlines | 3 |
-| Medium | Square or circle | Axis snap | No snap | 2 |
-| Hard | Triangle or irregular blob | No snap | No snap | 1 |
+| Tier   | Shape                      | Snap on step 1 | Snap on step 2                   | Hint budget |
+| ------ | -------------------------- | -------------- | -------------------------------- | ----------- |
+| Easy   | Rectangle (axis-aligned)   | Axis snap      | Snap to half-of-half centerlines | 3           |
+| Medium | Square or circle           | Axis snap      | No snap                          | 2           |
+| Hard   | Triangle or irregular blob | No snap        | No snap                          | 1           |
 
 #### Question template archetype
 
@@ -362,13 +363,13 @@ This mixing is the only place in the MVP through Level 5 where multiple denomina
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-L5-THIRDS-HALF-01` | "Thirds via halving" — student tries to halve as the first cut on a thirds question, producing 1/2 + 1/4 + 1/4 | `make_thirds` Medium/Hard with first cut at 0.5 ± 0.05 followed by attempts to subdivide one half |
-| `MC-L5-FOURTHS-3CUTS-01` | "Fourths means three cuts" — student fixates on the count of cuts (3 cuts → 4 parts) and applies it incorrectly to circles | Wrong on `make_fourths` Hard with circle; student attempts three radial cuts at uneven angles |
-| `MC-L5-COMP-NOREL-01` | "Compositional move not internalized" (M6 generalized) — student treats step 1 and step 2 as unrelated; redraws step 1 cut after step 2 fails | High retry rate on `compositional_fourths` step 1 after step 2 fails |
-| `MC-L5-DENSWITCH-01` | "Sticky denominator" — student treats current question's denominator as the same as previous question even when prompt changes | Wrong on a thirds question immediately after a successful fourths question, with cuts at 0.25/0.5/0.75 (i.e., still doing fourths) |
-| `MC-L5-EQUAL-LAX-01` | "Three is enough, never mind equal" (M3 generalized) — student lays down the right number of cuts but ignores equality | `make_thirds` or `make_fourths` Tier 2-3 with `errorMagnitude` > tolerance and no retry |
+| MC ID                    | Name                                                                                                                                          | Detection signal                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `MC-L5-THIRDS-HALF-01`   | "Thirds via halving" — student tries to halve as the first cut on a thirds question, producing 1/2 + 1/4 + 1/4                                | `make_thirds` Medium/Hard with first cut at 0.5 ± 0.05 followed by attempts to subdivide one half                                  |
+| `MC-L5-FOURTHS-3CUTS-01` | "Fourths means three cuts" — student fixates on the count of cuts (3 cuts → 4 parts) and applies it incorrectly to circles                    | Wrong on `make_fourths` Hard with circle; student attempts three radial cuts at uneven angles                                      |
+| `MC-L5-COMP-NOREL-01`    | "Compositional move not internalized" (M6 generalized) — student treats step 1 and step 2 as unrelated; redraws step 1 cut after step 2 fails | High retry rate on `compositional_fourths` step 1 after step 2 fails                                                               |
+| `MC-L5-DENSWITCH-01`     | "Sticky denominator" — student treats current question's denominator as the same as previous question even when prompt changes                | Wrong on a thirds question immediately after a successful fourths question, with cuts at 0.25/0.5/0.75 (i.e., still doing fourths) |
+| `MC-L5-EQUAL-LAX-01`     | "Three is enough, never mind equal" (M3 generalized) — student lays down the right number of cuts but ignores equality                        | `make_thirds` or `make_fourths` Tier 2-3 with `errorMagnitude` > tolerance and no retry                                            |
 
 Maps primarily to misconceptions **M3, M5, M6** in `MISCONCEPTIONS_FRAMEWORK.md`, plus L5-specific ones around denominator switching and compositional reasoning.
 
@@ -380,15 +381,78 @@ Per C8, Level 5 uses halves, thirds, and fourths:
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "halves" },
-  { "id": "frac:2/2", "numerator": 2, "denominator": 2, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "halves" },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333, "benchmark": "almost_half", "denominatorFamily": "thirds" },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667, "benchmark": "almost_one", "denominatorFamily": "thirds" },
-  { "id": "frac:3/3", "numerator": 3, "denominator": 3, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "thirds" },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25, "benchmark": "almost_zero", "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5, "benchmark": "half", "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75, "benchmark": "almost_one", "denominatorFamily": "fourths" },
-  { "id": "frac:4/4", "numerator": 4, "denominator": 4, "decimalValue": 1.0, "benchmark": "one", "denominatorFamily": "fourths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:2/2",
+    "numerator": 2,
+    "denominator": 2,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_one",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:3/3",
+    "numerator": 3,
+    "denominator": 3,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:4/4",
+    "numerator": 4,
+    "denominator": 4,
+    "decimalValue": 1.0,
+    "benchmark": "one",
+    "denominatorFamily": "fourths"
+  }
 ]
 ```
 
@@ -426,15 +490,15 @@ This is the longest level in the MVP through Level 5. Compositional fourths atte
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `make_thirds` templates | 12 | 3 examples shown | Need 9 more |
-| `make_fourths` templates | 14 | 3 examples shown | Need 11 more |
-| `compositional_fourths` templates | 8 | 2 examples shown | Need 6 more |
-| TTS audio scripts | 34 | 0 | Generate via SpeechSynthesis API at runtime |
-| Hint definitions | ~102 (3 per template) | 0 | Compositional hints should physically demonstrate "halve, then halve each half" |
-| Validator function specs | 2 (one new: `partition.compositionalFourths`) | High-level only | Need detailed pseudocode |
-| Multi-config validator behavior | 1 | High-level only | `equalAreas` must accept any config that produces N equal areas regardless of cut placement |
+| Item                              | Required                                      | Authored         | Notes                                                                                       |
+| --------------------------------- | --------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------- |
+| `make_thirds` templates           | 12                                            | 3 examples shown | Need 9 more                                                                                 |
+| `make_fourths` templates          | 14                                            | 3 examples shown | Need 11 more                                                                                |
+| `compositional_fourths` templates | 8                                             | 2 examples shown | Need 6 more                                                                                 |
+| TTS audio scripts                 | 34                                            | 0                | Generate via SpeechSynthesis API at runtime                                                 |
+| Hint definitions                  | ~102 (3 per template)                         | 0                | Compositional hints should physically demonstrate "halve, then halve each half"             |
+| Validator function specs          | 2 (one new: `partition.compositionalFourths`) | High-level only  | Need detailed pseudocode                                                                    |
+| Multi-config validator behavior   | 1                                             | High-level only  | `equalAreas` must accept any config that produces N equal areas regardless of cut placement |
 
 ---
 
@@ -446,4 +510,4 @@ This is the longest level in the MVP through Level 5. Compositional fourths atte
 4. **Hint design for compositional_fourths step 2.** When step 2 fails, should the hint show the correct second-cut location, or should it animate the half-of-a-half move? Recommended: the animated demonstration; static visual hints often fail to convey the procedural insight.
 5. **Validator complexity for `equalAreas` with multi-config.** The validator currently described as "checks N equal areas regardless of N" must handle: parallel cuts, perpendicular cuts, diagonal cuts, radial cuts, and arbitrary irregular cuts. Each shape type has different valid configurations. Should the validator be shape-aware (one validator per shape) or shape-agnostic (compute polygon areas from cut lines, check tolerance)? Recommended: shape-agnostic for cleaner code; document the polygon-area algorithm in `../../20-mechanic/activity-archetypes.md`.
 6. **Is Level 5 too long?** Per C9 (10–15 minute sessions), 6–10 sessions to mastery is on the high end of the MVP envelope. The session structure is heavily packed. Should we split Level 5 into Level 5a (thirds) and Level 5b (fourths)? **Implication:** this would push the MVP from 9 levels to 10. Recommended: keep as one level for MVP scope (C3), but flag as a candidate split for post-validation refinement.
-7. **Conflict with constraints.md C8.** The constraints document says: *"Level 4: fourths" / "Level 5: review halves/thirds/fourths"*. The scope-and-sequence (and this spec) instead says: *L4 = make halves, L5 = make thirds and fourths*. The scope-and-sequence framing was used here because it produces a cleaner identification-then-production progression. This needs to be reconciled in `constraints.md` C8 — recommended update: *"Level 4: make halves; Level 5: make thirds and fourths"*. Tracked as authoring follow-up.
+7. **Conflict with constraints.md C8.** The constraints document says: _"Level 4: fourths" / "Level 5: review halves/thirds/fourths"_. The scope-and-sequence (and this spec) instead says: _L4 = make halves, L5 = make thirds and fourths_. The scope-and-sequence framing was used here because it produces a cleaner identification-then-production progression. This needs to be reconciled in `constraints.md` C8 — recommended update: _"Level 4: make halves; Level 5: make thirds and fourths"_. Tracked as authoring follow-up.

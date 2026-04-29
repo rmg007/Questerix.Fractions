@@ -1,6 +1,6 @@
 # STORY SCRIPTS — READ-ALOUD TEXTS FOR THE HALVING KINGDOM
 
-> *Scripts for key story moments throughout the year. Teachers read aloud, adapt voices, and invite participation.*
+> _Scripts for key story moments throughout the year. Teachers read aloud, adapt voices, and invite participation._
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## WEEK 1 — "PIA MEETS WHOLA"
 
-*Reading time: 5 minutes*
+_Reading time: 5 minutes_
 
 Once upon a fraction, in a kingdom shaped like a perfect circle, there lived a little chef named **PIA**. Pia was six years old — exactly your age! She wore a tiny chef's apron, covered in flour smudges, and she carried a wooden spoon everywhere she went.
 
@@ -58,13 +58,13 @@ And then Pia looked up. She looked right at YOU. And she said —
 
 Yes? Oh, wonderful. Then our journey begins.
 
-— *End of Chapter One*
+— _End of Chapter One_
 
 ---
 
 ## WEEK 2 — "CRUMB'S FIRST VISIT"
 
-*Reading time: 4 minutes*
+_Reading time: 4 minutes_
 
 Pia had been learning about WHOLES all week. She had whole pizzas, whole apples, whole books, whole everything. She was getting VERY good at it.
 
@@ -104,13 +104,13 @@ This week, we're going to become EQUAL-DETECTIVES. We will help Crumb. We will h
 
 Ready?
 
-— *End of Chapter Two*
+— _End of Chapter Two_
 
 ---
 
 ## WEEK 3 — "PIA'S FIRST HALVING"
 
-*Reading time: 5 minutes*
+_Reading time: 5 minutes_
 
 It was the third week at the Whole Hearth. Pia had learned about wholes. Pia had learned about equal and unequal. She was ready for something new.
 
@@ -166,13 +166,13 @@ Two pieces. EQUAL. Two HALVES.
 
 This week, WE are going to learn what Pia just learned. We are going to HALVE. With our bodies, with our hands, with paper and care. Are you ready?
 
-— *End of Chapter Three*
+— _End of Chapter Three_
 
 ---
 
 ## WEEK 6 — "THE FOURTH FRIENDS ARRIVE"
 
-*Reading time: 5 minutes*
+_Reading time: 5 minutes_
 
 Pia was now very good at halving. She had practiced for weeks. Halfie and Halvo had visited many times, always hungry, always getting equal halves. Everyone was happy.
 
@@ -232,13 +232,13 @@ And on Friday, QUEEN EQUALLIA herself will come to our class. She will watch us.
 
 Are you ready?
 
-— *End of Chapter Six — End of Phase 1*
+— _End of Chapter Six — End of Phase 1_
 
 ---
 
 ## WEEK 7 — "THE SHADOW ARRIVES"
 
-*Reading time: 5 minutes*
+_Reading time: 5 minutes_
 
 Phase One was finished. Queen Equallia had crowned Pia — and all of you — as Halvers and Fourthers. Everyone was proud. The kingdom was peaceful.
 
@@ -282,13 +282,13 @@ Queen Equallia summoned Pia.
 
 Yes? Oh, WONDERFUL. This week, we begin our detective training. Get out your magnifying glasses. Get out your thinking caps. Lord Notenough is coming — and WE are ready.
 
-— *End of Chapter Seven*
+— _End of Chapter Seven_
 
 ---
 
 ## WEEK 21 — "WHOLA'S CHARGE"
 
-*Reading time: 5 minutes*
+_Reading time: 5 minutes_
 
 Months had passed. Pia and her helpers (that's YOU) had become skilled Detectives. They had defeated Lord Notenough's tricks in the Halving Detective Trial. The kingdom was safer.
 
@@ -328,13 +328,13 @@ And the scroll began...
 
 **[Open the first Story Scroll problem from activity 10.]**
 
-— *End of Chapter 21*
+— _End of Chapter 21_
 
 ---
 
 ## WEEK 32 — "PIA'S FAREWELL"
 
-*Reading time: 7 minutes*
+_Reading time: 7 minutes_
 
 The Hunger Storm had come. Dark clouds had gathered. The kingdom had feared.
 
@@ -388,7 +388,7 @@ The sun shone over the Halving Kingdom. The year was complete.
 
 And every single one of us — every single one — was forever changed.
 
-— *The End (for now)*
+— _The End (for now)_
 
 ---
 
@@ -402,6 +402,7 @@ These scripts are MEANT to be adapted. Feel free to:
 - Shorten or lengthen as attention spans allow
 
 But keep:
+
 - The emotional arc (wonder → challenge → triumph)
 - The PIA TURNS TO YOU moments
 - The inclusive language (they/them for Halfie/Halvo)
@@ -409,4 +410,4 @@ But keep:
 
 ---
 
-*Additional scripts for Weeks 4, 5, 9, 14, 20, 25, 27, 30 available in this folder.*
+_Additional scripts for Weeks 4, 5, 9, 14, 20, 25, 27, 30 available in this folder._

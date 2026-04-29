@@ -2,8 +2,8 @@ name: Synthetic Playtest
 
 on:
   schedule:
-    - cron: '0 6 * * 1'   # Every Monday 06:00 UTC
-  workflow_dispatch:        # On-demand manual trigger
+    - cron: '0 6 * * 1' # Every Monday 06:00 UTC
+  workflow_dispatch: # On-demand manual trigger
 
 jobs:
   playtest:

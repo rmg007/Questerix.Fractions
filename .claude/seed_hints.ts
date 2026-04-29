@@ -95,7 +95,7 @@ async function seedHints(): Promise<SeedReport> {
     if (report.errors.length > 0) {
       console.warn(
         `[seedHints] Validation found ${report.errors.length} errors. First 5:`,
-        report.errors.slice(0, 5),
+        report.errors.slice(0, 5)
       );
     }
 
@@ -144,9 +144,7 @@ async function seedHints(): Promise<SeedReport> {
         orderValid,
       });
 
-      console.log(
-        `  ${templateId}: ${queried.length} hints (order valid: ${orderValid})`,
-      );
+      console.log(`  ${templateId}: ${queried.length} hints (order valid: ${orderValid})`);
     }
 
     // ── Step 5: Spot-check individual hint retrieval ────────────────────────
@@ -188,7 +186,9 @@ if (require.main === module) {
     console.log(`Hints Seeded:         ${report.hintsSeeded}`);
     console.log(`Unique Templates:     ${report.uniqueTemplates}`);
     console.log(`Template Sample:      ${report.templateSample.join(', ')}`);
-    console.log(`Query Tests Passed:   ${report.queryTestResults.filter((r) => r.orderValid).length}/${report.queryTestResults.length}`);
+    console.log(
+      `Query Tests Passed:   ${report.queryTestResults.filter((r) => r.orderValid).length}/${report.queryTestResults.length}`
+    );
     console.log(`Validation Errors:    ${report.errors.length}`);
     console.log(`Status:               ${report.success ? '✓ SUCCESS' : '✗ FAILED'}`);
     console.log('══════════════════════════════════════════════════════\n');

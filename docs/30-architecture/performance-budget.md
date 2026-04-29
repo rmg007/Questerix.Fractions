@@ -26,17 +26,17 @@ A 1.0 MB gzipped transfer at 4G (~5 Mbps) loads in approximately 1.6 seconds. Ac
 
 ## 2. Budget Slices
 
-| Component | Budget (KB gzipped) | Measurement Tool | Rationale |
-|-----------|---------------------|-----------------|-----------|
-| Phaser 4 core (vendor chunk) | 350 KB | rollup-plugin-visualizer | Largest single dependency; fixed cost of the game engine per `stack.md §2.1` |
-| Tailwind v4 output (purged) | 30 KB | rollup-plugin-visualizer | v4 purge is aggressive; utility-class output stays small |
-| Dexie 4 + dexie-export-import | 35 KB | rollup-plugin-visualizer | ~22 KB Dexie + ~10 KB export addon; per `stack.md §2.5` |
-| App code (TS, scenes, components) | 200 KB | rollup-plugin-visualizer | All `src/` code: scenes, systems, validators, progression engine |
-| Fonts (variable subset, woff2) | 80 KB | Lighthouse CI / Network panel | Nunito Latin subset; per `../20-mechanic/design-language.md §3.1` |
-| Audio (lazy, on-demand) | 0 KB initial; ~50 KB per session avg | Chrome DevTools Network | ~5 SFX; loaded on first play, not initial transfer |
-| Curriculum JSON (L1 only initial; lazy-load others) | 50 KB initial; ~30 KB per additional level | rollup-plugin-visualizer / Network panel | Only L1 seed in initial bundle; other levels fetched on unlock |
-| Buffer | 255 KB | — | Absorbs measurement variance, future minor additions |
-| **Total initial transfer** | **≤ 1,000 KB (1.0 MB)** | **Lighthouse CI** | **Hard limit** |
+| Component                                           | Budget (KB gzipped)                        | Measurement Tool                         | Rationale                                                                    |
+| --------------------------------------------------- | ------------------------------------------ | ---------------------------------------- | ---------------------------------------------------------------------------- |
+| Phaser 4 core (vendor chunk)                        | 350 KB                                     | rollup-plugin-visualizer                 | Largest single dependency; fixed cost of the game engine per `stack.md §2.1` |
+| Tailwind v4 output (purged)                         | 30 KB                                      | rollup-plugin-visualizer                 | v4 purge is aggressive; utility-class output stays small                     |
+| Dexie 4 + dexie-export-import                       | 35 KB                                      | rollup-plugin-visualizer                 | ~22 KB Dexie + ~10 KB export addon; per `stack.md §2.5`                      |
+| App code (TS, scenes, components)                   | 200 KB                                     | rollup-plugin-visualizer                 | All `src/` code: scenes, systems, validators, progression engine             |
+| Fonts (variable subset, woff2)                      | 80 KB                                      | Lighthouse CI / Network panel            | Nunito Latin subset; per `../20-mechanic/design-language.md §3.1`            |
+| Audio (lazy, on-demand)                             | 0 KB initial; ~50 KB per session avg       | Chrome DevTools Network                  | ~5 SFX; loaded on first play, not initial transfer                           |
+| Curriculum JSON (L1 only initial; lazy-load others) | 50 KB initial; ~30 KB per additional level | rollup-plugin-visualizer / Network panel | Only L1 seed in initial bundle; other levels fetched on unlock               |
+| Buffer                                              | 255 KB                                     | —                                        | Absorbs measurement variance, future minor additions                         |
+| **Total initial transfer**                          | **≤ 1,000 KB (1.0 MB)**                    | **Lighthouse CI**                        | **Hard limit**                                                               |
 
 > App code budget of 200 KB is the most flexible slice. If Phaser 4 ships smaller than 350 KB, that surplus can shift here.
 
@@ -47,6 +47,7 @@ A 1.0 MB gzipped transfer at 4G (~5 Mbps) loads in approximately 1.6 seconds. Ac
 **60 fps on iPhone SE (2020) as the baseline device** (375 × 667 px, A13 Bionic). Per `runtime-architecture.md §9`.
 
 Key constraints:
+
 - Validators are synchronous and pure: < 1 ms each.
 - BKT updates are synchronous: < 5 ms each.
 - Dexie writes are async and `await`-ed off the input handler — do not block the render loop.
@@ -58,14 +59,15 @@ Animations use a single `cubic-bezier(0.4, 0, 0.2, 1)` easing curve; all duratio
 
 ## 4. Measurement
 
-| Tool | What it measures | When |
-|------|-----------------|------|
-| **rollup-plugin-visualizer** | Per-chunk gzipped sizes; interactive treemap of the bundle | Every production build |
-| **Lighthouse CI** | Total transfer, Time to Interactive, LCP, CLS; run in headless Chromium | Every CI run on main |
-| **Chrome DevTools Performance tab** | Frame timing, main-thread blocking, Dexie write latency | Manual; before each phase gate; on any new scene addition |
-| **Playwright + axe-core** | Accessibility metrics piggy-backed on E2E runs | Every CI run |
+| Tool                                | What it measures                                                        | When                                                      |
+| ----------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------- |
+| **rollup-plugin-visualizer**        | Per-chunk gzipped sizes; interactive treemap of the bundle              | Every production build                                    |
+| **Lighthouse CI**                   | Total transfer, Time to Interactive, LCP, CLS; run in headless Chromium | Every CI run on main                                      |
+| **Chrome DevTools Performance tab** | Frame timing, main-thread blocking, Dexie write latency                 | Manual; before each phase gate; on any new scene addition |
+| **Playwright + axe-core**           | Accessibility metrics piggy-backed on E2E runs                          | Every CI run                                              |
 
 Lighthouse thresholds enforced in CI (`lighthouserc.js`):
+
 - Performance score ≥ 85
 - LCP ≤ 2.5 s (4G throttle)
 - TBT ≤ 200 ms

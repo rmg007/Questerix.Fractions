@@ -41,10 +41,12 @@ Your child will play **Questerix Fractions**, an educational game about fraction
 ## Benefits & Risks
 
 **Benefits:**
+
 - Your child gets to play an early version of an educational game
 - Your feedback helps us make the game better
 
 **Risks:**
+
 - Minimal. The game uses standard web technologies (no tracking, no ads, no in-app purchases)
 - If your child finds the game frustrating, they can stop at any time with no penalty
 
@@ -94,7 +96,7 @@ If you have questions or concerns about this playtest, contact the researcher at
 
 **Pseudonym:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
-**Device type:** ☐ iPad  ☐ Chromebook  ☐ Other: \_\_\_\_\_\_\_\_\_\_\_\_
+**Device type:** ☐ iPad ☐ Chromebook ☐ Other: \_\_\_\_\_\_\_\_\_\_\_\_
 
 **Session ID (to be recorded in notes):** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 

@@ -1,6 +1,6 @@
 # ACTIVITY 07 — FOLDING FUN: THE FORMALIZATION BEGINS
 
-> *"The fold is the child's first geometric proof. When two edges meet exactly, equality is demonstrated — not asserted."*
+> _"The fold is the child's first geometric proof. When two edges meet exactly, equality is demonstrated — not asserted."_
 
 **Phase:** Formalization | **Weeks:** 7-9 (3-week cluster) | **Duration:** 30-45 min/day | **Standard:** CCSS 1.G.A.3
 
@@ -16,6 +16,7 @@ Phase 2 begins here. The shift is from "discover" to "formalize" — children no
 This is a **3-week cluster** (not a single week) because folding fluency is foundational. Rushing it creates fragile understanding.
 
 **Learning Objectives (across 3 weeks):**
+
 - **F1-F4:** Fluent halving/fourthing across many shape types
 - **F8 (emerging):** Vocabulary emerging: "half," "fourth," "equal parts," "fold line"
 - **F4:** Detect inequality (Lord Notenough's fake pieces)
@@ -29,6 +30,7 @@ This is a **3-week cluster** (not a single week) because folding fluency is foun
 **Duration:** 45 min
 
 **Materials:**
+
 - Read-aloud: "The Shadow Arrives"
 - Fake-piece cards (pieces that LOOK like halves/fourths but aren't)
 - Real-piece cards
@@ -56,6 +58,7 @@ Given pairs of pieces (some real halves, some fake), children fold one on top of
 
 **Activity:**
 Rectangles can be halved many ways:
+
 - Vertical fold (tall rectangle halves)
 - Horizontal fold (wide rectangle halves)
 - Diagonal fold (creates triangles)
@@ -70,11 +73,13 @@ Children fold all three ways and realize: all produce EQUAL halves.
 
 **Activity:**
 Squares can be halved FOUR ways:
+
 - Vertical
 - Horizontal
 - Two diagonal folds
 
 Then fourthed many ways:
+
 - Two perpendicular folds → 4 rectangles
 - Two diagonal folds → 4 triangles
 - Vertical + horizontal → 4 squares
@@ -98,6 +103,7 @@ Sorting accuracy; reasoning quality.
 ### Day 1-5 Overview:
 
 Children encounter progressively tricky shapes:
+
 - Hearts (symmetric but tricky fold)
 - Stars (5-pointed — halving is surprising)
 - Irregular "blobs" (can we halve them? How?)
@@ -108,6 +114,7 @@ Children encounter progressively tricky shapes:
 Some shapes can be halved through folding. Others require MEASURING. Some may not be halvable at all with simple methods. Children learn that halving is a CONCEPT — the METHODS vary.
 
 ### Assessment:
+
 Weekly sorting task: which shapes were easy? Which hard? Why?
 
 ---
@@ -134,20 +141,24 @@ Halve sets of 8, 12, 16, 20 objects. Fourth sets of 4, 8, 12, 16. Notice: only e
 ## DIFFERENTIATION
 
 ### For ELLs:
+
 - Vocabulary: "fold," "edge," "match," "fake," "real"
 - Pair tasks with bilingual partners
 - Gesture dictionary posted
 
 ### For Motor Challenges:
+
 - Pre-scored folds on all paper
 - Larger shapes
 - Alternative: draw fold lines without folding
 
 ### For Advanced:
+
 - Challenge: "Find a shape that CAN'T be halved with one fold."
 - Investigate: regular polygons — which halve easily?
 
 ### For Struggling:
+
 - Focus on simple shapes (circle, rectangle)
 - Small-group practice sessions
 - Return to Week 3-4 materials as needed
@@ -157,13 +168,13 @@ Halve sets of 8, 12, 16, 20 objects. Fourth sets of 4, 8, 12, 16. Notice: only e
 ## COMMON MISCONCEPTIONS ADDRESSED
 
 **M1:** "Halving means cutting down the middle vertically."
-*Addressed Week 7 Day 3:* many valid directions.
+_Addressed Week 7 Day 3:_ many valid directions.
 
 **M2:** "Irregular shapes can't be halved."
-*Addressed Week 8:* they can, with careful methods.
+_Addressed Week 8:_ they can, with careful methods.
 
 **M3:** "All sets can be halved."
-*Addressed Week 9 Day 4-5:* only even sets halve cleanly into whole-object halves.
+_Addressed Week 9 Day 4-5:_ only even sets halve cleanly into whole-object halves.
 
 ---
 
@@ -185,20 +196,23 @@ Lord Notenough is a RECURRING antagonist throughout Phase 2. He'll reappear in W
 ## TEACHER PREP CHECKLIST
 
 **Before Week 7:**
+
 - [ ] Print fake-piece and real-piece cards
 - [ ] Prepare Detective hats
 - [ ] Lord Notenough introduction script
 - [ ] Paper shapes for 3 weeks of folding
 
 **Before Week 8:**
+
 - [ ] Cut irregular "blob" shapes
 - [ ] Print star, heart, complex shape templates
 
 **Before Week 9:**
+
 - [ ] Multiple ribbon lengths
 - [ ] Counter sets in varied quantities
 - [ ] Rulers for teacher demonstration
 
 ---
 
-*End of Activity 07. Next: Activity 08 — Equal Detectives (Weeks 11-14 vocabulary-focused block).*
+_End of Activity 07. Next: Activity 08 — Equal Detectives (Weeks 11-14 vocabulary-focused block)._

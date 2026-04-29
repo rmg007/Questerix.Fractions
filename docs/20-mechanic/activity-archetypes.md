@@ -5,7 +5,14 @@ owner: solo
 last_reviewed: 2026-04-24
 applies_to: [mvp]
 constraint_refs: [C3, C6, C7, C8, C9]
-related: [design-language.md, interaction-model.md, ../10-curriculum/scope-and-sequence.md, ../10-curriculum/levels/level-01.md, ../30-architecture/data-schema.md]
+related:
+  [
+    design-language.md,
+    interaction-model.md,
+    ../10-curriculum/scope-and-sequence.md,
+    ../10-curriculum/levels/level-01.md,
+    ../30-architecture/data-schema.md,
+  ]
 ---
 
 # Activity Archetypes
@@ -19,7 +26,7 @@ Catalogs every interaction archetype the MVP must implement. One section per mec
 5. **Feedback animations** — what the student sees on EXACT / CLOSE / WRONG outcomes
 6. **Accessibility considerations** — touch-target, motion, audio, alternative input
 
-This is the *contract* between curriculum authors (writing `QuestionTemplate`s in `levels/level-NN.md`) and engine implementers (writing validators and Phaser systems). If a mechanic referenced in a level spec is not in this catalog, the level spec is rejected.
+This is the _contract_ between curriculum authors (writing `QuestionTemplate`s in `levels/level-NN.md`) and engine implementers (writing validators and Phaser systems). If a mechanic referenced in a level spec is not in this catalog, the level spec is rejected.
 
 The archetypes are drawn directly from the verbs in `scope-and-sequence.md §3` and the activities listed in `level-01.md §4`.
 
@@ -27,7 +34,7 @@ The archetypes are drawn directly from the verbs in `scope-and-sequence.md §3` 
 
 ## 1. `partition`
 
-**Purpose.** Student demonstrates understanding of *equal parts* by physically dividing a whole shape into N congruent regions. This is the foundational mechanic for L1 (halves), L4 (halves practice), and L5 (thirds, fourths).
+**Purpose.** Student demonstrates understanding of _equal parts_ by physically dividing a whole shape into N congruent regions. This is the foundational mechanic for L1 (halves), L4 (halves practice), and L5 (thirds, fourths).
 
 **Levels in scope.** L1, L4, L5.
 
@@ -102,7 +109,7 @@ validator.identify.exactIndex(payload, studentSelectedIndex):
 **Accessibility considerations.**
 
 - Each option card ≥ 88×88 with 16 px padding around content (large touch target for K–2 fingers).
-- Selection state is conveyed by both border color *and* a small filled dot in the corner (color-blind safe).
+- Selection state is conveyed by both border color _and_ a small filled dot in the corner (color-blind safe).
 - Screen reader: each card has aria-label derived from its `payload.options[i].alt` field.
 - Audio replay button on the prompt (per interaction-model §audio-replay).
 
@@ -145,7 +152,7 @@ validator.label.matchTarget(payload, studentMappings):
 
 ## 4. `make` / `fold`
 
-**Purpose.** Student *produces* a fraction by partitioning a shape into the requested number of parts and (optionally) shading or selecting one part. Closely related to `partition` but with an explicit *target denominator* spoken in the prompt.
+**Purpose.** Student _produces_ a fraction by partitioning a shape into the requested number of parts and (optionally) shading or selecting one part. Closely related to `partition` but with an explicit _target denominator_ spoken in the prompt.
 
 **Levels in scope.** L4 (make halves), L5 (make thirds, fourths).
 
@@ -218,7 +225,7 @@ validator.compare.relation(payload, studentRelation):
 
 - The `<` `=` `>` symbols are paired with arrow icons (←, =, →) for students who haven't formally learned the symbols.
 - Bar models have a numeric label below each ("3 of 4" / "1 of 4") in addition to the visual.
-- Color is *not* the only differentiator — the two fractions use different bar fills *and* labels.
+- Color is _not_ the only differentiator — the two fractions use different bar fills _and_ labels.
 
 ---
 
@@ -356,7 +363,7 @@ validator.equal_or_not.areaTolerance(payload, studentAnswer):
 **Feedback animations.**
 
 - **EXACT:** Chosen button fills with success color, the shape's partitions briefly outline in matching color.
-- **WRONG:** Chosen button shakes once; the shape's regions overlay translucent area-fill bars showing actual proportions, so the student *sees* the error.
+- **WRONG:** Chosen button shakes once; the shape's regions overlay translucent area-fill bars showing actual proportions, so the student _sees_ the error.
 
 **Accessibility considerations.**
 
@@ -374,7 +381,7 @@ validator.equal_or_not.areaTolerance(payload, studentAnswer):
 
 **Input gestures.**
 
-- **Drag-to-position:** Student picks up a fraction card from the tray and drags onto a horizontal number line marked 0 → 1. Snap behavior is *off* — the student must place freely. The X position determines the answer.
+- **Drag-to-position:** Student picks up a fraction card from the tray and drags onto a horizontal number line marked 0 → 1. Snap behavior is _off_ — the student must place freely. The X position determines the answer.
 - **Tick marks** are visible at benchmark positions (0, 1/2, 1) to give visual anchors.
 
 **Validator pseudocode.**
@@ -409,19 +416,19 @@ validator.placement.tolerance(payload, studentPlacedDecimal):
 
 Every `QuestionTemplate.validatorId` must appear in this table. The content pipeline verifies against this list at build time (see `content-pipeline.md §4`). Validators are pure TypeScript functions living in `src/validators/`.
 
-| validatorId | Signature | Returned outcome semantics | Used by archetype |
-|-------------|-----------|---------------------------|-------------------|
-| `validator.partition.equalAreas` | `(payload: PartitionPayload, studentDrawnLines: Line[]) => Outcome` | Returns `EXACT` if relative area delta ≤ `areaTolerance`; `CLOSE` if ≤ `areaTolerance × 2`; else `WRONG`. | `partition`, `make` |
-| `validator.identify.exactIndex` | `(payload: IdentifyPayload, studentSelectedIndex: number) => Outcome` | Returns `EXACT` if `studentSelectedIndex === payload.targetIndex`; else `WRONG` with any flagged misconceptionIds. | `identify` |
-| `validator.label.matchTarget` | `(payload: LabelPayload, studentMappings: Array<{labelId, regionId}>) => Outcome` | Returns `EXACT` if all label→region mappings match `payload.expectedLabelForRegion`; else `WRONG` with error count as `errorMagnitude`. | `label` |
-| `validator.make.foldAndShade` | `(payload: MakePayload, studentFoldLines: Line[], studentShadedRegionIds: string[]) => Outcome` | Delegates partition check to `validator.partition.equalAreas`; then validates shaded region count. | `make` |
-| `validator.compare.relation` | `(payload: ComparePayload, studentRelation: "<"\|"="\|">") => Outcome` | Returns `EXACT` if student relation matches computed decimal comparison; else `WRONG` with optional misconception flags. | `compare` |
-| `validator.benchmark.sortToZone` | `(payload: BenchmarkPayload, studentPlacements: Map<string,"zero"\|"half"\|"one">) => Outcome` | Returns `EXACT` if 0 errors; `CLOSE` if ≤ 25% misplaced; else `WRONG` with `errorMagnitude = errors/total`. | `benchmark` |
-| `validator.order.sequence` | `(payload: OrderPayload, studentSequence: string[]) => Outcome` | Returns `EXACT` if sequence matches sorted order; `CLOSE` if 1 swap off (Kendall tau distance = 1); else `WRONG`. | `order` |
-| `validator.snap_match.allPairs` | `(payload: SnapMatchPayload, studentPairs: Array<[string,string]>) => Outcome` | Returns `EXACT` if all pairs match `payload.expectedPairs`; else `WRONG`. | `snap_match` |
-| `validator.equal_or_not.areaTolerance` | `(payload: EqualOrNotPayload, studentAnswer: boolean) => Outcome` | Returns `EXACT` if `studentAnswer === payload.correctAnswer`; else `WRONG`. (`correctAnswer` is pre-computed at authoring time using a ±2% area rule.) | `equal_or_not` |
-| `validator.placement.snapTolerance` | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome` | Returns `EXACT` if `errorMagnitude ≤ payload.exactTolerance` (typically 0.05); `CLOSE` if ≤ `payload.closeTolerance` (typically 0.15); else `WRONG`. | `placement` |
-| `validator.placement.snap8` | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome` | Variant of `snapTolerance` calibrated for eighths-denominator pools (exactTolerance = 0.0625). | `placement` |
+| validatorId                            | Signature                                                                                       | Returned outcome semantics                                                                                                                             | Used by archetype   |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| `validator.partition.equalAreas`       | `(payload: PartitionPayload, studentDrawnLines: Line[]) => Outcome`                             | Returns `EXACT` if relative area delta ≤ `areaTolerance`; `CLOSE` if ≤ `areaTolerance × 2`; else `WRONG`.                                              | `partition`, `make` |
+| `validator.identify.exactIndex`        | `(payload: IdentifyPayload, studentSelectedIndex: number) => Outcome`                           | Returns `EXACT` if `studentSelectedIndex === payload.targetIndex`; else `WRONG` with any flagged misconceptionIds.                                     | `identify`          |
+| `validator.label.matchTarget`          | `(payload: LabelPayload, studentMappings: Array<{labelId, regionId}>) => Outcome`               | Returns `EXACT` if all label→region mappings match `payload.expectedLabelForRegion`; else `WRONG` with error count as `errorMagnitude`.                | `label`             |
+| `validator.make.foldAndShade`          | `(payload: MakePayload, studentFoldLines: Line[], studentShadedRegionIds: string[]) => Outcome` | Delegates partition check to `validator.partition.equalAreas`; then validates shaded region count.                                                     | `make`              |
+| `validator.compare.relation`           | `(payload: ComparePayload, studentRelation: "<"\|"="\|">") => Outcome`                          | Returns `EXACT` if student relation matches computed decimal comparison; else `WRONG` with optional misconception flags.                               | `compare`           |
+| `validator.benchmark.sortToZone`       | `(payload: BenchmarkPayload, studentPlacements: Map<string,"zero"\|"half"\|"one">) => Outcome`  | Returns `EXACT` if 0 errors; `CLOSE` if ≤ 25% misplaced; else `WRONG` with `errorMagnitude = errors/total`.                                            | `benchmark`         |
+| `validator.order.sequence`             | `(payload: OrderPayload, studentSequence: string[]) => Outcome`                                 | Returns `EXACT` if sequence matches sorted order; `CLOSE` if 1 swap off (Kendall tau distance = 1); else `WRONG`.                                      | `order`             |
+| `validator.snap_match.allPairs`        | `(payload: SnapMatchPayload, studentPairs: Array<[string,string]>) => Outcome`                  | Returns `EXACT` if all pairs match `payload.expectedPairs`; else `WRONG`.                                                                              | `snap_match`        |
+| `validator.equal_or_not.areaTolerance` | `(payload: EqualOrNotPayload, studentAnswer: boolean) => Outcome`                               | Returns `EXACT` if `studentAnswer === payload.correctAnswer`; else `WRONG`. (`correctAnswer` is pre-computed at authoring time using a ±2% area rule.) | `equal_or_not`      |
+| `validator.placement.snapTolerance`    | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome`                          | Returns `EXACT` if `errorMagnitude ≤ payload.exactTolerance` (typically 0.05); `CLOSE` if ≤ `payload.closeTolerance` (typically 0.15); else `WRONG`.   | `placement`         |
+| `validator.placement.snap8`            | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome`                          | Variant of `snapTolerance` calibrated for eighths-denominator pools (exactTolerance = 0.0625).                                                         | `placement`         |
 
 ---
 

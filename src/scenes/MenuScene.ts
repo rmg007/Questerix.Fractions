@@ -615,7 +615,13 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private drawTaglinePill(cx: number, cy: number, text: string, fontSize = 30, bgAlpha = 0.95): void {
+  private drawTaglinePill(
+    cx: number,
+    cy: number,
+    text: string,
+    fontSize = 30,
+    bgAlpha = 0.95
+  ): void {
     const padX = 22;
     const padY = 12;
     const txt = this.add
