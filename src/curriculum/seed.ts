@@ -57,33 +57,9 @@ export async function seedIfEmpty(): Promise<SeedResult> {
     // ── Step 2: Read or create deviceMeta ──────────────────────────────────
     // per persistence-spec.md §5 step 2
 
-    let deviceMeta = await db.deviceMeta.toCollection().first();
-    let isFirstBoot = false;
+    let deviceMeta = await deviceMetaRepo.get();
+    const isFirstBoot = deviceMeta.contentVersion === '';
 
-    if (!deviceMeta) {
-      isFirstBoot = true;
-      // Create singleton on first launch
-      const newMeta: DeviceMeta = {
-        installId: crypto.randomUUID(),
-        schemaVersion: 3,
-        contentVersion: '',
-        preferences: {
-          audio: true,
-          reduceMotion: false,
-          highContrast: false,
-          ttsLocale: 'en-US',
-          largeTouchTargets: false,
-          persistGranted: false,
-        },
-        lastBackupAt: null,
-        lastRestoredAt: null,
-        pendingSyncCount: 0,
-        syncState: 'local',
-      };
-      await db.deviceMeta.add(newMeta);
-      deviceMeta = newMeta;
-      console.info(`[seedIfEmpty] First boot detected (installId: ${newMeta.installId})`);
-    }
 
     // ── Step 3: Compare versions and decide on wiping ──────────────────────
     // per persistence-spec.md §5 step 3

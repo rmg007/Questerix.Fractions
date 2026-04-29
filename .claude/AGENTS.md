@@ -28,6 +28,9 @@ Custom notes added outside markers are preserved across regenerations.
 - **lint**: `npm run lint`
 - **lint:fix**: `npm run lint:fix`
 - **measure-bundle**: `npm run measure-bundle`
+- **deploy**: `npm run deploy`
+- **predeploy**: `npm run predeploy`
+- **postdeploy**: `npm run postdeploy`
 <!-- roadie:end:commands -->
 
 <!-- roadie:start:agent-roles -->

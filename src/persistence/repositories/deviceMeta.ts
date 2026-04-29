@@ -44,7 +44,7 @@ export const deviceMetaRepo = {
   },
 
   /**
-   * Merge patch into the singleton row. Shallow-merges preferences sub-object.
+   * Merge patch into the singleton row.
    */
   async update(patch: Partial<Omit<DeviceMeta, 'installId'>>): Promise<boolean> {
     try {
@@ -57,13 +57,25 @@ export const deviceMetaRepo = {
     }
   },
 
+  /**
+   * Updates specific preference fields atomically using Dexie dot-notation.
+   * Prevents race conditions where concurrent updates overwrite each other's preference merges.
+   */
   async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
-      const current = await deviceMetaRepo.get();
-      return deviceMetaRepo.update({
-        preferences: { ...current.preferences, ...prefPatch },
-      });
-    } catch {
+      // Ensure the singleton exists
+      await deviceMetaRepo.get();
+      
+      // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
+      const atomicPatch: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(prefPatch)) {
+        atomicPatch[`preferences.${k}`] = v;
+      }
+      
+      const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
+      return updated > 0;
+    } catch (err) {
+      console.error('[deviceMetaRepo] updatePreferences failed:', err);
       return false;
     }
   },

@@ -218,8 +218,26 @@
       "command": "npm run measure-bundle",
       "sourceFile": "package.json",
       "type": "other"
+    },
+    {
+      "name": "deploy",
+      "command": "npm run deploy",
+      "sourceFile": "package.json",
+      "type": "other"
+    },
+    {
+      "name": "predeploy",
+      "command": "npm run predeploy",
+      "sourceFile": "package.json",
+      "type": "other"
+    },
+    {
+      "name": "postdeploy",
+      "command": "npm run postdeploy",
+      "sourceFile": "package.json",
+      "type": "other"
     }
   ],
-  "overview": "Project: Questerix.Fractions | Stack: npm, TypeScript, Node.js, Vitest, Vite | Commands: 17 | Patterns: 7"
+  "overview": "Project: Questerix.Fractions | Stack: npm, TypeScript, Node.js, Vitest, Vite | Commands: 20 | Patterns: 7"
 }
 <!-- roadie:end:project-model-json -->

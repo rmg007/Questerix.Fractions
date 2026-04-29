@@ -33,4 +33,7 @@ Maintain a high-quality TypeScript codebase following the WISC framework.
 - **lint**: `npm run lint`
 - **lint:fix**: `npm run lint:fix`
 - **measure-bundle**: `npm run measure-bundle`
+- **deploy**: `npm run deploy`
+- **predeploy**: `npm run predeploy`
+- **postdeploy**: `npm run postdeploy`
 <!-- roadie:end:core-commands -->

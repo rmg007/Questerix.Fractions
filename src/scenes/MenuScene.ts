@@ -116,13 +116,17 @@ export class MenuScene extends Phaser.Scene {
     injectSkipLink();
 
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
+    const unlocked = this._getUnlockedLevels();
+    const currentLevel = Math.max(...Array.from(unlocked));
+    const playLabel = currentLevel > 1 ? `Play Level ${currentLevel}` : 'Play Level 1';
+
     A11yLayer.unmountAll();
-    A11yLayer.mountAction('a11y-play', 'Play Level 1', () => {
-      this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+    A11yLayer.mountAction('a11y-play', playLabel, () => {
+      this._startLevel(currentLevel);
     });
     if (this.lastStudentId) {
       A11yLayer.mountAction('a11y-continue', 'Continue from your last spot', () => {
-        this.scene.start('Level01Scene', { studentId: this.lastStudentId, resume: true });
+        this._startLevel(currentLevel, true);
       });
     }
     A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
@@ -225,26 +229,16 @@ export class MenuScene extends Phaser.Scene {
         this.scene.launch('SettingsScene');
       },
     });
-    this.add
-      .text(STATION_X, SET_Y + 90, 'Settings', {
-        fontFamily: TITLE_FONT,
-        fontSize: '28px',
-        color: NAVY_HEX,
-        backgroundColor: 'rgba(255,255,255,0.92)',
-        padding: { x: 18, y: 6 },
-      })
-      .setOrigin(0.5)
-      .setDepth(22);
+    this.drawTaglinePill(STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
 
     // Continue — middle of the line, position ½ (only if returning student)
     if (hasContinue) {
       this.drawFractionBadge({
         x: STATION_X,
         y: CONT_Y - 90,
-        text: '½',
+        text: '1/2', // Use slash for better font compatibility and a11y
         borderColor: CONT_BORDER,
         textColor: CONT_TEXT,
-        // emerald variant
       });
       this.createStationButton({
         x: STATION_X,
@@ -261,10 +255,7 @@ export class MenuScene extends Phaser.Scene {
         shadowOffset: 6,
         rounded: true,
         onTap: () => {
-          this.scene.start('Level01Scene', {
-            studentId: this.lastStudentId,
-            resume: true,
-          });
+          this._startLevel(currentLevel, true);
         },
       });
     }
@@ -292,7 +283,7 @@ export class MenuScene extends Phaser.Scene {
       shadowOffset: 8,
       rounded: true,
       onTap: () => {
-        this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+        this._startLevel(currentLevel);
       },
     });
 
@@ -367,6 +358,16 @@ export class MenuScene extends Phaser.Scene {
   }
 
   /** Persist that a level was completed so the next one unlocks. */
+  /** Helper to route to Level01 (hardcoded archetype) or LevelScene (generic). */
+  private _startLevel(levelNumber: number, resume = false): void {
+    const data = { levelNumber, studentId: this.lastStudentId, resume };
+    if (levelNumber === 1) {
+      this.scene.start('Level01Scene', data);
+    } else {
+      this.scene.start('LevelScene', data);
+    }
+  }
+
   static markLevelComplete(levelNumber: number, studentId: string | null): void {
     try {
       const key = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
@@ -382,28 +383,10 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private async _openLevelChooser(): Promise<void> {
-    // Build the unlocked set — also query Dexie if we have a studentId
+  private _openLevelChooser(): void {
     const unlocked = this._getUnlockedLevels();
-    if (this.lastStudentId) {
-      try {
-        const { sessionRepo } = await import('../persistence/repositories/session');
-        const sessions = await sessionRepo.listForStudent(
-          this.lastStudentId as import('@/types').StudentId
-        );
-        // Any closed session (endedAt != null) counts as completing that level
-        for (const s of sessions) {
-          if (s.endedAt != null && s.levelNumber >= 1 && s.levelNumber <= 9) {
-            unlocked.add(s.levelNumber);
-            if (s.levelNumber < 9) unlocked.add(s.levelNumber + 1);
-          }
-        }
-      } catch {
-        // Fall back to localStorage-only unlock state
-      }
-    }
-
     this._renderLevelGrid(unlocked);
+    A11yLayer.announce('Level chooser opened. Select a level to play.');
   }
 
   private _renderLevelGrid(unlocked: Set<number>): void {
@@ -430,6 +413,11 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(62);
+
+    // ── Accessibility: level buttons (mirror grid)
+    A11yLayer.mountAction('a11y-close-grid', 'Close level grid', () => {
+      this._closeLevelGrid();
+    });
 
     // 3×3 grid of level buttons
     const COLS = 3;
@@ -467,25 +455,18 @@ export class MenuScene extends Phaser.Scene {
         .setDepth(63);
 
       if (isUnlocked) {
+        A11yLayer.mountAction(`a11y-level-${lvl}`, `Start Level ${lvl}`, () => {
+          this._closeLevelGrid();
+          this._startLevel(lvl);
+        });
+
         this.add
           .rectangle(bx, by, bW, bH, 0, 0)
           .setInteractive({ useHandCursor: true })
           .setDepth(64)
           .on('pointerup', () => {
-            scrim.destroy();
-            cardG.destroy();
-            // Clean up all children added above depth 60
-            this.children.list
-              .filter((o) => 'depth' in o && (o as { depth: number }).depth >= 60)
-              .forEach((o) => o.destroy());
-            if (lvl === 1) {
-              this.scene.start('Level01Scene', { studentId: this.lastStudentId });
-            } else {
-              this.scene.start('LevelScene', {
-                levelNumber: lvl,
-                studentId: this.lastStudentId,
-              });
-            }
+            this._closeLevelGrid();
+            this._startLevel(lvl);
           });
       }
     }
@@ -511,14 +492,15 @@ export class MenuScene extends Phaser.Scene {
       .circle(closeX, closeY, 20, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(64)
-      .on('pointerup', () => {
-        this.children.list
-          .filter(
-            (o) =>
-              (o as Phaser.GameObjects.Components.Depth & Phaser.GameObjects.GameObject).depth >= 60
-          )
-          .forEach((o) => o.destroy());
-      });
+      .on('pointerup', () => this._closeLevelGrid());
+  }
+
+  private _closeLevelGrid(): void {
+    this.children.list
+      .filter((o) => 'depth' in o && (o as { depth: number }).depth >= 60)
+      .forEach((o) => o.destroy());
+    // Restore primary menu a11y actions
+    this.create(); // Re-runs create to reset a11y buttons, slightly heavy but reliable
   }
 
   // ── Drawing helpers ───────────────────────────────────────────────────────
@@ -634,14 +616,14 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private drawTaglinePill(cx: number, cy: number, text: string): void {
+  private drawTaglinePill(cx: number, cy: number, text: string, fontSize = 30, bgAlpha = 0.95): void {
     const padX = 22;
     const padY = 12;
     const txt = this.add
       .text(0, 0, text, {
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
-        fontSize: '30px',
+        fontSize: `${fontSize}px`,
         color: NAVY_HEX,
       })
       .setOrigin(0.5);
@@ -649,13 +631,13 @@ export class MenuScene extends Phaser.Scene {
     const h = txt.height + padY * 2;
 
     const bg = this.add.graphics();
-    bg.fillStyle(WHITE, 0.95);
+    bg.fillStyle(WHITE, bgAlpha);
     bg.fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
     bg.lineStyle(4, NAVY, 1);
     bg.strokeRoundedRect(-w / 2, -h / 2, w, h, h / 2);
 
     const container = this.add.container(cx, cy, [bg, txt]).setDepth(20);
-    container.setAngle(-2.5); // slight rotation, matches the mockup vibe
+    if (text.includes('!')) container.setAngle(-2.5); // only rotate the "fun" tagline
   }
 
   private drawFractionBadge(opts: FractionBadgeOpts): void {

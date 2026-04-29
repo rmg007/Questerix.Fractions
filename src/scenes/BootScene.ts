@@ -48,6 +48,10 @@ export class BootScene extends Phaser.Scene {
       const { ensurePersistenceGranted } = await import('../persistence/db');
       const granted = await ensurePersistenceGranted();
       console.info(`[BootScene] Persistence granted: ${granted}`);
+
+      // Sync state with deviceMeta so SettingsScene shows correct status
+      const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
+      await deviceMetaRepo.updatePreferences({ persistGranted: granted });
     } catch (err) {
       // Volatile mode — game continues without durable storage per §10 (failure modes)
       console.warn('[BootScene] Persistence grant failed — running in volatile mode:', err);

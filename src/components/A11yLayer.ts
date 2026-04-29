@@ -14,18 +14,18 @@
  * per WCAG 2.1 AA — Name/Role/Value (4.1.2), Keyboard (2.1.1), Bypass Blocks (2.4.1)
  */
 
-const CONTAINER_ID = 'qf-a11y-layer';
+const CONTAINER_ID_PREFIX = 'qf-a11y-layer-';
 const STYLE_ID = 'qf-a11y-style';
 const LIVE_REGION_ID = 'qf-a11y-live';
 
 const STYLE = `
-#${CONTAINER_ID} {
+.qf-a11y-container {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 10000;
 }
-#${CONTAINER_ID} button {
+.qf-a11y-container button {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -36,8 +36,8 @@ const STYLE = `
   white-space: nowrap;
   border: 0;
 }
-#${CONTAINER_ID} button:focus,
-#${CONTAINER_ID} button:focus-visible {
+.qf-a11y-container button:focus,
+.qf-a11y-container button:focus-visible {
   position: fixed;
   top: 8px;
   left: 8px;
@@ -80,20 +80,6 @@ function ensureStyle(): void {
   document.head.appendChild(style);
 }
 
-function ensureContainer(): HTMLElement | null {
-  if (typeof document === 'undefined') return null;
-  ensureStyle();
-  let el = document.getElementById(CONTAINER_ID);
-  if (!el) {
-    el = document.createElement('div');
-    el.id = CONTAINER_ID;
-    el.setAttribute('role', 'region');
-    el.setAttribute('aria-label', 'Game controls');
-    document.body.appendChild(el);
-  }
-  return el;
-}
-
 function ensureLiveRegion(): HTMLElement | null {
   if (typeof document === 'undefined') return null;
   ensureStyle();
@@ -109,19 +95,74 @@ function ensureLiveRegion(): HTMLElement | null {
   return el;
 }
 
-const registry = new Map<string, HTMLButtonElement>();
+const layerStack: HTMLElement[] = [];
+const registries = new Map<HTMLElement, Map<string, HTMLButtonElement>>();
+
+function getActiveLayer(): HTMLElement | null {
+  if (layerStack.length === 0) {
+    // Auto-create base layer if none exists
+    A11yLayer.pushLayer('base', 'Game controls');
+  }
+  return layerStack[layerStack.length - 1];
+}
 
 export const A11yLayer = {
   /**
+   * Pushes a new accessibility layer (e.g. for a modal).
+   * Background layers are marked as 'inert' and 'aria-hidden' to prevent stale interaction.
+   */
+  pushLayer(id: string, label: string): HTMLElement | null {
+    if (typeof document === 'undefined') return null;
+    ensureStyle();
+
+    // Suppress previous layer
+    if (layerStack.length > 0) {
+      const prev = layerStack[layerStack.length - 1];
+      prev.setAttribute('aria-hidden', 'true');
+      prev.setAttribute('inert', '');
+    }
+
+    const el = document.createElement('div');
+    el.id = `${CONTAINER_ID_PREFIX}${id}`;
+    el.className = 'qf-a11y-container';
+    el.setAttribute('role', 'region');
+    el.setAttribute('aria-label', label);
+    document.body.appendChild(el);
+
+    layerStack.push(el);
+    registries.set(el, new Map());
+    return el;
+  },
+
+  /**
+   * Pops the top layer and restores the previous one.
+   */
+  popLayer(): void {
+    const el = layerStack.pop();
+    if (el) {
+      el.remove();
+      registries.delete(el);
+    }
+
+    if (layerStack.length > 0) {
+      const prev = layerStack[layerStack.length - 1];
+      prev.removeAttribute('aria-hidden');
+      prev.removeAttribute('inert');
+    }
+  },
+
+  /**
    * Mount (or re-bind) a focusable, SR-only-by-default button mirroring a
-   * canvas control. Calling with the same id replaces the previous handler.
+   * canvas control on the active layer.
    */
   mountAction(id: string, label: string, onActivate: () => void): HTMLButtonElement | null {
     if (typeof document === 'undefined') return null;
-    const container = ensureContainer();
+    const container = getActiveLayer();
     if (!container) return null;
 
+    const registry = registries.get(container)!;
     let btn = registry.get(id);
+
     if (!btn || !btn.isConnected) {
       btn = document.createElement('button');
       btn.type = 'button';
@@ -144,22 +185,33 @@ export const A11yLayer = {
     return fresh;
   },
 
-  /** Remove a single action button. */
+  /** Remove a single action button from the active layer. */
   unmount(id: string): void {
-    registry.get(id)?.remove();
-    registry.delete(id);
+    const container = getActiveLayer();
+    if (!container) return;
+    const registry = registries.get(container);
+    registry?.get(id)?.remove();
+    registry?.delete(id);
   },
 
-  /** Remove every action button. Call on scene shutdown. */
+  /** Remove every action button on the active layer. */
   unmountAll(): void {
-    registry.forEach((b) => b.remove());
-    registry.clear();
+    const container = getActiveLayer();
+    if (container) {
+      container.innerHTML = '';
+      registries.get(container)?.clear();
+    }
+  },
+
+  /** Completely reset all layers (e.g. on hard reload/app crash). */
+  resetAll(): void {
+    while (layerStack.length > 0) {
+      this.popLayer();
+    }
   },
 
   /**
    * Announce a state change to assistive tech via the polite live region.
-   * Setting the same text twice still announces (we toggle a zero-width
-   * suffix so screen readers re-read).
    */
   announce(message: string): void {
     const live = ensureLiveRegion();
@@ -171,8 +223,10 @@ export const A11yLayer = {
     });
   },
 
-  /** For postdeploy / debugging. */
+  /** For debugging. */
   count(): number {
-    return registry.size;
+    const container = getActiveLayer();
+    return container ? (registries.get(container)?.size ?? 0) : 0;
   },
 };
+
