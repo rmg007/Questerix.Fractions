@@ -700,7 +700,10 @@ export class LevelScene extends Phaser.Scene {
       try {
         msg = getCopy(`quest.hint.fallback.${suffix}`);
       } catch {
-        // Last-resort guard — catalog reset in tests can miss fallback keys.
+        // Catalog unavailable (e.g. test teardown reset) — use safe literal
+        // so the hint bubble is never blank in production.
+        log.warn('HINT', 'fallback_catalog_miss', { tier, archetype });
+        msg = 'Take another look.';
       }
     }
 
