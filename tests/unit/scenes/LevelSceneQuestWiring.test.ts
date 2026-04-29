@@ -203,4 +203,30 @@ describe('LevelScene Quest wiring (behavior)', () => {
       expect(scene.questHintText('mystery_archetype', 'verbal')).toBeNull();
     });
   });
+
+  describe('questHintText — defensive guard', () => {
+    it('returns null (no throw) when a Quest key is missing from the catalog', async () => {
+      // The dynamic key path (`quest.hint.<archetype>.<suffix>`) is
+      // type-checked at compile time but could still drift if a future
+      // catalog edit removes a key. Verify the runtime guard catches that
+      // and falls through to the strategy-tier text instead of crashing.
+      const { _resetForTests, registerCatalog } = await import('@/lib/i18n/catalog');
+      _resetForTests();
+      // Re-register only the partition lines, deliberately omitting
+      // `quest.hint.compare.verbal` so the lookup throws inside getCopy.
+      registerCatalog({
+        'quest.hint.split2': { text: 'x', tone: 'persona-quest' },
+        'quest.hint.split3': { text: 'x', tone: 'persona-quest' },
+        'quest.hint.split4': { text: 'x', tone: 'persona-quest' },
+      });
+      const scene = makeScene('compare');
+      expect(() => scene.questHintText('compare', 'verbal')).not.toThrow();
+      expect(scene.questHintText('compare', 'verbal')).toBeNull();
+
+      // Restore for downstream tests by re-registering the real catalog.
+      _resetForTests();
+      const { QUEST_CATALOG } = await import('@/lib/i18n/keys/quest');
+      registerCatalog(QUEST_CATALOG);
+    });
+  });
 });

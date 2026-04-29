@@ -609,7 +609,22 @@ export class LevelScene extends Phaser.Scene {
       case 'label':
       case 'make':
       case 'snap_match':
-        return getCopy(`quest.hint.${archetype}.${suffix}`);
+        // Defensive: getCopy() throws on unknown keys. The strings here
+        // are verified at build time by tests/unit/i18n/questWiring.test.ts
+        // and tests/unit/i18n/questCatalog.test.ts, but a future catalog
+        // edit (e.g. renaming a key) shouldn't crash the level screen —
+        // fall back to the strategy-tier text instead. Logged for triage.
+        try {
+          return getCopy(`quest.hint.${archetype}.${suffix}`);
+        } catch (err) {
+          log.hint('quest_key_missing', {
+            archetype,
+            tier,
+            key: `quest.hint.${archetype}.${suffix}`,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          return null;
+        }
       default:
         return null;
     }
