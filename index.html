@@ -15,8 +15,94 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <!-- No external fonts: per docs/40-validation/privacy-notice.md "no third parties" and CSP `font-src 'self' data:`. System font stack is loaded from src/styles/index.css. -->
     <title>Questerix Fractions</title>
+    <style>
+      /* Splash screen — paints first so LCP captures meaningful content
+       * BEFORE the Phaser bundle (351 KB gz) finishes loading. Visible only
+       * during the first ~600ms-2s; hidden by main.ts when the game is ready. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #e0f2fe;
+        font-family:
+          'Nunito',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        min-height: 100vh;
+      }
+      #splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(180deg, #e0f2fe 0%, #93c5fd 100%);
+        z-index: 9999;
+        padding: 24px;
+      }
+      #splash h1 {
+        margin: 0 0 12px;
+        font-size: clamp(36px, 8vw, 64px);
+        font-weight: 800;
+        color: #1e3a8a;
+        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+        line-height: 1.1;
+      }
+      #splash p {
+        margin: 0;
+        font-size: clamp(18px, 4vw, 24px);
+        color: #1e3a8a;
+        opacity: 0.85;
+      }
+      #splash .loading {
+        margin-top: 32px;
+        font-size: 16px;
+        color: #1e3a8a;
+        opacity: 0.6;
+      }
+      #splash .loading::after {
+        content: '';
+        display: inline-block;
+        width: 1.2em;
+        text-align: left;
+        animation: dots 1.2s steps(4) infinite;
+      }
+      @keyframes dots {
+        0% {
+          content: '';
+        }
+        25% {
+          content: '.';
+        }
+        50% {
+          content: '..';
+        }
+        75% {
+          content: '...';
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #splash .loading::after {
+          animation: none;
+          content: '...';
+        }
+        #splash {
+          transition: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" role="status" aria-live="polite">
+      <h1>Questerix Fractions</h1>
+      <p>A math adventure! 🚀</p>
+      <p class="loading">Loading</p>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

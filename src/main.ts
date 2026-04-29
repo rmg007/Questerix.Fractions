@@ -1,5 +1,4 @@
 import './styles/index.css';
-import * as Phaser from 'phaser';
 
 // Swallow unhandled storage errors from third-party / sandboxed contexts
 // (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
@@ -13,13 +12,29 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
-// BootScene is owned by another agent at src/scenes/BootScene.ts.
-// Loaded lazily so missing scene doesn't block startup.
+/**
+ * Hide the HTML splash screen once the Phaser canvas is mounted.
+ * The splash gives the browser something to paint as LCP target while
+ * Phaser (1.3 MB raw / 351 KB gz) loads in a separate chunk.
+ */
+function hideSplash(): void {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  splash.style.opacity = '0';
+  splash.style.transition = 'opacity 0.25s ease-out';
+  // Remove after fade completes so it doesn't intercept clicks
+  setTimeout(() => splash.remove(), 300);
+}
+
 async function boot(): Promise<void> {
-  let scenes: Phaser.Types.Scenes.SceneType[] = [];
+  // Phaser is dynamically imported so the entry chunk stays tiny and the
+  // HTML splash can paint immediately. Phaser lives in its own bundle chunk
+  // (see vite.config.ts manualChunks) so this download is parallelisable.
+  const Phaser = await import('phaser');
+
+  let scenes: import('phaser').Types.Scenes.SceneType[] = [];
 
   try {
-    // Registration order matters: first scene auto-starts, others are lookup-able by key.
     const { BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene } =
       await import('./scenes');
     scenes = [BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene];
@@ -27,7 +42,7 @@ async function boot(): Promise<void> {
     console.error('[main] Failed to load scenes:', err);
   }
 
-  const config: Phaser.Types.Core.GameConfig = {
+  const config: import('phaser').Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: 'app',
     // Logical resolution per design-language §8.2 (portrait-tall reference)
@@ -41,7 +56,12 @@ async function boot(): Promise<void> {
     scene: scenes,
   };
 
-  new Phaser.Game(config);
+  const game = new Phaser.Game(config);
+
+  // Hide splash on the first rendered frame (boot scene + canvas are up)
+  game.events.once('ready', hideSplash);
+  // Safety net: also hide after 3s in case 'ready' never fires
+  setTimeout(hideSplash, 3000);
 
   // Request persistent storage for IndexedDB (per C5 / PWA requirements)
   if (navigator.storage?.persist) {
@@ -54,4 +74,5 @@ async function boot(): Promise<void> {
 
 boot().catch((err: unknown) => {
   console.error('[main] Failed to boot Phaser:', err);
+  // If Phaser fails to load, leave the splash up so the user sees something
 });

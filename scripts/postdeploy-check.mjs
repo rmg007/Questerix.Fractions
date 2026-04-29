@@ -93,7 +93,17 @@ async function run() {
     ok('No third-party analytics scripts injected');
   }
 
-  // 6. Build version — confirm the deploy that just happened is what's live
+  // 6a. LCP candidate present — splash <h1> in HTML so first paint has meaningful
+  // content even before the 351 KB Phaser chunk loads. (Speeds up Largest
+  // Contentful Paint from ~5s on cold loads to ~600ms.)
+  console.log('\n  LCP readiness:');
+  if (/id="splash"/.test(html) && /<h1[^>]*>Questerix Fractions<\/h1>/.test(html)) {
+    ok('Splash <h1> present in HTML (LCP candidate ready before JS executes)');
+  } else {
+    fail('Splash missing from HTML', 'index.html should include #splash with <h1>');
+  }
+
+  // 6b. Build version — confirm the deploy that just happened is what's live
   console.log('\n  Build version:');
   const sha = (html.match(/<meta name="x-build-sha" content="([^"]+)"/) || [])[1];
   const buildTime = (html.match(/<meta name="x-build-time" content="([^"]+)"/) || [])[1];
