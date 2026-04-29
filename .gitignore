@@ -49,3 +49,6 @@ lighthouse-report.html
 # Validation data — raw session exports (large, sensitive by context)
 # Uncommit if you intentionally want to track these
 validation-data/cycle-*/raw/
+
+# Internal builder artifacts
+.builder/

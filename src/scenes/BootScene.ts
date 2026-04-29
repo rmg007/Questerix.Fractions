@@ -116,9 +116,10 @@ export class BootScene extends Phaser.Scene {
 
     // ── Step 3: Transition to PreloadScene ─────────────────────────────────
     // per runtime-architecture.md §5 — BootScene → PreloadScene → MenuScene
-    // If test hooks are enabled, we wait for the explicit engagement click
-    // to ensure reliable e2e testing of the engagement flow.
-    if (!TestHooks.isEnabled()) {
+    // If testHooks=1 is present, we wait for an explicit engagement click
+    // to ensure reliable e2e testing of the engagement flow and audio context.
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('testHooks') !== '1') {
       this.advanceToPreload();
     } else {
       console.info('[BootScene] Test hooks enabled — waiting for boot-start-btn click…');
