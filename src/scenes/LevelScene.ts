@@ -691,120 +691,16 @@ export class LevelScene extends Phaser.Scene {
       msg = questMsg;
     }
 
-    // Fix G-Hints: branch on archetype so messages are contextually correct.
-    // Skipped when a Quest line was found above so we don't overwrite it.
+    // Fallback: questHintText returned null (unknown archetype or partition
+    // with unsupported denominator). Route through generic catalog keys so
+    // all displayed hints come from Quest's voice.
     if (msg === '') {
-      switch (archetype) {
-        case 'compare':
-          switch (tier) {
-            case 'verbal':
-              msg =
-                'Think about which fraction is bigger. Compare the top numbers if the bottoms are the same.';
-              break;
-            case 'visual_overlay':
-              msg = 'Try drawing both fractions as a picture — which takes up more space?';
-              break;
-            case 'worked_example':
-              msg = 'If the bottom numbers are the same, the bigger top number wins.';
-              break;
-          }
-          break;
-        case 'benchmark':
-          switch (tier) {
-            case 'verbal':
-              msg = 'Is this fraction closer to 0, to ½, or to 1?';
-              break;
-            case 'visual_overlay':
-              msg =
-                '½ means equal parts. Is your fraction less than half, about half, or more than half?';
-              break;
-            case 'worked_example':
-              msg =
-                "Try: if the top is much smaller than the bottom, it's near 0. If they're almost equal, it's near 1.";
-              break;
-          }
-          break;
-        case 'order':
-          switch (tier) {
-            case 'verbal':
-              msg = 'Which fraction is smallest? Start by placing it first.';
-              break;
-            case 'visual_overlay':
-              msg = 'Try converting to the same denominator — then compare the top numbers.';
-              break;
-            case 'worked_example':
-              msg =
-                'Draw each fraction as a picture to see which is smallest, middle, and largest.';
-              break;
-          }
-          break;
-        case 'equal_or_not':
-          switch (tier) {
-            case 'verbal':
-              msg = 'Look carefully — are all the pieces exactly the same size?';
-              break;
-            case 'visual_overlay':
-              msg = 'Cover one piece with another in your mind — do they match?';
-              break;
-            case 'worked_example':
-              msg = 'Equal parts means every single piece is identical.';
-              break;
-          }
-          break;
-        case 'label':
-          switch (tier) {
-            case 'verbal':
-              msg = 'Count the shaded pieces for the top number, and all pieces for the bottom.';
-              break;
-            case 'visual_overlay':
-              msg = 'The bottom number is total pieces. The top number is shaded pieces.';
-              break;
-            case 'worked_example':
-              msg = 'Write shaded / total.';
-              break;
-          }
-          break;
-        case 'make':
-          switch (tier) {
-            case 'verbal':
-              msg =
-                'The bottom number tells you how many pieces total. The top tells you how many to shade.';
-              break;
-            case 'visual_overlay':
-              msg = 'Shade exactly the number on top.';
-              break;
-            case 'worked_example':
-              msg = 'If the fraction is 2/4, shade 2 out of 4 pieces.';
-              break;
-          }
-          break;
-        case 'snap_match':
-          switch (tier) {
-            case 'verbal':
-              msg = 'Find the picture where the shaded part matches the fraction.';
-              break;
-            case 'visual_overlay':
-              msg = 'Count the total pieces (bottom number) and shaded pieces (top number).';
-              break;
-            case 'worked_example':
-              msg = 'The fraction 3/4 means 3 shaded out of 4 total pieces.';
-              break;
-          }
-          break;
-        case 'partition':
-        default:
-          switch (tier) {
-            case 'verbal':
-              msg = 'Tip: Equal parts means each piece is the same size. Try the middle!';
-              break;
-            case 'visual_overlay':
-              msg = 'Look for the center of the shape.';
-              break;
-            case 'worked_example':
-              msg = 'Watch where to place the line, then try yourself.';
-              break;
-          }
-          break;
+      const suffix =
+        tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
+      try {
+        msg = getCopy(`quest.hint.fallback.${suffix}`);
+      } catch {
+        // Last-resort guard — catalog reset in tests can miss fallback keys.
       }
     }
 

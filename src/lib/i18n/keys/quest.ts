@@ -184,6 +184,24 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
 
+  // ── Generic hint fallback (partition with unsupported denominator or
+  //    unknown archetype — safety net only; known archetypes have explicit
+  //    verbal/visual/worked keys above) ────────────────────────────────────
+  'quest.hint.fallback.verbal': {
+    text: 'Equal parts match. Try the middle.',
+    notes: 'Generic fallback hint tier 1. Used when no archetype-specific key resolves.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.fallback.visual': {
+    text: 'Look for the center of the shape.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.fallback.worked': {
+    text: 'Place the line at the center.',
+    notes: '5 words — at MIN_WORDS_FOR_FK boundary; FK gate may skip.',
+    tone: 'persona-quest',
+  },
+
   // ── Tricky / 3-wrong recovery (offers ramp-down per §9 T29) ───────────
   'quest.tricky.offerRamp': {
     text: 'This one is tricky. Want a smaller one?',
