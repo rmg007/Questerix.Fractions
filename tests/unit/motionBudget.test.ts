@@ -88,7 +88,10 @@ describe('createMotionBudget — diagnostics', () => {
     budget.acquire('confetti');
     budget.acquire('quest-cheer');
     budget.acquire('button-affordance');
-    const labels = budget.active().map((s) => s.label).sort();
+    const labels = budget
+      .active()
+      .map((s) => s.label)
+      .sort();
     expect(labels).toEqual(['button-affordance', 'confetti', 'quest-cheer']);
   });
 });

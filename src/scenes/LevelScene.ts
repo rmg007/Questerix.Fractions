@@ -570,24 +570,46 @@ export class LevelScene extends Phaser.Scene {
   }
 
   /**
-   * Pick a Quest-voiced hint line for the given archetype/denominator,
-   * or return null when no Quest line is registered for the case (the
-   * caller then falls back to the existing strategy-tier text).
+   * Pick a Quest-voiced hint line for the given archetype + tier, or null
+   * when no Quest line is registered for the case (the caller then falls
+   * back to the existing strategy-tier text).
    *
-   * Today the catalog ships hint copy only for the partition family
-   * (`quest.hint.split{2,3,4}`); other archetypes will land in a follow-up
-   * once their lines pass persona + copy-lint review.
+   * Routing (per ux-elevation §9 T28 + entries in src/lib/i18n/keys/quest.ts):
+   *   - partition / equal_or_not → tier-agnostic; selects the
+   *     denominator-shaped split{2,3,4} line because the hint *is* the
+   *     observation that the shape can be split in N pieces.
+   *   - compare / order / benchmark / label / make / snap_match → three
+   *     tiers each, mirroring HintLadder's verbal / visual_overlay /
+   *     worked_example budgets. Catalog suffixes are `.verbal`, `.visual`,
+   *     `.worked` to keep keys short.
+   *
+   * Returning null lets the caller's fallback switch run, preserving graceful
+   * degradation if a Quest entry is removed without rewiring this map.
    */
-  private questHintText(archetype: string): string | null {
-    if (archetype !== 'partition' && archetype !== 'equal_or_not') return null;
-    const d = this.payloadDenominator();
-    switch (d) {
-      case 2:
-        return getCopy('quest.hint.split2');
-      case 3:
-        return getCopy('quest.hint.split3');
-      case 4:
-        return getCopy('quest.hint.split4');
+  private questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
+    if (archetype === 'partition' || archetype === 'equal_or_not') {
+      const d = this.payloadDenominator();
+      switch (d) {
+        case 2:
+          return getCopy('quest.hint.split2');
+        case 3:
+          return getCopy('quest.hint.split3');
+        case 4:
+          return getCopy('quest.hint.split4');
+        default:
+          return null;
+      }
+    }
+    // verbal / visual_overlay / worked_example → .verbal / .visual / .worked
+    const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
+    switch (archetype) {
+      case 'compare':
+      case 'order':
+      case 'benchmark':
+      case 'label':
+      case 'make':
+      case 'snap_match':
+        return getCopy(`quest.hint.${archetype}.${suffix}`);
       default:
         return null;
     }
@@ -668,11 +690,12 @@ export class LevelScene extends Phaser.Scene {
     const archetype = this.currentTemplate?.archetype ?? 'partition';
     let msg = '';
 
-    // Quest-voiced hint per ux-elevation §9 T28. The catalog only ships
-    // partition-family hint copy today (split2/3/4); for everything else
-    // we fall through to the strategy-tiered text below. This is gated on
-    // copy-review; tracked as follow-up to extend coverage.
-    const questMsg = this.questHintText(archetype);
+    // Quest-voiced hint per ux-elevation §9 T28. The catalog ships hint
+    // copy for every level-router archetype today (partition + equal_or_not
+    // share split2/3/4; the other six have verbal/visual/worked tiers). The
+    // strategy-tiered fallback below remains the safety net for any future
+    // archetype that hasn't been Quest-voiced yet.
+    const questMsg = this.questHintText(archetype, tier);
     if (questMsg !== null) {
       msg = questMsg;
     }

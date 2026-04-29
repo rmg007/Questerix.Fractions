@@ -5,7 +5,7 @@ import { ARCHETYPES } from '@/types';
 describe('validatorRegistry', () => {
   it('has at least one validator per archetype', () => {
     for (const archetype of ARCHETYPES) {
-      const found = [...validatorRegistry.values()].some(v => v.archetype === archetype);
+      const found = [...validatorRegistry.values()].some((v) => v.archetype === archetype);
       expect(found, `archetype '${archetype}' has no registered validator`).toBe(true);
     }
   });

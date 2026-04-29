@@ -81,6 +81,93 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
 
+  // ── Hint (other archetypes — verbal / visual / worked-example) ────────
+  // Three tiers per archetype mirror src/components/HintLadder.ts so each
+  // ladder rung escalates inside Quest's voice. All entries are checked by
+  // questCatalog.test.ts (FK ≤ 2.0, ≤ 7 words/sentence, persona patterns).
+  'quest.hint.compare.verbal': {
+    text: 'Which one is bigger? Take a look.',
+    notes: 'Tier 1 hint for compare archetype. Verbal nudge, no answer.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.compare.visual': {
+    text: 'I can draw both. Then I see.',
+    notes: 'Tier 2 hint for compare. Models drawing both as pictures.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.compare.worked': {
+    text: 'Same bottom? Top number wins.',
+    notes: 'Tier 3 hint for compare. Worked-example rule.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.order.verbal': {
+    text: 'Which is smallest? Pick that one first.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.order.visual': {
+    text: 'I can draw each piece. Then sort.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.order.worked': {
+    text: 'Small, middle, big. Line them up.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.benchmark.verbal': {
+    text: 'Near zero? Near half? Or near one?',
+    notes: 'Tier 1 hint for benchmark. Three short questions stay under 7w each.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.benchmark.visual': {
+    text: 'Half is the middle. Look there.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.benchmark.worked': {
+    text: 'Tiny top? Near zero. Big top? Near one.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.label.verbal': {
+    text: 'Count the shaded ones. Then count all.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.label.visual': {
+    text: 'Top is shaded. Bottom is all parts.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.label.worked': {
+    text: 'Write shaded over total.',
+    notes: '4 words — under MIN_WORDS_FOR_FK so FK gate is skipped.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.make.verbal': {
+    text: 'Shade just the top number.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.make.visual': {
+    text: 'Bottom is total. Top is to shade.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.make.worked': {
+    text: 'Two of four? Shade two parts.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.snap_match.verbal': {
+    text: 'Find the picture that fits.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.snap_match.visual': {
+    text: 'Count shaded. Match the top number.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.snap_match.worked': {
+    text: 'Three of four shaded. Match three over four.',
+    tone: 'persona-quest',
+  },
+
   // ── Tricky / 3-wrong recovery (offers ramp-down per §9 T29) ───────────
   'quest.tricky.offerRamp': {
     text: 'This one is tricky. Want a smaller one?',

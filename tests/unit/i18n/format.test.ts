@@ -53,7 +53,7 @@ describe('format() — ICU plural', () => {
 
 describe('format() — combined plural + var', () => {
   it('expands plurals first, then substitutes other vars', () => {
-    const out = format("{name}: I see {n, plural, one {one part} other {# parts}}.", {
+    const out = format('{name}: I see {n, plural, one {one part} other {# parts}}.', {
       name: 'Sam',
       n: 2,
     });

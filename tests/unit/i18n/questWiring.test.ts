@@ -21,13 +21,13 @@ describe('LevelScene Quest wiring (T28)', () => {
     it('renders the partition-shaped Quest line verbatim', () => {
       // Acceptance criterion from .local/tasks/task-28.md:
       //   "wrong answer surfaces 'Try again. The parts are not equal.'"
-      expect(getCopy('quest.feedback.wrong.unequal')).toBe(
-        'Try again. The parts are not equal.'
-      );
+      expect(getCopy('quest.feedback.wrong.unequal')).toBe('Try again. The parts are not equal.');
     });
 
     it('renders the parts-counting Quest line with ICU plural', () => {
-      expect(getCopy('quest.feedback.wrong.parts', { count: 1 })).toBe('Try again. I see one part.');
+      expect(getCopy('quest.feedback.wrong.parts', { count: 1 })).toBe(
+        'Try again. I see one part.'
+      );
       expect(getCopy('quest.feedback.wrong.parts', { count: 3 })).toBe('Try again. I see 3 parts.');
     });
   });
@@ -49,6 +49,56 @@ describe('LevelScene Quest wiring (T28)', () => {
       expect(getCopy('quest.hint.split2')).toBe('Hmm. I can split this in two.');
       expect(getCopy('quest.hint.split3')).toBe('Hmm. I can split this in three.');
       expect(getCopy('quest.hint.split4')).toBe('Hmm. I can split this in four.');
+    });
+  });
+
+  describe('per-archetype hint ladder (verbal / visual / worked)', () => {
+    // For every non-partition archetype routed by levelRouter the catalog
+    // must register all three HintLadder tiers in Quest's voice. These
+    // pinned strings are what LevelScene.questHintText() now returns.
+    const cases: Array<[string, string, string, string]> = [
+      [
+        'compare',
+        'Which one is bigger? Take a look.',
+        'I can draw both. Then I see.',
+        'Same bottom? Top number wins.',
+      ],
+      [
+        'order',
+        'Which is smallest? Pick that one first.',
+        'I can draw each piece. Then sort.',
+        'Small, middle, big. Line them up.',
+      ],
+      [
+        'benchmark',
+        'Near zero? Near half? Or near one?',
+        'Half is the middle. Look there.',
+        'Tiny top? Near zero. Big top? Near one.',
+      ],
+      [
+        'label',
+        'Count the shaded ones. Then count all.',
+        'Top is shaded. Bottom is all parts.',
+        'Write shaded over total.',
+      ],
+      [
+        'make',
+        'Shade just the top number.',
+        'Bottom is total. Top is to shade.',
+        'Two of four? Shade two parts.',
+      ],
+      [
+        'snap_match',
+        'Find the picture that fits.',
+        'Count shaded. Match the top number.',
+        'Three of four shaded. Match three over four.',
+      ],
+    ];
+
+    it.each(cases)('%s — verbal/visual/worked tiers stay verbatim', (a, v1, v2, v3) => {
+      expect(getCopy(`quest.hint.${a}.verbal`)).toBe(v1);
+      expect(getCopy(`quest.hint.${a}.visual`)).toBe(v2);
+      expect(getCopy(`quest.hint.${a}.worked`)).toBe(v3);
     });
   });
 

@@ -15,7 +15,9 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
   });
 
-  test('completes 5 attempts and shows completion screen with ProgressBar 5/5', async ({ page }) => {
+  test('completes 5 attempts and shows completion screen with ProgressBar 5/5', async ({
+    page,
+  }) => {
     const partitionTarget = page.locator('[data-testid="partition-target"]');
     const feedbackOverlay = page.locator('[data-testid="feedback-overlay"]');
     const feedbackNext = page.locator('[data-testid="feedback-next-btn"]');
@@ -58,7 +60,9 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await expect(liveRegion).toContainText(/session complete|finished|problems/i);
   });
 
-  test('hint button is reachable and announces text via ARIA per accessibility.md §6', async ({ page }) => {
+  test('hint button is reachable and announces text via ARIA per accessibility.md §6', async ({
+    page,
+  }) => {
     const partitionTarget = page.locator('[data-testid="partition-target"]');
     await expect(partitionTarget).toBeVisible({ timeout: 10000 });
 

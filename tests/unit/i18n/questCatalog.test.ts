@@ -17,9 +17,7 @@ describe('Quest catalog gate', () => {
   it('passes copyLinter on every Quest entry', () => {
     const report = lintCatalog(toLintInputs());
     if (!report.ok) {
-      const msg = report.violations
-        .map((v) => `  ${v.id}: ${v.reason} — ${v.detail}`)
-        .join('\n');
+      const msg = report.violations.map((v) => `  ${v.id}: ${v.reason} — ${v.detail}`).join('\n');
       throw new Error(`Quest catalog failed copy lint:\n${msg}`);
     }
     expect(report.ok).toBe(true);

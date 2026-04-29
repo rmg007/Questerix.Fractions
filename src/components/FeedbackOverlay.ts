@@ -118,7 +118,11 @@ export class FeedbackOverlay {
     this.dismissTimer?.remove(false);
 
     // ── Test hooks ─────────────────────────────────────────────────────────
+    // Mirror the visible label text onto the sentinel so e2e specs can
+    // assert on the actual displayed copy (Quest line vs. baked default)
+    // per ux-elevation §9 T28 — feedback wiring smoke.
     TestHooks.mountSentinel('feedback-overlay');
+    TestHooks.setText('feedback-overlay', labelText);
     // feedback-next-btn: interactive button; clicking it immediately dismisses overlay
     TestHooks.mountInteractive(
       'feedback-next-btn',

@@ -58,14 +58,17 @@ describe('QUEST_VOICE rules', () => {
 describe('validateQuestLine — rejects every "Quest never says" example from §4', () => {
   // These are taken verbatim from the §4 table's right column.
   const forbidden: Array<{ label: string; line: string }> = [
-    { label: 'verbose welcome', line: 'Welcome to Questerix Fractions, the educational adventure!' },
+    {
+      label: 'verbose welcome',
+      line: 'Welcome to Questerix Fractions, the educational adventure!',
+    },
     { label: 'generic praise', line: 'Good job!' },
     { label: 'flat wrong', line: 'Wrong.' },
     { label: 'flat oops', line: 'Oops!' },
     { label: 'try harder', line: 'Try harder.' },
     { label: 'gives answer', line: 'The answer is 1/2.' },
     { label: 'don’t give up', line: "Don't give up!" },
-    { label: 'starts with don\'t', line: "Don't worry about it." },
+    { label: "starts with don't", line: "Don't worry about it." },
     { label: 'starts with no', line: 'No, that is not right.' },
     { label: 'locked closed-door', line: 'Locked.' },
     { label: 'come back later', line: 'Come back later.' },

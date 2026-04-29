@@ -3,7 +3,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Smoke — boot to first attempt', () => {
-  test('boots app, navigates Boot→Menu→L1, renders FeedbackOverlay within 1000ms', async ({ page }) => {
+  test('boots app, navigates Boot→Menu→L1, renders FeedbackOverlay within 1000ms', async ({
+    page,
+  }) => {
     // SKIP: data-testid attributes (boot-start-btn, menu-scene, level-card-L1, level01-scene,
     // partition-target, feedback-overlay) are not yet implemented in scenes.
     await page.goto('/');

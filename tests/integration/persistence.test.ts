@@ -27,7 +27,9 @@ import {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function makeStudent(name: string): Parameters<typeof studentRepo.create>[0] & { id: ReturnType<typeof StudentId> } {
+function makeStudent(
+  name: string
+): Parameters<typeof studentRepo.create>[0] & { id: ReturnType<typeof StudentId> } {
   return {
     id: StudentId(`student-${name.toLowerCase()}`),
     displayName: name,
@@ -62,7 +64,7 @@ function makeSession(studentId: ReturnType<typeof StudentId>, n: number): Sessio
 function makeAttempt(
   studentId: ReturnType<typeof StudentId>,
   sessionId: ReturnType<typeof SessionId>,
-  n: number,
+  n: number
 ): Omit<Attempt, 'id'> {
   return {
     sessionId,
@@ -89,7 +91,7 @@ function makeAttempt(
 
 function makeMastery(
   studentId: ReturnType<typeof StudentId>,
-  skillId: ReturnType<typeof SkillId>,
+  skillId: ReturnType<typeof SkillId>
 ): SkillMastery {
   return {
     studentId,
@@ -297,8 +299,22 @@ describe('bookmarkRepo', () => {
 
   it('getLatestForStudent returns the most recent', async () => {
     const { id: studentId } = await studentRepo.create(makeStudent('Nina'));
-    await bookmarkRepo.save({ id: 'bm-a', studentId, activityId: ActivityId('a'), levelNumber: 1, savedAt: 100, syncState: 'local' });
-    await bookmarkRepo.save({ id: 'bm-b', studentId, activityId: ActivityId('a'), levelNumber: 2, savedAt: 200, syncState: 'local' });
+    await bookmarkRepo.save({
+      id: 'bm-a',
+      studentId,
+      activityId: ActivityId('a'),
+      levelNumber: 1,
+      savedAt: 100,
+      syncState: 'local',
+    });
+    await bookmarkRepo.save({
+      id: 'bm-b',
+      studentId,
+      activityId: ActivityId('a'),
+      levelNumber: 2,
+      savedAt: 200,
+      syncState: 'local',
+    });
     const latest = await bookmarkRepo.getLatestForStudent(studentId);
     expect(latest?.id).toBe('bm-b');
   });

@@ -5,12 +5,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  registerCatalog,
-  get,
-  toLintInputs,
-  _resetForTests,
-} from '@/lib/i18n/catalog';
+import { registerCatalog, get, toLintInputs, _resetForTests } from '@/lib/i18n/catalog';
 
 describe('catalog — registration', () => {
   beforeEach(() => _resetForTests());

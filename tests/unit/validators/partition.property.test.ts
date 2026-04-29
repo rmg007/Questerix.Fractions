@@ -32,29 +32,29 @@ describe('partitionEqualAreas property tests', () => {
 
   it('should handle degenerate case (all areas near-zero)', () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 1, max: 5 }),
-        (count) => {
-          const areas = Array(count).fill(1e-12);
-          const result = partitionEqualAreas.fn(
-            { regionAreas: areas },
-            {
-              targetPartitions: count,
-              areaTolerance: 0.05,
-            }
-          );
-          expect(result.outcome).toBe('incorrect');
-          expect(result.score).toBe(0);
-          expect(result.feedback).toBe('degenerate_partition');
-        }
-      )
+      fc.property(fc.integer({ min: 1, max: 5 }), (count) => {
+        const areas = Array(count).fill(1e-12);
+        const result = partitionEqualAreas.fn(
+          { regionAreas: areas },
+          {
+            targetPartitions: count,
+            areaTolerance: 0.05,
+          }
+        );
+        expect(result.outcome).toBe('incorrect');
+        expect(result.score).toBe(0);
+        expect(result.feedback).toBe('degenerate_partition');
+      })
     );
   });
 
   it('should reject when partition count mismatches', () => {
     fc.assert(
       fc.property(
-        fc.array(fc.float({ min: Math.fround(0.1), max: Math.fround(1) }), { minLength: 2, maxLength: 5 }),
+        fc.array(fc.float({ min: Math.fround(0.1), max: Math.fround(1) }), {
+          minLength: 2,
+          maxLength: 5,
+        }),
         (areas) => {
           const result = partitionEqualAreas.fn(
             { regionAreas: areas },
