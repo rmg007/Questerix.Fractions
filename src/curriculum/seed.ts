@@ -56,7 +56,7 @@ export async function seedIfEmpty(): Promise<SeedResult> {
     // ── Step 2: Read or create deviceMeta ──────────────────────────────────
     // per persistence-spec.md §5 step 2
 
-    let deviceMeta = await deviceMetaRepo.get();
+    const deviceMeta = await deviceMetaRepo.get();
     const isFirstBoot = deviceMeta.contentVersion === '';
 
 
