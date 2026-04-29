@@ -15,11 +15,11 @@ const REQUIRED_HEADERS = {
 
 // Assets that must return HTTP 200 with the correct Content-Type
 const TYPED_ASSETS = [
-  { path: '/sw.js',                  type: /javascript/ },
-  { path: '/registerSW.js',          type: /javascript/ },
-  { path: '/manifest.json',          type: /json/ },
-  { path: '/manifest.webmanifest',   type: /json|webmanifest/ },
-  { path: '/curriculum/v1.json',     type: /json/ },
+  { path: '/sw.js', type: /javascript/ },
+  { path: '/registerSW.js', type: /javascript/ },
+  { path: '/manifest.json', type: /json/ },
+  { path: '/manifest.webmanifest', type: /json|webmanifest/ },
+  { path: '/curriculum/v1.json', type: /json/ },
 ];
 
 let passed = 0;
@@ -38,10 +38,14 @@ function fail(label, detail = '') {
 async function run() {
   console.log(`\nPost-deploy check → ${BASE_URL}\n`);
 
-  // 1. Root responds 200
-  const root = await fetch(BASE_URL, { redirect: 'follow' });
+  // 1. Root responds 200, with cache-buster to bypass any CDN edge caching
+  const cacheBuster = `?t=${Date.now()}`;
+  const root = await fetch(BASE_URL + cacheBuster, { redirect: 'follow', cache: 'no-store' });
   if (root?.ok) ok(`Root responds ${root.status}`);
-  else { fail('Root responds 200', `got ${root?.status}`); process.exit(1); }
+  else {
+    fail('Root responds 200', `got ${root?.status}`);
+    process.exit(1);
+  }
 
   // 2. Security headers
   console.log('\n  Security headers:');
@@ -76,12 +80,24 @@ async function run() {
   console.log('\n  Privacy:');
   const html = await root.text().catch(() => '');
   if (html.includes('cloudflareinsights.com') || html.includes('beacon.min.js')) {
-    fail('No CF Analytics beacon in HTML', 'disable Web Analytics in Cloudflare dashboard → Pages project → Settings');
+    fail(
+      'No CF Analytics beacon in HTML',
+      'disable Web Analytics in Cloudflare dashboard → Pages project → Settings'
+    );
   } else {
     ok('No third-party analytics scripts injected');
   }
 
-  // 6. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
+  // 6. Build version — confirm the deploy that just happened is what's live
+  console.log('\n  Build version:');
+  const sha = (html.match(/<meta name="x-build-sha" content="([^"]+)"/) || [])[1];
+  const buildTime = (html.match(/<meta name="x-build-time" content="([^"]+)"/) || [])[1];
+  if (sha && sha !== 'unknown') ok(`x-build-sha: ${sha}`);
+  else fail('x-build-sha meta missing', 'add <meta name="x-build-sha"> to index.html');
+  if (buildTime) ok(`x-build-time: ${buildTime}`);
+  else fail('x-build-time meta missing', '');
+
+  // 7. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
   // not allowed from this context" in embedded/iframe testers. We don't use
   // SharedArrayBuffer, so it must NOT be present.
   console.log('\n  Storage compatibility:');

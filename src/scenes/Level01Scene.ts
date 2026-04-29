@@ -149,6 +149,10 @@ export class Level01Scene extends Phaser.Scene {
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
   private partitionLine!: Phaser.GameObjects.Graphics;
+  /** Transparent overlay over the shape — taps here move the partition line.
+   * Provides a click-to-place affordance in addition to drag, so any input
+   * method (mouse, touch, automated test tool) can position the partition. */
+  private tapZone: Phaser.GameObjects.Rectangle | null = null;
   private promptText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
   private hintButton!: Phaser.GameObjects.Container;
@@ -546,6 +550,29 @@ export class Level01Scene extends Phaser.Scene {
     g.fillRect(x, y, SHAPE_W, SHAPE_H);
     g.lineStyle(3, 0x1e3a8a, 0.35);
     g.strokeRect(x, y, SHAPE_W, SHAPE_H);
+
+    // Tap-to-place: any pointerdown over the rectangle moves the partition line
+    // to that x-coordinate. Works for clicks, taps, and the first frame of a drag.
+    // Lower depth than the drag handle's hit zone so dragging the line still
+    // takes precedence — but a click anywhere else on the rectangle still works.
+    if (!this.tapZone) {
+      this.tapZone = this.add
+        .rectangle(SHAPE_CX, SHAPE_CY, SHAPE_W, SHAPE_H, 0x000000, 0)
+        .setDepth(4) // below dragHandle hitZone
+        .setInteractive({ useHandCursor: true });
+      this.tapZone.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        if (this.inputLocked) return;
+        const minX = SHAPE_CX - SHAPE_W / 2;
+        const maxX = SHAPE_CX + SHAPE_W / 2;
+        const clamped = Phaser.Math.Clamp(ptr.x, minX, maxX);
+        this.handlePos = clamped;
+        this.updatePartitionLine(clamped);
+        // Move the visible drag handle to track the new position too
+        const dh = this.dragHandle as DragHandle | undefined;
+        dh?.moveTo(clamped, false);
+        log.drag('tap-place', { x: Math.round(clamped) });
+      });
+    }
   }
 
   private drawCircleShape(): void {
@@ -1258,5 +1285,7 @@ export class Level01Scene extends Phaser.Scene {
     log.scene('destroy');
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
+    this.tapZone?.destroy();
+    this.tapZone = null;
   }
 }
