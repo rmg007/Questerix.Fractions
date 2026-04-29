@@ -681,10 +681,11 @@ export class LevelScene extends Phaser.Scene {
     let msg = '';
 
     // Quest-voiced hint per ux-elevation §9 T28. The catalog ships hint
-    // copy for every level-router archetype today (partition + equal_or_not
-    // share split2/3/4; the other six have verbal/visual/worked tiers). The
-    // strategy-tiered fallback below remains the safety net for any future
-    // archetype that hasn't been Quest-voiced yet.
+    // copy for every level-router archetype today (partition uses
+    // split2/3/4; the other seven — equal_or_not, compare, order,
+    // benchmark, label, make, snap_match — have verbal/visual/worked
+    // tiers). The strategy-tiered fallback below remains the safety net
+    // for any future archetype that hasn't been Quest-voiced yet.
     const questMsg = this.questHintText(archetype, tier);
     if (questMsg !== null) {
       msg = questMsg;
