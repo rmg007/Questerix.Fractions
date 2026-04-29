@@ -116,9 +116,13 @@ export class BootScene extends Phaser.Scene {
 
     // ── Step 3: Transition to PreloadScene ─────────────────────────────────
     // per runtime-architecture.md §5 — BootScene → PreloadScene → MenuScene
-    // If test hooks are enabled, we wait for the explicit engagement click
-    // to ensure reliable e2e testing of the engagement flow.
-    if (!TestHooks.isEnabled()) {
+    // Only block auto-advance when ?testHooks=1 is explicitly in the URL
+    // (i.e. a Playwright e2e run). Normal dev/prod mode auto-starts.
+    const isExplicitTestRun =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('testHooks') === '1';
+
+    if (!isExplicitTestRun) {
       this.advanceToPreload();
     } else {
       console.info('[BootScene] Test hooks enabled — waiting for boot-start-btn click…');
