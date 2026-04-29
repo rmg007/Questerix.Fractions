@@ -9,7 +9,6 @@ import { db } from '../persistence/db';
 import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { questionTemplateRepo } from '../persistence/repositories/questionTemplate';
 import { loadCurriculumBundle, type ParsedBundle } from './loader';
-import type { DeviceMeta } from '../types';
 
 // ── APP_CONTENT_VERSION ────────────────────────────────────────────────────
 

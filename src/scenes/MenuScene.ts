@@ -395,8 +395,7 @@ export class MenuScene extends Phaser.Scene {
     const CARD_W = 640,
       CARD_H = 520;
 
-    // Scrim
-    const scrim = this.add.rectangle(CX, CY, CW, CH, 0x000000, 0.55).setDepth(60);
+    this.add.rectangle(CX, CY, CW, CH, 0x000000, 0.55).setDepth(60);
 
     // Card
     const cardG = this.add.graphics().setDepth(61);
