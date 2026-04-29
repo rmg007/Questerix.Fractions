@@ -17,13 +17,22 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
   test('wrong answer in L6 surfaces the Quest wrong feedback line', async ({ page }) => {
     await page.goto('/?testHooks=1');
     await expect(page.locator('[data-testid="boot-start-btn"]')).toBeVisible({ timeout: 5000 });
+    // Wait for the curriculum seed to finish before advancing — BootScene mounts
+    // `seed-complete` after seedIfEmpty() resolves (or its catch runs). Without
+    // this gate the test can reach L6 before compare templates are in the DB,
+    // causing LevelScene to fall back to synthetic partition content.
+    await expect(page.locator('[data-testid="seed-complete"]')).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]')).toBeVisible({ timeout: 5000 });
 
+    // Wait for the compare interaction to mount before clicking.
     // q:cmp:L6:0001: fractionA=1/3, fractionB=2/3 → correct is '<'.
     // 'compare-relation-gt' (>) is the deterministic wrong choice.
+    await expect(page.locator('[data-testid="compare-relation-gt"]')).toBeVisible({
+      timeout: 8000,
+    });
     await page.locator('[data-testid="compare-relation-gt"]').click();
     // Assert via the aria-live status region (AccessibilityAnnouncer
     // mirrors Quest feedback text there per LevelScene.maybeAnnounceFeedback,

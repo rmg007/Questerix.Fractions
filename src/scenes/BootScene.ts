@@ -71,6 +71,8 @@ export class BootScene extends Phaser.Scene {
       // Tolerate failure — game runs with synthetic content per runtime-architecture.md §10
       console.warn('[BootScene] Curriculum seed failed — continuing in synthetic mode:', err);
     }
+    // Signal to e2e tests that seeding (or its fallback) is complete.
+    TestHooks.mountSentinel('seed-complete');
 
     // ── Step 2: Read lastUsedStudentId from localStorage ───────────────────
     // per runtime-architecture.md §5.4a, C5 (only allowed localStorage key)
