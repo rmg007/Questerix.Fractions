@@ -38,9 +38,14 @@ function fail(label, detail = '') {
 async function run() {
   console.log(`\nPost-deploy check → ${BASE_URL}\n`);
 
-  // 1. Root responds 200, with cache-buster to bypass any CDN edge caching
-  const cacheBuster = `?t=${Date.now()}`;
-  const root = await fetch(BASE_URL + cacheBuster, { redirect: 'follow', cache: 'no-store' });
+  // 1. Root responds 200, with cache-buster to bypass any CDN edge caching.
+  // Use random + timestamp so two close runs don't share the same edge cache key.
+  const cacheBuster = `?nocache=${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const root = await fetch(BASE_URL + cacheBuster, {
+    redirect: 'follow',
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+  });
   if (root?.ok) ok(`Root responds ${root.status}`);
   else {
     fail('Root responds 200', `got ${root?.status}`);
