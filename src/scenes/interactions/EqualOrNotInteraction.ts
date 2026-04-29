@@ -5,6 +5,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../utils/colors';
+import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 
 export class EqualOrNotInteraction implements Interaction {
