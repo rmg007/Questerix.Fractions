@@ -19,10 +19,9 @@ __pycache__/
 *.pyc
 .py_cache/
 
-# Claude Code / Roadie
+# Claude Code
 .claude/logs/
 .claude/artifacts/
-.roadie/
 
 # Test results
 playwright-report/

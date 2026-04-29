@@ -76,7 +76,7 @@ export class IdentifyInteraction implements Interaction {
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
 
-      hit.on('pointerup', () => {
+      const select = () => {
         // Deselect all
         this.gameObjects
           .filter(
@@ -90,6 +90,15 @@ export class IdentifyInteraction implements Interaction {
           this.submitBtn.setFillStyle(CLR.primary);
           this.submitLabel?.setColor(HEX.neutral0);
         }
+      };
+
+      hit.on('pointerup', select);
+
+      TestHooks.mountInteractive(`identify-option-${i}`, select, {
+        top: `${(cardY / 1280) * 100}%`,
+        left: `${(x / 800) * 100}%`,
+        width: `${cardW}px`,
+        height: `${cardH}px`,
       });
 
       this.gameObjects.push(bg, label, hit);
@@ -111,10 +120,20 @@ export class IdentifyInteraction implements Interaction {
       .rectangle(centerX, submitY, 280, 56, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(7);
-    shit.on('pointerup', () => {
+
+    const submit = () => {
       if (this.selectedIndex >= 0) {
         onCommit({ selectedIndex: this.selectedIndex });
       }
+    };
+
+    shit.on('pointerup', submit);
+
+    TestHooks.mountInteractive(`identify-submit`, submit, {
+      top: `${(submitY / 1280) * 100}%`,
+      left: `${(centerX / 800) * 100}%`,
+      width: '280px',
+      height: '56px',
     });
 
     this.submitBtn = sbg;
@@ -128,5 +147,6 @@ export class IdentifyInteraction implements Interaction {
     this.selectedIndex = -1;
     this.submitBtn = null;
     this.submitLabel = null;
+    TestHooks.unmountAll(); // Interaction owns its ephemeral hooks
   }
 }

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 // feedback-overlay, feedback-next-btn, progress-bar, completion-screen, hint-btn, hint-text.
 test.describe('Level 01 — full 5-attempt flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?testHooks=1');
     // Navigate Boot → Menu → L1
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });

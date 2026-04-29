@@ -67,6 +67,13 @@ export class LabelInteraction implements Interaction {
         .setOrigin(0.5)
         .setDepth(8);
 
+      const snapToFirst = () => {
+        // Mock drag-drop by snapping to first region for e2e simplicity
+        const firstRegionId = regions[0]!.id;
+        this.placements[lbl.id] = firstRegionId;
+        tile.setStrokeStyle(4, CLR.primary);
+      };
+
       tile.on('drag', (_ptr: unknown, dx: number, dy: number) => {
         tile.setPosition(dx, dy);
         ttext.setPosition(dx, dy);
@@ -81,6 +88,13 @@ export class LabelInteraction implements Interaction {
           return dist < bdist ? ri : best;
         }, 0);
         this.placements[lbl.id] = regions[nearestIdx]!.id;
+      });
+
+      TestHooks.mountInteractive(`label-tile-${i}`, snapToFirst, {
+        top: `${(ty / 1280) * 100}%`,
+        left: `${(tx / 800) * 100}%`,
+        width: '120px',
+        height: '48px',
       });
 
       this.gameObjects.push(tile, ttext);
@@ -102,13 +116,24 @@ export class LabelInteraction implements Interaction {
       .rectangle(centerX, sy, 240, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    shit.on('pointerup', () => {
+
+    const submit = () => {
       const mappings = Object.entries(this.placements).map(([labelId, regionId]) => ({
         labelId,
         regionId,
       }));
       onCommit({ mappings });
+    };
+
+    shit.on('pointerup', submit);
+
+    TestHooks.mountInteractive(`label-submit`, submit, {
+      top: `${(sy / 1280) * 100}%`,
+      left: `${(centerX / 800) * 100}%`,
+      width: '240px',
+      height: '52px',
     });
+
     this.gameObjects.push(sbg, slbl, shit);
   }
 
@@ -116,5 +141,6 @@ export class LabelInteraction implements Interaction {
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
     this.placements = {};
+    TestHooks.unmountAll();
   }
 }

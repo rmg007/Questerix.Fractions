@@ -38,7 +38,7 @@ export class EqualOrNotInteraction implements Interaction {
     });
     this.gameObjects.push(shapeG);
 
-    const makeBtn = (x: number, label: string, answer: boolean, color: number) => {
+    const makeBtn = (x: number, label: string, answer: boolean, color: number, testid: string) => {
       const bg = scene.add.rectangle(x, y, btnW, btnH, color).setDepth(5);
       const lbl = scene.add
         .text(x, y, label, {
@@ -53,16 +53,24 @@ export class EqualOrNotInteraction implements Interaction {
         .rectangle(x, y, btnW, btnH, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
-      hit.on('pointerup', () => onCommit({ answer }));
+      const submit = () => onCommit({ answer });
+      hit.on('pointerup', submit);
+      TestHooks.mountInteractive(testid, submit, {
+        top: `${(y / 1280) * 100}%`,
+        left: `${(x / 800) * 100}%`,
+        width: `${btnW}px`,
+        height: `${btnH}px`,
+      });
       this.gameObjects.push(bg, lbl, hit);
     };
 
-    makeBtn(centerX - btnW / 2 - gap / 2, '✓ Equal', true, CLR.success);
-    makeBtn(centerX + btnW / 2 + gap / 2, '✗ Not equal', false, CLR.error);
+    makeBtn(centerX - btnW / 2 - gap / 2, '✓ Equal', true, CLR.success, 'equal-btn');
+    makeBtn(centerX + btnW / 2 + gap / 2, '✗ Not equal', false, CLR.error, 'not-equal-btn');
   }
 
   unmount(): void {
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
+    import('../utils/TestHooks').then(({ TestHooks }) => TestHooks.unmountAll());
   }
 }
