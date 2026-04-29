@@ -16,6 +16,7 @@ import {
   NAVY_HEX,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
+import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay } from '../components/FeedbackOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
@@ -131,6 +132,18 @@ export class LevelScene extends Phaser.Scene {
 
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
 
+    // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
+    A11yLayer.unmountAll();
+    A11yLayer.mountAction('a11y-submit', 'Check my answer', () => {
+      void this.onSubmit();
+    });
+    A11yLayer.mountAction('a11y-hint', 'Get a hint', () => {
+      this.onHintRequest();
+    });
+    A11yLayer.mountAction('a11y-back', 'Back to main menu', () => {
+      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+    });
+
     // Testid sentinels: mount generic `level-scene` + per-level `levelNN-scene`
     TestHooks.mountSentinel('level-scene');
     const levelId = `level${String(this.levelNumber).padStart(2, '0')}-scene`;
@@ -239,6 +252,11 @@ export class LevelScene extends Phaser.Scene {
 
     // G-UX3: speak prompt aloud via TTS (preference already loaded in create())
     tts.speak(this.currentTemplate.prompt.text);
+
+    // Announce question to assistive tech (separate from audio TTS)
+    A11yLayer.announce(
+      `Level ${this.levelNumber}, question ${index + 1} of ${SESSION_GOAL}. ${this.currentTemplate.prompt.text}`
+    );
 
     // Fix G-E4: record when this question started for response-time tracking
     this.questionStartTime = Date.now();
@@ -1014,5 +1032,6 @@ export class LevelScene extends Phaser.Scene {
     AccessibilityAnnouncer.destroy();
     this.activeInteraction?.unmount();
     TestHooks.unmountAll();
+    A11yLayer.unmountAll();
   }
 }

@@ -16,6 +16,7 @@
 
 import * as Phaser from 'phaser';
 import { injectSkipLink, labelCanvas } from '../components/SkipLink';
+import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 
 interface MenuData {
@@ -113,6 +114,26 @@ export class MenuScene extends Phaser.Scene {
     // WCAG 2.4.1 — inject skip link and label canvas on first menu render.
     labelCanvas();
     injectSkipLink();
+
+    // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
+    A11yLayer.unmountAll();
+    A11yLayer.mountAction('a11y-play', 'Play Level 1', () => {
+      this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+    });
+    if (this.lastStudentId) {
+      A11yLayer.mountAction('a11y-continue', 'Continue from your last spot', () => {
+        this.scene.start('Level01Scene', { studentId: this.lastStudentId, resume: true });
+      });
+    }
+    A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
+      this.scene.launch('SettingsScene');
+    });
+    A11yLayer.mountAction('a11y-choose-level', 'Choose a different level', () => {
+      this._openLevelChooser();
+    });
+    A11yLayer.announce(
+      'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to start Level 1.'
+    );
 
     // ── Test hooks (kept identical so e2e selectors still work) ────────────
     TestHooks.unmountAll();

@@ -21,6 +21,7 @@ import {
   PATH_BLUE,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
+import { A11yLayer } from '../components/A11yLayer';
 import { DragHandle } from '../components/DragHandle';
 import { FeedbackOverlay } from '../components/FeedbackOverlay';
 import { HintLadder } from '../components/HintLadder';
@@ -237,6 +238,32 @@ export class Level01Scene extends Phaser.Scene {
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);
     this.partitionLine = this.add.graphics().setDepth(6);
+
+    // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
+    A11yLayer.unmountAll();
+    A11yLayer.mountAction('a11y-submit', 'Check my answer', () => {
+      void this.onSubmit();
+    });
+    A11yLayer.mountAction('a11y-hint', 'Get a hint', () => {
+      this.onHintRequest();
+    });
+    A11yLayer.mountAction('a11y-move-left', 'Move partition line left', () => {
+      this._a11yNudge(-30);
+    });
+    A11yLayer.mountAction('a11y-move-right', 'Move partition line right', () => {
+      this._a11yNudge(30);
+    });
+    A11yLayer.mountAction('a11y-snap-center', 'Place partition at center for halves', () => {
+      if (this.inputLocked) return;
+      this.handlePos = SHAPE_CX;
+      this.updatePartitionLine(SHAPE_CX);
+      (this.dragHandle as DragHandle | undefined)?.moveTo(SHAPE_CX, false);
+      A11yLayer.announce('Partition placed at center.');
+    });
+    A11yLayer.mountAction('a11y-back', 'Back to main menu', () => {
+      void this.closeSession();
+      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+    });
 
     // ── Test hooks ─────────────────────────────────────────────────────────
     // NOTE: must run AFTER ProgressBar construction so progress-bar sentinel is not wiped
@@ -519,6 +546,11 @@ export class Level01Scene extends Phaser.Scene {
     // TTSService.setEnabled() is controlled by SettingsScene preference; tts.isAvailable()
     // returns false when disabled, so no separate preference lookup is needed here.
     tts.speak(this.currentQuestion.promptText);
+
+    // Announce question to assistive tech (separate from TTS — visual screen-readers vs audio)
+    A11yLayer.announce(
+      `Question ${index + 1} of ${SESSION_GOAL}. ${this.currentQuestion.promptText}`
+    );
 
     this.drawShape();
     this.createDragHandle();
@@ -1272,6 +1304,22 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Utilities ─────────────────────────────────────────────────────────────
 
+  /**
+   * Keyboard/screen-reader nudge: move the partition line by `delta` logical px.
+   * Clamps to shape bounds and updates the visible drag handle.
+   */
+  private _a11yNudge(delta: number): void {
+    if (this.inputLocked) return;
+    const minX = SHAPE_CX - SHAPE_W / 2;
+    const maxX = SHAPE_CX + SHAPE_W / 2;
+    const next = Phaser.Math.Clamp(this.handlePos + delta, minX, maxX);
+    this.handlePos = next;
+    this.updatePartitionLine(next);
+    (this.dragHandle as DragHandle | undefined)?.moveTo(next, false);
+    const pct = Math.round(((next - minX) / SHAPE_W) * 100);
+    A11yLayer.announce(`Partition at ${pct} percent across.`);
+  }
+
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1285,6 +1333,7 @@ export class Level01Scene extends Phaser.Scene {
     log.scene('destroy');
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
+    A11yLayer.unmountAll();
     this.tapZone?.destroy();
     this.tapZone = null;
   }

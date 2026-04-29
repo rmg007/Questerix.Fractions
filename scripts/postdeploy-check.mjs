@@ -97,7 +97,42 @@ async function run() {
   if (buildTime) ok(`x-build-time: ${buildTime}`);
   else fail('x-build-time meta missing', '');
 
-  // 7. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
+  // 7. Accessibility — verify A11yLayer code shipped (runtime-mounted DOM buttons
+  // mirror canvas controls per WCAG 4.1.2). The scenes chunk is dynamically
+  // imported, so we extract its URL from the entry JS.
+  console.log('\n  Accessibility:');
+  const markers = ['qf-a11y-layer', 'data-a11y-id'];
+  const seedUrls = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.js)"/g)].map((m) => m[1]);
+  const allUrls = new Set(seedUrls);
+  // Walk entry JS for chunk references (e.g. "scenes-XXXX.js")
+  for (const u of seedUrls) {
+    try {
+      const r = await fetch(new URL(u, BASE_URL).href, { redirect: 'follow' });
+      const js = await r.text();
+      for (const m of js.matchAll(/["'`](\/?assets\/[\w.-]+\.js)["'`]/g)) {
+        allUrls.add(m[1].startsWith('/') ? m[1] : '/' + m[1]);
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  let foundIn = '';
+  for (const u of allUrls) {
+    try {
+      const r = await fetch(new URL(u, BASE_URL).href, { redirect: 'follow' });
+      const js = await r.text();
+      if (markers.every((m) => js.includes(m))) {
+        foundIn = u;
+        break;
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  if (foundIn) ok(`A11yLayer code shipped (found in ${foundIn})`);
+  else fail('A11yLayer markers missing from all chunks', `checked ${allUrls.size} scripts`);
+
+  // 8. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
   // not allowed from this context" in embedded/iframe testers. We don't use
   // SharedArrayBuffer, so it must NOT be present.
   console.log('\n  Storage compatibility:');
