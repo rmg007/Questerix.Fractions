@@ -204,6 +204,27 @@ describe('LevelScene Quest wiring (behavior)', () => {
     });
   });
 
+  describe('questFeedbackText — defensive guard', () => {
+    it('returns null (no throw) when a Quest feedback key is missing', async () => {
+      // Mirrors the questHintText guard. Future catalog drift on a
+      // feedback key shouldn't crash the level screen — caller falls
+      // back to FeedbackOverlay's baked-in per-kind label.
+      const { _resetForTests, registerCatalog } = await import('@/lib/i18n/catalog');
+      _resetForTests();
+      registerCatalog({}); // empty catalog — every key is missing
+      const scene = makeScene('partition', { targetPartitions: 2 });
+      expect(() => scene.questFeedbackText('correct')).not.toThrow();
+      expect(scene.questFeedbackText('correct')).toBeNull();
+      expect(() => scene.questFeedbackText('incorrect')).not.toThrow();
+      expect(scene.questFeedbackText('incorrect')).toBeNull();
+
+      // Restore for downstream tests.
+      _resetForTests();
+      const { QUEST_CATALOG } = await import('@/lib/i18n/keys/quest');
+      registerCatalog(QUEST_CATALOG);
+    });
+  });
+
   describe('questHintText — defensive guard', () => {
     it('returns null (no throw) when a Quest key is missing from the catalog', async () => {
       // The dynamic key path (`quest.hint.<archetype>.<suffix>`) is

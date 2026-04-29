@@ -550,21 +550,38 @@ export class LevelScene extends Phaser.Scene {
    *   and is wired separately when the validator surfaces a count).
    */
   private questFeedbackText(kind: FeedbackKind): string | null {
+    // Defensive lookup matching questHintText: getCopy() throws on unknown
+    // catalog keys, and although questCatalog.test.ts pins these strings
+    // at build time, a future catalog edit shouldn't crash the level
+    // screen. Returning null lets FeedbackOverlay fall back to its
+    // baked-in per-kind label instead.
+    const safe = (key: string): string | null => {
+      try {
+        return getCopy(key as Parameters<typeof getCopy>[0]);
+      } catch (err) {
+        log.q('quest_feedback_key_missing', {
+          key,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        return null;
+      }
+    };
+
     if (kind === 'correct') {
       const d = this.payloadDenominator();
       switch (d) {
         case 2:
-          return getCopy('quest.feedback.correct.half');
+          return safe('quest.feedback.correct.half');
         case 3:
-          return getCopy('quest.feedback.correct.third');
+          return safe('quest.feedback.correct.third');
         case 4:
-          return getCopy('quest.feedback.correct.fourth');
+          return safe('quest.feedback.correct.fourth');
         default:
-          return getCopy('quest.feedback.correct.equal');
+          return safe('quest.feedback.correct.equal');
       }
     }
     if (kind === 'incorrect') {
-      return getCopy('quest.feedback.wrong.unequal');
+      return safe('quest.feedback.wrong.unequal');
     }
     return null;
   }
