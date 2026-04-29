@@ -81,6 +81,17 @@ async function run() {
     ok('No third-party analytics scripts injected');
   }
 
+  // 6. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
+  // not allowed from this context" in embedded/iframe testers. We don't use
+  // SharedArrayBuffer, so it must NOT be present.
+  console.log('\n  Storage compatibility:');
+  const coep = root?.headers?.get('cross-origin-embedder-policy') ?? '';
+  if (coep.includes('require-corp') || coep.includes('credentialless')) {
+    fail('COEP must not be require-corp', `got "${coep}" — breaks IndexedDB in embedded contexts`);
+  } else {
+    ok('No restrictive COEP header (IndexedDB works in iframes/testers)');
+  }
+
   // Summary
   console.log(`\n  Passed: ${passed}  Failed: ${failed}\n`);
   if (failed > 0) {

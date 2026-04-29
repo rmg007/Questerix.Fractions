@@ -461,11 +461,18 @@ export class Level01Scene extends Phaser.Scene {
       const payload = tmpl.payload as Partial<PartitionPayload> & {
         shapeType?: 'rectangle' | 'circle';
       };
+      // K-2 forgiveness: easy tier gets a generous 10% tolerance so children
+      // aren't penalised for fine-motor imprecision. Medium/hard use the
+      // template's authored value (default 5%).
+      const tolerance =
+        tmpl.difficultyTier === 'easy'
+          ? Math.max(payload.areaTolerance ?? 0, 0.1)
+          : (payload.areaTolerance ?? 0.05);
       this.currentQuestion = {
         id: tmpl.id,
         shapeType: payload.shapeType ?? 'rectangle',
         difficultyTier: tmpl.difficultyTier,
-        areaTolerance: payload.areaTolerance ?? 0.05,
+        areaTolerance: tolerance,
         snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
         promptText: tmpl.prompt.text,
       };
@@ -643,6 +650,17 @@ export class Level01Scene extends Phaser.Scene {
     // per interaction-model.md §2.1 — disable input until outcome animation completes
     this.inputLocked = true;
     this.submitButtonContainer?.setAlpha(0.5);
+
+    // Snap-on-submit: if handle is within snap range and snap is enabled for this
+    // question, magnetize to center before validating. Recovers from input methods
+    // that don't fire Phaser dragend events (some touch/test harnesses).
+    if (this.currentQuestion.snapMode === 'axis') {
+      const snapThreshold = SHAPE_W * SNAP_PCT;
+      if (Math.abs(this.handlePos - SHAPE_CX) <= snapThreshold) {
+        this.handlePos = SHAPE_CX;
+        this.updatePartitionLine(SHAPE_CX);
+      }
+    }
 
     // Compute areas from handle position
     // Horizontal line splits rectangle by X position
