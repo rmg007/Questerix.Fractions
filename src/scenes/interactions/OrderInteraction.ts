@@ -21,8 +21,10 @@ interface OrderPayload {
   direction?: 'asc' | 'desc';
 }
 
+// Accepts "1/2", "frac:1/2". "frac:" is the curriculum reference prefix.
 function parseFrac(s: string): { n: number; d: number } {
-  const [n, d] = s.split('/').map(Number);
+  const stripped = s.startsWith('frac:') ? s.slice(5) : s;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -39,8 +41,8 @@ export class OrderInteraction implements Interaction {
     const fracs: FracDef[] =
       payload.fractions ??
       (payload.fractionIds ?? []).map((id, i) => {
-        const lbl = payload.labels?.[i] ?? id;
-        const { n, d } = parseFrac(lbl);
+        const { n, d } = parseFrac(id);
+        const lbl = payload.labels?.[i] ?? `${n}/${d}`;
         return { id, label: lbl, numerator: n, denominator: d };
       });
 

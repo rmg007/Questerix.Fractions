@@ -9,16 +9,26 @@ import { BarModel } from './utils';
 import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
 import type { Interaction, InteractionContext } from './types';
 
+type FractionRef = string | { numerator: number; denominator: number; label?: string } | undefined;
+
 interface ComparePayload {
-  fractionA?: { numerator: number; denominator: number; label?: string };
-  fractionB?: { numerator: number; denominator: number; label?: string };
+  fractionA?: FractionRef;
+  fractionB?: FractionRef;
   leftLabel?: string;
   rightLabel?: string;
 }
 
-function parseFrac(s?: string): { n: number; d: number } {
-  if (!s) return { n: 1, d: 2 };
-  const [n, d] = s.split('/').map(Number);
+// Accepts "1/2", "frac:1/2", or {numerator, denominator}. The "frac:" ID prefix
+// is the curriculum's canonical reference format for fractions.
+function parseFrac(ref?: FractionRef): { n: number; d: number; label?: string } {
+  if (!ref) return { n: 1, d: 2 };
+  if (typeof ref === 'object') {
+    const out: { n: number; d: number; label?: string } = { n: ref.numerator, d: ref.denominator };
+    if (ref.label !== undefined) out.label = ref.label;
+    return out;
+  }
+  const stripped = ref.startsWith('frac:') ? ref.slice(5) : ref;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -32,12 +42,10 @@ export class CompareInteraction implements Interaction {
     const { scene, template, centerX, centerY, onCommit } = ctx;
     const payload = template.payload as ComparePayload;
 
-    const rawA = payload.fractionA;
-    const rawB = payload.fractionB;
-    const aFrac = rawA ? { n: rawA.numerator, d: rawA.denominator } : parseFrac(payload.leftLabel);
-    const bFrac = rawB ? { n: rawB.numerator, d: rawB.denominator } : parseFrac(payload.rightLabel);
-    const aLabel = rawA?.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
-    const bLabel = rawB?.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
+    const aFrac = payload.fractionA ? parseFrac(payload.fractionA) : parseFrac(payload.leftLabel);
+    const bFrac = payload.fractionB ? parseFrac(payload.fractionB) : parseFrac(payload.rightLabel);
+    const aLabel = aFrac.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
+    const bLabel = bFrac.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
 
     const barW = 220;
     const barH = 48;

@@ -9,6 +9,25 @@
 
 const CONTAINER_ID = 'qf-testhooks';
 
+// Test hooks are only enabled when ?testHooks=1 is in the URL or in dev mode.
+// Production users never see the invisible interactive overlays that mount
+// transparent L6/L7 shortcut buttons over the menu.
+function testHooksEnabled(): boolean {
+  if (typeof window === 'undefined') return true; // jsdom / node — let tests run
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('testHooks') === '1') return true;
+  } catch {
+    /* ignore */
+  }
+  // Vite injects import.meta.env.DEV at build time
+  try {
+    return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
+  } catch {
+    return false;
+  }
+}
+
 /** @internal */
 function getOrCreateContainer(): HTMLElement | null {
   if (typeof document === 'undefined') return null;
@@ -60,6 +79,9 @@ export const TestHooks = {
     opts?: { top?: string; left?: string; width?: string; height?: string }
   ): HTMLElement | null {
     if (typeof document === 'undefined') return null;
+    // Production guard: invisible interactive overlays must NEVER ship to real users.
+    // They are e2e affordances only. Enable with ?testHooks=1 or in dev mode.
+    if (!testHooksEnabled()) return null;
     // Remove stale button if it exists
     this.unmount(testid);
 

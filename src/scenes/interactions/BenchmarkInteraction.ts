@@ -10,6 +10,7 @@ import type { Interaction, InteractionContext } from './types';
 
 interface BenchmarkPayload {
   targetFracId?: string;
+  fractionId?: string; // curriculum's canonical "frac:N/D" reference
   targetLabel?: string;
   numerator?: number;
   denominator?: number;
@@ -17,9 +18,11 @@ interface BenchmarkPayload {
 
 type Zone = 'zero' | 'half' | 'one';
 
+// Accepts "1/4", "frac:1/4". "frac:" is the curriculum reference prefix.
 function parseFrac(s?: string): { n: number; d: number } {
   if (!s) return { n: 1, d: 4 };
-  const [n, d] = s.split('/').map(Number);
+  const stripped = s.startsWith('frac:') ? s.slice(5) : s;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -32,11 +35,12 @@ export class BenchmarkInteraction implements Interaction {
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as BenchmarkPayload;
-    const label = payload.targetLabel ?? payload.targetFracId ?? '1/4';
+    const fracRef = payload.targetLabel ?? payload.targetFracId ?? payload.fractionId ?? '1/4';
     const frac =
       payload.numerator !== undefined
         ? { n: payload.numerator, d: payload.denominator ?? 1 }
-        : parseFrac(label);
+        : parseFrac(fracRef);
+    const label = fracRef.startsWith('frac:') ? fracRef.slice(5) : fracRef;
 
     // Target bar model at top
     this.bar = new BarModel(scene, {

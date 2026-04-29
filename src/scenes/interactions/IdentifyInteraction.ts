@@ -15,8 +15,25 @@ interface IdentifyOption {
 }
 
 interface IdentifyPayload {
-  options: IdentifyOption[];
+  // Modern shape (per archetype spec)
+  options?: IdentifyOption[];
   targetIndex: number;
+  // Curriculum shape (q:id:L*:* templates) — fractionId is the correct
+  // answer; distractors are the others. Order is interleaved at targetIndex.
+  fractionId?: string;
+  distractors?: string[];
+}
+
+function fracLabel(ref: string): string {
+  return ref.startsWith('frac:') ? ref.slice(5) : ref;
+}
+
+function optionsFromCurriculum(p: IdentifyPayload): IdentifyOption[] {
+  if (!p.fractionId || !p.distractors) return [];
+  const target = p.targetIndex ?? 0;
+  const out: IdentifyOption[] = p.distractors.map((d) => ({ alt: fracLabel(d) }));
+  out.splice(target, 0, { alt: fracLabel(p.fractionId) });
+  return out;
 }
 
 export class IdentifyInteraction implements Interaction {
@@ -30,7 +47,7 @@ export class IdentifyInteraction implements Interaction {
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as IdentifyPayload;
-    const options = payload.options ?? [];
+    const options = payload.options ?? optionsFromCurriculum(payload);
     const count = options.length;
     const cardW = Math.min(180, (width - 80) / count);
     const cardH = 160;
