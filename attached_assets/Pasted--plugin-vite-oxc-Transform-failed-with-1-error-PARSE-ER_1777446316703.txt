@@ -1,0 +1,31 @@
+[plugin:vite:oxc] Transform failed with 1 error:
+
+[PARSE_ERROR] Error: Encountered diff marker
+     ╭─[ src/scenes/BootScene.ts:119:1 ]
+     │
+ 119 │ <<<<<<< HEAD
+     │ ───┬───  
+     │    ╰───── between this marker and `=======` is the code that we're merging into
+     │ 
+ 124 │ =======
+     │ ───┬───  
+     │    ╰───── between this marker and `>>>>>>>` is the incoming code
+     │ 
+ 133 │ >>>>>>> 683c578 (Fix app from blank screen by only waiting for test click when explicitly running tests)
+     │ ───┬───  
+     │    ╰───── this marker concludes the conflict region
+     │ 
+     │ Help: Conflict markers indicate that a merge was started but could not be completed due to merge conflicts.
+     │       To resolve a conflict, keep only the code you want and then delete the lines containing conflict markers.
+     │       If you're having merge conflicts after pulling new code, the top section is the code you already had and the bottom section is the remote code.
+     │       If you're in the middle of a rebase, the top section is the code being rebased onto and the bottom section is the code coming from the current commit being rebased.
+     │       If you have nested conflicts, resolve the outermost conflict first.
+─────╯
+/home/runner/workspace/src/scenes/BootScene.ts
+    at transformWithOxc (file:///home/runner/workspace/node_modules/vite/dist/node/chunks/node.js:3343:19)
+    at TransformPluginContext.transform (file:///home/runner/workspace/node_modules/vite/dist/node/chunks/node.js:3411:26)
+    at EnvironmentPluginContainer.transform (file:///home/runner/workspace/node_modules/vite/dist/node/chunks/node.js:30164:51)
+    at async loadAndTransform (file:///home/runner/workspace/node_modules/vite/dist/node/chunks/node.js:24512:26)
+    at async viteTransformMiddleware (file:///home/runner/workspace/node_modules/vite/dist/node/chunks/node.js:24306:20)
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.ts.
