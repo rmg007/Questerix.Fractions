@@ -636,17 +636,18 @@ Level 9 is the longest mastery horizon in the MVP. A 6-week classroom playtest a
 
 ## 9. Authoring Status
 
-| Item                              | Required                         | Authored         | Notes                                                                                                                              |
-| --------------------------------- | -------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `ordering_tournament_3` templates | 12                               | 3 examples shown | Need 9 more                                                                                                                        |
-| `ordering_tournament_5` templates | 14                               | 4 examples shown | Need 10 more                                                                                                                       |
-| `explain_your_order` templates    | 8                                | 2 examples shown | Need 6 more                                                                                                                        |
-| TTS audio scripts                 | 34                               | 0                | SpeechSynthesis API at runtime                                                                                                     |
-| Hint definitions                  | ~102 (3 per template)            | 0                | TBD; for ordering use the three-tier hint system from source doc §9 (number-line auto-show / swap suggestion / direct reveal)      |
-| Validator function specs          | 2 (3 with `withRuleExplanation`) | High-level only  | `acceptableOrders` validator must implement `buildAcceptableOrders` from source §5; `withRuleExplanation` is a composite validator |
-| Drag-sort UI component            | 1                                | 0                | Reuse spec from `03-FractionOrderingTournament.md` §2                                                                              |
-| Number-line model component       | 1                                | 0                | Shared with L8 `magnitude_scales` — implement once, use in both                                                                    |
-| MVP-completion celebration scene  | 1                                | 0                | One-time per student per device; salvage Quex narrative beat from `00-MASTER_PLAN.md` §6 week-6                                    |
+| Item                              | Required                         | Authored                                         | Notes                                                                                                                              |
+| --------------------------------- | -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `ordering_tournament_3` templates | 12                               | 3 doc examples                                   | Bundle hard-tier expanded; see Bundle total row.                                                                                   |
+| `ordering_tournament_5` templates | 14                               | 4 doc examples                                   | 10 new hard templates (N001–N010) added 2026-04-30; all 5-fraction, mixed-denom (2,3,4,6,8).                                       |
+| `explain_your_order` templates    | 8                                | 2 examples shown                                 | Need 6 more                                                                                                                        |
+| **Bundle total (live)**           | ≥30                              | **40 ✓** (easy:15, medium:15, hard:10)           | `public/curriculum/v1.json` — hard tier 0 → 10 as of 2026-04-30.                                                                  |
+| TTS audio scripts                 | 40                               | 0                                                | SpeechSynthesis API at runtime                                                                                                     |
+| Hint definitions                  | ~120 (3 per 40)                  | 0                                                | TBD; for ordering use the three-tier hint system from source doc §9 (number-line auto-show / swap suggestion / direct reveal)      |
+| Validator function specs          | 2 (3 with `withRuleExplanation`) | High-level only                                  | `acceptableOrders` validator must implement `buildAcceptableOrders` from source §5; `withRuleExplanation` is a composite validator |
+| Drag-sort UI component            | 1                                | 0                                                | Reuse spec from `03-FractionOrderingTournament.md` §2                                                                              |
+| Number-line model component       | 1                                | 0                                                | Shared with L8 `magnitude_scales` — implement once, use in both                                                                    |
+| MVP-completion celebration scene  | 1                                | 0                                                | One-time per student per device; salvage Quex narrative beat from `00-MASTER_PLAN.md` §6 week-6                                    |
 
 ---
 
