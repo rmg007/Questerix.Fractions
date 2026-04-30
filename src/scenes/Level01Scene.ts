@@ -139,8 +139,8 @@ export class Level01Scene extends Phaser.Scene {
   private correctCount: number = 0;
   private totalQuestionsAttempted: number = 0;
 
-  // Fix 6 (G-E3): hint-event IDs accumulated per question
-  private currentQuestionHintIds: string[] = [];
+  // Fix 6 (G-E3): hint-event IDs accumulated per question (Dexie auto-increment numbers)
+  private currentQuestionHintIds: number[] = [];
 
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
@@ -250,19 +250,33 @@ export class Level01Scene extends Phaser.Scene {
 
     // ── Open session in persistence ────────────────────────────────────────
     // per runtime-architecture.md §8 step 4 — new Session row on scene load
-    // R6: Check return value; if session creation fails, show error and stop
-    const sessionOk = await this.openSession();
-    if (!sessionOk) {
+    // R6: catch session creation failures — show user-visible error, block play.
+    try {
+      await this.openSession();
+    } catch (err) {
+      log.error('SESS', 'create_fatal', { error: String(err) });
+      AccessibilityAnnouncer.announce(
+        'Sorry, we could not start your session. Please reload the page.'
+      );
       this.add
-        .text(CW / 2, CH / 2, 'Could not start session.\nPlease go back and try again.', {
-          fontSize: '28px',
-          fontFamily: BODY_FONT,
-          color: '#ef4444',
-          align: 'center',
-          wordWrap: { width: CW - 80 },
-        })
+        .text(
+          CW / 2,
+          CH / 2,
+          'Could not start session.\nPlease reload the page.',
+          {
+            fontSize: '24px',
+            fontFamily: BODY_FONT,
+            fontStyle: 'bold',
+            color: '#b91c1c',
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            padding: { x: 20, y: 14 },
+            align: 'center',
+            wordWrap: { width: 600 },
+          }
+        )
         .setOrigin(0.5)
         .setDepth(100);
+      // Block play — do not proceed with UI or question loading.
       return;
     }
 
@@ -468,8 +482,9 @@ export class Level01Scene extends Phaser.Scene {
       log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
       return true;
     } catch (err) {
-      log.warn('SESS', 'open_error', { error: String(err) });
-      return false;
+      // R6: re-throw so create() can show a user-visible error and block play.
+      log.error('SESS', 'open_error', { error: String(err) });
+      throw err;
     }
   }
 
@@ -1326,19 +1341,16 @@ export class Level01Scene extends Phaser.Scene {
 
       log.atmp('record_ok', { attemptId, outcome, points: result.score });
 
-      // R3: Link hint events to this attempt (they were created with empty attemptId)
+      // R3: link orphan hint events to this attempt now that attemptId is known
       if (this.currentQuestionHintIds.length > 0) {
         try {
           const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
-          for (const hintId of this.currentQuestionHintIds) {
-            await hintEventRepo.update(hintId, { attemptId });
-          }
-          log.hint('linkage_ok', { attemptId, hintCount: this.currentQuestionHintIds.length });
-        } catch (err) {
-          log.warn('HINT', 'linkage_error', { error: String(err) });
+          await hintEventRepo.linkToAttempt(this.currentQuestionHintIds, attemptId);
+          log.hint('link_ok', { count: this.currentQuestionHintIds.length, attemptId });
+        } catch (linkErr) {
+          log.warn('HINT', 'link_error', { error: String(linkErr) });
         }
       }
-      this.currentQuestionHintIds = []; // Reset for next question
 
       // Fix 4 (G-E1): update BKT mastery after every attempt
       try {
@@ -1595,6 +1607,12 @@ export class Level01Scene extends Phaser.Scene {
   // Called by Phaser when scene is shut down
   preDestroy(): void {
     log.scene('destroy');
+    // R7: destroy all managed components to prevent memory leaks and dangling listeners.
+    // feedbackOverlay, dragHandle, progressBar all expose destroy() via Phaser base classes.
+    // hintLadder is a plain state-machine (no Phaser objects), so no destroy needed.
+    this.feedbackOverlay?.destroy();
+    this.dragHandle?.destroy();
+    this.progressBar?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();
