@@ -37,6 +37,8 @@ const LOCKED_BG = 0xf1f5f9; // slate-100 — muted for locked
 const LOCKED_BORDER = 0xc8d6e0; // soft blue-grey
 const HOVER_BG = PATH_BLUE; // blue-300 on hover
 const BADGE_FILL = ACTION_FILL; // amber — matches Check button / Play station
+const SUGGESTED_BORDER = ACTION_FILL; // amber border for suggested card
+const SUGGESTED_GLOW = ACTION_FILL; // amber glow behind suggested card
 
 const CARD_W = 220;
 const CARD_H = 160;
@@ -104,8 +106,36 @@ export class LevelCard extends Phaser.GameObjects.Container {
   private build(suggested: boolean): void {
     const s = this.scene;
 
+    // Glow halo behind card for the suggested level
+    if (suggested) {
+      const glowPad = 10;
+      const glow = s.add.graphics();
+      glow.fillStyle(SUGGESTED_GLOW, 1);
+      glow.fillRoundedRect(
+        -CARD_W / 2 - glowPad,
+        -CARD_H / 2 - glowPad,
+        CARD_W + glowPad * 2,
+        CARD_H + glowPad * 2,
+        CARD_RADIUS + glowPad
+      );
+      glow.setAlpha(0.15);
+      this.add(glow);
+
+      // Pulse the glow alpha for reduced-motion-friendly breathing effect
+      if (!this.reducedMotion) {
+        s.tweens.add({
+          targets: glow,
+          alpha: 0.45,
+          duration: 900,
+          ease: 'Sine.easeInOut',
+          yoyo: true,
+          repeat: -1,
+        });
+      }
+    }
+
     this.bg = s.add.graphics();
-    this.drawCard(this.bgFill, this.bgBorder);
+    this.drawCard(this.bgFill, suggested ? SUGGESTED_BORDER : this.bgBorder, suggested ? 0.3 : 0);
     this.add(this.bg);
 
     // Gold mastery ribbon — top strip across the card, clipped to rounded corners.
@@ -214,11 +244,11 @@ export class LevelCard extends Phaser.GameObjects.Container {
       if (!this.reducedMotion) {
         hit.on('pointerover', () => {
           this.bg.clear();
-          this.drawCard(HOVER_BG, UNLOCKED_BORDER, 0.5);
+          this.drawCard(HOVER_BG, suggested ? SUGGESTED_BORDER : UNLOCKED_BORDER, 0.5);
         });
         hit.on('pointerout', () => {
           this.bg.clear();
-          this.drawCard(this.bgFill, this.bgBorder);
+          this.drawCard(this.bgFill, suggested ? SUGGESTED_BORDER : this.bgBorder, suggested ? 0.3 : 0);
         });
       }
     }
