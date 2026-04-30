@@ -33,6 +33,7 @@ import { log } from '../lib/log';
 // stays consistent and localizable without scene-side string literals.
 import { get as getCopy } from '../lib/i18n/catalog';
 import { resolveQuestName } from '../lib/persona/quest';
+import { fadeAndStart } from './utils/sceneTransition';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -129,6 +130,11 @@ export class LevelScene extends Phaser.Scene {
     // Adventure sky background — matches the MenuScene world
     drawAdventureBackground(this, CW, CH);
 
+    // Fade in from black on arrival
+    if (!this.checkReduceMotion()) {
+      this.cameras.main.fadeIn(300, 0, 0, 0);
+    }
+
     // Load templates
     await this.loadTemplates();
 
@@ -161,7 +167,7 @@ export class LevelScene extends Phaser.Scene {
       this.onHintRequest();
     });
     A11yLayer.mountAction('a11y-back', 'Back to main menu', () => {
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
 
     // Testid sentinels: mount generic `level-scene` + per-level `levelNN-scene`
@@ -354,7 +360,7 @@ export class LevelScene extends Phaser.Scene {
         questionIndex: this.questionIndex,
         attemptCount: this.attemptCount,
       });
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
   }
 
@@ -1006,9 +1012,9 @@ export class LevelScene extends Phaser.Scene {
         const nextLevel = this.levelNumber + 1;
         if (nextLevel > 9) {
           // All levels complete — congratulate and return to menu
-          this.scene.start('MenuScene', { lastStudentId: this.studentId, allComplete: true });
+          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId, allComplete: true });
         } else {
-          this.scene.start('LevelScene', {
+          fadeAndStart(this, 'LevelScene', {
             levelNumber: nextLevel,
             studentId: this.studentId,
           });
@@ -1019,7 +1025,7 @@ export class LevelScene extends Phaser.Scene {
 
     // Secondary "Back to menu" button
     this.makeModalBtn(CW / 2, CH / 2 + 160, 'Back to menu', () => {
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
 
     // Lead the screen-reader announcement with Quest's voice (the named

@@ -8,6 +8,7 @@
 import * as Phaser from 'phaser';
 import { CLR, HEX } from './utils/colors';
 import { TestHooks } from './utils/TestHooks';
+import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
 import { backupToFile } from '../persistence/backup';
 import { db } from '../persistence/db';
@@ -31,6 +32,13 @@ export class SettingsScene extends Phaser.Scene {
   create(): void {
     TestHooks.unmountAll();
     TestHooks.mountSentinel('settings-scene');
+
+    // Fade in from black on arrival
+    try {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        this.cameras.main.fadeIn(300, 0, 0, 0);
+      }
+    } catch { /* ignore */ }
 
     const cx = CW / 2;
 
@@ -372,7 +380,7 @@ export class SettingsScene extends Phaser.Scene {
   // ── Navigation ─────────────────────────────────────────────────────────────
   private goBack(): void {
     this.cleanup();
-    this.scene.start('MenuScene');
+    fadeAndStart(this, 'MenuScene');
   }
 
   private cleanup(): void {

@@ -18,6 +18,7 @@ import * as Phaser from 'phaser';
 import { injectSkipLink, labelCanvas } from '../components/SkipLink';
 import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
+import { fadeAndStart } from './utils/sceneTransition';
 
 interface MenuData {
   lastStudentId: string | null;
@@ -105,6 +106,11 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     this.reduceMotion = this.checkReduceMotion();
+
+    // Fade in from black on arrival (complements the 300ms fade-out on departure)
+    if (!this.reduceMotion) {
+      this.cameras.main.fadeIn(300, 0, 0, 0);
+    }
 
     // Ensure custom webfonts are decoded before Phaser snapshots glyphs into
     // its texture cache. Without this, the title falls back to a system font
@@ -362,9 +368,9 @@ export class MenuScene extends Phaser.Scene {
   private _startLevel(levelNumber: number, resume = false): void {
     const data = { levelNumber, studentId: this.lastStudentId, resume };
     if (levelNumber === 1) {
-      this.scene.start('Level01Scene', data);
+      fadeAndStart(this, 'Level01Scene', data);
     } else {
-      this.scene.start('LevelScene', data);
+      fadeAndStart(this, 'LevelScene', data);
     }
   }
 

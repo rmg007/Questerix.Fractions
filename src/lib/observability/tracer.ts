@@ -4,8 +4,8 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { trace, type Tracer } from '@opentelemetry/api';
 
 class TracerService {
@@ -16,9 +16,9 @@ class TracerService {
     if (this.provider) return;
 
     this.provider = new WebTracerProvider({
-      resource: new Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: 'questerix-fractions',
-        [SemanticResourceAttributes.SERVICE_VERSION]: import.meta.env.VITE_GIT_SHA || 'dev',
+      resource: resourceFromAttributes({
+        [SEMRESATTRS_SERVICE_NAME]: 'questerix-fractions',
+        [SEMRESATTRS_SERVICE_VERSION]: import.meta.env.VITE_GIT_SHA || 'dev',
       }),
     });
 

@@ -1,11 +1,15 @@
 /**
- * ProgressBar — session progress indicator (N / GOAL attempts).
+ * ProgressBar — session progress indicator shown as 5 collectible stars.
  * per interaction-model.md §6.2 (per-session success), C9 (5+ problems per session)
- * per design-language.md §6.1 (snap pulse), §6.4 (reduced motion)
+ * per design-language.md §6.4 (reduced motion), task-25 (star redesign)
+ *
+ * Stars display ☆ (empty) → ★ (filled) as the student answers correctly.
+ * The "N / 5" numeric label is removed in favour of an accessible aria-label
+ * on the sentinel element so the display stays clean for K-2 learners.
  */
 
 import * as Phaser from 'phaser';
-import { CLR } from '../scenes/utils/colors';
+import { TITLE_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 
 export interface ProgressBarConfig {
@@ -19,93 +23,92 @@ export interface ProgressBarConfig {
   depth?: number;
 }
 
-const DEFAULT_GOAL = 5; // per C9 — minimum 5 problems per session
-const BAR_HEIGHT = 16;
-const TRACK_COLOR = CLR.neutral100;
-const FILL_COLOR = CLR.primary;
-const FILL_COLOR_MID = CLR.accentC; // hints green progress at milestone
-const COMPLETE_COLOR = CLR.success;
-const ANIMATE_MS = 240; // per design-language.md §6.1 (snap pulse 180–240ms)
+const DEFAULT_GOAL = 5;
+const STAR_EMPTY = '☆';
+const STAR_FILLED = '★';
+const STAR_FONT_SIZE = '36px';
+const STAR_COLOR_FILLED = '#FBBF24'; // gold / amber-400 per colors.ts HEX.gold
+const STAR_COLOR_EMPTY = '#FDE68A';  // goldDim / amber-200 per colors.ts HEX.goldDim
+const ANIMATE_MS = 200;
 
 export class ProgressBar extends Phaser.GameObjects.Container {
-  private track: Phaser.GameObjects.Rectangle;
-  private fill: Phaser.GameObjects.Rectangle;
-  private countText: Phaser.GameObjects.Text;
-
+  private stars: Phaser.GameObjects.Text[] = [];
   private currentValue: number = 0;
   private readonly goal: number;
-  private readonly barWidth: number;
+  private sentinel: HTMLElement | null = null;
 
   constructor(config: ProgressBarConfig) {
-    const { scene, x, y, width, height = BAR_HEIGHT, goal = DEFAULT_GOAL, depth = 10 } = config;
+    const { scene, x, y, width, goal = DEFAULT_GOAL, depth = 10 } = config;
 
     super(scene, x, y);
 
     this.goal = goal;
-    this.barWidth = width;
 
-    // Track background — per design-language.md §2.4 neutral-100
-    this.track = scene.add.rectangle(0, 0, width, height, TRACK_COLOR).setOrigin(0, 0.5);
+    const spacing = width / goal;
 
-    // Filled portion
-    this.fill = scene.add.rectangle(0, 0, 0, height, FILL_COLOR).setOrigin(0, 0.5);
+    for (let i = 0; i < goal; i++) {
+      const sx = spacing * (i + 0.5);
+      const star = scene.add
+        .text(sx, 0, STAR_EMPTY, {
+          fontFamily: TITLE_FONT,
+          fontSize: STAR_FONT_SIZE,
+          color: STAR_COLOR_EMPTY,
+        })
+        .setOrigin(0.5);
+      this.stars.push(star);
+    }
 
-    // Count label — e.g. "2 / 5"
-    this.countText = scene.add
-      .text(width + 12, 0, `0 / ${goal}`, {
-        fontSize: '14px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: '#5B6478', // neutral-600 per design-language.md §2.4
-      })
-      .setOrigin(0, 0.5);
-
-    this.add([this.track, this.fill, this.countText]);
+    this.add(this.stars);
     this.setDepth(depth);
     scene.add.existing(this);
 
-    // ── Test hook sentinel ─────────────────────────────────────────────────
-    const sentinel = TestHooks.mountSentinel('progress-bar');
-    if (sentinel) {
-      sentinel.setAttribute('role', 'progressbar');
-      sentinel.setAttribute('aria-valuenow', '0');
-      sentinel.setAttribute('aria-valuemin', '0');
-      sentinel.setAttribute('aria-valuemax', String(goal));
+    // Accessibility sentinel — no visible "N / 5" label; screen readers use aria attrs.
+    this.sentinel = TestHooks.mountSentinel('progress-bar');
+    if (this.sentinel) {
+      this.sentinel.setAttribute('role', 'progressbar');
+      this.sentinel.setAttribute('aria-label', `Progress: 0 of ${goal} questions correct`);
+      this.sentinel.setAttribute('aria-valuenow', '0');
+      this.sentinel.setAttribute('aria-valuemin', '0');
+      this.sentinel.setAttribute('aria-valuemax', String(goal));
     }
   }
 
   /**
-   * Update the bar to reflect `value` out of `goal` attempts.
-   * Animates unless prefers-reduced-motion. per design-language.md §6.4
+   * Update stars to reflect `value` out of `goal` correct answers.
+   * Newly filled star gets a brief scale bounce unless prefers-reduced-motion.
    */
   setProgress(value: number): void {
+    const prev = this.currentValue;
     this.currentValue = Math.min(Math.max(0, value), this.goal);
-    const ratio = this.currentValue / this.goal;
-    const targetW = this.barWidth * ratio;
-    const complete = this.currentValue >= this.goal;
-
-    const fillColor = complete
-      ? COMPLETE_COLOR
-      : this.currentValue >= Math.ceil(this.goal / 2)
-        ? FILL_COLOR_MID
-        : FILL_COLOR;
-
-    this.fill.setFillStyle(fillColor);
-    this.countText.setText(`${this.currentValue} / ${this.goal}`);
-    TestHooks.setAriaValueNow('progress-bar', this.currentValue);
-
     const reduceMotion = this.checkReduceMotion();
 
-    if (reduceMotion) {
-      // per design-language.md §6.4 — instant transition
-      this.fill.width = targetW;
-    } else {
-      // Animate fill width — per design-language.md §6.1 (snap pulse duration)
-      this.scene.tweens.add({
-        targets: this.fill,
-        width: targetW,
-        duration: ANIMATE_MS,
-        ease: 'Cubic.easeOut',
-      });
+    this.stars.forEach((star, i) => {
+      const filled = i < this.currentValue;
+      star.setText(filled ? STAR_FILLED : STAR_EMPTY);
+      star.setColor(filled ? STAR_COLOR_FILLED : STAR_COLOR_EMPTY);
+
+      // Bounce the newly filled star
+      if (!reduceMotion && filled && i === prev) {
+        star.setScale(1.4);
+        this.scene.tweens.add({
+          targets: star,
+          scale: 1,
+          duration: ANIMATE_MS,
+          ease: 'Back.easeOut',
+        });
+      } else {
+        star.setScale(1);
+      }
+    });
+
+    TestHooks.setAriaValueNow('progress-bar', this.currentValue);
+    const el = this.sentinel ?? TestHooks.get('progress-bar');
+    if (el) {
+      el.setAttribute('aria-valuenow', String(this.currentValue));
+      el.setAttribute(
+        'aria-label',
+        `Progress: ${this.currentValue} of ${this.goal} questions correct`
+      );
     }
   }
 
@@ -119,9 +122,8 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
+    } catch {
       return false;
     }
   }
 }
-

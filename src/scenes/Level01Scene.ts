@@ -32,6 +32,7 @@ import type { PartitionInput, PartitionPayload } from '../validators/partition';
 import { tts } from '../audio/TTSService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
+import { fadeAndStart } from './utils/sceneTransition';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -185,6 +186,13 @@ export class Level01Scene extends Phaser.Scene {
     // Adventure sky background — matches the MenuScene world
     drawAdventureBackground(this, CW, CH);
 
+    // Fade in from black on arrival
+    try {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        this.cameras.main.fadeIn(300, 0, 0, 0);
+      }
+    } catch { /* ignore */ }
+
     // ── Load real templates from Dexie (partition + identify pool for L1) ──
     // per runtime-architecture.md §4.1 — ActivityScene loads QuestionTemplates via repo
     log.tmpl('load_start', { level: 1 });
@@ -262,7 +270,7 @@ export class Level01Scene extends Phaser.Scene {
     });
     A11yLayer.mountAction('a11y-back', 'Back to main menu', () => {
       void this.closeSession();
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
 
     // ── Test hooks ─────────────────────────────────────────────────────────
@@ -418,7 +426,7 @@ export class Level01Scene extends Phaser.Scene {
         questionIndex: this.questionIndex,
         attemptCount: this.attemptCount,
       });
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
   }
 
@@ -1207,7 +1215,7 @@ export class Level01Scene extends Phaser.Scene {
       CH / 2 + 60,
       'Keep going ▶',
       () => {
-        this.scene.start('LevelScene', {
+        fadeAndStart(this, 'LevelScene', {
           levelNumber: 2,
           studentId: this.studentId,
         });
@@ -1223,9 +1231,7 @@ export class Level01Scene extends Phaser.Scene {
       0xffffff,
       NAVY_HEX,
       () => {
-        this.time.delayedCall(200, () => {
-          this.scene.start('MenuScene', { lastStudentId: this.studentId });
-        });
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
       52
     );

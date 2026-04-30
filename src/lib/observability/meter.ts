@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onTTFB, onINP, type Metric } from 'web-vitals';
+import { onCLS, onFCP, onLCP, onTTFB, onINP, type Metric } from 'web-vitals';
 import { logger } from './logger';
 
 class MeterService {
@@ -22,7 +22,7 @@ class MeterService {
     };
 
     onCLS(report);
-    onFID(report);
+    onFCP(report);
     onLCP(report);
     onTTFB(report);
     onINP(report);
