@@ -470,32 +470,34 @@ export class MenuScene extends Phaser.Scene {
       .on('pointerup', () => this._closeChooseLevelOverlay());
     track(closeHit);
 
-    // ── 3×3 card grid ────────────────────────────────────────────────────────
+    // ── Unlocked-only card grid ───────────────────────────────────────────────
+    // Show only unlocked levels so the overlay acts as a quick-pick for
+    // levels the player can actually play (not a full browse-all view).
     // At OVERLAY_CARD_SCALE=0.8: 220*0.8=176px wide, 160*0.8=128px tall.
     // Columns centred at x=160, 400, 640 (240px apart).
     // Rows centred at y=470, 620, 770 (150px apart).
     const colX = [160, 400, 640];
     const rowY = [470, 620, 770];
 
+    const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
+
     // "Suggested next" = lowest unlocked and not-yet-completed level.
-    const suggestedLevel = LEVEL_META.find(
-      (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
+    const suggestedLevel = unlockedMeta.find(
+      (m) => !completedLevels.has(m.number)
     )?.number ?? null;
 
-    for (let i = 0; i < LEVEL_META.length; i++) {
-      const meta = LEVEL_META[i];
+    for (let i = 0; i < unlockedMeta.length; i++) {
+      const meta = unlockedMeta[i];
       const cx = colX[i % 3];
       const cy = rowY[Math.floor(i / 3)];
-      const isUnlocked = unlocked.has(meta.number);
-      const isCompleted = completedLevels.has(meta.number);
       const card = new LevelCard({
         scene: this,
         x: cx,
         y: cy,
         meta,
-        unlocked: isUnlocked,
+        unlocked: true,
         suggested: meta.number === suggestedLevel,
-        mastered: isCompleted && masteredLevels.has(meta.number),
+        mastered: masteredLevels.has(meta.number),
         containerScale: OVERLAY_CARD_SCALE,
         testHookPrefix: 'overlay-card',
         onTap: (levelNumber) => {
