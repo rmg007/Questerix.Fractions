@@ -15,6 +15,9 @@ import {
   ACTION_TEXT,
   TITLE_FONT,
   BODY_FONT,
+  TEXT_BODY,
+  TEXT_MUTED,
+  TEXT_DIM,
 } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
@@ -83,7 +86,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
         fontSize: '20px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
-        color: this.unlocked ? '#1E3A8A' : '#64748B',
+        color: this.unlocked ? NAVY_HEX : TEXT_MUTED,
       })
     );
 
@@ -94,7 +97,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
           fontSize: '18px',
           fontFamily: TITLE_FONT,
           fontStyle: 'bold',
-          color: this.unlocked ? NAVY_HEX : '#64748B',
+          color: this.unlocked ? NAVY_HEX : TEXT_MUTED,
           align: 'center',
           wordWrap: { width: CARD_W - 24 },
         })
@@ -107,7 +110,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
         .text(0, 26, this.meta.concept, {
           fontSize: '13px',
           fontFamily: BODY_FONT,
-          color: this.unlocked ? '#475569' : '#94A3B8',
+          color: this.unlocked ? TEXT_BODY : TEXT_DIM,
           align: 'center',
           wordWrap: { width: CARD_W - 24 },
         })
@@ -120,7 +123,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
         .text(CARD_W / 2 - 10, -CARD_H / 2 + 12, `Gr ${this.meta.gradeBand}`, {
           fontSize: '11px',
           fontFamily: BODY_FONT,
-          color: this.unlocked ? '#475569' : '#94A3B8',
+          color: this.unlocked ? TEXT_BODY : TEXT_DIM,
         })
         .setOrigin(1, 0)
     );

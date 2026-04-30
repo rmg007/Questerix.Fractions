@@ -33,6 +33,8 @@ export const ACCENT_C = 0x34d399;
 export const TEXT_ON_FILL = '#FFFFFF';
 export const TEXT_BODY = '#475569';
 export const TEXT_HEADING = NAVY_HEX;
+export const TEXT_MUTED = '#64748B';
+export const TEXT_DIM = '#94A3B8';
 
 // Action ("Check") button — amber, matching the Play! station
 export const ACTION_FILL = 0xfcd34d; // amber-300
