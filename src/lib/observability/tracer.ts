@@ -16,7 +16,7 @@ class TracerService {
 
     const spanProcessors: SpanProcessor[] = [];
 
-    if (import.meta.env.DEV) {
+    if (import.meta.env.DEV && localStorage.getItem('DEBUG_TRACES') === 'true') {
       spanProcessors.push(new SimpleSpanProcessor(new ConsoleSpanExporter()));
     }
 

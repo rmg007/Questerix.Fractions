@@ -28,6 +28,10 @@ export class PartitionInteraction implements Interaction {
   private partitionLine!: Phaser.GameObjects.Graphics;
   private dragHandle!: DragHandle;
   private handlePos!: number;
+  private cutLineHint: Phaser.GameObjects.Graphics | null = null;
+  private shapeCenterX!: number;
+  private shapeCenterY!: number;
+  private shapeType!: 'rectangle' | 'circle';
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
@@ -48,6 +52,10 @@ export class PartitionInteraction implements Interaction {
     };
     const shapeType = payload.shapeType ?? 'rectangle';
     const snapMode = payload.snapMode ?? (ctx.template.difficultyTier === 'easy' ? 'axis' : 'free');
+
+    this.shapeCenterX = centerX;
+    this.shapeCenterY = centerY;
+    this.shapeType = shapeType;
 
     this.drawShape(shapeType, centerX, centerY);
     this.updatePartitionLine(this.handlePos, centerY);
@@ -115,6 +123,8 @@ export class PartitionInteraction implements Interaction {
   unmount(): void {
     this.shapeGraphics?.destroy();
     this.partitionLine?.destroy();
+    this.cutLineHint?.destroy();
+    this.cutLineHint = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
   }

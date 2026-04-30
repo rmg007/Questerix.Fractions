@@ -14,6 +14,8 @@ export interface NumberLineOpts {
   maxValue?: number;
   tickFractions?: number[];
   snapPositions?: number[];
+  /** When set, tick labels are rendered as fraction notation (e.g. 1/3, 2/3). */
+  denominator?: number;
 }
 
 const SNAP_THRESHOLD = 16; // px
@@ -33,12 +35,36 @@ export class NumberLine {
       maxValue: 1,
       tickFractions: [],
       snapPositions: [],
+      denominator: 0, // 0 = not set; falls back to legacy label logic
       ...opts,
     };
     this.currentValue = this.opts.minValue;
 
     this.gfx = scene.add.graphics().setDepth(5);
     this.draw();
+  }
+
+  /**
+   * Format a tick value as a human-readable label.
+   *
+   * When `denominator` is set (> 0), render fraction notation:
+   *   v=0 → "0", v=1 → "1", v=k/d → "k/d"
+   *
+   * Otherwise fall back to the legacy logic that special-cases 0, 0.5, and 1.
+   */
+  private formatTickLabel(v: number): string {
+    const d = this.opts.denominator;
+    if (d && d > 0) {
+      const n = Math.round(v * d);
+      if (n === 0) return '0';
+      if (n === d) return '1';
+      return `${n}/${d}`;
+    }
+    // Legacy fallback: handles halves (and whole numbers) without a denominator.
+    if (v === 0) return '0';
+    if (v === 1) return '1';
+    if (v === 0.5) return '1/2';
+    return String(v);
   }
 
   private draw(): void {
@@ -59,7 +85,7 @@ export class NumberLine {
       const tx = left + ((v - minValue) / range) * length;
       this.gfx.lineStyle(2, CLR.neutral600, 1);
       this.gfx.lineBetween(tx, y - 12, tx, y + 12);
-      const lbl = v === 0.5 ? '1/2' : v === 0 ? '0' : v === 1 ? '1' : String(v);
+      const lbl = this.formatTickLabel(v);
       const t = this.scene.add
         .text(tx, y + 20, lbl, {
           fontSize: '14px',

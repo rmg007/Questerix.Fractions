@@ -14,6 +14,8 @@ export interface TTSOptions {
 export class TTSService {
   private enabled: boolean;
   private synth: SpeechSynthesis | null;
+  /** Volume level, 0–1. Applied to each SpeechSynthesisUtterance. */
+  private volume: number = 0.8;
 
   constructor() {
     this.synth = typeof speechSynthesis !== 'undefined' ? speechSynthesis : null;
@@ -27,6 +29,7 @@ export class TTSService {
       const u = new SpeechSynthesisUtterance(text);
       u.rate = opts.rate ?? 0.95; // slightly slower for K-2
       u.pitch = opts.pitch ?? 1.05;
+      u.volume = this.volume;
       if (opts.voice) {
         const v = this.synth.getVoices().find((v) => v.name === opts.voice);
         if (v) u.voice = v;
@@ -52,6 +55,17 @@ export class TTSService {
   setEnabled(on: boolean): void {
     this.enabled = on && !!this.synth;
     if (!on) this.stop();
+  }
+
+  /**
+   * Set the volume for subsequent utterances (0–1).
+   */
+  setVolume(volume: number): void {
+    this.volume = Math.max(0, Math.min(1, volume));
+  }
+
+  getVolume(): number {
+    return this.volume;
   }
 }
 
