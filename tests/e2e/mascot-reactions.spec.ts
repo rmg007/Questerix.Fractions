@@ -14,10 +14,10 @@
  * The sentinel is mounted by Mascot.ts on construction and removed on destroy()
  * so it does not leak between scene transitions.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 async function navigateToLevel01(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto('/?testHooks=1');
+  await page.goto('/');
   await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
     timeout: 8000,
   });
@@ -35,7 +35,7 @@ async function navigateToLevel01(page: import('@playwright/test').Page): Promise
 
 test.describe('Mascot on MenuScene', () => {
   test('mascot sentinel shows wave state after menu becomes visible', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
       timeout: 8000,
     });
@@ -50,7 +50,7 @@ test.describe('Mascot on MenuScene', () => {
   });
 
   test('mascot sentinel returns to idle after greeting wave completes', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
       timeout: 8000,
     });
@@ -119,7 +119,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
   });
 
   test('wrong answer sets mascot sentinel to think', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({ timeout: 5000 });
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
@@ -144,7 +144,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
   });
 
   test('mascot resets to idle after wrong-answer feedback overlay dismisses', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({ timeout: 5000 });
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });

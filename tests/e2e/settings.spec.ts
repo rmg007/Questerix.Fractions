@@ -3,11 +3,11 @@
  * per test-strategy.md §1.3 (E2E happy path)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 test.describe('Settings scene', () => {
   test('navigates Boot → Menu → Settings, renders settings-scene sentinel', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
 
     // Boot
     const startBtn = page.locator('[data-testid="boot-start-btn"]');
@@ -27,7 +27,7 @@ test.describe('Settings scene', () => {
   });
 
   test('Settings scene exposes Export and Reset interactive buttons', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
 
     const startBtn = page.locator('[data-testid="boot-start-btn"]');
     await expect(startBtn).toBeVisible({ timeout: 8000 });

@@ -1,11 +1,11 @@
 // WCAG 2.1 AA automated checks and touch-target audit
 // per accessibility.md §7 (test plan) and §2 (touch targets ≥ 44×44 CSS px)
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
   test('Menu scene — zero axe violations', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
 
@@ -18,7 +18,7 @@ test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
   });
 
   test('Level01 scene — zero axe violations', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
     // level-card-L1 opens the Adventure Map; select Level 1 from there
@@ -69,7 +69,7 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
   }
 
   test('Menu scene — all interactive elements ≥ 44×44 CSS px', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
 
@@ -80,7 +80,7 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
   });
 
   test('Level01 scene — all interactive elements ≥ 44×44 CSS px', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
     // level-card-L1 opens the Adventure Map; select Level 1 from there

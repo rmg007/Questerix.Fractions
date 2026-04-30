@@ -1,6 +1,6 @@
 // Smoke test: Boot → Menu → Level01 first attempt
 // per test-strategy.md §1.3 (E2E happy path) and playtest-protocol.md §4
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 test.describe('Smoke — boot to first attempt', () => {
   test('boots app, navigates Boot→Menu→L1, renders FeedbackOverlay within 1000ms', async ({
@@ -8,7 +8,7 @@ test.describe('Smoke — boot to first attempt', () => {
   }) => {
     // SKIP: data-testid attributes (boot-start-btn, menu-scene, level-card-L1, level01-scene,
     // partition-target, feedback-overlay) are not yet implemented in scenes.
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
 
     // Boot scene renders a Start button
     const startBtn = page.locator('[data-testid="boot-start-btn"]');

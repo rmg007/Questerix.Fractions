@@ -1,13 +1,13 @@
 // Level 01 full flow: 5 attempts → completion screen
 // per test-strategy.md §1.3, playtest-protocol.md §3/§5, accessibility.md §6
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 // SKIP: All tests in this file require data-testid attributes not yet implemented in scenes:
 // boot-start-btn, menu-scene, level-card-L1, level01-scene, partition-target,
 // feedback-overlay, feedback-next-btn, progress-bar, completion-screen, hint-btn, hint-text.
 test.describe('Level 01 — full 5-attempt flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     // Navigate Boot → Menu → Adventure Map → Level 1
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 15000 });

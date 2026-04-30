@@ -1,7 +1,7 @@
 // Adventure Map smoke test: all 9 nodes present, locked nodes non-interactive,
 // clicking node 1 starts Level01Scene.
 // per test-strategy.md §1.3 (E2E happy path)
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 import { navigateToLevelMap } from './test-helpers';
 
 const TOTAL_NODES = 9;
