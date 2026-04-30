@@ -322,6 +322,38 @@ Specific traps observed in the complex partitioning tasks of Level 5.
 | **Related skills**   | `SK-17`                                                                                                                                     |
 | **Source**           | Level 5 activity telemetry                                                                                                                  |
 
+### 3.7 Equivalence Recognition Family (MC-EQ-\*)
+
+Misconceptions that arise when students fail to recognise that two fractions represent the same quantity, or mistake perceptual similarity for mathematical equality.
+
+## MC-EQ-01 — Perceptual Equality Bias ("Equal Looks the Same")
+
+**Detector:** detectEQ01 *(planned — not yet implemented)*
+**Templates baiting:** L6 comparison_battle_same_denom Medium, L7 comparison_battle_mixed_denom Medium
+
+| Field                | Value                                                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | Student picks `=` (equal) whenever the two fraction bar representations look approximately the same length, regardless of the actual numerator values.                              |
+| **Detection signal** | On `compare` Easy/Medium templates where numerators differ by 1 (same denominator), student selects `=` ≥ 50% of the time across 4+ attempts.                                     |
+| **Intervention**     | Redirect to bar alignment: "Look closely — one bar is longer. They can't be equal." Replay Tier 1 comparison templates with exaggerated differences.                               |
+| **Grade level**      | Grade 1–2                                                                                                                                                                          |
+| **Related skills**   | `SK-08`, `SK-09`                                                                                                                                                                   |
+| **Source**           | `level-06.md` trap MC-EQ-01; `level-07.md` trap MC-EQ-01                                                                                                                         |
+
+## MC-EQ-02 — Equivalent Benchmark Unrecognised
+
+**Detector:** detectEQ02 *(planned — not yet implemented)*
+**Templates baiting:** L8 benchmark items where target = 1/2 exactly; L9 ordering_tournament_5 Hard with equivalence pair
+
+| Field                | Value                                                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | Student does not recognise that equivalent fractions (e.g., `2/4`, `3/6`, `4/8`) equal exactly `1/2`, placing them in an "almost half" zone rather than recognising them as equal. |
+| **Detection signal** | On `benchmark` or `order` templates where the correct answer requires placing an equivalent-of-½ fraction at the ½ mark, student misplaces it ≥ 50% of the time across 3+ attempts. |
+| **Intervention**     | Show a side-by-side bar of `1/2` next to the equivalent fraction. "They're both exactly at the middle — they're the same!"                                                        |
+| **Grade level**      | Grade 2                                                                                                                                                                            |
+| **Related skills**   | `SK-12`, `SK-13`                                                                                                                                                                   |
+| **Source**           | `level-08.md` trap MC-EQ-02; `level-09.md` trap MC-EQ-02                                                                                                                         |
+
 ---
 
 ## 4. Out-of-Scope Misconceptions (Post-MVP 2029)
@@ -377,5 +409,7 @@ Before adding a new MC entry:
 | M10 — Fourth ≠ Quarter             | MC-VOC-01                      |
 | M11 — Food-only fractions          | (out of scope)                 |
 | M12 — Math identity                | (out of scope, but informs C6) |
+| L6/L7 perceptual-equality bias     | MC-EQ-01                       |
+| L8/L9 equivalence-benchmark gap    | MC-EQ-02                       |
 
-Last reviewed: 2026-04-25. (audit §1.1 fix: all SK-NN references updated to canonical IDs from skills.md; audit §1.6 fix: MC-MAG-02 detection signal rewritten to use SK-17 attempt logs)
+Last reviewed: 2026-04-30. (added §3.7 Equivalence Recognition family: MC-EQ-01 and MC-EQ-02 — both were referenced in level-06..09 docs but had no catalog entry; detectors planned, not yet implemented)
