@@ -10,7 +10,7 @@ describe('validatorRegistry', () => {
     }
   });
 
-  it('registers all 11 expected validator IDs', () => {
+  it('registers all expected validator IDs', () => {
     const expectedIds = [
       'validator.partition.equalAreas',
       'validator.partition.equalCount',
@@ -25,6 +25,7 @@ describe('validatorRegistry', () => {
       'validator.equal_or_not.areaTolerance',
       'validator.placement.snapTolerance',
       'validator.placement.snap8',
+      'validator.explain_your_order.sequence',
     ];
     for (const id of expectedIds) {
       expect(validatorRegistry.has(id), `missing: ${id}`).toBe(true);
