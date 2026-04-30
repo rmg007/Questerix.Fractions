@@ -1312,6 +1312,12 @@ export class Level01Scene extends Phaser.Scene {
         hintsUsed: [],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
+        payload: {
+          shapeType: this.currentQuestion.shapeType,
+          targetPartitions: 2,
+          snapMode: this.currentQuestion.snapMode,
+          areaTolerance: this.currentQuestion.areaTolerance,
+        },
         syncState: 'local',
       });
 
