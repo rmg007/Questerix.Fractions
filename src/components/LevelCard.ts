@@ -21,6 +21,7 @@ import {
 } from '../scenes/utils/levelTheme';
 
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { checkReduceMotion } from '../lib/preferences';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
 
 // ── Mastery ribbon palette (matches LevelMapScene) ────────────────────────────
@@ -97,9 +98,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.onTap = opts.onTap;
     this.bgFill = this.completed ? COMPLETED_BG : opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
     this.bgBorder = this.completed ? COMPLETED_BORDER : opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
-    this.reducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    this.reducedMotion = checkReduceMotion();
     this.build(opts.suggested);
     opts.scene.add.existing(this);
     const hookPrefix = opts.testHookPrefix ?? 'level-card';

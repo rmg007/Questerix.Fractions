@@ -39,8 +39,8 @@ export async function initPreferences(): Promise<void> {
  * Returns true if either OS or cached preference is enabled.
  */
 export function checkReduceMotion(): boolean {
-  if (!cache) return false;
   const osPrefers = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!cache) return osPrefers; // cache not initialised yet — fall back to OS only
   return osPrefers || cache.reduceMotion;
 }
 

@@ -94,25 +94,55 @@ type AnyScene = SettingsScene & {
 function makeScene(): AnyScene {
   const scene = Object.create(SettingsScene.prototype) as AnyScene;
 
-  // Initialize fields read by doRestore, showRestoreStatus, cleanup, shutdown
+  // Initialize all private fields that cleanup/shutdown/countdown methods read
   scene.restoreStatusText = null;
   scene.fileInput = null;
   scene.toggles = [];
   scene._keyHandler = null;
+  // Countdown fields — must be null (not undefined) so _clearRestoreCountdown's
+  // `!== null` guards skip the clearTimeout/clearInterval calls correctly
+  (scene as unknown as Record<string, unknown>)._restoreTimerId = null;
+  (scene as unknown as Record<string, unknown>)._restoreIntervalId = null;
+  (scene as unknown as Record<string, unknown>)._restoreCountdownText = null;
+  (scene as unknown as Record<string, unknown>)._restoreCancelBtnText = null;
+  (scene as unknown as Record<string, unknown>)._restoreCancelHit = null;
+  (scene as unknown as Record<string, unknown>)._restoreCancelGraphic = null;
+  (scene as unknown as Record<string, unknown>).volumeSliderWrapper = null;
 
-  // Track the last message passed to add.text() for assertions
-  const capturedText = { msg: '' };
+  // Track the FIRST message passed to add.text() — that is always the status/countdown text.
+  // (The cancel button "Cancel" is the second call and should not overwrite it.)
+  const capturedText = { msg: '', callCount: 0 };
 
-  scene.add = {
-    text: (_x: number, _y: number, msg: string, _style: object) => ({
+  const makeFakeText = (_x: number, _y: number, msg: string, _style: object) => {
+    if (capturedText.callCount === 0) capturedText.msg = msg;
+    capturedText.callCount += 1;
+    return {
+      setText: (m: string) => { capturedText.msg = m; },
+      destroy: vi.fn(),
       setOrigin: (_n: number) => ({
         setDepth: (_d: number) => {
-          capturedText.msg = msg;
-          return {};
+          if (capturedText.callCount <= 1) capturedText.msg = msg;
+          return { setText: (m: string) => { capturedText.msg = m; } };
         },
       }),
-    }),
+    };
   };
+
+  scene.add = {
+    text: makeFakeText,
+    graphics: () => ({
+      fillStyle: vi.fn(),
+      fillRoundedRect: vi.fn(),
+      setDepth: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+    }),
+    rectangle: () => ({
+      setInteractive: vi.fn().mockReturnThis(),
+      setDepth: vi.fn().mockReturnThis(),
+      on: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+    }),
+  } as unknown as AnyScene['add'];
 
   scene.time = {
     delayedCall: vi.fn(),
@@ -132,31 +162,39 @@ function capturedStatus(scene: AnyScene): string {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Prevent the reload triggered on success from interfering with tests
-  vi.stubGlobal('window', { setTimeout: vi.fn() });
+  // Prevent the reload triggered on success from interfering with tests.
+  // clearTimeout/clearInterval/setInterval must be present so that
+  // _clearRestoreCountdown() and startRestoreCountdown() don't throw.
+  vi.stubGlobal('window', {
+    setTimeout: vi.fn(),
+    clearTimeout: vi.fn(),
+    setInterval: vi.fn(),
+    clearInterval: vi.fn(),
+  });
 });
 
 // ── Happy path ─────────────────────────────────────────────────────────────
 
 describe('SettingsScene doRestore — happy path', () => {
-  it('shows "Restored N records — reloading…" when restoreFromFile resolves', async () => {
+  it('shows countdown label when restoreFromFile resolves', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 7, skipped: 0 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading…');
+    // startRestoreCountdown() shows "Restored N records — reloading in 3…" initially
+    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading in 3…');
   });
 
-  it('shows "Restored 0 records — reloading…" when backup was empty but valid', async () => {
+  it('shows countdown label when backup was empty but valid', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 0, skipped: 3 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading…');
+    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading in 3…');
   });
 });
 

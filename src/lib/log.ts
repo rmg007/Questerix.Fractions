@@ -39,7 +39,7 @@ function getFilter(): string {
   try {
     const url = new URLSearchParams(window.location.search).get('log');
     if (url !== null) return url;
-    return localStorage.getItem('LOG') ?? '*';
+    return localStorage.getItem('LOG') ?? 'Q,VALID,HINT';
   } catch (err) {
     return '*';
   }

@@ -259,6 +259,82 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
 
+  // ── Identify hints ────────────────────────────────────────────────────────
+  'quest.hint.identify.verbal': {
+    text: 'Count the shaded parts.',
+    notes: 'Tier 1 hint for identify. Short observational nudge.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.identify.visual': {
+    text: 'Count the shaded parts.',
+    notes: 'Tier 2 hint for identify. Points to visual evidence.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.identify.worked': {
+    text: 'Shaded parts on top, total parts on the bottom.',
+    notes: 'Tier 3 hint for identify. Explicit fraction definition.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Placement hints ───────────────────────────────────────────────────────
+  'quest.hint.placement.verbal': {
+    text: 'Where is it on the line?',
+    notes: 'Tier 1 hint for placement. Nudge to look at number line.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.placement.visual': {
+    text: 'Look at the bar. How full is it?',
+    notes: 'Tier 2 hint for placement. Connects bar model to number line.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.placement.worked': {
+    text: 'Line up the bar with the line. Put the marker there.',
+    notes: 'Tier 3 hint for placement. Direct worked instruction.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Explain-your-order hints ──────────────────────────────────────────────
+  'quest.hint.explain_your_order.verbal': {
+    text: 'Which fraction is smallest?',
+    notes: 'Tier 1 hint for explain_your_order. Start-point nudge.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.explain_your_order.visual': {
+    text: 'Draw each fraction. Which takes up less space?',
+    notes: 'Tier 2 hint for explain_your_order. Models pictorial comparison.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.explain_your_order.worked': {
+    text: 'Smaller bottom number means bigger pieces.',
+    notes: 'Tier 3 hint. Explicit rule about denominator size.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Welcome-back / streak copy ────────────────────────────────────────────
+  'quest.menu.welcomeBack': {
+    text: 'Welcome back!',
+    notes: 'Shown on menu when returning player has prior sessions.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.suggestedLevel': {
+    text: 'Try Level {n} next!',
+    notes: 'Shown below welcome-back. {n} = suggested next level number (1-9). ICU substitution.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.allDone': {
+    text: 'You did all 9 levels!',
+    notes: 'Shown when student has completed all 9 levels.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.streak': {
+    text: '{count} day streak!',
+    notes: 'Streak badge text. {count} = number of consecutive days. ICU substitution.',
+    tone: 'persona-quest',
+  },
+
   // ── Generic hint fallback (partition with unsupported denominator or
   //    unknown archetype — safety net only; known archetypes have explicit
   //    verbal/visual/worked keys above) ────────────────────────────────────

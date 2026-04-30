@@ -1,7 +1,8 @@
 /**
- * SessionCompleteOverlay — trophy level-complete screen.
- * A full-screen sky-blue card slides up from below viewport with animated stars,
- * confetti, and action buttons. Stars: 1 = <60%, 2 = 60–89%, 3 = 90%+.
+ * QuestCompleteOverlay — grand celebration screen shown when a student
+ * completes ALL 9 levels of the quest.
+ * A full-screen sky-blue card slides up from below viewport with a 3×3 grid
+ * of animated gold stars, triple-burst confetti, and action buttons.
  * per interaction-model.md §6.2, design-language.md §6.4 (reduced-motion)
  */
 
@@ -21,49 +22,32 @@ import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
 
-export interface SessionCompleteConfig {
+export interface QuestCompleteConfig {
   scene: Phaser.Scene;
-  levelNumber: number;
-  correctCount: number;
-  totalAttempts: number;
   width?: number;
   height?: number;
   depth?: number;
-  onPlayAgain: () => void;
+  onPlayAgainFromStart: () => void;
   onMenu: () => void;
 }
 
-export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
-  if (total === 0) return 1;
-  const acc = correct / total;
-  if (acc >= 0.9) return 3;
-  if (acc >= 0.6) return 2;
-  return 1;
-}
-
-export class SessionCompleteOverlay {
+export class QuestCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
   private glowTween: Phaser.Tweens.Tween | null = null;
 
-  constructor(config: SessionCompleteConfig) {
+  constructor(config: QuestCompleteConfig) {
     const {
       scene,
-      levelNumber,
-      correctCount,
-      totalAttempts,
       width = 800,
       height = 1280,
       depth = 50,
-      onPlayAgain,
+      onPlayAgainFromStart,
       onMenu,
     } = config;
 
     const cx = width / 2;
     const reduceMotion = checkReduceMotion();
-
-    const starCount = starsFromAccuracy(correctCount, totalAttempts);
-    const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
     this.container = scene.add
@@ -78,17 +62,17 @@ export class SessionCompleteOverlay {
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
-    // Trophy — starts at scale 0.5 so the wave tween can spring it in
+    // Party emoji — starts at scale 0.5 so the wave tween can spring it in
     const trophyT = scene.add
-      .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
+      .text(cx, 330, '🎉', { fontSize: '72px', fontFamily: TITLE_FONT })
       .setOrigin(0.5)
       .setScale(reduceMotion ? 1 : 0.5);
     this.container.add(trophyT);
 
     // Heading
     const headingT = scene.add
-      .text(cx, 420, `Level ${levelNumber} Complete!`, {
-        fontSize: '44px',
+      .text(cx, 440, 'Quest Complete!', {
+        fontSize: '48px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
@@ -96,58 +80,56 @@ export class SessionCompleteOverlay {
       .setOrigin(0.5);
     this.container.add(headingT);
 
-    // Stars (scale 0 initially)
-    const starSpacing = 90;
-    const rowLeft = cx - (starSpacing * (starCount - 1)) / 2;
-    for (let i = 0; i < starCount; i++) {
-      const st = scene.add
-        .text(rowLeft + i * starSpacing, 530, '⭐', {
-          fontSize: '60px',
-          fontFamily: TITLE_FONT,
-        })
-        .setOrigin(0.5)
-        .setScale(0);
-      this.starTexts.push(st);
-      this.container.add(st);
-    }
-
-    // Encouragement
-    const encT = scene.add
-      .text(cx, 640, this.encouragementLine(starCount), {
+    // Sub-heading line 2
+    const subHeadingT = scene.add
+      .text(cx, 500, 'You mastered all 9 levels!', {
         fontSize: '24px',
         fontFamily: BODY_FONT,
-        fontStyle: 'bold',
         color: NAVY_HEX,
         align: 'center',
         wordWrap: { width: width - 80 },
       })
       .setOrigin(0.5);
-    this.container.add(encT);
+    this.container.add(subHeadingT);
 
-    // Accuracy detail
-    const accT = scene.add
-      .text(cx, 690, `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`, {
-        fontSize: '19px',
-        fontFamily: BODY_FONT,
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5);
-    this.container.add(accT);
+    // 9 gold stars in a 3×3 grid, centered at y≈520–620
+    const starSize = 44;
+    const colSpacing = 80;
+    const rowSpacing = 80;
+    const gridCols = 3;
+    const gridRows = 3;
+    const gridW = (gridCols - 1) * colSpacing;
+    const gridH = (gridRows - 1) * rowSpacing;
+    const gridStartX = cx - gridW / 2;
+    const gridStartY = 540 - gridH / 2;
+
+    for (let row = 0; row < gridRows; row++) {
+      for (let col = 0; col < gridCols; col++) {
+        const st = scene.add
+          .text(gridStartX + col * colSpacing, gridStartY + row * rowSpacing, '⭐', {
+            fontSize: `${starSize}px`,
+            fontFamily: TITLE_FONT,
+          })
+          .setOrigin(0.5)
+          .setScale(0);
+        this.starTexts.push(st);
+        this.container.add(st);
+      }
+    }
 
     // Buttons
-    this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
-    this.addMenuButton(scene, cx, 880, onMenu);
+    this.addPlayAgainButton(scene, cx, 780, onPlayAgainFromStart);
+    this.addMenuButton(scene, cx, 870, onMenu);
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
       sfx.playComplete();
-      this.announce(levelNumber, starCount);
-      TestHooks.mountSentinel('completion-screen');
+      this.announce();
+      TestHooks.mountSentinel('quest-complete-screen');
       return;
     }
 
-    // Issue #96: overlay entrance — panel slides in from below the viewport.
-    // The container starts at y = height (below the canvas) and tweens to y = 0.
+    // Overlay entrance — panel slides in from below the viewport.
     scene.tweens.add({
       targets: this.container,
       y: 0,
@@ -156,14 +138,14 @@ export class SessionCompleteOverlay {
       delay: 60,
       onComplete: () => {
         sfx.playComplete();
-        // Issue #70: Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
+        // Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
         this.animateTrophyWave(scene, trophyT, () => {
-          // Issue #82: Glow sync — start repeating alpha pulse on heading after wave.
+          // Glow sync — start repeating alpha pulse on heading after wave.
           this.startGlowSync(scene, headingT);
           // Animate stars after trophy wave lands.
-          this.animateStars(scene, cx, 530, depth, () => {
-            this.announce(levelNumber, starCount);
-            TestHooks.mountSentinel('completion-screen');
+          this.animateStars(scene, cx, 550, depth, () => {
+            this.announce();
+            TestHooks.mountSentinel('quest-complete-screen');
           });
         });
       },
@@ -171,7 +153,7 @@ export class SessionCompleteOverlay {
   }
 
   private addPlayAgainButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 64, R = 32, SHADOW = 7;
+    const W = 320, H = 64, R = 32, SHADOW = 7;
 
     const shadow = scene.add.graphics();
     shadow.fillStyle(ACTION_BORDER, 1);
@@ -184,9 +166,9 @@ export class SessionCompleteOverlay {
     face.strokeRoundedRect(x - W / 2, y - H / 2, W, H, R);
 
     const txt = scene.add
-      .text(x, y, 'Play Again', {
+      .text(x, y, 'Play Again from Level 1', {
         fontFamily: TITLE_FONT,
-        fontSize: '26px',
+        fontSize: '22px',
         color: ACTION_TEXT,
         fontStyle: 'bold',
       })
@@ -201,7 +183,7 @@ export class SessionCompleteOverlay {
   }
 
   private addMenuButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 54, R = 27;
+    const W = 320, H = 54, R = 27;
 
     const bg = scene.add.graphics();
     bg.fillStyle(0xffffff, 1);
@@ -227,7 +209,7 @@ export class SessionCompleteOverlay {
   }
 
   /**
-   * Issue #70: Trophy wave — elastic spring scale 0.5 → 1.2 → 1.0 over 600ms.
+   * Trophy wave — elastic spring scale 0.5 → 1.2 → 1.0 over 600ms.
    * Already guarded: only called when reduceMotion is false.
    */
   private animateTrophyWave(
@@ -255,8 +237,8 @@ export class SessionCompleteOverlay {
   }
 
   /**
-   * Issue #82: Glow sync — repeating alpha yoyo 1.0 ↔ 0.7 every 800ms on the
-   * "Level N Complete!" heading. Stored so destroy() can stop it cleanly.
+   * Glow sync — repeating alpha yoyo 1.0 ↔ 0.7 every 800ms on the
+   * "Quest Complete!" heading. Stored so destroy() can stop it cleanly.
    * Already guarded: only called when reduceMotion is false.
    */
   private startGlowSync(scene: Phaser.Scene, target: Phaser.GameObjects.Text): void {
@@ -290,10 +272,15 @@ export class SessionCompleteOverlay {
             scene.tweens.add({ targets: st, scale: 1.0, duration: 100, ease: 'Cubic.easeOut' });
           },
         });
-        if (i === 0) this.burstConfetti(scene, confettiX, confettiY, depth);
+        // Extended confetti: 3 bursts with 200ms delay between each
+        if (i === 0) {
+          this.burstConfetti(scene, confettiX, confettiY, depth);
+          scene.time.delayedCall(200, () => this.burstConfetti(scene, confettiX, confettiY, depth));
+          scene.time.delayedCall(400, () => this.burstConfetti(scene, confettiX, confettiY, depth));
+        }
         if (i === this.starTexts.length - 1) scene.time.delayedCall(300, onDone);
       });
-      delay += 300;
+      delay += 150;
     }
     if (this.starTexts.length === 0) onDone();
   }
@@ -320,15 +307,8 @@ export class SessionCompleteOverlay {
     }
   }
 
-  private announce(levelNumber: number, stars: number): void {
-    const word = stars === 1 ? 'star' : 'stars';
-    AccessibilityAnnouncer.announce(`Level ${levelNumber} complete! You earned ${stars} ${word}.`);
-  }
-
-  private encouragementLine(stars: 1 | 2 | 3): string {
-    if (stars === 3) return 'Amazing! Perfect score!';
-    if (stars === 2) return 'Great work! Keep it up!';
-    return 'Nice try! Practice makes perfect!';
+  private announce(): void {
+    AccessibilityAnnouncer.announce('Quest complete! You mastered all 9 levels!');
   }
 
   destroy(): void {
@@ -337,6 +317,5 @@ export class SessionCompleteOverlay {
       this.glowTween = null;
     }
     this.container.destroy(true);
-    this.starTexts.length = 0;
   }
 }

@@ -29,11 +29,8 @@ export default defineConfig(async () => {
         injectRegister: 'script',
         includeAssets: ['manifest.json', 'icons/*.png'],
         workbox: {
-          // Explicitly precache all build output so the app shell (JS, CSS, HTML)
-          // is available offline on first launch after install.
-          // Per C10 (offline-first) and PWA / offline verification.
+          navigateFallback: '/index.html',
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          // Suppress noisy Workbox warning about large entry points (Phaser 1.3 MB)
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
           runtimeCaching: [
             {

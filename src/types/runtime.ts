@@ -244,6 +244,8 @@ export interface ProgressionStat {
 /** per data-schema.md §3.8 (audit §5 fix) */
 export interface DevicePreferences {
   audio: boolean;
+  /** Master volume level, 0–1. Default 0.8. */
+  volume: number;
   reduceMotion: boolean;
   highContrast: boolean;
   ttsLocale: string;
