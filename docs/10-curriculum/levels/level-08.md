@@ -38,11 +38,11 @@ The level does **not** require the student to order three or more fractions (Lev
 
 See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-16/SK-17/SK-18 at L8 collided with L5 IDs; renumbered SK-27/SK-28/SK-29)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-27` | Number-line placement (single fraction on 0–1) | `pInit=0.15, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
-| `SK-28` | Benchmark proximity sorting (zones: 0, 1/2, 1) | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
-| `SK-29` | Benchmark 1/2 rule (`a > b/2` → bigger than 1/2) | `pInit=0.10, pTransit=0.25, pSlip=0.15, pGuess=0.33` |
+| Skill ID | Name                                             | BKT priors                                           |
+| -------- | ------------------------------------------------ | ---------------------------------------------------- |
+| `SK-27`  | Number-line placement (single fraction on 0–1)   | `pInit=0.15, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| `SK-28`  | Benchmark proximity sorting (zones: 0, 1/2, 1)   | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
+| `SK-29`  | Benchmark 1/2 rule (`a > b/2` → bigger than 1/2) | `pInit=0.10, pTransit=0.25, pSlip=0.15, pGuess=0.33` |
 
 The `pGuess` of `0.10` on `SK-27` reflects that random placement on a continuous line is unlikely to land within snap tolerance of the target. By contrast `SK-28` and `SK-29` both have ternary outcomes (`pGuess=0.33`).
 
@@ -52,11 +52,11 @@ The `pGuess` of `0.10` on `SK-27` reflects that random placement on a continuous
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.2.NF.A.2** (understand a fraction as a number on the number line; represent fractions on a number line diagram) | **Primary** |
-| **CCSS.3.NF.A.2** (represent a fraction `a/b` on a number line diagram) | **Primary** (Grade 3 standard introduced early per `00-MASTER_PLAN.md` §1) |
-| **CCSS.3.NF.A.3.d** (compare fractions by reasoning about their size, including using benchmarks) | Reinforced (the benchmark strategy is named here) |
+| Standard                                                                                                               | Coverage                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **CCSS.2.NF.A.2** (understand a fraction as a number on the number line; represent fractions on a number line diagram) | **Primary**                                                                |
+| **CCSS.3.NF.A.2** (represent a fraction `a/b` on a number line diagram)                                                | **Primary** (Grade 3 standard introduced early per `00-MASTER_PLAN.md` §1) |
+| **CCSS.3.NF.A.3.d** (compare fractions by reasoning about their size, including using benchmarks)                      | Reinforced (the benchmark strategy is named here)                          |
 
 ---
 
@@ -77,11 +77,11 @@ The full mechanic spec — pointer events, ghost preview, direction tooltip, sna
 
 #### Difficulty tiers
 
-| Tier | Tick visibility | Color zones | Snap denominator | Hint budget |
-|------|----------------|-------------|------------------|-------------|
-| Easy | All major ticks (0, 1/4, 1/2, 3/4, 1) labelled; minor ticks at 1/8 | Full opacity 0.4 | 8 | 3 |
-| Medium | Major ticks (0, 1/2, 1) only | Reduced opacity 0.2 | 12 | 2 |
-| Hard | Endpoints (0, 1) only | Removed | 12 | 1 |
+| Tier   | Tick visibility                                                    | Color zones         | Snap denominator | Hint budget |
+| ------ | ------------------------------------------------------------------ | ------------------- | ---------------- | ----------- |
+| Easy   | All major ticks (0, 1/4, 1/2, 3/4, 1) labelled; minor ticks at 1/8 | Full opacity 0.4    | 8                | 3           |
+| Medium | Major ticks (0, 1/2, 1) only                                       | Reduced opacity 0.2 | 12               | 2           |
+| Hard   | Endpoints (0, 1) only                                              | Removed             | 12               | 1           |
 
 #### Question template archetype
 
@@ -162,11 +162,11 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
 
 #### Difficulty tiers
 
-| Tier | Rule card | Equal button | Timer | Hint budget |
-|------|-----------|--------------|-------|-------------|
-| Easy | Fully visible | Hidden (binary only) | None | 3 |
-| Medium | Collapsed by default; tap to expand | Visible from first appearance | None | 2 |
-| Hard | Hidden; "Show rule" button available at point cost | Visible | 15-second soft timer per question | 1 |
+| Tier   | Rule card                                          | Equal button                  | Timer                             | Hint budget |
+| ------ | -------------------------------------------------- | ----------------------------- | --------------------------------- | ----------- |
+| Easy   | Fully visible                                      | Hidden (binary only)          | None                              | 3           |
+| Medium | Collapsed by default; tap to expand                | Visible from first appearance | None                              | 2           |
+| Hard   | Hidden; "Show rule" button available at point cost | Visible                       | 15-second soft timer per question | 1           |
 
 #### Question template archetype
 
@@ -264,17 +264,17 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
 **Title:** "Sort Into Zones"
 **Levels in app:** L8 only
 
-The student sees a tray of 3–6 fraction cards and three drop zones at the bottom of the screen, labelled **CLOSER TO 0**, **CLOSER TO 1/2**, **CLOSER TO 1**. They drag each card into the zone it belongs to. This is a multi-fraction generalisation of `benchmark_battle` and an important bridge to the full ordering activity in Level 9 — the student is not yet placing fractions in *order*, just in *neighbourhoods*.
+The student sees a tray of 3–6 fraction cards and three drop zones at the bottom of the screen, labelled **CLOSER TO 0**, **CLOSER TO 1/2**, **CLOSER TO 1**. They drag each card into the zone it belongs to. This is a multi-fraction generalisation of `benchmark_battle` and an important bridge to the full ordering activity in Level 9 — the student is not yet placing fractions in _order_, just in _neighbourhoods_.
 
 A fraction is "closer to" benchmark `b` when `|f - b|` is smaller than `|f - other_benchmark|` for both other benchmarks. Equal cases (e.g., `1/4` is exactly equidistant from 0 and 1/2) are handled per the source doc's tie rule: such fractions are valid in either zone, and the validator accepts both.
 
 #### Difficulty tiers
 
-| Tier | Card count | Bar model on cards | Hint budget |
-|------|-----------|-------------------|-------------|
-| Easy | 3 cards (one obvious for each zone) | Yes | 3 |
-| Medium | 5 cards (some 1/2-zone close calls) | Yes | 2 |
-| Hard | 6 cards (multiple cards per zone, includes equal-to-1/2 cases) | No (symbolic only) | 1 |
+| Tier   | Card count                                                     | Bar model on cards | Hint budget |
+| ------ | -------------------------------------------------------------- | ------------------ | ----------- |
+| Easy   | 3 cards (one obvious for each zone)                            | Yes                | 3           |
+| Medium | 5 cards (some 1/2-zone close calls)                            | Yes                | 2           |
+| Hard   | 6 cards (multiple cards per zone, includes equal-to-1/2 cases) | No (symbolic only) | 1           |
 
 #### Question template archetype
 
@@ -349,13 +349,13 @@ The card `1/4` is intentionally equidistant from 0 (distance 0.25) and 1/2 (dist
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-PRX-01` | "Proximity-to-1 confusion" — student places fractions near 1 (e.g., `5/6`, `7/8`) too far left because the numerator is small | Wrong placement on `magnitude_scales` Hard items where the fraction is in the `[0.7, 0.9]` range |
-| `MC-EQ-02` | "Equal benchmarks unrecognised" — student places `2/4` or `3/6` in the "almost half" zone instead of recognising it equals 1/2 exactly | Wrong "bigger" or "smaller" on `benchmark_battle` items where the fraction equals 1/2 |
-| `MC-RULE-01` | "Rule misapplication" — student inverts the benchmark rule (says `a > b/2` is smaller than 1/2) | Mirror-image errors on `benchmark_battle`: consistently picking the opposite of correct |
-| `MC-WHB-01` | (carried from L6) "Whole-number bias on numerator" | Wrong placement of fractions like `3/4` near the `3/8` position because the numerator is 3 |
-| `MC-WHB-02` | (carried from L7) "Whole-number bias on denominator" | Re-emerges in `magnitude_scales` Hard items where `1/4` is placed left of `1/8` because `4 > 8` |
+| MC ID        | Name                                                                                                                                   | Detection signal                                                                                 |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `MC-PRX-01`  | "Proximity-to-1 confusion" — student places fractions near 1 (e.g., `5/6`, `7/8`) too far left because the numerator is small          | Wrong placement on `magnitude_scales` Hard items where the fraction is in the `[0.7, 0.9]` range |
+| `MC-EQ-02`   | "Equal benchmarks unrecognised" — student places `2/4` or `3/6` in the "almost half" zone instead of recognising it equals 1/2 exactly | Wrong "bigger" or "smaller" on `benchmark_battle` items where the fraction equals 1/2            |
+| `MC-RULE-01` | "Rule misapplication" — student inverts the benchmark rule (says `a > b/2` is smaller than 1/2)                                        | Mirror-image errors on `benchmark_battle`: consistently picking the opposite of correct          |
+| `MC-WHB-01`  | (carried from L6) "Whole-number bias on numerator"                                                                                     | Wrong placement of fractions like `3/4` near the `3/8` position because the numerator is 3       |
+| `MC-WHB-02`  | (carried from L7) "Whole-number bias on denominator"                                                                                   | Re-emerges in `magnitude_scales` Hard items where `1/4` is placed left of `1/8` because `4 > 8`  |
 
 The L7 misconceptions (`MC-WHB-01`, `MC-WHB-02`) re-surface here because Level 8 mixes denominators across the entire fraction pool. A student who appeared to master those at L7 may still slip when the cognitive load of placement is added.
 
@@ -367,22 +367,134 @@ Per **C8**, sixths and eighths are now fully active in non-unit forms. The pool 
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "halves"  },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25,   "benchmark": "almost_zero",  "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75,   "benchmark": "almost_one",   "denominatorFamily": "fourths" },
-  { "id": "frac:1/6", "numerator": 1, "denominator": 6, "decimalValue": 0.167,  "benchmark": "almost_zero",  "denominatorFamily": "sixths"  },
-  { "id": "frac:2/6", "numerator": 2, "denominator": 6, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "sixths"  },
-  { "id": "frac:3/6", "numerator": 3, "denominator": 6, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "sixths"  },
-  { "id": "frac:4/6", "numerator": 4, "denominator": 6, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "sixths"  },
-  { "id": "frac:5/6", "numerator": 5, "denominator": 6, "decimalValue": 0.833,  "benchmark": "almost_one",   "denominatorFamily": "sixths"  },
-  { "id": "frac:1/8", "numerator": 1, "denominator": 8, "decimalValue": 0.125,  "benchmark": "almost_zero",  "denominatorFamily": "eighths" },
-  { "id": "frac:3/8", "numerator": 3, "denominator": 8, "decimalValue": 0.375,  "benchmark": "almost_half",  "denominatorFamily": "eighths" },
-  { "id": "frac:4/8", "numerator": 4, "denominator": 8, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "eighths" },
-  { "id": "frac:5/8", "numerator": 5, "denominator": 8, "decimalValue": 0.625,  "benchmark": "almost_half",  "denominatorFamily": "eighths" },
-  { "id": "frac:7/8", "numerator": 7, "denominator": 8, "decimalValue": 0.875,  "benchmark": "almost_one",   "denominatorFamily": "eighths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:1/6",
+    "numerator": 1,
+    "denominator": 6,
+    "decimalValue": 0.167,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:2/6",
+    "numerator": 2,
+    "denominator": 6,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:3/6",
+    "numerator": 3,
+    "denominator": 6,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:4/6",
+    "numerator": 4,
+    "denominator": 6,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:5/6",
+    "numerator": 5,
+    "denominator": 6,
+    "decimalValue": 0.833,
+    "benchmark": "almost_one",
+    "denominatorFamily": "sixths"
+  },
+  {
+    "id": "frac:1/8",
+    "numerator": 1,
+    "denominator": 8,
+    "decimalValue": 0.125,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:3/8",
+    "numerator": 3,
+    "denominator": 8,
+    "decimalValue": 0.375,
+    "benchmark": "almost_half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:4/8",
+    "numerator": 4,
+    "denominator": 8,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:5/8",
+    "numerator": 5,
+    "denominator": 8,
+    "decimalValue": 0.625,
+    "benchmark": "almost_half",
+    "denominatorFamily": "eighths"
+  },
+  {
+    "id": "frac:7/8",
+    "numerator": 7,
+    "denominator": 8,
+    "decimalValue": 0.875,
+    "benchmark": "almost_one",
+    "denominatorFamily": "eighths"
+  }
 ]
 ```
 
@@ -417,15 +529,15 @@ Level 8 is the longest level in the MVP. Both the volume of new fractions (sixth
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `magnitude_scales` templates | 12 | 3 examples shown | Need 9 more |
-| `benchmark_battle` templates | 14 | 4 examples shown | Need 10 more |
-| `three_zone_sort` templates | 10 | 2 examples shown | Need 8 more |
-| TTS audio scripts | 36 | 0 | SpeechSynthesis API at runtime |
-| Hint definitions | ~108 (3 per template) | 0 | TBD; for `magnitude_scales` use the three-tier hint system from source doc §9 (pie / arrow / ghost) |
-| Validator function specs | 3 | High-level only | `placement.snapTolerance`, `benchmark_sort.threeWay`, `benchmark_sort.multiCardZones` — `multiCardZones` validator must accept ties (see §4.3) |
-| SVG number-line component | 1 | 0 | Reuse the spec from `01-FractionMagnitudeScales.md` §2 verbatim |
+| Item                         | Required              | Authored         | Notes                                                                                                                                          |
+| ---------------------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `magnitude_scales` templates | 12                    | 3 examples shown | Need 9 more                                                                                                                                    |
+| `benchmark_battle` templates | 14                    | 4 examples shown | Need 10 more                                                                                                                                   |
+| `three_zone_sort` templates  | 10                    | 2 examples shown | Need 8 more                                                                                                                                    |
+| TTS audio scripts            | 36                    | 0                | SpeechSynthesis API at runtime                                                                                                                 |
+| Hint definitions             | ~108 (3 per template) | 0                | TBD; for `magnitude_scales` use the three-tier hint system from source doc §9 (pie / arrow / ghost)                                            |
+| Validator function specs     | 3                     | High-level only  | `placement.snapTolerance`, `benchmark_sort.threeWay`, `benchmark_sort.multiCardZones` — `multiCardZones` validator must accept ties (see §4.3) |
+| SVG number-line component    | 1                     | 0                | Reuse the spec from `01-FractionMagnitudeScales.md` §2 verbatim                                                                                |
 
 ---
 

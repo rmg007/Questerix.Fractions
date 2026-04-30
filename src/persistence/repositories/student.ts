@@ -23,7 +23,7 @@ export const studentRepo = {
   async get(id: StudentId): Promise<Student | undefined> {
     try {
       return await db.students.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -31,7 +31,7 @@ export const studentRepo = {
   async list(): Promise<Student[]> {
     try {
       return await db.students.orderBy('createdAt').toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -40,7 +40,7 @@ export const studentRepo = {
     try {
       const updated = await db.students.update(id, { ...patch, lastActiveAt: Date.now() });
       return updated > 0;
-    } catch {
+    } catch (err) {
       return false;
     }
   },
@@ -48,8 +48,9 @@ export const studentRepo = {
   async delete(id: StudentId): Promise<void> {
     try {
       await db.students.delete(id);
-    } catch {
+    } catch (err) {
       // swallow — idempotent delete
     }
   },
 };
+

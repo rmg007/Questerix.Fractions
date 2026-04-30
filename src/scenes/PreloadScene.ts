@@ -1,12 +1,24 @@
 /**
- * PreloadScene — loads minimal assets and shows a progress indicator.
+ * PreloadScene — loads minimal assets and shows a themed progress indicator.
  * Transitions to MenuScene after loading completes.
  * per runtime-architecture.md §5 (boot sequence step 3d)
- * per design-language.md §2 (palette colors for loader)
+ * per design-language.md §2 (palette), task-25 (adventure theme redesign)
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from './utils/colors';
+import {
+  drawAdventureBackground,
+  drawSoftGlow,
+  ACTION_FILL,
+  ACTION_BORDER,
+  TITLE_FONT,
+  BODY_FONT,
+  NAVY_HEX,
+} from './utils/levelTheme';
+import { CLR } from './utils/colors';
+import { fadeAndStart } from './utils/sceneTransition';
+import { Mascot } from '../components/Mascot';
+import { checkReduceMotion } from '../lib/preferences';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -36,6 +48,14 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on('progress', (value: number) => {
       this.progressBar.width = CW * 0.6 * value;
       this.loadingText.setText(`Loading… ${Math.floor(value * 100)}%`);
+
+      // Update fraction tiles in splash screen as loader progresses
+      const tiles = document.querySelectorAll('#fraction-tiles svg');
+      tiles.forEach((tile, index) => {
+        // Tile appears at: 0 → 33% (first), 33% → 66% (second), 66% → 100% (third)
+        const threshold = (index + 1) / tiles.length;
+        (tile as HTMLElement).style.opacity = value >= threshold ? '1' : '0';
+      });
     });
 
     this.load.on('complete', () => {
@@ -43,51 +63,69 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     // ── Asset loading ──────────────────────────────────────────────────────
-    // No audio assets in first pass per task spec ("no audio yet").
     // Fonts are loaded via @font-face in CSS (src/styles/index.css).
     // Shape primitives are procedural — no images needed per design-language.md §7.3.
-
-    // Placeholder: palette swatch texture (1×1 colored pixel atlas)
-    // In production this would load icon sprites, TTS audio, etc.
-    // We create minimal programmatic textures to satisfy Phaser's asset pipeline.
     this.createPaletteTextures();
   }
 
-  /** Render a simple Phaser progress bar using palette colors. per design-language.md §2 */
+  /**
+   * Render the adventure-themed loading screen.
+   * Sky-blue background, Fredoka One title, amber progress bar, navy status text.
+   * per task-25 "Done looks like", levelTheme.ts tokens.
+   */
   private createProgressUI(): void {
     const cx = CW / 2;
     const cy = CH / 2;
 
-    // Background
-    this.add.rectangle(cx, cy, CW, CH, CLR.neutral0);
+    // Sky-blue adventure background + ambient glow circles (matching all other scenes)
+    drawAdventureBackground(this, CW, CH);
 
-    // Title
+    // Extra warm glow near the title to add visual depth
+    drawSoftGlow(this, cx, cy - 80, 220, 0xfcd34d, 0.18);
+
+    // Title — Fredoka One matching MenuScene's style
     this.add
-      .text(cx, cy - 120, 'Questerix Fractions', {
-        fontSize: '40px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: HEX.neutral900,
+      .text(cx, cy - 180, 'Questerix\nFractions', {
+        fontFamily: TITLE_FONT,
+        fontSize: '64px',
+        color: '#FFFFFF',
+        align: 'center',
+        lineSpacing: 2,
+        stroke: NAVY_HEX,
+        strokeThickness: 6,
+        shadow: { offsetX: 0, offsetY: 4, color: NAVY_HEX, blur: 0, fill: true },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(5);
 
-    // Track — per design-language.md §2.4 neutral-100
+    // Progress bar track — neutral-100
     const trackW = CW * 0.6;
-    this.add.rectangle(cx, cy, trackW, 16, CLR.neutral100).setOrigin(0.5);
+    this.add.rectangle(cx, cy, trackW, 18, CLR.neutral100).setOrigin(0.5).setDepth(5);
 
-    // Fill — per design-language.md §2.1 primary
+    // Progress bar fill — amber (ACTION_FILL) to match adventure theme
     this.progressBar = this.add
-      .rectangle(cx - trackW / 2, cy, 0, 16, CLR.primary)
-      .setOrigin(0, 0.5);
+      .rectangle(cx - trackW / 2, cy, 0, 18, ACTION_FILL)
+      .setOrigin(0, 0.5)
+      .setDepth(6);
 
-    // Status text
+    // Amber border around track for visual definition
+    const trackBorderG = this.add.graphics().setDepth(7);
+    trackBorderG.lineStyle(2, ACTION_BORDER, 0.5);
+    trackBorderG.strokeRect(cx - trackW / 2, cy - 9, trackW, 18);
+
+    // Status text — navy matching level scene body text
     this.loadingText = this.add
-      .text(cx, cy + 40, 'Loading…', {
-        fontSize: '18px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
+      .text(cx, cy + 48, 'Loading…', {
+        fontSize: '20px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(5);
+
+    // Static mascot — shown while loading, no tweens
+    new Mascot(this, cx + 220, cy - 160, 0.75);
   }
 
   /** Create 1×1 Phaser textures for each palette token (used by shapes later). */
@@ -115,21 +153,17 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
-    // Brief pause so "Ready!" is visible before transition
-    const reduceMotion = this.checkReduceMotion();
-    const delay = reduceMotion ? 0 : 200;
+    // Fade in from black as the scene becomes ready
+    this.cameras.main.fadeIn(300, 0, 0, 0);
+
+    // Brief pause so "Ready!" is visible, then fade out and start MenuScene
+    const reduceMotion = checkReduceMotion();
+    const delay = reduceMotion ? 0 : 300;
 
     this.time.delayedCall(delay, () => {
-      // per runtime-architecture.md §5 — pass lastStudentId through to MenuScene
-      this.scene.start('MenuScene', { lastStudentId: this.lastStudentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.lastStudentId });
     });
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
 }
+

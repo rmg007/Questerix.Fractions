@@ -4,8 +4,18 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
+import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import {
+  NAVY,
+  OPTION_BG,
+  OPTION_BORDER,
+  SELECTED_BG,
+  SKY_BG,
+  TEXT_BODY,
+  TEXT_HEADING,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface IdentifyOption {
   shapeType?: string;
@@ -15,8 +25,25 @@ interface IdentifyOption {
 }
 
 interface IdentifyPayload {
-  options: IdentifyOption[];
+  // Modern shape (per archetype spec)
+  options?: IdentifyOption[];
   targetIndex: number;
+  // Curriculum shape (q:id:L*:* templates) — fractionId is the correct
+  // answer; distractors are the others. Order is interleaved at targetIndex.
+  fractionId?: string;
+  distractors?: string[];
+}
+
+function fracLabel(ref: string): string {
+  return ref.startsWith('frac:') ? ref.slice(5) : ref;
+}
+
+function optionsFromCurriculum(p: IdentifyPayload): IdentifyOption[] {
+  if (!p.fractionId || !p.distractors) return [];
+  const target = p.targetIndex ?? 0;
+  const out: IdentifyOption[] = p.distractors.map((d) => ({ alt: fracLabel(d) }));
+  out.splice(target, 0, { alt: fracLabel(p.fractionId) });
+  return out;
 }
 
 export class IdentifyInteraction implements Interaction {
@@ -30,7 +57,7 @@ export class IdentifyInteraction implements Interaction {
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as IdentifyPayload;
-    const options = payload.options ?? [];
+    const options = payload.options ?? optionsFromCurriculum(payload);
     const count = options.length;
     const cardW = Math.min(180, (width - 80) / count);
     const cardH = 160;
@@ -41,13 +68,13 @@ export class IdentifyInteraction implements Interaction {
 
     options.forEach((opt, i) => {
       const x = startX + i * (cardW + spacing) + cardW / 2;
-      const bg = scene.add.rectangle(x, cardY, cardW, cardH, CLR.neutral50).setDepth(5);
-      bg.setStrokeStyle(2, CLR.neutral300);
+      const bg = scene.add.rectangle(x, cardY, cardW, cardH, OPTION_BG).setDepth(5);
+      bg.setStrokeStyle(2, OPTION_BORDER);
       const label = scene.add
         .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral900,
+          color: TEXT_HEADING,
           align: 'center',
           wordWrap: { width: cardW - 16 },
         })
@@ -59,20 +86,29 @@ export class IdentifyInteraction implements Interaction {
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
 
-      hit.on('pointerup', () => {
+      const select = () => {
         // Deselect all
         this.gameObjects
           .filter(
             (o): o is Phaser.GameObjects.Rectangle =>
               o instanceof Phaser.GameObjects.Rectangle && o !== hit
           )
-          .forEach((r) => r.setFillStyle(CLR.neutral50));
-        bg.setFillStyle(CLR.primarySoft);
+          .forEach((r) => r.setFillStyle(OPTION_BG));
+        bg.setFillStyle(SELECTED_BG);
         this.selectedIndex = i;
         if (this.submitBtn) {
-          this.submitBtn.setFillStyle(CLR.primary);
-          this.submitLabel?.setColor(HEX.neutral0);
+          this.submitBtn.setFillStyle(NAVY);
+          this.submitLabel?.setColor(TEXT_ON_FILL);
         }
+      };
+
+      hit.on('pointerup', select);
+
+      TestHooks.mountInteractive(`identify-option-${i}`, select, {
+        top: `${(cardY / 1280) * 100}%`,
+        left: `${(x / 800) * 100}%`,
+        width: `${cardW}px`,
+        height: `${cardH}px`,
       });
 
       this.gameObjects.push(bg, label, hit);
@@ -80,13 +116,13 @@ export class IdentifyInteraction implements Interaction {
 
     // Submit button
     const submitY = cardY + cardH / 2 + 60;
-    const sbg = scene.add.rectangle(centerX, submitY, 280, 56, CLR.neutral100).setDepth(5);
+    const sbg = scene.add.rectangle(centerX, submitY, 280, 56, SKY_BG).setDepth(5);
     const slbl = scene.add
       .text(centerX, submitY, 'Check', {
         fontSize: '20px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral600,
+        color: TEXT_BODY,
       })
       .setOrigin(0.5)
       .setDepth(6);
@@ -94,10 +130,20 @@ export class IdentifyInteraction implements Interaction {
       .rectangle(centerX, submitY, 280, 56, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(7);
-    shit.on('pointerup', () => {
+
+    const submit = () => {
       if (this.selectedIndex >= 0) {
         onCommit({ selectedIndex: this.selectedIndex });
       }
+    };
+
+    shit.on('pointerup', submit);
+
+    TestHooks.mountInteractive(`identify-submit`, submit, {
+      top: `${(submitY / 1280) * 100}%`,
+      left: `${(centerX / 800) * 100}%`,
+      width: '280px',
+      height: '56px',
     });
 
     this.submitBtn = sbg;
@@ -111,5 +157,6 @@ export class IdentifyInteraction implements Interaction {
     this.selectedIndex = -1;
     this.submitBtn = null;
     this.submitLabel = null;
+    TestHooks.unmountAll(); // Interaction owns its ephemeral hooks
   }
 }

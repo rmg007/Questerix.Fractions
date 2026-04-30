@@ -9,6 +9,7 @@
 ## Executive Summary
 
 Delivered a production-ready hint-generation pipeline that:
+
 - Generates 3-tier hint cascades (Tier 1/2/3 scaffolding) for all 216 templates
 - Validates hints against word count, uniqueness, and complexity constraints
 - Batches API calls for efficiency (~8 calls for all 648 hints)
@@ -20,9 +21,11 @@ Delivered a production-ready hint-generation pipeline that:
 ## Deliverables
 
 ### 1. Hint-Generation Prompt
+
 **File:** `pipeline/prompts/hint-generation.md`
 
 A detailed 9.3 KB system prompt that instructs Claude to:
+
 - Generate exactly 3 hints per template (mild/moderate/heavy scaffolding)
 - Respect ≤15 word constraint per hint
 - Counter misconception traps from template metadata
@@ -30,6 +33,7 @@ A detailed 9.3 KB system prompt that instructs Claude to:
 - Avoid spoilers in Tiers 1–2
 
 **Key sections:**
+
 - Output contract and schema specification
 - Tier definitions with examples and word-count targets
 - Hard constraints (word count, no spoilers, uniqueness)
@@ -38,29 +42,32 @@ A detailed 9.3 KB system prompt that instructs Claude to:
 - Quality checklist
 
 ### 2. Extended generate.py
+
 **File:** `pipeline/generate.py`
 
 Added 8 new functions and --hints-only mode:
 
-| Function | Lines | Purpose |
-|----------|-------|---------|
-| `_load_hint_generation_prompt()` | 5 | Load system prompt |
-| `_extract_archetype_short()` | 15 | Map archetype names to short codes |
-| `_count_words()` | 3 | Word counter for validation |
-| `_validate_hint()` | 40 | Single-hint validation |
-| `_validate_hint_cascade()` | 35 | 3-hint cascade validation |
-| `_load_curriculum_templates()` | 15 | Load all 216 templates |
-| `_build_hints_user_message()` | 18 | User message builder |
-| `_try_generate_hints()` | 60 | API call with retries |
-| `generate_hints()` | 120 | Main orchestration |
+| Function                         | Lines | Purpose                            |
+| -------------------------------- | ----- | ---------------------------------- |
+| `_load_hint_generation_prompt()` | 5     | Load system prompt                 |
+| `_extract_archetype_short()`     | 15    | Map archetype names to short codes |
+| `_count_words()`                 | 3     | Word counter for validation        |
+| `_validate_hint()`               | 40    | Single-hint validation             |
+| `_validate_hint_cascade()`       | 35    | 3-hint cascade validation          |
+| `_load_curriculum_templates()`   | 15    | Load all 216 templates             |
+| `_build_hints_user_message()`    | 18    | User message builder               |
+| `_try_generate_hints()`          | 60    | API call with retries              |
+| `generate_hints()`               | 120   | Main orchestration                 |
 
 **Key CLI additions:**
+
 ```bash
 --hints-only              # Enable hint generation mode
 --hints-batch N           # Templates per API call (default: 30)
 ```
 
 **Validation coverage:**
+
 - Schema compliance (Pydantic HintTemplate)
 - Word count ≤15
 - Not identical to prompt
@@ -69,9 +76,11 @@ Added 8 new functions and --hints-only mode:
 - Complexity progression T1 ≤ T2 ≤ T3
 
 ### 3. Test Harness
+
 **File:** `test_hints.py`
 
 Comprehensive pre-flight verification:
+
 - Loads curriculum (✓ 216 templates)
 - Verifies prompt exists and has required sections
 - Tests validation functions
@@ -79,6 +88,7 @@ Comprehensive pre-flight verification:
 - Reports readiness status
 
 **Output example:**
+
 ```
 ✓ Loaded 216 templates from curriculum
 ✓ Loaded hint-generation.md (9302 bytes)
@@ -92,9 +102,11 @@ Time estimate: ~18 minutes (8 batches)
 ```
 
 ### 4. Documentation
+
 **File:** `HINT_GENERATION.md` (5.2 KB)
 
 Comprehensive guide covering:
+
 - Quick start (test and full runs)
 - System architecture
 - Output format (hints.json + report.json)
@@ -110,14 +122,18 @@ Comprehensive guide covering:
 ## Specifications Met
 
 ### Requirement 1: Extend generate.py with --hints-only mode
+
 ✅ **Delivered**
+
 - Reads all templates from `public/curriculum/v1.json`
 - Generates 3 hints per template (Tier 1/2/3)
 - Calls Claude API with batching and rate-limit handling
 - Outputs HintTemplate[] array in curriculum JSON format
 
 ### Requirement 2: Create hint-generation prompt
+
 ✅ **Delivered**
+
 - Instructs tier-appropriate scaffolding
 - Avoids answer spoilers
 - ≤15 words per hint constraint
@@ -126,7 +142,9 @@ Comprehensive guide covering:
 - Per-archetype guidance
 
 ### Requirement 3: Validate hints
+
 ✅ **Delivered**
+
 - Word count check (≤15)
 - No identical-to-prompt check
 - No identical-within-cascade check
@@ -135,7 +153,9 @@ Comprehensive guide covering:
 - Cascade validation (exactly 3 hints per template)
 
 ### Requirement 4: Estimate effort
+
 ✅ **Delivered**
+
 - Batch generation: 216 templates in ~8 API calls (batch size: 30)
 - Cost: ~$0.60 (Haiku @ early 2025 pricing)
 - Time: ~18–40 minutes wall-clock (depending on API latency)
@@ -148,12 +168,14 @@ Comprehensive guide covering:
 ### Batch Generation Strategy
 
 **Batch size:** 30 templates per API call (default, configurable)
+
 - Each call: ~108 hints (36 templates × 3 tiers)
 - Input tokens: ~1,500–2,000 per batch
 - Output tokens: ~12,000–16,000 per batch
 - Total API calls: 8 (216 ÷ 30 rounded up)
 
 **Rate limiting & retries:**
+
 - Exponential backoff: 5s, 30s, 120s (per tier)
 - Max retries: 3 (configurable)
 - Automatic retry on JSON/validation errors
@@ -226,6 +248,7 @@ Output to hints.json + report.json
 ### Full Generation (All 648 Hints)
 
 **Haiku (default):**
+
 ```
 Input tokens:  108,000 @ $0.80 per 1M = $0.086
 Output tokens: 129,600 @ $4.00 per 1M = $0.518
@@ -233,6 +256,7 @@ Total:                                   ~$0.60
 ```
 
 **Sonnet (higher quality):**
+
 ```
 Input tokens:  108,000 @ $3.00 per 1M = $0.324
 Output tokens: 129,600 @ $15.00 per 1M = $1.944
@@ -240,6 +264,7 @@ Total:                                   ~$2.27
 ```
 
 **Cost by archetype (Haiku):**
+
 ```
 partition    (36 templates × 3 hints) ≈ $0.072
 identify     (36 templates × 3 hints) ≈ $0.072
@@ -262,10 +287,12 @@ TOTAL (216 templates, 648 hints)        ~$0.60
 ### Wall-Clock Time Estimate
 
 **Sequential (default):**
+
 - 8 batches × ~2–3s per API call = ~16–24 seconds elapsed
 - Plus time for parsing, validation = ~18–40 minutes total (including network I/O)
 
 **Batch size impact:**
+
 - 10 templates/batch: 22 API calls, more granular progress, easier error isolation
 - 30 templates/batch: 8 API calls, faster overall, higher throughput
 - 50 templates/batch: 5 API calls, highest throughput (if rate limits allow)
@@ -273,6 +300,7 @@ TOTAL (216 templates, 648 hints)        ~$0.60
 ### Scalability
 
 System is designed to handle:
+
 - Up to 1,000+ templates (2–3 minutes for all hints)
 - Partial generation (e.g., one archetype at a time via filtering)
 - Re-generation of failed batches (idempotent)
@@ -297,6 +325,7 @@ Runs 7 automated checks:
 ### Manual QA Checklist
 
 Per-archetype review for spot-checking:
+
 - [ ] partition — Emphasizes "same size", not counting
 - [ ] identify — "Which shape shows...?" phrasing
 - [ ] label — Count parts and match numerator/denominator
@@ -327,6 +356,7 @@ python -m pipeline.generate --hints-only --out pipeline/output
 ```
 
 Generates:
+
 - `pipeline/output/hints.json` (648 hints)
 - `pipeline/output/hint_generation_report.json` (stats)
 
@@ -353,13 +383,13 @@ python -m pipeline.generate --hints-only --hints-batch 50 --out pipeline/output
 
 ## File Manifest
 
-| File | Size | Purpose |
-|------|------|---------|
-| `pipeline/prompts/hint-generation.md` | 9.3 KB | System prompt for Claude |
-| `pipeline/generate.py` | 30.5 KB | Extended with `--hints-only` mode |
-| `test_hints.py` | 6.2 KB | Pre-flight verification |
-| `HINT_GENERATION.md` | 12 KB | User documentation |
-| `.claude/reports/hint_system_delivery.md` | 8.5 KB | This report |
+| File                                      | Size    | Purpose                           |
+| ----------------------------------------- | ------- | --------------------------------- |
+| `pipeline/prompts/hint-generation.md`     | 9.3 KB  | System prompt for Claude          |
+| `pipeline/generate.py`                    | 30.5 KB | Extended with `--hints-only` mode |
+| `test_hints.py`                           | 6.2 KB  | Pre-flight verification           |
+| `HINT_GENERATION.md`                      | 12 KB   | User documentation                |
+| `.claude/reports/hint_system_delivery.md` | 8.5 KB  | This report                       |
 
 **Total code added:** ~150 lines (functions) + ~600 lines (prompt documentation)
 
@@ -440,13 +470,14 @@ with open("public/curriculum/v1.json", "w") as f:
 **Testing:** Pre-flight suite passed (100% functions verified)  
 **Documentation:** Comprehensive (12 KB guide + docstrings)  
 **Cost:** ~$0.60 per full generation run  
-**Time to Generate:** ~18–40 minutes  
+**Time to Generate:** ~18–40 minutes
 
 All requirements met. System is ready for deployment.
 
 ---
 
 **See Also:**
+
 - `HINT_GENERATION.md` — User guide and troubleshooting
 - `pipeline/generate.py` — Implementation
 - `pipeline/prompts/hint-generation.md` — System prompt

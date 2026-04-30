@@ -96,7 +96,7 @@ describe('Hints Seeding Integration', () => {
     for (const hint of hintsData) {
       templateCounts.set(
         hint.questionTemplateId,
-        (templateCounts.get(hint.questionTemplateId) ?? 0) + 1,
+        (templateCounts.get(hint.questionTemplateId) ?? 0) + 1
       );
     }
 
@@ -183,7 +183,7 @@ describe('Hints Seeding Integration', () => {
       '\n  By Order:',
       stats.byOrder,
       '\n  Unique Templates:',
-      Object.keys(stats.byTemplate).length,
+      Object.keys(stats.byTemplate).length
     );
   });
 });

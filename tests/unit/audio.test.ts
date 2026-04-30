@@ -12,7 +12,9 @@ class MockUtterance {
   rate = 1;
   pitch = 1;
   voice: null = null;
-  constructor(text: string) { this.text = text; }
+  constructor(text: string) {
+    this.text = text;
+  }
 }
 
 // Helpers to build a mock SpeechSynthesis
@@ -28,7 +30,9 @@ function makeMockSynth(speakingInitially = false) {
 // Install mocks before each test that needs them
 function installMocks(synth: ReturnType<typeof makeMockSynth> | undefined) {
   (globalThis as Record<string, unknown>).speechSynthesis = synth;
-  (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = synth ? MockUtterance : undefined;
+  (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = synth
+    ? MockUtterance
+    : undefined;
 }
 
 describe('TTSService', () => {

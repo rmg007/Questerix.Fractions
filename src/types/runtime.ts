@@ -79,6 +79,22 @@ export interface Session {
 // ── §3.3 Attempt ───────────────────────────────────────────────────────────
 
 /**
+ * Individual interaction event during a question round.
+ * Captured for strategic analysis (e.g. MC-STRAT-01).
+ * per data-schema.md §3.3 (L9 update)
+ */
+export interface ProgressionEvent {
+  /** 'pickUp' (lifted card), 'place' (dropped into slot), 'swap' (two slots), 'clear' (returned to tray) */
+  type: 'pickUp' | 'place' | 'swap' | 'clear';
+  /** ID of the fraction card or slot */
+  targetId: string;
+  /** Index in the ordering tray/slots (0-indexed) */
+  trayIndex?: number;
+  /** Epoch ms. */
+  timestamp: number;
+}
+
+/**
  * Attempt outcome codes.
  * 'EXACT'/'CLOSE'/'WRONG' come from the validator.
  * 'ASSISTED' = answered correctly only after Tier 3 hint demo.
@@ -119,7 +135,24 @@ export interface Attempt {
   flaggedMisconceptionIds: MisconceptionId[];
   /** Full validator result payload for debugging/replay. */
   validatorPayload: unknown;
+  /**
+   * Sequence of interaction events (drags, drops, swaps).
+   * Required for strategy detection (SK-33 / MC-STRAT-01).
+   * per level-09.md §5 and data-schema.md §3.3
+   */
+  roundEvents?: ProgressionEvent[];
   syncState: SyncState;
+  // ── Extended fields used by misconception detectors ───────────────────────
+  /** Archetype-specific question payload (e.g. shapeType, rotation, targetPartitions). */
+  payload?: Record<string, unknown>;
+  /** Skill IDs associated with this attempt for knowledge-component analysis. */
+  skillIds?: string[];
+  /** Time-on-task in ms (computed from startedAt/submittedAt in some contexts). */
+  durationMS?: number;
+  /** Number of hints requested during this attempt. */
+  hintCount?: number;
+  /** Prompt context supplied to the student (vocabulary, label, etc.). */
+  prompt?: { text?: string };
 }
 
 // ── §3.4 HintEvent ─────────────────────────────────────────────────────────
@@ -211,10 +244,17 @@ export interface ProgressionStat {
 /** per data-schema.md §3.8 (audit §5 fix) */
 export interface DevicePreferences {
   audio: boolean;
+  /** Master volume level, 0–1. Default 0.8. */
+  volume: number;
   reduceMotion: boolean;
   highContrast: boolean;
   ttsLocale: string;
   largeTouchTargets: boolean;
+  /**
+   * Whether the user has opted in to telemetry (default false).
+   * per observability-spec.md §2.1
+   */
+  telemetryConsent: boolean;
   /**
    * Whether IndexedDB persistence was granted via navigator.storage.persist().
    * per data-schema.md §3.8 and persistence-spec.md §3.2 (audit §5 fix)
@@ -270,5 +310,37 @@ export interface SessionTelemetry {
   maxResponseMs: number;
   /** Epoch ms. */
   computedAt: number;
+  syncState: SyncState;
+}
+// ── TelemetryEvent ──────────────────────────────────────────────────────────
+
+/**
+ * Severity levels for telemetry events.
+ * per observability-spec.md §3.1
+ */
+export type TelemetrySeverity = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+
+/**
+ * Durable telemetry event for offline buffering.
+ * per observability-spec.md §3.2
+ */
+export interface TelemetryEvent {
+  /** Auto-incrementing ID for local storage. */
+  id?: number;
+  /** ISO date string for global ordering. */
+  timestamp: string;
+  /** Event name, e.g. 'app_start', 'scene_transition', 'db_error'. */
+  event: string;
+  severity: TelemetrySeverity;
+  /** Arbitrary context properties. */
+  properties: Record<string, any>;
+  /** Optional student context. */
+  studentId?: StudentId;
+  /** Optional session context. */
+  sessionId?: SessionId;
+  /** Error stack trace if applicable. */
+  stack?: string;
+  /** Application version (VITE_GIT_SHA). */
+  version: string;
   syncState: SyncState;
 }

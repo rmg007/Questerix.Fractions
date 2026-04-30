@@ -32,42 +32,42 @@ All colors are stated as hex. Phaser's number-typed colors (e.g. `0xFF4D6A`) are
 
 ### 2.1 Primary
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `primary` | `#2F6FED` | Main brand accent. Active button fills, focused borders, primary CTAs. |
-| `primary-soft` | `#D9E5FB` | Tinted backgrounds for selected cards, hover states. |
-| `primary-strong` | `#1A4FBF` | Pressed state for primary buttons. |
+| Token            | Hex       | Usage                                                                  |
+| ---------------- | --------- | ---------------------------------------------------------------------- |
+| `primary`        | `#2F6FED` | Main brand accent. Active button fills, focused borders, primary CTAs. |
+| `primary-soft`   | `#D9E5FB` | Tinted backgrounds for selected cards, hover states.                   |
+| `primary-strong` | `#1A4FBF` | Pressed state for primary buttons.                                     |
 
 ### 2.2 Accent
 
 Secondary accents used to differentiate fractions in side-by-side displays (e.g. `compare`). One fraction always uses `accent-a`, the other `accent-b`. Never both for the same fraction.
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `accent-a` | `#FFB400` | Sunny yellow. First fraction in comparison views. |
-| `accent-b` | `#7B2CBF` | Deep purple. Second fraction in comparison views. |
+| Token      | Hex       | Usage                                                         |
+| ---------- | --------- | ------------------------------------------------------------- |
+| `accent-a` | `#FFB400` | Sunny yellow. First fraction in comparison views.             |
+| `accent-b` | `#7B2CBF` | Deep purple. Second fraction in comparison views.             |
 | `accent-c` | `#0FA968` | Forest green. Used for highlighted regions in identify/label. |
 
 ### 2.3 Semantic
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `success` | `#1FAA59` | EXACT outcome feedback, success confirmations. |
-| `success-soft` | `#D6F1E0` | Success-state backgrounds. |
-| `error` | `#E5484D` | WRONG outcome feedback. *Used briefly only* — never as a persistent border. |
-| `error-soft` | `#FBE3E4` | Error-state backgrounds. |
-| `warning` | `#F2A93B` | CLOSE outcome (off-by-a-little) feedback. |
+| Token          | Hex       | Usage                                                                       |
+| -------------- | --------- | --------------------------------------------------------------------------- |
+| `success`      | `#1FAA59` | EXACT outcome feedback, success confirmations.                              |
+| `success-soft` | `#D6F1E0` | Success-state backgrounds.                                                  |
+| `error`        | `#E5484D` | WRONG outcome feedback. _Used briefly only_ — never as a persistent border. |
+| `error-soft`   | `#FBE3E4` | Error-state backgrounds.                                                    |
+| `warning`      | `#F2A93B` | CLOSE outcome (off-by-a-little) feedback.                                   |
 
 ### 2.4 Neutrals
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `neutral-0` | `#FFFFFF` | Page background. |
-| `neutral-50` | `#F7F8FA` | Surface backgrounds (cards, panels). |
-| `neutral-100` | `#EEF0F4` | Dividers, disabled fills. |
-| `neutral-300` | `#C5CAD3` | Idle borders. |
-| `neutral-600` | `#5B6478` | Secondary text. |
-| `neutral-900` | `#101521` | Primary text. |
+| Token         | Hex       | Usage                                |
+| ------------- | --------- | ------------------------------------ |
+| `neutral-0`   | `#FFFFFF` | Page background.                     |
+| `neutral-50`  | `#F7F8FA` | Surface backgrounds (cards, panels). |
+| `neutral-100` | `#EEF0F4` | Dividers, disabled fills.            |
+| `neutral-300` | `#C5CAD3` | Idle borders.                        |
+| `neutral-600` | `#5B6478` | Secondary text.                      |
+| `neutral-900` | `#101521` | Primary text.                        |
 
 ### 2.5 Forbidden
 
@@ -90,23 +90,24 @@ Per C6, **one** sans-serif family, **two** weights.
 ### 3.1 Family
 
 ```
-font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+font-family: "Lexend", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 ```
 
-Nunito is chosen because:
-- Rounded letterforms are more legible to young readers than geometric sans (e.g. Inter, Roboto)
+Lexend is chosen because:
+
+- Designed specifically to reduce visual stress and improve reading fluency for young and struggling readers
 - Free via Google Fonts; subset to Latin to keep payload < 30 KB
 - Pairs cleanly with simple shape illustrations
-- Falls back gracefully to system UI fonts on offline-first scenarios
+- Falls back to Nunito (also self-hosted) and then system UI fonts on offline-first scenarios
 
-If Nunito fails to load (offline first session, before service-worker cache), the system fallback chain remains legible without rebuild.
+If Lexend fails to load (offline first session, before service-worker cache), the Nunito fallback and system fallback chain remain legible without rebuild.
 
 ### 3.2 Weights
 
-| Weight | Use |
-|--------|-----|
-| `400` (regular) | Body text, prompt copy, button labels |
-| `700` (bold) | Headings, fraction labels (e.g. "1/2"), level titles |
+| Weight          | Use                                                  |
+| --------------- | ---------------------------------------------------- |
+| `400` (regular) | Body text, prompt copy, button labels                |
+| `700` (bold)    | Headings, fraction labels (e.g. "1/2"), level titles |
 
 Italics, light, and extra-bold weights are **not** used.
 
@@ -114,15 +115,15 @@ Italics, light, and extra-bold weights are **not** used.
 
 Fluid sizes scale with viewport. The scale is a 1.25 modular ratio anchored at 16 px on the smallest viewport.
 
-| Token | 360 px viewport | 768 px+ | Usage |
-|-------|-----------------|---------|-------|
-| `text-xs` | 13 px | 14 px | Caption, debug labels |
-| `text-sm` | 14 px | 16 px | Secondary copy, form helpers |
-| `text-base` | 16 px | 18 px | Default body |
-| `text-lg` | 20 px | 22 px | Question prompts |
-| `text-xl` | 24 px | 28 px | Activity titles |
-| `text-2xl` | 32 px | 40 px | Level titles, success exclamations |
-| `text-display` | 48 px | 64 px | Fraction labels in card form (e.g., big "1/2") |
+| Token          | 360 px viewport | 768 px+ | Usage                                          |
+| -------------- | --------------- | ------- | ---------------------------------------------- |
+| `text-xs`      | 13 px           | 14 px   | Caption, debug labels                          |
+| `text-sm`      | 14 px           | 16 px   | Secondary copy, form helpers                   |
+| `text-base`    | 16 px           | 18 px   | Default body                                   |
+| `text-lg`      | 20 px           | 22 px   | Question prompts                               |
+| `text-xl`      | 24 px           | 28 px   | Activity titles                                |
+| `text-2xl`     | 32 px           | 40 px   | Level titles, success exclamations             |
+| `text-display` | 48 px           | 64 px   | Fraction labels in card form (e.g., big "1/2") |
 
 ### 3.4 Line Height + Tracking
 
@@ -136,15 +137,15 @@ Fluid sizes scale with viewport. The scale is a 1.25 modular ratio anchored at 1
 
 A 4 px base unit. All gaps, paddings, and margins use multiples of this base. Tailwind v4 utility classes map 1:1.
 
-| Token | Value | Common use |
-|-------|-------|-----------|
-| `space-1` | 4 px | Icon-to-label gap |
-| `space-2` | 8 px | Tight grouping inside a card |
-| `space-3` | 12 px | Default inner padding small |
-| `space-4` | 16 px | Default inner padding |
-| `space-6` | 24 px | Card padding, section gap |
-| `space-8` | 32 px | Major section gap |
-| `space-12` | 48 px | Hero spacing on desktop |
+| Token      | Value | Common use                                         |
+| ---------- | ----- | -------------------------------------------------- |
+| `space-1`  | 4 px  | Icon-to-label gap                                  |
+| `space-2`  | 8 px  | Tight grouping inside a card                       |
+| `space-3`  | 12 px | Default inner padding small                        |
+| `space-4`  | 16 px | Default inner padding                              |
+| `space-6`  | 24 px | Card padding, section gap                          |
+| `space-8`  | 32 px | Major section gap                                  |
+| `space-12` | 48 px | Hero spacing on desktop                            |
 | `space-16` | 64 px | Top/bottom anchor padding on tall portrait screens |
 
 The 4 px base aligns with Tailwind v4 defaults — no custom spacing config needed.
@@ -153,18 +154,18 @@ The 4 px base aligns with Tailwind v4 defaults — no custom spacing config need
 
 ## 5. Touch Targets and Hit Areas
 
-Per **C7** and **WCAG 2.5.5**, the minimum interactive target is **44×44 CSS pixels**. The MVP recommends **48×48** as the design target so that *visible* element + comfortable padding still meets the 44 minimum.
+Per **C7** and **WCAG 2.5.5**, the minimum interactive target is **44×44 CSS pixels**. The MVP recommends **48×48** as the design target so that _visible_ element + comfortable padding still meets the 44 minimum.
 
 Specific minimums:
 
-| Element | Minimum size | Notes |
-|---------|--------------|-------|
-| Primary button | 56 × 48 | Provides comfortable padding around 18 px label |
-| Icon button | 48 × 48 | Icon at 24 px centered |
-| Option card (in `identify`) | 88 × 88 | K–2 fingers; matches `level-01.md` examples |
-| Drag handle (e.g. partition divider grip) | 44 × 44 | At handle midpoints; the line itself can be thinner |
-| Number-line tick label | 44 × 44 hit area | Visible label can be 16 px text |
-| Compare-relation buttons (`<` `=` `>`) | 56 × 56 | With 12 px gap between |
+| Element                                   | Minimum size     | Notes                                               |
+| ----------------------------------------- | ---------------- | --------------------------------------------------- |
+| Primary button                            | 56 × 48          | Provides comfortable padding around 18 px label     |
+| Icon button                               | 48 × 48          | Icon at 24 px centered                              |
+| Option card (in `identify`)               | 88 × 88          | K–2 fingers; matches `level-01.md` examples         |
+| Drag handle (e.g. partition divider grip) | 44 × 44          | At handle midpoints; the line itself can be thinner |
+| Number-line tick label                    | 44 × 44 hit area | Visible label can be 16 px text                     |
+| Compare-relation buttons (`<` `=` `>`)    | 56 × 56          | With 12 px gap between                              |
 
 When a visible element is smaller than 44 px (e.g., a partition line stroke), an invisible padded hit area extends it.
 
@@ -172,18 +173,18 @@ When a visible element is smaller than 44 px (e.g., a partition line stroke), an
 
 ## 6. Animation Principles
 
-Per **C6**, motion exists *only* to reinforce a concept. Every animation must answer "what does this teach the student?" If the answer is "it looks cool," it does not ship.
+Per **C6**, motion exists _only_ to reinforce a concept. Every animation must answer "what does this teach the student?" If the answer is "it looks cool," it does not ship.
 
 ### 6.1 Allowed motion patterns
 
-| Pattern | Purpose | Duration |
-|---------|---------|----------|
-| **Snap pulse** | Confirms a piece has docked into a slot | 180–240 ms |
-| **Partition demonstration** | Animates the dividing line being drawn (in tutorial / hint contexts) | 400–600 ms |
-| **Card return-to-tray** | Communicates a wrong drop without shaming | 350 ms (matches existing `ENGINE_SETTINGS.snap.returnDuration`) |
-| **Success bounce** | Brief 1.05× scale on correct answer | 200 ms |
-| **Shake** | Wrong-answer feedback; lateral ±3–4 px | 160–180 ms |
-| **Reorder slide** | Demonstrates correct sequence in `order` mechanic | 600 ms |
+| Pattern                     | Purpose                                                              | Duration                                                        |
+| --------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Snap pulse**              | Confirms a piece has docked into a slot                              | 180–240 ms                                                      |
+| **Partition demonstration** | Animates the dividing line being drawn (in tutorial / hint contexts) | 400–600 ms                                                      |
+| **Card return-to-tray**     | Communicates a wrong drop without shaming                            | 350 ms (matches existing `ENGINE_SETTINGS.snap.returnDuration`) |
+| **Success bounce**          | Brief 1.05× scale on correct answer                                  | 200 ms                                                          |
+| **Shake**                   | Wrong-answer feedback; lateral ±3–4 px                               | 160–180 ms                                                      |
+| **Reorder slide**           | Demonstrates correct sequence in `order` mechanic                    | 600 ms                                                          |
 
 ### 6.2 Forbidden motion (per C6)
 
@@ -224,24 +225,24 @@ See `interaction-model.md §reduced-motion-mode` for the runtime implementation 
 
 The MVP uses ~20 icons total. The recommended source is **Lucide Icons** (open license, consistent style, tree-shakable). Required icons:
 
-| Icon | Use |
-|------|-----|
-| `volume-2` | Audio replay button on prompts |
-| `help-circle` | Hint request |
-| `check` | Correct answer (filled green inside circle) |
-| `x` | Wrong answer (filled red inside circle) |
-| `arrow-left` | Back to menu |
-| `home` | Home / level select |
-| `star` | XP / mastery indicators |
-| `settings` | Preferences |
-| `download` | Backup-progress export (per persistence-spec §6) |
-| `upload` | Restore-progress import |
-| `pause` | Pause session |
-| `play` | Resume |
+| Icon          | Use                                              |
+| ------------- | ------------------------------------------------ |
+| `volume-2`    | Audio replay button on prompts                   |
+| `help-circle` | Hint request                                     |
+| `check`       | Correct answer (filled green inside circle)      |
+| `x`           | Wrong answer (filled red inside circle)          |
+| `arrow-left`  | Back to menu                                     |
+| `home`        | Home / level select                              |
+| `star`        | XP / mastery indicators                          |
+| `settings`    | Preferences                                      |
+| `download`    | Backup-progress export (per persistence-spec §6) |
+| `upload`      | Restore-progress import                          |
+| `pause`       | Pause session                                    |
+| `play`        | Resume                                           |
 
 ### 7.3 Custom illustrations
 
-Shape primitives (circles, rectangles, partition lines) are rendered procedurally by Phaser, not loaded as icons or SVGs. This is deliberate — the math objects are *the* interactive surface, not decoration.
+Shape primitives (circles, rectangles, partition lines) are rendered procedurally by Phaser, not loaded as icons or SVGs. This is deliberate — the math objects are _the_ interactive surface, not decoration.
 
 ---
 
@@ -249,13 +250,13 @@ Shape primitives (circles, rectangles, partition lines) are rendered procedurall
 
 Per **C7**, the MVP is responsive from **360 px to 1024 px+**. The breakpoint set is:
 
-| Breakpoint | Min width | Tailwind alias | Target devices |
-|------------|-----------|----------------|----------------|
-| `xs` (default) | 360 px | (default) | Smallest Android phones, iPhone SE |
-| `sm` | 480 px | `sm:` | Larger phones in portrait |
-| `md` | 768 px | `md:` | iPad in portrait, large phones in landscape |
-| `lg` | 1024 px | `lg:` | iPad in landscape, small desktop |
-| `xl` | 1280 px | `xl:` | Desktop |
+| Breakpoint     | Min width | Tailwind alias | Target devices                              |
+| -------------- | --------- | -------------- | ------------------------------------------- |
+| `xs` (default) | 360 px    | (default)      | Smallest Android phones, iPhone SE          |
+| `sm`           | 480 px    | `sm:`          | Larger phones in portrait                   |
+| `md`           | 768 px    | `md:`          | iPad in portrait, large phones in landscape |
+| `lg`           | 1024 px   | `lg:`          | iPad in landscape, small desktop            |
+| `xl`           | 1280 px   | `xl:`          | Desktop                                     |
 
 ### 8.1 Layout rules per breakpoint
 
@@ -277,6 +278,6 @@ Portrait-first. Landscape on phones is supported by simply rotating the same lay
 
 ## 9. Cross-References
 
-- For *how* these visuals respond to user input, see `interaction-model.md`.
-- For *which* mechanics use which colors and layouts, see `activity-archetypes.md`.
+- For _how_ these visuals respond to user input, see `interaction-model.md`.
+- For _which_ mechanics use which colors and layouts, see `activity-archetypes.md`.
 - The deprecated `THEME` constants in `src/data/config.ts` will migrate against §2 in a separate refactor task.

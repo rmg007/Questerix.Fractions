@@ -9,9 +9,30 @@
     "stimulus": {
       "type": "multiple-choice-shapes",
       "options": [
-        { "index": 0, "shape": "circle", "partitioned": true, "equalParts": 2, "shadedParts": 1, "correct": true },
-        { "index": 1, "shape": "circle", "partitioned": true, "equalParts": 3, "shadedParts": 1, "correct": false },
-        { "index": 2, "shape": "circle", "partitioned": false, "equalParts": 1, "shadedParts": 0, "correct": false }
+        {
+          "index": 0,
+          "shape": "circle",
+          "partitioned": true,
+          "equalParts": 2,
+          "shadedParts": 1,
+          "correct": true
+        },
+        {
+          "index": 1,
+          "shape": "circle",
+          "partitioned": true,
+          "equalParts": 3,
+          "shadedParts": 1,
+          "correct": false
+        },
+        {
+          "index": 2,
+          "shape": "circle",
+          "partitioned": false,
+          "equalParts": 1,
+          "shadedParts": 0,
+          "correct": false
+        }
       ]
     },
     "validator": {
@@ -35,7 +56,7 @@
     "validator": {
       "type": "partition.equalAreas",
       "targetParts": 2,
-      "areaTolerance": 0.10
+      "areaTolerance": 0.1
     }
   },
   {
@@ -54,7 +75,7 @@
     "validator": {
       "type": "partition.equalAreas",
       "targetParts": 4,
-      "areaTolerance": 0.10
+      "areaTolerance": 0.1
     }
   },
   {

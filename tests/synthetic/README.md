@@ -20,12 +20,12 @@ Results are written to `tests/synthetic/results/<timestamp>.json`.
 
 ## The 4 Personas
 
-| Persona | L1 Accuracy | Response Time | Abandon Rate | Notes |
-|---------|-------------|---------------|--------------|-------|
-| **Eager-K** | 0.55 | 1500–3500 ms | 5% | Fast tapper, declining accuracy L1→L9 (K norms) |
-| **Hesitant-K** | 0.50 | 4000–17000 ms | 12% | Anxious, long pauses, high hint use |
-| **Confident-G1** | 0.40 | 2500–6000 ms | 4% | Accuracy rises to 0.75 at L5 then falls (G1 norms) |
-| **Distractible-G2** | 0.60 | bimodal: 500–1800ms OR 3000–12000ms | 15% | Best baseline, but high variance and abandon rate |
+| Persona             | L1 Accuracy | Response Time                       | Abandon Rate | Notes                                              |
+| ------------------- | ----------- | ----------------------------------- | ------------ | -------------------------------------------------- |
+| **Eager-K**         | 0.55        | 1500–3500 ms                        | 5%           | Fast tapper, declining accuracy L1→L9 (K norms)    |
+| **Hesitant-K**      | 0.50        | 4000–17000 ms                       | 12%          | Anxious, long pauses, high hint use                |
+| **Confident-G1**    | 0.40        | 2500–6000 ms                        | 4%           | Accuracy rises to 0.75 at L5 then falls (G1 norms) |
+| **Distractible-G2** | 0.60        | bimodal: 500–1800ms OR 3000–12000ms | 15%          | Best baseline, but high variance and abandon rate  |
 
 Accuracy profiles are loosely calibrated to NAEP 2022 K-2 fraction performance data and Common Core grade-band expectations.
 
@@ -40,10 +40,10 @@ Accuracy profiles are loosely calibrated to NAEP 2022 K-2 fraction performance d
 
 ## Pass/Fail Criteria
 
-| Criterion | Threshold |
-|-----------|-----------|
-| Completion rate | ≥ 95% |
-| Crashes | 0 |
+| Criterion            | Threshold                  |
+| -------------------- | -------------------------- |
+| Completion rate      | ≥ 95%                      |
+| Crashes              | 0                          |
 | Feedback latency p90 | < 800ms (≥90% of attempts) |
 
 ## Interpreting a Regression

@@ -1,5 +1,5 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 export function StarlightQuest() {
   return (
@@ -51,12 +51,12 @@ export function StarlightQuest() {
 
       {/* Header / Title Area */}
       <div className="mt-16 text-center z-10 px-4 w-full">
-        <h1 
+        <h1
           className="text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-br from-[#C4B5FD] to-white"
           style={{ animation: 'text-shimmer 4s infinite' }}
         >
           Questerix
-          <br/>
+          <br />
           Fractions
         </h1>
         <p className="text-[#C4B5FD] text-lg font-bold tracking-wide mt-2 opacity-90">
@@ -69,8 +69,11 @@ export function StarlightQuest() {
         <div className="relative w-64 h-64" style={{ animation: 'float 6s infinite ease-in-out' }}>
           {/* Moon Glow */}
           <div className="absolute inset-0 bg-[#06B6D4] opacity-20 rounded-full blur-[40px]"></div>
-          
-          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_15px_rgba(196,181,253,0.6)]">
+
+          <svg
+            viewBox="0 0 100 100"
+            className="w-full h-full drop-shadow-[0_0_15px_rgba(196,181,253,0.6)]"
+          >
             <defs>
               <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#E0E7FF" />
@@ -81,33 +84,37 @@ export function StarlightQuest() {
             <path d="M50 10 A40 40 0 0 0 50 90 L50 10 Z" fill="url(#moonGrad)" />
             {/* Right Half - separated slightly to show fraction */}
             <path d="M54 10 A40 40 0 0 1 54 90 L54 10 Z" fill="url(#moonGrad)" opacity="0.6" />
-            
-            <text x="32" y="55" fontSize="16" fill="#1E1B4B" fontWeight="bold" fontFamily="Nunito">½</text>
-            <text x="68" y="55" fontSize="16" fill="#1E1B4B" fontWeight="bold" fontFamily="Nunito">½</text>
+
+            <text x="32" y="55" fontSize="16" fill="#1E1B4B" fontWeight="bold" fontFamily="Nunito">
+              ½
+            </text>
+            <text x="68" y="55" fontSize="16" fill="#1E1B4B" fontWeight="bold" fontFamily="Nunito">
+              ½
+            </text>
           </svg>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="w-full px-8 pb-16 z-10 flex flex-col gap-4">
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="w-full h-16 rounded-3xl text-2xl font-black text-[#0F0C29] bg-gradient-to-r from-[#06B6D4] to-[#2DD4BF] hover:from-[#2DD4BF] hover:to-[#06B6D4] border-2 border-white/20 transition-transform active:scale-95"
           style={{ animation: 'pulse-glow 3s infinite' }}
         >
           Play! 🚀
         </Button>
-        
-        <Button 
-          size="lg" 
+
+        <Button
+          size="lg"
           variant="outline"
           className="w-full h-14 rounded-3xl text-xl font-bold text-white border-2 border-[#C4B5FD]/40 bg-[#312E81]/50 hover:bg-[#312E81] hover:border-[#C4B5FD] transition-all backdrop-blur-sm"
         >
           Continue
         </Button>
-        
-        <Button 
-          variant="ghost" 
+
+        <Button
+          variant="ghost"
           className="w-full h-12 text-[#C4B5FD] hover:text-white hover:bg-white/10 font-bold text-lg rounded-2xl"
         >
           Settings ⚙️

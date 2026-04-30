@@ -56,7 +56,7 @@ describe('updatePKnown', () => {
         const result = updatePKnown(p, true, params);
         expect(result).toBeGreaterThanOrEqual(0);
         expect(result).toBeLessThanOrEqual(1);
-      }),
+      })
     );
   });
 
@@ -66,7 +66,7 @@ describe('updatePKnown', () => {
         const result = updatePKnown(p, false, params);
         expect(result).toBeGreaterThanOrEqual(0);
         expect(result).toBeLessThanOrEqual(1);
-      }),
+      })
     );
   });
 
@@ -82,7 +82,7 @@ describe('updatePKnown', () => {
       fc.property(pKnownArb, saneParams, (p, params) => {
         const result = updatePKnown(p, true, params);
         expect(result).toBeGreaterThanOrEqual(p - 1e-10); // allow tiny fp tolerance
-      }),
+      })
     );
   });
 
@@ -99,7 +99,7 @@ describe('updatePKnown', () => {
         // The only mechanism for growth after an incorrect is transit; result
         // cannot exceed p * pSlip / denominator + transit — and must be <= 1
         expect(result).toBeLessThanOrEqual(1 + 1e-10);
-      }),
+      })
     );
   });
 
@@ -134,8 +134,8 @@ describe('updatePKnown — monotonic on correct streak', () => {
             expect(next).toBeGreaterThanOrEqual(prev - 1e-9);
             prev = next;
           }
-        },
-      ),
+        }
+      )
     );
   });
 });
@@ -147,7 +147,7 @@ describe('predictCorrect', () => {
         const result = predictCorrect(p, params);
         expect(result).toBeGreaterThanOrEqual(0);
         expect(result).toBeLessThanOrEqual(1);
-      }),
+      })
     );
   });
 

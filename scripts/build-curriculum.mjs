@@ -78,6 +78,28 @@ function buildBundle() {
     console.log(`  [build-curriculum] L${levelKey}: ${filtered.length} records included (${raw.length - filtered.length} skipped)`);
   }
 
+  // Safety guard: if no pipeline output was found, preserve any existing
+  // curriculum bundle rather than overwriting it with an empty one.
+  // This prevents prebuild from wiping committed curriculum data in
+  // environments where the pipeline has not been run.
+  if (totalIncluded === 0) {
+    const existingPath = join(ROOT, 'public', 'curriculum', 'v1.json');
+    if (existsSync(existingPath)) {
+      try {
+        const existing = JSON.parse(readFileSync(existingPath, 'utf8'));
+        const existingCount = Object.values(existing.levels ?? {}).reduce(
+          (n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0
+        );
+        if (existingCount > 0) {
+          console.log(`\n[build-curriculum] No pipeline output found — preserving existing bundle (${existingCount} templates). Run the pipeline first to regenerate.`);
+          return 0;
+        }
+      } catch {
+        // existing file is unreadable — fall through and write empty
+      }
+    }
+  }
+
   const bundle = {
     version: 1,
     contentVersion: '1.0.0',

@@ -72,10 +72,25 @@ function makeEmpty(): ParsedBundle {
   };
 }
 
+/** R19: Validate that a QuestionTemplate has required fields before use. */
+function isValidTemplate(row: unknown): row is QuestionTemplate {
+  if (!row || typeof row !== 'object') return false;
+  const t = row as Record<string, unknown>;
+  return (
+    typeof t.id === 'string' &&
+    typeof t.prompt === 'string' &&
+    t.payload != null &&
+    typeof t.validatorId === 'string' &&
+    Array.isArray(t.skillIds) &&
+    t.skillIds.length > 0
+  );
+}
+
 /**
  * Parse a raw CurriculumBundle object into a ParsedBundle.
  * Handles both legacy (levels map) and comprehensive (individual stores) formats.
  * Returns `empty` if the bundle is malformed.
+ * R19: Validates QuestionTemplates before returning them.
  */
 function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundle {
   if (typeof bundle.version !== 'number' || typeof bundle.contentVersion !== 'string') {
@@ -85,6 +100,13 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
 
   // Parse comprehensive format (preferred)
   if (bundle.questionTemplates || bundle.skills) {
+    const validatedTemplates = (bundle.questionTemplates ?? []).filter((row) => {
+      if (!isValidTemplate(row)) {
+        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
+        return false;
+      }
+      return true;
+    });
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: bundle.curriculumPacks ?? [],
@@ -93,7 +115,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
       activities: bundle.activities ?? [],
       activityLevels: bundle.activityLevels ?? [],
       fractionBank: bundle.fractionBank ?? [],
-      questionTemplates: bundle.questionTemplates ?? [],
+      questionTemplates: validatedTemplates,
       misconceptions: bundle.misconceptions ?? [],
       hints: bundle.hints ?? [],
     };
@@ -101,7 +123,14 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
 
   // Parse legacy format (levels: {level -> QuestionTemplate[]})
   if (bundle.levels && typeof bundle.levels === 'object') {
-    const questionTemplates = Object.values(bundle.levels).flat();
+    const allTemplates = Object.values(bundle.levels).flat();
+    const validatedTemplates = allTemplates.filter((row) => {
+      if (!isValidTemplate(row)) {
+        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
+        return false;
+      }
+      return true;
+    });
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: [],
@@ -110,7 +139,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
       activities: [],
       activityLevels: [],
       fractionBank: [],
-      questionTemplates,
+      questionTemplates: validatedTemplates,
       misconceptions: [],
       hints: [],
     };

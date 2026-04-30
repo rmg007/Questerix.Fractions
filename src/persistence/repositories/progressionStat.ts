@@ -12,7 +12,7 @@ export const progressionStatRepo = {
   async get(studentId: StudentId, activityId: ActivityId): Promise<ProgressionStat | undefined> {
     try {
       return await db.progressionStat.get([studentId, activityId]);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -20,7 +20,7 @@ export const progressionStatRepo = {
   async upsert(stat: ProgressionStat): Promise<void> {
     try {
       await db.progressionStat.put(stat);
-    } catch {
+    } catch (err) {
       // swallow write errors; caller retries on next session close
     }
   },
@@ -32,7 +32,7 @@ export const progressionStatRepo = {
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .reverse()
         .toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -40,8 +40,9 @@ export const progressionStatRepo = {
   async delete(studentId: StudentId, activityId: ActivityId): Promise<void> {
     try {
       await db.progressionStat.delete([studentId, activityId]);
-    } catch {
+    } catch (err) {
       // idempotent
     }
   },
 };
+

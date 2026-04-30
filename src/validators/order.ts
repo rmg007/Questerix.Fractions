@@ -47,4 +47,88 @@ export const orderSequence: ValidatorRegistration<OrderInput, OrderExpected> = {
   },
 };
 
-export default [orderSequence];
+export interface OrderAcceptablePayload {
+  /** Array of valid sequences (fraction ID arrays) */
+  acceptableOrders: string[][];
+}
+
+/**
+ * Validates against a set of acceptable orders.
+ * Used when multiple orders are mathematically equivalent.
+ */
+export const orderAcceptable: ValidatorRegistration<OrderInput, OrderAcceptablePayload> = {
+  id: 'validator.order.acceptableOrders',
+  archetype: 'order',
+  variant: 'acceptable',
+  fn(input, payload): ValidatorResult {
+    const { studentSequence } = input;
+    const { acceptableOrders } = payload;
+
+    for (const order of acceptableOrders) {
+      if (studentSequence.length === order.length && studentSequence.every((id, i) => id === order[i])) {
+        return { outcome: 'correct', score: 1 };
+      }
+    }
+
+    // Partial credit: if we find the "best" match among acceptable orders
+    let bestSwaps = Infinity;
+    for (const order of acceptableOrders) {
+      if (studentSequence.length === order.length) {
+        const swaps = kendallTauDistance(studentSequence, order);
+        if (swaps < bestSwaps) bestSwaps = swaps;
+      }
+    }
+
+    if (bestSwaps === 1) return { outcome: 'partial', score: 0.5, feedback: 'one_swap_off' };
+    if (bestSwaps === 2) return { outcome: 'partial', score: 0.5, feedback: 'two_swaps' };
+
+    return { outcome: 'incorrect', score: 0, feedback: 'no_match' };
+  },
+};
+
+export interface OrderWithRuleInput {
+  sequence: string[];
+  rule: string;
+}
+
+export interface OrderWithRulePayload {
+  acceptableOrders: string[][];
+  postStep: {
+    correctRule: string;
+  };
+}
+
+/**
+ * Validates both the order and the metacognitive explanation.
+ */
+export const orderWithRule: ValidatorRegistration<OrderWithRuleInput, OrderWithRulePayload> = {
+  id: 'validator.order.withRuleExplanation',
+  archetype: 'order',
+  variant: 'explanation',
+  fn(input, payload): ValidatorResult {
+    const { sequence, rule } = input;
+    const { acceptableOrders, postStep } = payload;
+
+    // 1. Check order
+    let orderCorrect = false;
+    for (const order of acceptableOrders) {
+      if (sequence.length === order.length && sequence.every((id, i) => id === order[i])) {
+        orderCorrect = true;
+        break;
+      }
+    }
+
+    if (!orderCorrect) {
+      return { outcome: 'incorrect', score: 0, feedback: 'order_incorrect' };
+    }
+
+    // 2. Check rule
+    if (rule === postStep.correctRule) {
+      return { outcome: 'correct', score: 1 };
+    }
+
+    return { outcome: 'partial', score: 0.5, feedback: 'rule_incorrect' };
+  },
+};
+
+export default [orderSequence, orderAcceptable, orderWithRule];

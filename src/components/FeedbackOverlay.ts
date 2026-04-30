@@ -4,12 +4,17 @@
  * per interaction-model.md §2 (feedback timing), §6.1 (success), §5.2 (failure)
  * per design-language.md §6.1 (snap pulse 180–240ms), §2.3 (semantic tokens)
  *
+ * Entry animations: correct = bounce-in + star burst; incorrect = shake; close = pulse.
+ * Reduced-motion: instant show, no animations.
+ *
  * Plain class (not a Phaser Container) to avoid name conflicts.
  */
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { sfx } from '../audio/SFXService';
+import { checkReduceMotion } from '../lib/preferences';
 
 export type FeedbackKind = 'correct' | 'incorrect' | 'close';
 
@@ -51,6 +56,9 @@ export class FeedbackOverlay {
   private iconGO: Phaser.GameObjects.Text;
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
+  private readonly cx: number;
+  private readonly cy: number;
+  private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
   /** Subscribe to dismiss events. */
   readonly events: Phaser.Events.EventEmitter;
@@ -61,8 +69,11 @@ export class FeedbackOverlay {
     this.scene = scene;
     this.events = new Phaser.Events.EventEmitter();
 
-    const cx = width / 2;
-    const cy = height / 2;
+    this.cx = width / 2;
+    this.cy = height / 2;
+
+    const cx = this.cx;
+    const cy = this.cy;
 
     // Background panel — spans full width, 200px tall
     this.bg = scene.add
@@ -98,22 +109,37 @@ export class FeedbackOverlay {
    * Show feedback for the given kind. Auto-dismisses after displayMs.
    * per interaction-model.md §2 — visual feedback must start within 300ms of submit.
    */
-  show(kind: FeedbackKind, onDismiss?: () => void): void {
+  show(kind: FeedbackKind, onDismiss?: () => void, text?: string): void {
     const cfg = KIND_CONFIG[kind];
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
+
+    const labelText = text && text.trim().length > 0 ? text : cfg.text;
 
     this.bg.setFillStyle(cfg.bg, 0.97);
     this.iconGO.setText(cfg.icon).setColor(cfg.textColor).setVisible(true);
-    this.label.setText(cfg.text).setVisible(true);
+    this.label.setText(labelText).setVisible(true);
     this.bg.setVisible(true).setAlpha(1);
     this.iconGO.setAlpha(1);
     this.label.setAlpha(1);
 
+    // Reset scale/position in case a previous tween left them non-unit
+    this.bg.setScale(1);
+    this.iconGO.setScale(1);
+    this.label.setScale(1);
+    this.bg.setX(this.cx);
+    this.iconGO.setX(this.cx - 220);
+    this.label.setX(this.cx + 20);
+
     this.dismissTimer?.remove(false);
+
+    // ── Sound effect ─────────────────────────────────────────────────────────
+    if (kind === 'correct') {
+      sfx.playCorrect();
+    }
 
     // ── Test hooks ─────────────────────────────────────────────────────────
     TestHooks.mountSentinel('feedback-overlay');
-    // feedback-next-btn: interactive button; clicking it immediately dismisses overlay
+    TestHooks.setText('feedback-overlay', labelText);
     TestHooks.mountInteractive(
       'feedback-next-btn',
       () => {
@@ -136,8 +162,19 @@ export class FeedbackOverlay {
       onDismiss?.();
     };
 
+    // ── Entry animations (skipped for prefers-reduced-motion) ────────────────
+    if (!reduceMotion) {
+      if (kind === 'correct') {
+        this.animateBounceIn();
+        this.burstStarParticles();
+      } else if (kind === 'incorrect') {
+        this.animateShake();
+      } else if (kind === 'close') {
+        this.animatePulse();
+      }
+    }
+
     if (reduceMotion) {
-      // per design-language.md §6.4 — instant state change
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, dismiss);
     } else {
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, () => {
@@ -152,19 +189,110 @@ export class FeedbackOverlay {
     }
   }
 
-  private hide(): void {
-    this.bg.setVisible(false).setAlpha(1);
-    this.iconGO.setVisible(false).setAlpha(1);
-    this.label.setVisible(false).setAlpha(1);
+  // ── Entry animations ────────────────────────────────────────────────────
+
+  /** Correct: panel scales in from 0.7 using Back.easeOut (~200ms). */
+  private animateBounceIn(): void {
+    this.bg.setScale(0.7);
+    this.iconGO.setScale(0.7);
+    this.label.setScale(0.7);
+
+    this.scene.tweens.add({
+      targets: [this.bg, this.iconGO, this.label],
+      scaleX: 1,
+      scaleY: 1,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
+  /**
+   * Incorrect: left-right shake ~4px, 3 cycles, ~250ms.
+   * Tweens .x of all three objects together using yoyo repeat.
+   */
+  private animateShake(): void {
+    const SHAKE_PX = 4;
+    const targets = [
+      { obj: this.bg, baseX: this.cx },
+      { obj: this.iconGO, baseX: this.cx - 220 },
+      { obj: this.label, baseX: this.cx + 20 },
+    ];
+
+    for (const { obj, baseX } of targets) {
+      obj.setX(baseX - SHAKE_PX);
+      this.scene.tweens.add({
+        targets: obj,
+        x: baseX + SHAKE_PX,
+        duration: 42,
+        ease: 'Linear',
+        yoyo: true,
+        repeat: 5,
+        onComplete: () => {
+          obj.setX(baseX);
+        },
+      });
     }
   }
+
+  /** Close: gentle pulse scale 1.0→1.05→1.0 (~250ms). */
+  private animatePulse(): void {
+    this.scene.tweens.add({
+      targets: [this.bg, this.iconGO, this.label],
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 125,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: 0,
+    });
+  }
+
+  /** Correct: short burst of yellow/gold star particles from icon position. */
+  private burstStarParticles(): void {
+    if (!this.scene.textures.exists('clr-accentA')) return;
+    TestHooks.mountSentinel('sparkle-burst');
+
+    const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
+    for (const tint of starColors) {
+      const emitter = this.scene.add.particles(this.iconGO.x, this.iconGO.y, 'clr-accentA', {
+        lifespan: 550,
+        speed: { min: 40, max: 160 },
+        scale: { start: 7, end: 0 },
+        alpha: { start: 1, end: 0 },
+        tint,
+        angle: { min: -160, max: -20 },
+        gravityY: 200,
+        quantity: 3,
+        emitting: false,
+      });
+      emitter.setDepth(this.bg.depth + 5);
+      emitter.explode(3);
+      this.activeParticleEmitters.push(emitter);
+      this.scene.time.delayedCall(700, () => {
+        const idx = this.activeParticleEmitters.indexOf(emitter);
+        if (idx !== -1) {
+          this.activeParticleEmitters.splice(idx, 1);
+          emitter.destroy();
+        }
+      });
+    }
+  }
+
+  // ── Internal ─────────────────────────────────────────────────────────────
+
+  private hide(): void {
+    this.bg.setVisible(false).setAlpha(1).setScale(1);
+    this.iconGO.setVisible(false).setAlpha(1).setScale(1);
+    this.label.setVisible(false).setAlpha(1).setScale(1);
+    // Restore original x positions
+    this.bg.setX(this.cx);
+    this.iconGO.setX(this.cx - 220);
+    this.label.setX(this.cx + 20);
+    for (const e of this.activeParticleEmitters) e.destroy();
+    this.activeParticleEmitters = [];
+    TestHooks.unmount('sparkle-burst');
+  }
+
 
   destroy(): void {
     this.dismissTimer?.remove(false);
@@ -172,5 +300,8 @@ export class FeedbackOverlay {
     this.bg.destroy();
     this.iconGO.destroy();
     this.label.destroy();
+    for (const e of this.activeParticleEmitters) e.destroy();
+    this.activeParticleEmitters = [];
   }
 }
+

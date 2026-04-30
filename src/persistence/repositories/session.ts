@@ -16,7 +16,7 @@ export const sessionRepo = {
   async get(id: SessionId): Promise<Session | undefined> {
     try {
       return await db.sessions.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -28,7 +28,7 @@ export const sessionRepo = {
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .reverse()
         .toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -37,7 +37,7 @@ export const sessionRepo = {
     try {
       const updated = await db.sessions.update(id, patch);
       return updated > 0;
-    } catch {
+    } catch (err) {
       return false;
     }
   },
@@ -59,3 +59,4 @@ export const sessionRepo = {
     return sessionRepo.update(id, summary);
   },
 };
+

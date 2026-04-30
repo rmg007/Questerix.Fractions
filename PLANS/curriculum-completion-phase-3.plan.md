@@ -1,6 +1,6 @@
 ---
 name: curriculum completion & phase 3 readiness
-overview: "End-to-end remediation: complete curriculum (150→288), fix 14 concrete validator/engine bugs, plug 4 memory leaks, ship a11y/PWA/offline, harden CI/tests, reconcile docs, and unblock Cycle A/B playtest. Every item below is grounded in a specific file:line."
+overview: 'End-to-end remediation: complete curriculum (150→288), fix 14 concrete validator/engine bugs, plug 4 memory leaks, ship a11y/PWA/offline, harden CI/tests, reconcile docs, and unblock Cycle A/B playtest. Every item below is grounded in a specific file:line.'
 todos:
   # ── Phase 0: Curriculum content correctness (BLOCKING) ──────────────
   - id: c0-0-validator-align
@@ -401,7 +401,6 @@ todos:
 isProject: false
 ---
 
-
 # Curriculum Completion & Phase 3 Readiness Plan
 
 > **Scope:** Bring Questerix Fractions from current state (150 templates, validation broken in 4+ places, runtime engine partly disconnected) to **Cycle A playtest-ready and Cycle B-capable** state. Every fix is grounded in a specific file:line.
@@ -409,6 +408,7 @@ isProject: false
 ## Audit-confirmed situation
 
 **Current state** (verified by deep audit, 2026-04-26):
+
 - 150 templates in `public/curriculum/v1.json` — but **51 unique IDs have 128 duplicate instances** → effective unique pool ≪ 150
 - **L2–L9 validation silently uses `partitionEqualAreas` fallback** (LevelScene.ts:322) — every label/make/compare/snap_match/benchmark answer is checked by the wrong validator
 - 213/648 hints generated (L1 only) — and **all 213 are `type:"verbal"` only**, missing visual_overlay (T2) and worked_example (T3) per interaction-model.md §4.1
@@ -442,17 +442,18 @@ isProject: false
 
 **Issue.** `public/curriculum/v1.json` references validator IDs that don't exist in `src/validators/registry.ts`:
 
-| In v1.json | Should be (registry) | Levels affected |
-|------------|----------------------|-----------------|
-| `validator.label.exactMatch` | `validator.label.matchTarget` | L2, L3, L7 |
-| `validator.make.foldAlignment` | `validator.make.foldAndShade` / `make.halvingByLine` | L4, L5 |
-| `validator.compare.greaterThan` | `validator.compare.relation` | L6, L7 |
-| `validator.snap_match.equivalence` | `validator.snap_match.allPairs` | L6 |
-| `validator.benchmark.closestBenchmark` | `validator.benchmark.sortToZone` | L8 |
+| In v1.json                             | Should be (registry)                                 | Levels affected |
+| -------------------------------------- | ---------------------------------------------------- | --------------- |
+| `validator.label.exactMatch`           | `validator.label.matchTarget`                        | L2, L3, L7      |
+| `validator.make.foldAlignment`         | `validator.make.foldAndShade` / `make.halvingByLine` | L4, L5          |
+| `validator.compare.greaterThan`        | `validator.compare.relation`                         | L6, L7          |
+| `validator.snap_match.equivalence`     | `validator.snap_match.allPairs`                      | L6              |
+| `validator.benchmark.closestBenchmark` | `validator.benchmark.sortToZone`                     | L8              |
 
 **`LevelScene.ts:322-327` falls back to `partitionEqualAreas(...)` when registry lookup fails.** Result: every L2–L9 answer is currently scored by the partition validator using the wrong payload shape. Students may be marked correct or incorrect at random.
 
 **Action.**
+
 1. Migrate v1.json + `pipeline/output/level_*/all.json` to registry-side names.
 2. Delete fallback in `LevelScene.ts:322-327`. Replace with explicit `console.error` + `{outcome:'incorrect', score:0, feedback:'unknown_validator'}` so future drift is loud.
 3. Export validator whitelist from `src/validators/registry.ts` for `pipeline/verify.py` to consume. Add `check_validator_ids_resolve` rule.
@@ -463,13 +464,14 @@ isProject: false
 
 **Issues** (confirmed by direct read of v1.json):
 
-| Template | Error | Evidence |
-|----------|-------|----------|
+| Template      | Error                                                                                          | Evidence                  |
+| ------------- | ---------------------------------------------------------------------------------------------- | ------------------------- |
 | L9 order easy | `direction:"ascending"` but `expectedOrder:[3/8, 1/4, 1/3]` → 0.375, 0.25, 0.333 NOT ascending | Sorted is [1/4, 1/3, 3/8] |
-| L6 snap_match | `correctAnswer: 0.6666...` but target equals `frac:1/3` | Should be ~0.333 |
-| L1 templates | Ship `frac:1/3`, `frac:2/3` despite C8 "L1: halves only" | constraints.md:C8 |
+| L6 snap_match | `correctAnswer: 0.6666...` but target equals `frac:1/3`                                        | Should be ~0.333          |
+| L1 templates  | Ship `frac:1/3`, `frac:2/3` despite C8 "L1: halves only"                                       | constraints.md:C8         |
 
 **Action.**
+
 1. Implement `check_correct_answers_well_formed` in verify.py: per archetype, compute canonical correctAnswer from payload; assert equality within tolerance.
    - **Order**: validate `expectedOrder` is monotonic in declared `direction`.
    - **Snap_match**: validate `correctAnswer == decimal(matchedFraction)` ± 1e-9.
@@ -483,6 +485,7 @@ isProject: false
 ### C0.0c — De-duplicate template IDs
 
 **Issue (confirmed via audit).** **51 unique IDs have 128 duplicate instances** across 150 templates:
+
 - `q:cmp:L6:0006` appears 2×
 - `q:lb:L3:0004` appears 3×
 - `q:ord:L9:0002` appears 3×
@@ -490,6 +493,7 @@ isProject: false
 - Runtime queries by ID return wrong question.
 
 **Action.**
+
 1. Add `check_unique_ids` rule to verify.py:260.
 2. Re-id with deterministic pattern: `q:<archetype>:L<N>:<index>` where `<index>` is 0001-padded and unique per (archetype, level).
 3. Update any cross-references (skill cards, hint mappings, telemetry) — search for hardcoded IDs in tests and docs.
@@ -503,6 +507,7 @@ isProject: false
 **Impact.** BKT posteriors track wrong skills; mastery never advances; L7+ unlock rules use stale evidence.
 
 **Action.**
+
 1. Walk `v1.json:levels['06']` and remap `skillIds` arrays.
 2. Audit L7-L9 similarly.
 3. Add `check_skill_ids_resolve` rule to verify.py (whitelist sourced from skills.md frontmatter or YAML manifest).
@@ -512,6 +517,7 @@ isProject: false
 **Issue.** `pipeline/schemas.py:146` requires `QuestionTemplate.standardIds: list[str]` (non-optional). **All 150 templates lack this field.** `src/curriculum/seed.ts:205` masks the schema mismatch with `bulkPut(templatesWithGroup as any)`.
 
 **Action.**
+
 1. Tag every template at authoring time with CCSS-M codes (K.G.A.3, 1.G.A.3, 2.NF.A.1, 2.NF.A.2, 2.NF.A.3 from standards-map.md).
 2. Add `standardIds: StandardId[]` to TS `QuestionTemplate` type in `src/types/index.ts`.
 3. Add `check_standards_coverage` rule to verify.py: every K-2 fraction CCSS-M standard in scope must appear in ≥1 MVP template.
@@ -522,6 +528,7 @@ isProject: false
 **Issue.** `src/curriculum/seed.ts:188-190` calls `db.skills.bulkPut(bundle.skills)`, but **v1.json has no top-level `skills` field** (only legacy `levels` format). `loader.ts:92` returns empty skills array. **BKT engine starts with empty skill registry → mastery tracking broken at runtime.**
 
 **Action.**
+
 1. Source canonical skill list from `docs/10-curriculum/skills.md` (parse YAML frontmatter or maintain `pipeline/skills-manifest.json`).
 2. Update `scripts/build-curriculum.mjs` to embed `skills: Skill[]` at bundle root.
 3. Update `loader.ts` to expose skills; `seed.ts` to populate `db.skills` table.
@@ -530,12 +537,15 @@ isProject: false
 ### C0.0g — Loader has no schema validation
 
 **Issue.** `src/curriculum/loader.ts:77` does:
+
 ```typescript
 const bundle: CurriculumBundle = (await response.json()) as CurriculumBundle;
 ```
+
 Bare cast. Malformed bundle (wrong types, missing fields, corrupted CDN response) loads silently. The legacy "levels-only" branch at lines 101–115 deepens the problem by accepting two distinct shapes.
 
 **Action.**
+
 1. Define Zod schema for `CurriculumBundle` mirroring `pipeline/schemas.py`.
 2. Run `bundle.parse(...)` on every fetch; `.safeParse()` first, surface errors via:
    - `AccessibilityAnnouncer` (live region message)
@@ -547,13 +557,13 @@ Bare cast. Malformed bundle (wrong types, missing fields, corrupted CDN response
 
 **Current state.** `pipeline/verify.py:260` runs only 7 checks. **Missing 5 correctness gates:**
 
-| Check | Purpose | Backed by |
-|-------|---------|-----------|
-| `check_unique_ids` | Detect duplicate template IDs | C0.0c |
-| `check_skill_ids_resolve` | skillIds ⊆ skills.md whitelist | C0.0d |
-| `check_standards_coverage` | All K-2 CCSS-M covered ≥1× | C0.0e |
-| `check_correct_answers_well_formed` | correctAnswer ≡ canonical computation per archetype | C0.0b |
-| `check_c8_denominator_family` | denominators ⊆ level's allowed family | C3.3c |
+| Check                               | Purpose                                             | Backed by |
+| ----------------------------------- | --------------------------------------------------- | --------- |
+| `check_unique_ids`                  | Detect duplicate template IDs                       | C0.0c     |
+| `check_skill_ids_resolve`           | skillIds ⊆ skills.md whitelist                      | C0.0d     |
+| `check_standards_coverage`          | All K-2 CCSS-M covered ≥1×                          | C0.0e     |
+| `check_correct_answers_well_formed` | correctAnswer ≡ canonical computation per archetype | C0.0b     |
+| `check_c8_denominator_family`       | denominators ⊆ level's allowed family               | C3.3c     |
 
 **Action.** Implement all 5; wire `--strict` flag (warnings → failures); call from `.github/workflows/content-validation.yml`.
 
@@ -567,17 +577,18 @@ L8 (benchmark, 80% LLM dedup loss) and L9 (order, limited combinatorial space) r
 
 **Approach: parameterized design.** 7 base benchmarks × 4 difficulty tiers = 28.
 
-| Base benchmark | Easy | Medium | Hard |
-|----------------|------|--------|------|
-| 1/2 | 2/4, 3/6, 4/8 | 5/10, 4/9 | 13/26, 7/14 (improper) |
-| 1/3 | 2/6, 3/9 | 4/12, 5/15 | 11/30 |
-| 1/4 | 2/8, 3/12 | 5/20 | 9/35 |
-| 0 (whole) | 1/8, 1/12 | 1/20 | 1/100 |
-| 2/3 | 4/6, 6/9 | 8/12 | 14/21 |
-| 3/4 | 6/8, 9/12 | 12/16 | 21/28 |
-| 2/5 | 4/10, 6/15 | 8/20 | 14/35 |
+| Base benchmark | Easy          | Medium     | Hard                   |
+| -------------- | ------------- | ---------- | ---------------------- |
+| 1/2            | 2/4, 3/6, 4/8 | 5/10, 4/9  | 13/26, 7/14 (improper) |
+| 1/3            | 2/6, 3/9      | 4/12, 5/15 | 11/30                  |
+| 1/4            | 2/8, 3/12     | 5/20       | 9/35                   |
+| 0 (whole)      | 1/8, 1/12     | 1/20       | 1/100                  |
+| 2/3            | 4/6, 6/9      | 8/12       | 14/21                  |
+| 3/4            | 6/8, 9/12     | 12/16      | 21/28                  |
+| 2/5            | 4/10, 6/15    | 8/20       | 14/35                  |
 
 **Distractor strategy** (3 per template):
+
 - Off-by-one numerator (WHB-01 trigger)
 - Same numerator, different denominator (size confusion)
 - Inverse fraction (e.g., 3/4 ↔ 4/3)
@@ -588,26 +599,27 @@ L8 (benchmark, 80% LLM dedup loss) and L9 (order, limited combinatorial space) r
 
 **Order archetype (13 templates).** 4–5 fractions per question.
 
-| Difficulty | Pattern |
-|------------|---------|
-| Easy (4) | Same denominator: `[1/4, 2/4, 3/4]`, `[1/6, 3/6, 5/6]`, `[1/3, 2/3]`, `[1/8, 3/8, 5/8, 7/8]` |
-| Medium (5) | Mixed denominators: `[1/2, 1/3, 1/4]`, `[2/3, 3/4, 1/2]`, etc. |
-| Hard (4) | With improper or with whole numbers: `[3/4, 5/4, 1, 7/4]` |
+| Difficulty | Pattern                                                                                      |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Easy (4)   | Same denominator: `[1/4, 2/4, 3/4]`, `[1/6, 3/6, 5/6]`, `[1/3, 2/3]`, `[1/8, 3/8, 5/8, 7/8]` |
+| Medium (5) | Mixed denominators: `[1/2, 1/3, 1/4]`, `[2/3, 3/4, 1/2]`, etc.                               |
+| Hard (4)   | With improper or with whole numbers: `[3/4, 5/4, 1, 7/4]`                                    |
 
 **Placement archetype (13 templates).** Position fractions on 0–1 number line.
 
-| Target | Tolerance | Difficulty |
-|--------|-----------|------------|
-| 0.1, 0.3 | ±0.05 | Easy |
-| 0.5 | ±0.03 | Easy (anchor) |
-| 0.7, 0.875 | ±0.07 | Medium |
-| 5/12, 7/16 | ±0.04 | Hard |
+| Target     | Tolerance | Difficulty    |
+| ---------- | --------- | ------------- |
+| 0.1, 0.3   | ±0.05     | Easy          |
+| 0.5        | ±0.03     | Easy (anchor) |
+| 0.7, 0.875 | ±0.07     | Medium        |
+| 5/12, 7/16 | ±0.04     | Hard          |
 
 **Deliverable.** `pipeline/output/level_09/hand-authored.json`.
 
 ### C0.3 — Expand L1 partition+identify 12→24
 
 Halves only (C8). 12 partition + 12 identify with shape variation:
+
 - Partition: rect (vertical/horizontal/diagonal cut), circle (any chord), pentagon, triangle
 - Identify: 1-of-N, 2-of-N selection across rect/circle layouts
 
@@ -620,12 +632,14 @@ Halves only (C8). 12 partition + 12 identify with shape variation:
 ### C1.1–C1.5 — Per-level regeneration
 
 Each level follows the same pattern:
+
 1. Hand-author N base templates (N=5 typically)
 2. Parameterize each base across difficulty tiers + fraction pools (3× target multiplier)
 3. LLM top-up with **constrained prompts** that include hash list of existing templates and explicit "must vary" instructions
 4. Dedupe (SHA256 payload), filter by `LEVEL_ARCHETYPES`, validate
 
 **Tightened prompt template:**
+
 ```
 Generate {N} UNIQUE templates for Level {N}, archetype "{archetype}". Each must:
 - Use a DIFFERENT (numerator, denominator) pair from this exclusion set: {existing_hashes}
@@ -635,13 +649,13 @@ Generate {N} UNIQUE templates for Level {N}, archetype "{archetype}". Each must:
 Output as JSON array conforming to {schema}.
 ```
 
-| Level | Bases | Parameterized | LLM Top-up | Total target |
-|-------|-------|---------------|------------|--------------|
-| L3 | 10 | 30 | 6 | 36 |
-| L4 | 8 | 24 | 12 | 36 |
-| L5 | 6 | 30 | 0 (parameterization sufficient) | 36 |
-| L6 | 8 | 24 | 4 | 36 |
-| L7 | 8 | 24 | 4 | 36 |
+| Level | Bases | Parameterized | LLM Top-up                      | Total target |
+| ----- | ----- | ------------- | ------------------------------- | ------------ |
+| L3    | 10    | 30            | 6                               | 36           |
+| L4    | 8     | 24            | 12                              | 36           |
+| L5    | 6     | 30            | 0 (parameterization sufficient) | 36           |
+| L6    | 8     | 24            | 4                               | 36           |
+| L7    | 8     | 24            | 4                               | 36           |
 
 ---
 
@@ -650,6 +664,7 @@ Output as JSON array conforming to {schema}.
 ### C2.1 — Merge into v1.json
 
 Update `scripts/build-curriculum.mjs`:
+
 1. Load priority chain: `hand-authored.json` → `merged.json` → `expanded.json`
 2. Apply `LEVEL_ARCHETYPES` filter from `src/scenes/utils/levelMeta.ts`
 3. Embed top-level `skills: Skill[]` array (from C0.0f)
@@ -658,6 +673,7 @@ Update `scripts/build-curriculum.mjs`:
 ### C2.2 — Dedupe audit
 
 Create `pipeline/scripts/audit-dedup.py`:
+
 - SHA256 hash each template's payload
 - Report duplicates per level + per (level, archetype) pair
 - Flag any archetype with >50% duplication for regeneration
@@ -697,6 +713,7 @@ Move `pipeline/output/level_NN/` → `pipeline/archive/level-NN-<timestamp>/` fo
 **Current state.** 213 hints exist for L1 only, **all `type:"verbal"`**. Visual_overlay (T2) and worked_example (T3) per `interaction-model.md §4.1` are missing.
 
 **Action.**
+
 1. Run `pipeline/hints.py --all --tier-types verbal,visual_overlay,worked_example` for all 288 templates.
 2. Validate per hint:
    - Word count ≤15
@@ -716,32 +733,32 @@ Each issue is a concrete bug with file:line. Fix order is by severity.
 
 ### Critical correctness fixes
 
-| ID | File:Line | Issue | Fix |
-|----|-----------|-------|-----|
-| C4b.1 | partition.ts:42-43 | `relativeDelta = maxDelta / avg` produces Infinity if avg is near-zero | Guard: `if (avg <= 1e-9) return {outcome:'incorrect', score:0}` |
-| C4b.2 | compare.ts:46 | MC-WHB-02 condition `leftDecimal < rightDecimal` triggers on correct answers when `relation:'<'` | Invert to `leftDecimal > rightDecimal` (match relation semantics) |
-| C4b.3 | snap_match.ts:39-44 | Dual-set lookup (canonical + reversed) accepts ambiguous pairs non-deterministically | Use canonical sort `[a, b].sort()` for both expected and student keys; single set |
-| C4b.4 | placement.ts:27 | `score = 1 - errorMagnitude / closeTolerance` produces negative scores when error > tolerance | `Math.max(0, 1 - errorMagnitude / closeTolerance)` |
-| C4b.5 | label.ts:38-40 | Asymmetric counting: duplicate `regionId` mappings count as wrong but only check existence once | Use `Map<regionId, labelId[]>` and validate uniqueness OR explicitly disallow duplicates at input |
-| C4b.6 | order.ts:40-41 | maxSwaps off-by-one: for n=2, swaps=1 → score=0; for n=3, swaps>1 never hits 0.5; partial-credit gap | Use proper Kendall-tau normalization; explicit tier mapping (0/1/2 swaps → 1.0/0.5/partial) |
+| ID    | File:Line           | Issue                                                                                                | Fix                                                                                               |
+| ----- | ------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| C4b.1 | partition.ts:42-43  | `relativeDelta = maxDelta / avg` produces Infinity if avg is near-zero                               | Guard: `if (avg <= 1e-9) return {outcome:'incorrect', score:0}`                                   |
+| C4b.2 | compare.ts:46       | MC-WHB-02 condition `leftDecimal < rightDecimal` triggers on correct answers when `relation:'<'`     | Invert to `leftDecimal > rightDecimal` (match relation semantics)                                 |
+| C4b.3 | snap_match.ts:39-44 | Dual-set lookup (canonical + reversed) accepts ambiguous pairs non-deterministically                 | Use canonical sort `[a, b].sort()` for both expected and student keys; single set                 |
+| C4b.4 | placement.ts:27     | `score = 1 - errorMagnitude / closeTolerance` produces negative scores when error > tolerance        | `Math.max(0, 1 - errorMagnitude / closeTolerance)`                                                |
+| C4b.5 | label.ts:38-40      | Asymmetric counting: duplicate `regionId` mappings count as wrong but only check existence once      | Use `Map<regionId, labelId[]>` and validate uniqueness OR explicitly disallow duplicates at input |
+| C4b.6 | order.ts:40-41      | maxSwaps off-by-one: for n=2, swaps=1 → score=0; for n=3, swaps>1 never hits 0.5; partial-credit gap | Use proper Kendall-tau normalization; explicit tier mapping (0/1/2 swaps → 1.0/0.5/partial)       |
 
 ### Engine fixes
 
-| ID | File:Line | Issue | Fix |
-|----|-----------|-------|-----|
-| C4b.7 | bkt.ts:102-108 | `predictCorrect()` degenerate when pGuess=0 ∧ pSlip=1 → always 0 | Validate params at construction: `0 < pGuess < 1`, `0 < pSlip < 1` |
-| C4b.8 | selection.ts:81 | ZPD strict `p > LOW && p < HIGH` excludes p=0.4 and p=0.85 (LEARNING/APPROACHING boundaries) | Use inclusive bounds matching `deriveState`: `p >= ZPD_LOW && p < ZPD_HIGH` |
-| C4b.9 | calibration.ts:57 | Returns null on empty skills; router.ts:36 silently skips calibration | `console.warn` + emit telemetry event `calibration_skipped` |
-| C4b.10 | misconceptionDetectors.ts:45-46 | `evidenceAttemptIds = .filter(...).slice(0,3)` but `observationCount` includes all → replay broken | Track exact attempt IDs that contributed to threshold; full evidence array |
-| C4b.11 | seed.ts:26-27 | `match[1]!` crashes on malformed IDs (regex match returns null) | `const matched = match?.[1]; if (!matched) { logger.warn(...); return DEFAULT_LEVEL_GROUP; }` |
+| ID     | File:Line                       | Issue                                                                                              | Fix                                                                                           |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| C4b.7  | bkt.ts:102-108                  | `predictCorrect()` degenerate when pGuess=0 ∧ pSlip=1 → always 0                                   | Validate params at construction: `0 < pGuess < 1`, `0 < pSlip < 1`                            |
+| C4b.8  | selection.ts:81                 | ZPD strict `p > LOW && p < HIGH` excludes p=0.4 and p=0.85 (LEARNING/APPROACHING boundaries)       | Use inclusive bounds matching `deriveState`: `p >= ZPD_LOW && p < ZPD_HIGH`                   |
+| C4b.9  | calibration.ts:57               | Returns null on empty skills; router.ts:36 silently skips calibration                              | `console.warn` + emit telemetry event `calibration_skipped`                                   |
+| C4b.10 | misconceptionDetectors.ts:45-46 | `evidenceAttemptIds = .filter(...).slice(0,3)` but `observationCount` includes all → replay broken | Track exact attempt IDs that contributed to threshold; full evidence array                    |
+| C4b.11 | seed.ts:26-27                   | `match[1]!` crashes on malformed IDs (regex match returns null)                                    | `const matched = match?.[1]; if (!matched) { logger.warn(...); return DEFAULT_LEVEL_GROUP; }` |
 
 ### Persistence fixes
 
-| ID | File:Line | Issue | Fix |
-|----|-----------|-------|-----|
-| C4b.12 | db.ts:105 | misconceptionFlags missing `[studentId+resolvedAt]` for unresolved-MC queries | Bump Dexie to v4; add compound index; `.upgrade()` callback |
+| ID     | File:Line         | Issue                                                                               | Fix                                                                           |
+| ------ | ----------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| C4b.12 | db.ts:105         | misconceptionFlags missing `[studentId+resolvedAt]` for unresolved-MC queries       | Bump Dexie to v4; add compound index; `.upgrade()` callback                   |
 | C4b.13 | backup.ts:145-153 | `deviceMeta` excluded from restore; cross-device restore loses preferences silently | Re-include with merge strategy: keep newer `lastBackupAt`; warn user in modal |
-| C4b.14 | backup.ts:127-137 | "skip" conflict policy doesn't distinguish PK collision from constraint violation | Categorize: collisions OK (counted), constraint violations FAIL (raise error) |
+| C4b.14 | backup.ts:127-137 | "skip" conflict policy doesn't distinguish PK collision from constraint violation   | Categorize: collisions OK (counted), constraint violations FAIL (raise error) |
 
 **Acceptance.** Every fix paired with a `fast-check` property test in `tests/unit/validators/<name>.property.test.ts` or `tests/unit/engine/<module>.test.ts`.
 
@@ -783,10 +800,12 @@ this.scene.input.keyboard?.off('keydown', this.keyHandler);
 **Issue.** Phaser 4 Scene has no `preDestroy` hook. Cleanup in `preDestroy()` methods at `Level01Scene.ts:853` and `LevelScene.ts:563` **never executes**.
 
 **Fix.** In `create()`:
+
 ```typescript
 this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanup());
 this.events.once(Phaser.Scenes.Events.DESTROY, () => this.cleanup());
 ```
+
 Move `preDestroy()` body to `private cleanup()`. Add Playwright smoke test: navigate Menu → Level → Menu, assert no hanging textures.
 
 ### C5.6 — Orphaned delayedCalls
@@ -818,6 +837,7 @@ Move `preDestroy()` body to `private cleanup()`. Add Playwright smoke test: navi
 **Files:** `Level01Scene.ts:269` + `LevelScene.ts:213` — text-only `← Menu` interactive element.
 **Bug:** No explicit `Phaser.Geom.Rectangle` hitArea; effective target depends on font metrics (~18px = ~36×24).
 **Fix:**
+
 ```typescript
 const back = this.add.text(...).setInteractive({
   hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44),
@@ -834,6 +854,7 @@ const back = this.add.text(...).setInteractive({
 
 **Issue.** `checkReduceMotion()` only checks `window.matchMedia`. DB preference set in `SettingsScene` is ignored.
 **Fix.**
+
 1. New `src/lib/preferences.ts` — synchronous cache populated at boot from `deviceMetaRepo.get()`.
 2. `checkReduceMotion()` returns `os || prefs.reduceMotion`.
 3. Settings update writes to cache.
@@ -875,6 +896,7 @@ The pedagogical engine is unit-tested but **never connected to gameplay**. Witho
 
 **Issue:** `runAllDetectors()` exists but **no scene calls it**. `db.misconceptionFlags` never written.
 **Fix.**
+
 1. Either build `src/engine/sessionController.ts` (preferred) or call directly from `LevelScene.onCommit` after `attemptRepo.record`.
 2. Pass last 10 attempts of matching archetype.
 3. Write trip results to `misconceptionFlagsRepo.upsert`.
@@ -889,6 +911,7 @@ The pedagogical engine is unit-tested but **never connected to gameplay**. Witho
 
 **Issue:** Table exists at `db.ts`. **No repository writes during play.** `backup.ts` backs it up regardless (always empty).
 **Fix.** Create `src/persistence/repositories/sessionTelemetry.ts`:
+
 ```typescript
 export const sessionTelemetryRepo = {
   start(studentId, sessionId, schemaVersion): Promise<TelemetrySession>,
@@ -896,6 +919,7 @@ export const sessionTelemetryRepo = {
   end(sessionId, summary): Promise<void>,
 };
 ```
+
 Schema per `docs/40-validation/in-app-telemetry.md`. Reconcile `schemaVersion` (doc) vs `version` (backup.ts) — pick `schemaVersion`.
 
 ### C7.5 + C7.6 — localStorage key + missing writer
@@ -904,6 +928,7 @@ Schema per `docs/40-validation/in-app-telemetry.md`. Reconcile `schemaVersion` (
 **File 2:** `lastUsedStudent.ts:10` — `'questerix.lastUsedStudentId'`.
 **File 3:** `src/**/*.ts` — `lastUsedStudent.set()` is **never called from any scene**.
 **Fix.**
+
 1. Replace BootScene direct access with `lastUsedStudent.get()/clear()`.
 2. Add `set(studentId)` call at session start in Level01Scene + LevelScene.
 3. Regression test: boot → start session → close tab → reboot → "Continue" loads correctly.
@@ -917,6 +942,7 @@ Schema per `docs/40-validation/in-app-telemetry.md`. Reconcile `schemaVersion` (
 
 **Issue:** Both scenes record `hintsUsed: []` (always empty). `interaction-model.md §4.1` specifies 5/15/30 point penalties.
 **Fix.**
+
 1. `HintLadder` emits `onHintShown(tier, hintId)` and `onHintApplied(tier, hintId)`.
 2. Score calc: `score = base - sum(penalties for applied hints)`.
 3. `hintEventRepo.record(...)` in scene.
@@ -939,13 +965,17 @@ Schema per `docs/40-validation/in-app-telemetry.md`. Reconcile `schemaVersion` (
 ### C8.2 — Offline curriculum cache
 
 **Action.** vite-plugin-pwa runtimeCaching config:
+
 ```typescript
-runtimeCaching: [{
-  urlPattern: /\/curriculum\/v\d+\.json/,
-  handler: 'CacheFirst',
-  options: { cacheName: 'curriculum', expiration: { maxAgeSeconds: 30*86400 } }
-}]
+runtimeCaching: [
+  {
+    urlPattern: /\/curriculum\/v\d+\.json/,
+    handler: 'CacheFirst',
+    options: { cacheName: 'curriculum', expiration: { maxAgeSeconds: 30 * 86400 } },
+  },
+];
 ```
+
 Plus offline `index.html` fallback.
 
 ### C8.3 — Offline UX banner
@@ -976,6 +1006,7 @@ If custom fonts used, `<link rel="preload" as="font" crossorigin>` + `font-displ
 ### C8.9 — Lighthouse Web Vitals
 
 Add to `lighthouserc.cjs`:
+
 ```javascript
 'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
 'interaction-to-next-paint': ['error', { maxNumericValue: 200 }],
@@ -995,6 +1026,7 @@ Add `bundle-budget.json` or LHCI `resource-summary` assertion at 1MB total per `
 ### C9.1 / C9.2 — CI coverage
 
 `ci.yml` runs only `test:unit` + `test:e2e`. Add:
+
 ```yaml
 - run: npm run test:integration
 - run: npm run test:a11y
@@ -1007,6 +1039,7 @@ Missing: `tests/unit/engine/calibration.test.ts`, `router.test.ts`, `selection.t
 ### C9.4 — Validator property tests
 
 For each `src/validators/<name>.ts`, add `tests/unit/validators/<name>.property.test.ts` using `fast-check`. Examples:
+
 - `partition`: any partition with `|max-min|/mean ≤ tolerance` returns correct.
 - `order`: any permutation has `kendallTauDistance ∈ [0, n*(n-1)/2]`.
 - `compare`: for unequal fractions, exactly one of `<`, `>` is correct.
@@ -1014,6 +1047,7 @@ For each `src/validators/<name>.ts`, add `tests/unit/validators/<name>.property.
 ### C9.5 — Coverage thresholds
 
 `vitest.config.ts`:
+
 ```typescript
 coverage: {
   thresholds: {
@@ -1027,6 +1061,7 @@ coverage: {
 ### C9.6 — Synthetic playtest scripts
 
 `package.json`:
+
 ```json
 "playtest:synthetic": "node scripts/run-synthetic-playtest.mjs",
 "playtest:synthetic:quick": "node scripts/run-synthetic-playtest.mjs --quick"
@@ -1039,6 +1074,7 @@ Extend `tests/synthetic/playtest.spec.ts` to track `performance.memory.usedJSHea
 ### C9.8 — CI ergonomics
 
 For all 5 workflows:
+
 - `concurrency: { group: ${{ github.ref }}, cancel-in-progress: true }`
 - `timeout-minutes: 20`
 - Cache Playwright browsers (`actions/cache` keyed on `package-lock.json` + Playwright version)
@@ -1072,6 +1108,7 @@ Stryker config for `src/engine/bkt.ts`, `router.ts`, `src/validators/*`. Weekly 
 ### C10.2 — ESLint + Prettier
 
 **Note:** `CONTRIBUTING.md:67` falsely claims `.prettierrc` exists. **It doesn't.**
+
 1. ESLint with `@typescript-eslint/strict-type-checked`, `eslint-config-prettier`.
 2. `.prettierrc.json` with project conventions.
 3. Replace `lint` script: `eslint . && prettier --check . && tsc --noEmit`.
@@ -1100,6 +1137,7 @@ pipeline/*.log
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 ```
+
 Run `git rm --cached -r` for tracked items.
 
 ### C10.5 — `.nvmrc` + `.editorconfig`
@@ -1140,13 +1178,19 @@ Fill `keywords`, `author: "ryanmidogonzalez"`, `repository`, `bugs`, `homepage`.
 ### C10.12 — Logger
 
 `src/lib/logger.ts` with `__DEV__` gating:
+
 ```typescript
 export const logger = {
-  info: (...args) => { if (import.meta.env.DEV) console.info(...args); },
-  warn: (...args) => { if (import.meta.env.DEV) console.warn(...args); },
+  info: (...args) => {
+    if (import.meta.env.DEV) console.info(...args);
+  },
+  warn: (...args) => {
+    if (import.meta.env.DEV) console.warn(...args);
+  },
   error: (...args) => console.error(...args), // always logged
 };
 ```
+
 Replace ad-hoc `console.*` in production paths (BootScene, both Level scenes, seed.ts, etc.).
 
 ---
@@ -1166,6 +1210,7 @@ Replace ad-hoc `console.*` in production paths (BootScene, both Level scenes, se
 ### C11.3 — Stale TBD references
 
 Drop "(TBD)" markers — these files exist:
+
 - `misconceptions.md:248` — `misconceptionDetectors.ts`
 - `scope-and-sequence.md:141-142` — `standards-map.md`, `misconceptions.md`
 - `playtest-protocol.md:116` — `validation-data/cycle-a/observer-form.md`
@@ -1176,7 +1221,7 @@ Drop "(TBD)" markers — these files exist:
 - §2.2 claims output at `src/assets/curriculum/v{n}.json`; actual is `public/curriculum/v1.json`.
 - No mention of hints stage.
 - No mention of `scripts/build-curriculum.mjs` assembly.
-**Fix.** Rewrite §2.2 + §3 architecture diagram.
+  **Fix.** Rewrite §2.2 + §3 architecture diagram.
 
 ### C11.5 — status: draft → status: active
 
@@ -1193,6 +1238,7 @@ Document data schema, import flow, validation scripts, pseudonym policy, retenti
 ### C11.8 — Privacy precision
 
 `privacy-notice.md:35`: "no device ID" is too strong. `DeviceMeta.installId` is local-only. Tighten:
+
 > "No device identifier is sent off your device; we generate a local-only `installId` in your browser's storage, which never leaves your device."
 
 ### C11.9 — CONTRIBUTING
@@ -1225,6 +1271,7 @@ Send recruitment emails to 5+ families using `validation-data/recruitment-templa
 ### C12.4 — Execute Cycle A
 
 3–4 sessions, 1 hour each. Capture:
+
 - Observer notes (per-attempt: hesitation, hint usage, frustration, breakthrough)
 - Pre-test scores
 - Post-test scores
@@ -1236,6 +1283,7 @@ Pseudonyms only. Real names sealed offline.
 ### C12.5 — Cycle A analysis
 
 Per `playtest-protocol.md`:
+
 - Identify content issues (specific templates/hints flagged)
 - Identify UX issues (touch targets, hint pacing, modal flow)
 - BKT mastery curves vs expected
@@ -1247,6 +1295,7 @@ Schedule fixes → schedule Cycle B.
 ### C12.6 — Cycle B planning
 
 Cycle B = formal validation per C10. Requires:
+
 - C7 telemetry pipeline live (sessionTelemetryRepo writing during play)
 - C7 misconception detection wired
 - Cycle A learnings applied
@@ -1260,6 +1309,7 @@ Cycle B = formal validation per C10. Requires:
 ### C13.1 — All workflows green
 
 Run full CI on a fresh PR. Assert all 5 workflows succeed:
+
 - ci.yml (lint, typecheck, unit, integration, e2e, a11y)
 - content-validation.yml (verify.py --strict, parity_test.py)
 - synthetic-playtest.yml (100-session quick run)
@@ -1273,6 +1323,7 @@ npm run prebuild && npm run build:curriculum && npm run build && npm run preview
 ```
 
 Assert:
+
 - ≤2.5 MB total (≤600 KB gzipped)
 - Boots in browser
 - Navigates L1-L9 from MenuScene grid
@@ -1282,6 +1333,7 @@ Assert:
 ### C13.3 — Final report
 
 Generate `.claude/CURRICULUM_COMPLETION_REPORT.md`:
+
 - Final template counts per level
 - Dedup loss % per level
 - Archetype/standards/C8 compliance
@@ -1295,39 +1347,39 @@ Generate `.claude/CURRICULUM_COMPLETION_REPORT.md`:
 
 # Risk matrix
 
-| Item | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Validator ID rename breaks shipped client cache | Medium | High | Bump `contentVersion`; force reseed |
-| L8 hand-authoring exposes pedagogical gaps in spec | Medium | Medium | Pair-author with reference to `level-08.md`; review against misconceptions.md |
-| LLM regeneration produces ≥50% duplicates again | High | Medium | Constrained prompts; payload hash exclusion list; parameterization fallback |
-| Engine wiring (C7) introduces playthrough bugs | Medium | High | Integration tests per scene; smoke test session before merge |
-| Memory leak fixes regress functionality | Low | High | Lifecycle smoke test (Menu→Level→Menu loop); heap snapshot |
-| PWA cache stale after content version bump | Medium | Medium | Cache-bust via `contentVersion` in URL or cacheName; Workbox `staleWhileRevalidate` for warm path |
-| C8 alignment forces re-authoring at scale | Medium | Medium | Decision-log delta per level; relax spec where pedagogically valid |
-| Cycle A recruitment <3 families | Medium | High | Backup recruitment list; offer flexible scheduling |
-| MIT license change affects existing collaborators | Low | Low | Transparent commit; no external collaborators today |
+| Item                                               | Likelihood | Impact | Mitigation                                                                                        |
+| -------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------- |
+| Validator ID rename breaks shipped client cache    | Medium     | High   | Bump `contentVersion`; force reseed                                                               |
+| L8 hand-authoring exposes pedagogical gaps in spec | Medium     | Medium | Pair-author with reference to `level-08.md`; review against misconceptions.md                     |
+| LLM regeneration produces ≥50% duplicates again    | High       | Medium | Constrained prompts; payload hash exclusion list; parameterization fallback                       |
+| Engine wiring (C7) introduces playthrough bugs     | Medium     | High   | Integration tests per scene; smoke test session before merge                                      |
+| Memory leak fixes regress functionality            | Low        | High   | Lifecycle smoke test (Menu→Level→Menu loop); heap snapshot                                        |
+| PWA cache stale after content version bump         | Medium     | Medium | Cache-bust via `contentVersion` in URL or cacheName; Workbox `staleWhileRevalidate` for warm path |
+| C8 alignment forces re-authoring at scale          | Medium     | Medium | Decision-log delta per level; relax spec where pedagogically valid                                |
+| Cycle A recruitment <3 families                    | Medium     | High   | Backup recruitment list; offer flexible scheduling                                                |
+| MIT license change affects existing collaborators  | Low        | Low    | Transparent commit; no external collaborators today                                               |
 
 ---
 
 # Effort & timeline
 
-| Phase | Hours | Critical path |
-|-------|-------|---------------|
-| 0 (correctness blockers) | 7–9 | YES |
-| 0b (hand-author) | 4–6 | YES |
-| 1 (regenerate L3-L7) | 4–6 | YES |
-| 2 (bundle+verify) | 2–3 | YES |
-| 3 (validation+hints+standards) | 3–4 | YES |
-| 4 (validator/engine bugs) | 5–7 | YES |
-| 5 (memory leaks) | 3–4 | YES |
-| 6 (a11y) | 3–5 | YES (C7 compliance) |
-| 7 (engine wiring) | 4–6 | YES (C10 unblocker) |
-| 8 (PWA/offline/perf) | 3–4 | partial |
-| 9 (CI/tests) | 3–4 | partial |
-| 10 (tooling) | 2–3 | optional |
-| 11 (docs) | 2–3 | optional |
-| 12 (Cycle A/B) | 4–6 active | YES (C10 fulfillment) |
-| 13 (final gates) | 1–2 | YES |
+| Phase                          | Hours      | Critical path         |
+| ------------------------------ | ---------- | --------------------- |
+| 0 (correctness blockers)       | 7–9        | YES                   |
+| 0b (hand-author)               | 4–6        | YES                   |
+| 1 (regenerate L3-L7)           | 4–6        | YES                   |
+| 2 (bundle+verify)              | 2–3        | YES                   |
+| 3 (validation+hints+standards) | 3–4        | YES                   |
+| 4 (validator/engine bugs)      | 5–7        | YES                   |
+| 5 (memory leaks)               | 3–4        | YES                   |
+| 6 (a11y)                       | 3–5        | YES (C7 compliance)   |
+| 7 (engine wiring)              | 4–6        | YES (C10 unblocker)   |
+| 8 (PWA/offline/perf)           | 3–4        | partial               |
+| 9 (CI/tests)                   | 3–4        | partial               |
+| 10 (tooling)                   | 2–3        | optional              |
+| 11 (docs)                      | 2–3        | optional              |
+| 12 (Cycle A/B)                 | 4–6 active | YES (C10 fulfillment) |
+| 13 (final gates)               | 1–2        | YES                   |
 
 **Total: 50–72 hours** active engineering + 2 weeks elapsed for Cycle A.
 **Critical path: ~40–55 hours.**
@@ -1337,17 +1389,17 @@ Generate `.claude/CURRICULUM_COMPLETION_REPORT.md`:
 
 # Verification gates
 
-| Gate | Demonstration |
-|------|---------------|
+| Gate                      | Demonstration                                                                                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **G0 (Phase 0+0b+1+2+3)** | v1.json has 288+ templates; 0 duplicate IDs; 0 invalid validatorIds; 0 schema errors; verify.py --strict passes all 12 checks; standards/skills/C8 all aligned; 864 hints across 3 tier types |
-| **G1 (Phase 4+5)** | All 14 validator/engine bugs fixed with property tests; 4 memory leaks fixed; lifecycle smoke test passes; heap stable across 100 synthetic sessions |
-| **G2 (Phase 6)** | axe-core 0 violations on Menu+Settings+every archetype; all interactive elements ≥44×44; reduced-motion preference honored at runtime; canvas keyboard-navigable |
-| **G3 (Phase 7)** | A 5-question session writes rows to attempts, skillMastery, sessionTelemetry, hintEvents, misconceptionFlags; localStorage `questerix.lastUsedStudentId` set; "Continue" loads correctly |
-| **G4 (Phase 8)** | PWA installable; offline reload renders MenuScene + cached curriculum; LHCI passes CLS/INP/TBT; bundle ≤1MB total per resource-summary |
-| **G5 (Phase 9)** | All 5 CI workflows green on PR; coverage ≥80% (95% engine+validators); pytest parity_test for all 10 archetypes |
-| **G6 (Phase 10+11)** | ESLint runs and fails on broken file; tsconfig strict-indexing on; license MIT everywhere; INDEX has full file list; no stale TBDs; CHANGELOG matches reality |
-| **G7 (Phase 12)** | Cycle A executed with 3+ students; data captured; analysis report generated; Cycle B plan approved |
-| **G8 (Phase 13)** | All gates green; production bundle deployed to staging; final report generated |
+| **G1 (Phase 4+5)**        | All 14 validator/engine bugs fixed with property tests; 4 memory leaks fixed; lifecycle smoke test passes; heap stable across 100 synthetic sessions                                          |
+| **G2 (Phase 6)**          | axe-core 0 violations on Menu+Settings+every archetype; all interactive elements ≥44×44; reduced-motion preference honored at runtime; canvas keyboard-navigable                              |
+| **G3 (Phase 7)**          | A 5-question session writes rows to attempts, skillMastery, sessionTelemetry, hintEvents, misconceptionFlags; localStorage `questerix.lastUsedStudentId` set; "Continue" loads correctly      |
+| **G4 (Phase 8)**          | PWA installable; offline reload renders MenuScene + cached curriculum; LHCI passes CLS/INP/TBT; bundle ≤1MB total per resource-summary                                                        |
+| **G5 (Phase 9)**          | All 5 CI workflows green on PR; coverage ≥80% (95% engine+validators); pytest parity_test for all 10 archetypes                                                                               |
+| **G6 (Phase 10+11)**      | ESLint runs and fails on broken file; tsconfig strict-indexing on; license MIT everywhere; INDEX has full file list; no stale TBDs; CHANGELOG matches reality                                 |
+| **G7 (Phase 12)**         | Cycle A executed with 3+ students; data captured; analysis report generated; Cycle B plan approved                                                                                            |
+| **G8 (Phase 13)**         | All gates green; production bundle deployed to staging; final report generated                                                                                                                |
 
 ---
 
@@ -1360,7 +1412,7 @@ This plan respects every locked constraint:
 - **C3** (L1-L9 only): scope limited to existing levels
 - **C4** (Phaser 4 + TS + Vite + Dexie): no stack swaps; deps cleaned (remove unused @anthropic-ai/sdk)
 - **C5** (localStorage minimal + offline): single key `questerix.lastUsedStudentId`; PWA enabled with offline fallback
-- **C6** (simple + bright visual): _legacy/ deleted; design tokens enforced
+- **C6** (simple + bright visual): \_legacy/ deleted; design tokens enforced
 - **C7** (responsive 360-1024 + 44×44 targets): hit areas fixed throughout
 - **C8** (linear denominator progression): re-authored or spec-relaxed with decision log
 - **C9** (10-15 minute sessions): no change to length policy

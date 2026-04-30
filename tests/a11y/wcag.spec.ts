@@ -21,7 +21,10 @@ test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    // level-card-L1 opens the Adventure Map; select Level 1 from there
     await page.locator('[data-testid="level-card-L1"]').click();
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="map-level-1"]').click();
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
 
     const results = await new AxeBuilder({ page })
@@ -40,7 +43,9 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
    * 44 × 44 CSS px minimum (Apple HIG / WCAG 2.5.5 enhanced, stricter floor
    * for K–2 fingers per accessibility.md §2).
    */
-  async function auditTouchTargets(page: import('@playwright/test').Page): Promise<{ selector: string; width: number; height: number }[]> {
+  async function auditTouchTargets(
+    page: import('@playwright/test').Page
+  ): Promise<{ selector: string; width: number; height: number }[]> {
     return page.evaluate(() => {
       const MIN_PX = 44;
       const interactive = Array.from(
@@ -49,13 +54,13 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
         )
       );
       return interactive
-        .filter(el => {
+        .filter((el) => {
           // Skip elements inside the Phaser canvas wrapper (not measurable from DOM)
           if (el.closest('[data-testid="phaser-canvas"]')) return false;
           const rect = el.getBoundingClientRect();
           return rect.width < MIN_PX || rect.height < MIN_PX;
         })
-        .map(el => ({
+        .map((el) => ({
           selector: el.getAttribute('data-testid') ?? el.tagName.toLowerCase(),
           width: Math.round(el.getBoundingClientRect().width),
           height: Math.round(el.getBoundingClientRect().height),
@@ -69,17 +74,24 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
 
     const violations = await auditTouchTargets(page);
-    expect(violations, `Touch targets below 44px: ${JSON.stringify(violations, null, 2)}`).toEqual([]);
+    expect(violations, `Touch targets below 44px: ${JSON.stringify(violations, null, 2)}`).toEqual(
+      []
+    );
   });
 
   test('Level01 scene — all interactive elements ≥ 44×44 CSS px', async ({ page }) => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    // level-card-L1 opens the Adventure Map; select Level 1 from there
     await page.locator('[data-testid="level-card-L1"]').click();
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="map-level-1"]').click();
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
 
     const violations = await auditTouchTargets(page);
-    expect(violations, `Touch targets below 44px: ${JSON.stringify(violations, null, 2)}`).toEqual([]);
+    expect(violations, `Touch targets below 44px: ${JSON.stringify(violations, null, 2)}`).toEqual(
+      []
+    );
   });
 });

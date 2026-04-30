@@ -18,15 +18,15 @@ This is a lightweight, **informal pilot**, not an IRB-regulated study. The goal 
 
 ## 1. Cohort
 
-| Parameter | Value |
-|-----------|-------|
-| Number of students | 8–10 |
-| Grade band | K, 1, 2 (mixed; recruit roughly 3 per grade) |
-| Sessions per student | 3 |
-| Session duration | 15 minutes (per C9) |
-| Span | 2 weeks (sessions on Day 1, Day 4–5, Day 10–14) |
-| Setting | Home, library, or classroom corner — informal |
-| Devices | iPad or Chromebook supplied by tester. Both portrait and landscape acceptable. |
+| Parameter            | Value                                                                          |
+| -------------------- | ------------------------------------------------------------------------------ |
+| Number of students   | 8–10                                                                           |
+| Grade band           | K, 1, 2 (mixed; recruit roughly 3 per grade)                                   |
+| Sessions per student | 3                                                                              |
+| Session duration     | 15 minutes (per C9)                                                            |
+| Span                 | 2 weeks (sessions on Day 1, Day 4–5, Day 10–14)                                |
+| Setting              | Home, library, or classroom corner — informal                                  |
+| Devices              | iPad or Chromebook supplied by tester. Both portrait and landscape acceptable. |
 
 **Recruitment.** Personal network: family, neighborhood kids, friends-of-friends. Aim for variety in entering skill: include students who already know "halves" and students who don't.
 
@@ -70,16 +70,16 @@ Administered before Session 1 of app use. The student does this with the observe
 
 ### 3.1 Instrument: 8 Items
 
-| # | Item | Purpose |
-|---|------|---------|
-| 1 | "Circle the shape that shows ONE HALF." (3 multiple-choice shapes; only one is correctly halved) | Tests `SK-02` (canonical per `../10-curriculum/skills.md`). Linked to H-01. |
-| 2 | "Circle the shape that shows ONE FOURTH." (3 multiple-choice shapes) | Tests `SK-08`. Linked to H-01. |
-| 3 | "Look at this rectangle. Draw a line that splits it into TWO equal parts." | Tests `SK-11`. Linked to H-02. |
-| 4 | "Look at this circle. Draw lines that split it into FOUR equal parts." | Tests `SK-16`. Linked to H-02. |
-| 5 | "Which is bigger? 1/2 or 1/4? Circle the bigger one." (visual + symbol) | Tests `SK-23` / MC-WHB-02. Linked to H-03. |
-| 6 | "Which is bigger? 2/4 or 3/4? Circle the bigger one." | Tests `SK-22`. Linked to H-03. |
-| 7 | **Grade-1+ only** — "Look at this fraction strip. Mark where 1/2 belongs on the line from 0 to 1." Tests `SK-27`. Linked to H-03. **K students skip Item 7.** K substitute: "Circle the picture that shows ½ shaded." (a sixth identification item; tests `SK-02`.) | Tests `SK-27` (G1+) or `SK-02` (K substitute). Linked to H-03. |
-| 8 | "Are the two pieces in this picture equal? Yes / No." (deliberately unequal partition) | Tests `SK-01`, MC-EOL-01. Linked to H-05. |
+| #   | Item                                                                                                                                                                                                                                                                | Purpose                                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 1   | "Circle the shape that shows ONE HALF." (3 multiple-choice shapes; only one is correctly halved)                                                                                                                                                                    | Tests `SK-02` (canonical per `../10-curriculum/skills.md`). Linked to H-01. |
+| 2   | "Circle the shape that shows ONE FOURTH." (3 multiple-choice shapes)                                                                                                                                                                                                | Tests `SK-08`. Linked to H-01.                                              |
+| 3   | "Look at this rectangle. Draw a line that splits it into TWO equal parts."                                                                                                                                                                                          | Tests `SK-11`. Linked to H-02.                                              |
+| 4   | "Look at this circle. Draw lines that split it into FOUR equal parts."                                                                                                                                                                                              | Tests `SK-16`. Linked to H-02.                                              |
+| 5   | "Which is bigger? 1/2 or 1/4? Circle the bigger one." (visual + symbol)                                                                                                                                                                                             | Tests `SK-23` / MC-WHB-02. Linked to H-03.                                  |
+| 6   | "Which is bigger? 2/4 or 3/4? Circle the bigger one."                                                                                                                                                                                                               | Tests `SK-22`. Linked to H-03.                                              |
+| 7   | **Grade-1+ only** — "Look at this fraction strip. Mark where 1/2 belongs on the line from 0 to 1." Tests `SK-27`. Linked to H-03. **K students skip Item 7.** K substitute: "Circle the picture that shows ½ shaded." (a sixth identification item; tests `SK-02`.) | Tests `SK-27` (G1+) or `SK-02` (K substitute). Linked to H-03.              |
+| 8   | "Are the two pieces in this picture equal? Yes / No." (deliberately unequal partition)                                                                                                                                                                              | Tests `SK-01`, MC-EOL-01. Linked to H-05.                                   |
 
 ### 3.2 Scoring
 
@@ -156,7 +156,7 @@ After Session 3. Use a parallel form of the pre-test (same item structure, diffe
 
 Score the same way. Match each post-test response to the corresponding pre-test response per student.
 
-**Important:** the post-test is given **at least 1 day after Session 3**, not immediately after. This is to capture *retained* learning, not warm-cache performance.
+**Important:** the post-test is given **at least 1 day after Session 3**, not immediately after. This is to capture _retained_ learning, not warm-cache performance.
 
 ---
 
@@ -164,14 +164,14 @@ Score the same way. Match each post-test response to the corresponding pre-test 
 
 For each student, the observer ends with:
 
-| Artifact | Storage |
-|----------|---------|
-| Signed consent form | Locked folder, paper |
-| Pre-test paper worksheet | Same folder, scanned to PDF |
-| 3 session JSON exports | Project folder `validation-data/<pseudonym>/` |
-| 3 observer notes forms | Same project folder, scanned |
-| Post-test paper worksheet | Same project folder, scanned |
-| Debrief quotes | Same observer notes form |
+| Artifact                  | Storage                                       |
+| ------------------------- | --------------------------------------------- |
+| Signed consent form       | Locked folder, paper                          |
+| Pre-test paper worksheet  | Same folder, scanned to PDF                   |
+| 3 session JSON exports    | Project folder `validation-data/<pseudonym>/` |
+| 3 observer notes forms    | Same project folder, scanned                  |
+| Post-test paper worksheet | Same project folder, scanned                  |
+| Debrief quotes            | Same observer notes form                      |
 
 All filenames use the pseudonym only. The single mapping `pseudonym → real name` lives **only on paper**, in a sealed envelope, separately from the data folder.
 
@@ -238,10 +238,10 @@ The report is the artifact that closes Phase 4 of the roadmap (see `../50-roadma
 
 Per the roadmap:
 
-| Cycle | Phase | Purpose |
-|-------|-------|---------|
+| Cycle                  | Phase                 | Purpose                                                                                                                                           |
+| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Cycle A — internal** | Phase 2 (after L1–L5) | Sanity check: is the partitioning mechanic survivable? Cohort can be 3–4 students from the developer's immediate circle. Truncated to L1–L5 only. |
-| **Cycle B — broader** | Phase 3 (after L1–L9) | Full playtest as described above (8–10 students × 3 sessions × 2 weeks). This is the cycle the report is written for. |
+| **Cycle B — broader**  | Phase 3 (after L1–L9) | Full playtest as described above (8–10 students × 3 sessions × 2 weeks). This is the cycle the report is written for.                             |
 
 If Cycle A reveals a fundamental mechanic problem, fix before Cycle B and re-do Cycle A.
 

@@ -8,6 +8,7 @@
 ## ⭐ Start Here (2026-04-26)
 
 ### [master-plan-2026-04-26.md](master-plan-2026-04-26.md) — MASTER BACKLOG
+
 The single backlog of everything left to do for the MVP. Synthesizes the architecture review and visual QA, reflects in-flight work, orders by sprint with exit criteria.
 
 **Use it for:** daily next-action lookup, sprint-by-sprint task tracking, effort roll-up, open decisions awaiting user input.
@@ -17,9 +18,11 @@ The single backlog of everything left to do for the MVP. Synthesizes the archite
 ## 🆕 Source Documents (2026-04-27)
 
 ### [architecture-review-2026-04-27.md](architecture-review-2026-04-27.md) — MASTER TECHNICAL REVIEW
+
 The authoritative source of truth for the entire project's technical state.
 
 **Covers:**
+
 - 5 readiness dimensions: Gameplay Loop, Learning Engine, Content, Student Experience, Operational
 - 28-item gap register with severity and cross-references
 - 5-sprint plan with exit criteria per sprint
@@ -27,6 +30,7 @@ The authoritative source of truth for the entire project's technical state.
 - "Definition of Done" — 8 items for a classroom pilot
 
 **When to use:**
+
 - Understanding what's built vs. what's wired vs. what's missing
 - Deciding which sprint to work on next
 - Writing a status update for a stakeholder
@@ -35,9 +39,11 @@ The authoritative source of truth for the entire project's technical state.
 ---
 
 ### [qa-visual-report-2026-04-27.md](qa-visual-report-2026-04-27.md) — VISUAL QA WITH SCREENSHOTS
+
 Live browser walkthrough of every reachable screen, with embedded screenshots and per-element pass/fail.
 
 **Covers:**
+
 - 6 screens documented with screenshots (Menu, Level 1, Hint, Check, Back, Settings)
 - 14 untested flows (session complete, L2–L9, iPad, offline, TTS, etc.)
 - The "happy path" — what a working session should look like step by step
@@ -45,6 +51,7 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 - Readiness score (current: 🔴 NOT READY)
 
 **When to use:**
+
 - Seeing what the app actually looks like today
 - Understanding user-facing bugs
 - Testing a fix — compare screenshots before/after
@@ -52,17 +59,36 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 
 ---
 
+### [curriculum-update.md](curriculum-update.md) — MASTER CURRICULUM PLAN (v2)
+
+The authoritative pedagogical and structural roadmap for the Questerix curriculum.
+
+**Covers:**
+- Theory of Action (CPA + Equal-Sharing + Number-Line)
+- Learning Architecture (KCs, Prereqs, Misconceptions)
+- Item Design Science (8 principles, 6 lenses of quality)
+- 8-phase delivery roadmap (A–H)
+- Decision log harness (D-NNN)
+
+**When to use:**
+- Making any curriculum or content choice
+- Reviewing level specifications
+- Understanding the BKT/Mastery model requirements
+- Validating new item templates
+
+---
+
 ## 🔴 Critical Blockers (Fix In This Order)
 
-| # | Blocker | File | Effort |
-|---|---|---|---|
-| 1 | **BUG-01** — Wrong prompt ("identify" archetype on a "partition" scene) | `Level01Scene.ts` | 2 min |
-| 2 | **BUG-02** — Validation never passes, progress stuck at 0/5 forever | `Level01Scene.ts` | ~30 min |
-| 3 | **BUG-04** — Hint tiers never advance past Tier 1 | `Level01Scene.ts` | 15 min |
-| 4 | **BUG-05** — Settings gear routing (likely resolved — retest in real browser) | `MenuScene.ts` | 15 min |
-| 5 | **G-C3** — No UI route to Level 2–9. Adventure map is decorative. | `MenuScene.ts` | Sprint 2 |
-| 6 | **G-C7** — "Keep going" loops Level 1 instead of advancing to Level 2 | `LevelScene.ts` | 30 min |
-| 7 | **G-E1** — BKT `updateMastery()` never called. Zero learning signal. | `Level01Scene.ts` | Sprint 1 |
+| #   | Blocker                                                                       | File              | Effort   |
+| --- | ----------------------------------------------------------------------------- | ----------------- | -------- |
+| 1   | **BUG-01** — Wrong prompt ("identify" archetype on a "partition" scene)       | `Level01Scene.ts` | 2 min    |
+| 2   | **BUG-02** — Validation never passes, progress stuck at 0/5 forever           | `Level01Scene.ts` | ~30 min  |
+| 3   | **BUG-04** — Hint tiers never advance past Tier 1                             | `Level01Scene.ts` | 15 min   |
+| 4   | **BUG-05** — Settings gear routing (likely resolved — retest in real browser) | `MenuScene.ts`    | 15 min   |
+| 5   | **G-C3** — No UI route to Level 2–9. Adventure map is decorative.             | `MenuScene.ts`    | Sprint 2 |
+| 6   | **G-C7** — "Keep going" loops Level 1 instead of advancing to Level 2         | `LevelScene.ts`   | 30 min   |
+| 7   | **G-E1** — BKT `updateMastery()` never called. Zero learning signal.          | `Level01Scene.ts` | Sprint 1 |
 
 **Sprint 0 exit criteria:** Student completes a 5-question session in a real browser tab at `localhost:5002`.
 
@@ -83,6 +109,7 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 Entry point for the planning suite with quick navigation guide, file locations, test commands per gate, and effort breakdown.
 
 **When to use:**
+
 - First time orientation
 - Quick reference
 - Looking for test commands
@@ -94,6 +121,7 @@ Entry point for the planning suite with quick navigation guide, file locations, 
 What exists (Phases 1–2), what's missing (Phase 3), LevelScene enhancements, files to create/modify, implementation sequence, and risk summary.
 
 **When to use:**
+
 - Understanding codebase status
 - Planning what to build next
 - Checking dependencies
@@ -105,6 +133,7 @@ What exists (Phases 1–2), what's missing (Phase 3), LevelScene enhancements, f
 Complete task breakdown, wall-clock timeline, 4 phase gates, detailed checklists for each component, testing plan, parallel work, effort breakdown, and risk mitigations.
 
 **When to use:**
+
 - Daily task tracking
 - Gate verification
 - Full scope understanding
@@ -117,6 +146,7 @@ Complete task breakdown, wall-clock timeline, 4 phase gates, detailed checklists
 Detailed pseudocode for all components: SymbolicFractionDisplay, 4 misconception detectors, BenchmarkInteraction, OrderInteraction, data schema, test fixtures, and integration checklist.
 
 **When to use:**
+
 - Implementing new components
 - Writing unit tests
 - Copy/paste pseudocode as template
@@ -129,6 +159,7 @@ Detailed pseudocode for all components: SymbolicFractionDisplay, 4 misconception
 What was done, codebase analysis, key design decisions, architecture decisions, risk assessment, parallel work, next steps, and success criteria.
 
 **When to use:**
+
 - Understanding design decisions
 - Risk context
 - Immediate actions
@@ -207,12 +238,12 @@ What was done, codebase analysis, key design decisions, architecture decisions, 
 
 ## Phase 3 Gates
 
-| Gate | Week | Criteria | Status |
-|------|------|----------|--------|
-| L6-L7 | 2 | Compare scenes, notation, WHB detectors tested | PENDING |
-| L8 | 3 | Benchmark-sort works, Easy <13min, MAG/PRX detectors | PENDING |
-| L9 | 4 | Ordering works, all templates seeded | PENDING |
-| Cycle B | 5 | PWA installs, data persists, app deployed | PENDING |
+| Gate    | Week | Criteria                                             | Status  |
+| ------- | ---- | ---------------------------------------------------- | ------- |
+| L6-L7   | 2    | Compare scenes, notation, WHB detectors tested       | PENDING |
+| L8      | 3    | Benchmark-sort works, Easy <13min, MAG/PRX detectors | PENDING |
+| L9      | 4    | Ordering works, all templates seeded                 | PENDING |
+| Cycle B | 5    | PWA installs, data persists, app deployed            | PENDING |
 
 ---
 
@@ -220,14 +251,14 @@ What was done, codebase analysis, key design decisions, architecture decisions, 
 
 **Estimated total:** 67 hours (roadmap budget: 50h)
 
-| Week | Task | Hours |
-|------|------|-------|
-| 1 | SymbolicFractionDisplay, WHB detectors, L6-L7 stubs | 11 |
-| 2 | L6-L7 scenes, misconception integration, tests | 16 |
-| 3 | BenchmarkInteraction, MAG/PRX detectors, timing test | 15 |
-| 4 | OrderInteraction, L9 scenes, integration tests | 12 |
-| 5 | PWA hardening, deploy, Cycle B prep | 10 |
-| Buffer | Debugging / edge cases | 3 |
+| Week   | Task                                                 | Hours |
+| ------ | ---------------------------------------------------- | ----- |
+| 1      | SymbolicFractionDisplay, WHB detectors, L6-L7 stubs  | 11    |
+| 2      | L6-L7 scenes, misconception integration, tests       | 16    |
+| 3      | BenchmarkInteraction, MAG/PRX detectors, timing test | 15    |
+| 4      | OrderInteraction, L9 scenes, integration tests       | 12    |
+| 5      | PWA hardening, deploy, Cycle B prep                  | 10    |
+| Buffer | Debugging / edge cases                               | 3     |
 
 ---
 

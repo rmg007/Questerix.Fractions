@@ -5,13 +5,12 @@
   "description": "Phaser 4 + TypeScript educational game for K-2 fraction concepts. Validation-stage MVP.",
   "main": "index.js",
   "scripts": {
-    "dev": "node scripts/dev-with-roadie.mjs",
+    "dev": "vite",
     "dev:app": "vite",
     "build:curriculum": "node scripts/build-curriculum.mjs",
     "prebuild": "npm run build:curriculum",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "roadie": "roadie",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
@@ -21,7 +20,11 @@
     "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
     "lint": "eslint src --max-warnings 0 && prettier --check src",
     "lint:fix": "eslint src --fix && prettier --write src",
-    "measure-bundle": "node scripts/measure-bundle.mjs"
+    "measure-bundle": "node scripts/measure-bundle.mjs",
+    "deploy": "npx wrangler pages deploy dist --project-name questerix-fractions --branch main --commit-dirty=true",
+    "validate:curriculum": "node scripts/validate-curriculum.mjs",
+    "predeploy": "npm run typecheck && npm run lint && npm run test:unit && npm run validate:curriculum && npm run build && node scripts/measure-bundle.mjs",
+    "postdeploy": "node scripts/postdeploy-check.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
@@ -45,7 +48,13 @@
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0"
   },
-  "keywords": ["phaser", "typescript", "fractions", "educational", "game"],
+  "keywords": [
+    "phaser",
+    "typescript",
+    "fractions",
+    "educational",
+    "game"
+  ],
   "author": "Questerix Team",
   "license": "MIT",
   "repository": {
@@ -57,8 +66,20 @@
   },
   "homepage": "https://questerix.app",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/context-zone": "^2.7.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.216.0",
+    "@opentelemetry/instrumentation": "^0.216.0",
+    "@opentelemetry/instrumentation-fetch": "^0.216.0",
+    "@opentelemetry/resources": "^2.7.1",
+    "@opentelemetry/sdk-metrics": "^2.7.1",
+    "@opentelemetry/sdk-trace-base": "^2.7.1",
+    "@opentelemetry/sdk-trace-web": "^2.7.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "@sentry/browser": "^10.51.0",
     "dexie": "^4.4.2",
     "phaser": "^4.0.0",
+    "web-vitals": "^5.2.0",
     "workbox-window": "^7.4.0"
   }
 }

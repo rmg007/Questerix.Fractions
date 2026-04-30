@@ -5,12 +5,12 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR } from '../utils/colors';
 import { DragHandle } from '../../components/DragHandle';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import type { PartitionInput, PartitionPayload } from '../../validators/partition';
 import { log } from '../../lib/log';
+import { NAVY, OPTION_BG, OPTION_BORDER } from '../utils/levelTheme';
 
 const SHAPE_W = 340;
 const SHAPE_H = 260;
@@ -28,6 +28,10 @@ export class PartitionInteraction implements Interaction {
   private partitionLine!: Phaser.GameObjects.Graphics;
   private dragHandle!: DragHandle;
   private handlePos!: number;
+  private cutLineHint: Phaser.GameObjects.Graphics | null = null;
+  private shapeCenterX!: number;
+  private shapeCenterY!: number;
+  private shapeType!: 'rectangle' | 'circle';
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
@@ -48,6 +52,10 @@ export class PartitionInteraction implements Interaction {
     };
     const shapeType = payload.shapeType ?? 'rectangle';
     const snapMode = payload.snapMode ?? (ctx.template.difficultyTier === 'easy' ? 'axis' : 'free');
+
+    this.shapeCenterX = centerX;
+    this.shapeCenterY = centerY;
+    this.shapeType = shapeType;
 
     this.drawShape(shapeType, centerX, centerY);
     this.updatePartitionLine(this.handlePos, centerY);
@@ -115,6 +123,8 @@ export class PartitionInteraction implements Interaction {
   unmount(): void {
     this.shapeGraphics?.destroy();
     this.partitionLine?.destroy();
+    this.cutLineHint?.destroy();
+    this.cutLineHint = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
   }
@@ -123,23 +133,105 @@ export class PartitionInteraction implements Interaction {
     const g = this.shapeGraphics;
     g.clear();
     if (shapeType === 'rectangle') {
-      g.fillStyle(CLR.neutral50, 1);
+      g.fillStyle(OPTION_BG, 1);
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
     } else {
-      g.fillStyle(CLR.neutral50, 1);
+      g.fillStyle(OPTION_BG, 1);
       g.fillCircle(cx, cy, SHAPE_W / 2);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
     }
   }
 
   private updatePartitionLine(handleX: number, cy: number): void {
     this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, CLR.primary, 1);
+    this.partitionLine.lineStyle(4, NAVY, 1);
     const top = cy - SHAPE_H / 2;
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
+  }
+
+  /**
+   * Draws dashed "cut line" hints at the correct division positions for
+   * thirds (N=3) or quarters (N=4). Called by LevelScene when the
+   * visual_overlay hint tier is reached on a partition question.
+   * Layered at depth 7 — above the shape (5) and partition line (6)
+   * but below drag handles (20+).
+   */
+  showCutLineHint(targetPartitions: number): void {
+    // Clear any previously drawn hint so re-triggering is idempotent
+    this.cutLineHint?.destroy();
+    this.cutLineHint = this.scene.add.graphics().setDepth(7).setAlpha(0.85);
+
+    const CUT_COLOR = 0xffaa00; // orange/gold
+    const LINE_WIDTH = 3;
+    const DASH_LEN = 12;
+    const GAP_LEN = 7;
+
+    this.cutLineHint.lineStyle(LINE_WIDTH, CUT_COLOR, 1);
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+
+    if (this.shapeType === 'rectangle') {
+      const left = cx - SHAPE_W / 2;
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      // Draw N-1 vertical cut lines evenly spaced across the width
+      for (let i = 1; i < targetPartitions; i++) {
+        const x = left + (SHAPE_W * i) / targetPartitions;
+        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
+      }
+    } else {
+      // Circle: draw N radii from the centre at equal 2π/N intervals.
+      // Each radius goes from centre to circumference edge, creating N equal sectors.
+      const radius = SHAPE_W / 2;
+      const angleStep = (2 * Math.PI) / targetPartitions;
+      for (let i = 0; i < targetPartitions; i++) {
+        const angle = angleStep * i;
+        const ex = cx + radius * Math.cos(angle);
+        const ey = cy + radius * Math.sin(angle);
+        this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
+      }
+    }
+
+    log.scene('cut_line_hint_shown', {
+      shapeType: this.shapeType,
+      targetPartitions,
+    });
+  }
+
+  /** Draws a dashed line between two points onto the given Graphics object. */
+  private drawDashedLine(
+    g: Phaser.GameObjects.Graphics,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    dashLen: number,
+    gapLen: number
+  ): void {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const totalLen = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / totalLen; // unit vector x
+    const uy = dy / totalLen; // unit vector y
+    let traveled = 0;
+    let drawing = true;
+
+    while (traveled < totalLen) {
+      const segLen = Math.min(drawing ? dashLen : gapLen, totalLen - traveled);
+      if (drawing) {
+        const sx = x1 + ux * traveled;
+        const sy = y1 + uy * traveled;
+        const ex = x1 + ux * (traveled + segLen);
+        const ey = y1 + uy * (traveled + segLen);
+        g.lineBetween(sx, sy, ex, ey);
+      }
+      traveled += segLen;
+      drawing = !drawing;
+    }
   }
 }

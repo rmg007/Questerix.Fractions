@@ -17,8 +17,24 @@ export const PATH_BLUE = 0x93c5fd; // #93C5FD — light blue path / partition li
 
 const WHITE = 0xffffff;
 const WHITE_HEX = '#FFFFFF';
-const NAVY = 0x1e3a8a;
+export const NAVY = 0x1e3a8a;
 export const NAVY_HEX = '#1E3A8A';
+
+// ── Interaction answer-control palette ──────────────────────────────────────
+
+export const OPTION_BG = 0xffffff;
+export const OPTION_BORDER = PATH_BLUE;
+export const SELECTED_BG = PATH_BLUE;
+export const SELECTED_BORDER = NAVY;
+export const CHOICE_YES = 0x34d399;
+export const CHOICE_NO = 0xfb7185;
+export const ACCENT_B = 0x818cf8;
+export const ACCENT_C = 0x34d399;
+export const TEXT_ON_FILL = '#FFFFFF';
+export const TEXT_BODY = '#475569';
+export const TEXT_HEADING = NAVY_HEX;
+export const TEXT_MUTED = '#64748B';
+export const TEXT_DIM = '#94A3B8';
 
 // Action ("Check") button — amber, matching the Play! station
 export const ACTION_FILL = 0xfcd34d; // amber-300
@@ -41,7 +57,7 @@ const GLOW_EMERALD = 0x6ee7b7; // emerald-300
 const GLOW_BLUE = 0x93c5fd; // blue-300
 
 export const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
-export const BODY_FONT = '"Nunito", system-ui, sans-serif';
+export const BODY_FONT = '"Lexend", "Nunito", system-ui, sans-serif';
 
 // ── Background ───────────────────────────────────────────────────────────────
 

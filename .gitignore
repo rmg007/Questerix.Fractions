@@ -19,10 +19,9 @@ __pycache__/
 *.pyc
 .py_cache/
 
-# Claude Code / Roadie
+# Claude Code
 .claude/logs/
 .claude/artifacts/
-.roadie/
 
 # Test results
 playwright-report/
@@ -50,3 +49,10 @@ lighthouse-report.html
 # Validation data — raw session exports (large, sensitive by context)
 # Uncommit if you intentionally want to track these
 validation-data/cycle-*/raw/
+
+# Internal builder artifacts
+.builder/
+
+# Replit/roadie runtime state — transient, never commit
+.roadie/
+install/

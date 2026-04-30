@@ -26,7 +26,7 @@ export class SymbolicFractionDisplay {
   ) {
     const {
       fontSize = '24px',
-      fontFamily = '"Nunito", system-ui, sans-serif',
+      fontFamily = '"Lexend", "Nunito", system-ui, sans-serif',
       color = HEX.neutral900,
       align = 'center',
     } = options;

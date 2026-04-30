@@ -10,7 +10,7 @@ export const skillRepo = {
   async get(id: SkillId): Promise<Skill | undefined> {
     try {
       return await db.skills.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -18,7 +18,7 @@ export const skillRepo = {
   async getAll(): Promise<Skill[]> {
     try {
       return await db.skills.toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -26,7 +26,7 @@ export const skillRepo = {
   async getByGradeLevel(gradeLevel: 0 | 1 | 2): Promise<Skill[]> {
     try {
       return await db.skills.where('gradeLevel').equals(gradeLevel).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -39,3 +39,4 @@ export const skillRepo = {
     await db.skills.clear();
   },
 };
+

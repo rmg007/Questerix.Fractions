@@ -1,11 +1,13 @@
 # Fraction Snap
 
 ## Overview
+
 Fast-paced card game where kids compare two fractions as quickly as possible. Fastest correct answer wins. Builds quick intuition and fluency with fraction comparison under time pressure.
 
 ## Core Mechanics
 
 ### Game Loop
+
 1. **Display Phase**: Show two fraction cards (e.g., 3/7 vs. 4/9) with simple pie or bar models
 2. **Question**: "Which fraction is bigger?"
 3. **Answer Phase**: Two buttons: "Left" or "Right" (or A vs. B)
@@ -19,22 +21,26 @@ Fast-paced card game where kids compare two fractions as quickly as possible. Fa
 ### Card Deck
 
 #### Easy Mode (Rounds 1–3)
+
 - Fractions: 1/2, 1/3, 2/3, 1/4, 3/4, 1/5, 4/5
 - Comparisons: easy (1/2 vs. 1/4, 1/3 vs. 2/3)
 - Time per card: 15 seconds
 
 #### Medium Mode (Rounds 4–7)
+
 - Fractions: 1/6, 2/5, 3/7, 4/9, 5/8, 3/10
 - Comparisons: mixed denominators, trickier (2/5 vs. 3/7)
 - Time per card: 10 seconds
 
 #### Hard Mode (Rounds 8+)
+
 - Fractions: 4/11, 5/12, 7/13, 6/11, 5/9
 - Comparisons: very close fractions (5/9 vs. 4/7)
 - Time per card: 5 seconds
 - No models shown (visual removed, kids must visualize)
 
 ### Difficulty Progression
+
 ```
 Win 3 in a row → advance difficulty
 Wrong answer → stay at same difficulty
@@ -44,6 +50,7 @@ Time runs out → skip, stay at difficulty
 ### Score System
 
 #### Round Scoring
+
 ```
 Correct in:
   0–3 sec: +10 (fast) + 5 (speed bonus) = +15
@@ -53,12 +60,14 @@ Correct in:
 ```
 
 #### Game Scoring
+
 - Track accuracy: correct / total
 - Track speed: average time per correct answer
 - Leaderboard: (accuracy × speed multiplier)
-- Example: 8 correct in 25 seconds = 80% * 2.0x = 1.6x multiplier
+- Example: 8 correct in 25 seconds = 80% \* 2.0x = 1.6x multiplier
 
 ### Balancing for Mixed Denominators
+
 - **Early pairing**: Avoid very close fractions (e.g., 5/9 vs. 4/7 too hard initially)
 - **Difficulty curve**: Gradually introduce harder pairs (separated by 0.1 → 0.05 → 0.02)
 - **Pair database** with difficulty scores:
@@ -101,12 +110,14 @@ Correct in:
 ```
 
 ## Leaderboard & Progression
+
 - Session leaderboard: Show top 5 high scores from today
 - Weekly leaderboard: Cumulative points
 - Badges: "Speed Demon" (avg < 3 sec), "Accuracy Master" (100% in Hard mode)
 - Unlock Hard mode: Achieve 80%+ accuracy in Medium
 
 ## Accessibility
+
 - High-contrast cards
 - Larger button targets (60px min)
 - Option to use keyboard: A/Left Arrow for left, D/Right Arrow for right

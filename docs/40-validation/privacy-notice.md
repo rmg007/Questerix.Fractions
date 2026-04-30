@@ -11,7 +11,7 @@ related:
 
 # Privacy Notice
 
-*Per audit §4.7. Plain-language notice for parents, guardians, and caregivers. The app links to this page from its Settings screen.*
+_Per audit §4.7. Plain-language notice for parents, guardians, and caregivers. The app links to this page from its Settings screen._
 
 ---
 
@@ -70,4 +70,4 @@ Questions, concerns, or requests? Open an issue on our GitHub repository. We rea
 
 ---
 
-*Last updated: 2026-04-24*
+_Last updated: 2026-04-24_

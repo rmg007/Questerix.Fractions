@@ -29,12 +29,12 @@ npx lighthouse https://your-domain.com \
 
 Thresholds (per `docs/30-architecture/performance-budget.md`):
 
-| Metric | Gate |
-|--------|------|
-| Performance score | ≥ 85 (CI); target ≥ 90 |
-| Accessibility score | 100 |
-| LCP | ≤ 2.5 s |
-| Total transfer weight | ≤ 1,024 KB gzipped |
+| Metric                | Gate                   |
+| --------------------- | ---------------------- |
+| Performance score     | ≥ 85 (CI); target ≥ 90 |
+| Accessibility score   | 100                    |
+| LCP                   | ≤ 2.5 s                |
+| Total transfer weight | ≤ 1,024 KB gzipped     |
 
 If any threshold fails, open a GitHub Issue tagged `performance` before the next deploy.
 

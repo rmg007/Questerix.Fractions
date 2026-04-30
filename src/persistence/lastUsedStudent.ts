@@ -14,7 +14,7 @@ export const lastUsedStudent = {
     try {
       const v = localStorage.getItem(KEY);
       return v ? (v as StudentId) : null;
-    } catch {
+    } catch (err) {
       return null;
     }
   },
@@ -22,7 +22,7 @@ export const lastUsedStudent = {
   set(id: StudentId): void {
     try {
       localStorage.setItem(KEY, id);
-    } catch {
+    } catch (err) {
       // ignore — this is a UI hint only; failure is non-critical
     }
   },
@@ -30,8 +30,9 @@ export const lastUsedStudent = {
   clear(): void {
     try {
       localStorage.removeItem(KEY);
-    } catch {
+    } catch (err) {
       // ignore
     }
   },
 };
+

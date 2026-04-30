@@ -39,8 +39,12 @@ const EagerK: Persona = {
     // Eager, quick tapper: 1500–3500 ms
     return uniformMs(1500, 3500);
   },
-  hintProbability(): number { return 0.08; },
-  abandonProbability(): number { return 0.05; },
+  hintProbability(): number {
+    return 0.08;
+  },
+  abandonProbability(): number {
+    return 0.05;
+  },
 };
 
 // ─── Hesitant-K ─────────────────────────────────────────────────────────────
@@ -50,8 +54,8 @@ const HesitantK: Persona = {
   name: 'Hesitant-K',
   accuracyByLevel(level: number): number {
     // L1: 0.50, declining to 0.15 at L9 — slightly worse than Eager-K
-    const base = 0.50 - (level - 1) * 0.04375;
-    return clamp(base + (Math.random() * 0.10 - 0.05), 0.05, 0.90);
+    const base = 0.5 - (level - 1) * 0.04375;
+    return clamp(base + (Math.random() * 0.1 - 0.05), 0.05, 0.9);
   },
   responseTimeMs(): number {
     // Hesitant: 4000–9000 ms, occasionally very long
@@ -59,8 +63,12 @@ const HesitantK: Persona = {
     // 15% chance of extra-long pause (distraction / anxiety)
     return Math.random() < 0.15 ? base + uniformMs(3000, 8000) : base;
   },
-  hintProbability(): number { return 0.35; },
-  abandonProbability(): number { return 0.12; },
+  hintProbability(): number {
+    return 0.35;
+  },
+  abandonProbability(): number {
+    return 0.12;
+  },
 };
 
 // ─── Confident-G1 ───────────────────────────────────────────────────────────
@@ -74,18 +82,22 @@ const ConfidentG1: Persona = {
     // Rises from 0.40 at L1 → peaks 0.75 at L5 → falls to 0.45 at L9
     let base: number;
     if (level <= 5) {
-      base = 0.40 + (level - 1) * 0.0875; // 0.40 → 0.75
+      base = 0.4 + (level - 1) * 0.0875; // 0.40 → 0.75
     } else {
-      base = 0.75 - (level - 5) * 0.075;  // 0.75 → 0.45
+      base = 0.75 - (level - 5) * 0.075; // 0.75 → 0.45
     }
-    return clamp(base + (Math.random() * 0.10 - 0.05), 0.10, 0.95);
+    return clamp(base + (Math.random() * 0.1 - 0.05), 0.1, 0.95);
   },
   responseTimeMs(): number {
     // Moderate: 2500–6000 ms
     return uniformMs(2500, 6000);
   },
-  hintProbability(): number { return 0.18; },
-  abandonProbability(): number { return 0.04; },
+  hintProbability(): number {
+    return 0.18;
+  },
+  abandonProbability(): number {
+    return 0.04;
+  },
 };
 
 // ─── Distractible-G2 ─────────────────────────────────────────────────────────
@@ -98,21 +110,23 @@ const DistractibleG2: Persona = {
   accuracyByLevel(level: number): number {
     // G2 norms: better baseline than K (0.60 at L1), but distractibility
     // introduces variance. Peak ~0.72 at L4, then falls with complexity.
-    const base = level <= 4
-      ? 0.60 + (level - 1) * 0.04
-      : 0.72 - (level - 4) * 0.055;
+    const base = level <= 4 ? 0.6 + (level - 1) * 0.04 : 0.72 - (level - 4) * 0.055;
     // Extra noise: distractible → wider variance
-    return clamp(base + (Math.random() * 0.20 - 0.10), 0.05, 0.95);
+    return clamp(base + (Math.random() * 0.2 - 0.1), 0.05, 0.95);
   },
   responseTimeMs(): number {
     // Bimodal: 30% chance fast-impulsive (500-1800 ms), else slow/distracted (3000-12000 ms)
-    if (Math.random() < 0.30) {
+    if (Math.random() < 0.3) {
       return uniformMs(500, 1800);
     }
     return uniformMs(3000, 12000);
   },
-  hintProbability(): number { return 0.22; },
-  abandonProbability(): number { return 0.15; },
+  hintProbability(): number {
+    return 0.22;
+  },
+  abandonProbability(): number {
+    return 0.15;
+  },
 };
 
 export const ALL_PERSONAS: readonly Persona[] = [EagerK, HesitantK, ConfidentG1, DistractibleG2];

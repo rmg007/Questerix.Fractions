@@ -10,6 +10,7 @@ export { MakeInteraction } from './MakeInteraction';
 export { CompareInteraction } from './CompareInteraction';
 export { BenchmarkInteraction } from './BenchmarkInteraction';
 export { OrderInteraction } from './OrderInteraction';
+export { ExplainYourOrderInteraction } from './ExplainYourOrderInteraction';
 export { SnapMatchInteraction } from './SnapMatchInteraction';
 export { EqualOrNotInteraction } from './EqualOrNotInteraction';
 export { PlacementInteraction } from './PlacementInteraction';

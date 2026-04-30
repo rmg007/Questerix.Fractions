@@ -9,6 +9,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+
 - Public `about.html` static page linked from `index.html`
 - Keyboard-accessible nav in `index.html` (skip-to-content + About / Privacy links)
 - `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` (MIT)
@@ -20,6 +21,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Phase 1 build complete: foundation docs locked, Phaser scaffold running, content pipeline operational, test suite at 122+ units.
 
 ### Added
+
 - **Foundation documentation suite** — 36 documents across 6 directories (`00-foundation` through `50-roadmap`), written and cross-audited. Covers constraints C1–C10, vision, glossary, decision log D-01–D-20, open-questions register, risk register, curriculum scope and sequence, CCSS standards map, 9 per-level specs (L1–L9), activity archetypes, design language, interaction model, full architecture stack, data schema, persistence spec, runtime architecture, content pipeline spec, test strategy, accessibility commitments, performance budget, 4 validation docs, and 2 roadmap docs.
 - **Phaser 4 game scaffold** — TypeScript strict-mode project, Vite dev server, Tailwind v4, LevelScene config-driven architecture. (D-14, C4)
 - **Content pipeline** — Python pipeline (`pipeline/`) that generates `QuestionTemplate` records for each activity archetype; uses Claude Haiku 4.5 for generation and Sonnet 4.6 for editorial polish; programmatic validator clones verify math correctness before output. (D-11, D-12, D-13)
@@ -36,11 +38,13 @@ Phase 1 build complete: foundation docs locked, Phaser scaffold running, content
 - **Performance budget** — 1.0 MB gzipped total, documented per-slice in `docs/30-architecture/performance-budget.md`.
 
 ### Changed
+
 - Constraint C8 rewritten as two-axis denominator × verb progression (D-09).
 - `_quarantine/` established for deprecated RoadMap folders 04 & 05 and enterprise template artifacts (D-10).
 - Level 4 spec: set-halving goal G4.5 removed (D-18); hint ladder pruned to 3-tier `verbal | visual_overlay | worked_example` (D-19).
 
 ### Removed
+
 - Inherited LangGraph plan rejected and not incorporated (D-11).
 - Neon Cosmic Blue / Cyan / Pink palette deprecated from `src/data/config.ts` (D-04, C6).
 

@@ -34,7 +34,12 @@ describe('snapMatchAllPairs property tests', () => {
   it('should reject when pair count mismatches', () => {
     const result = snapMatchAllPairs.fn(
       { studentPairs: [['a', 'b']] },
-      { expectedPairs: [['a', 'b'], ['c', 'd']] }
+      {
+        expectedPairs: [
+          ['a', 'b'],
+          ['c', 'd'],
+        ],
+      }
     );
     expect(result.outcome).toBe('incorrect');
     expect(result.score).toBe(0);
@@ -94,6 +99,6 @@ describe('snapMatchAllPairs property tests', () => {
 
     // All runs should produce identical results
     const firstOutcome = results[0].outcome;
-    expect(results.every(r => r.outcome === firstOutcome)).toBe(true);
+    expect(results.every((r) => r.outcome === firstOutcome)).toBe(true);
   });
 });

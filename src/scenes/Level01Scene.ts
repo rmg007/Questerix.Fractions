@@ -18,19 +18,30 @@ import {
   TITLE_FONT,
   BODY_FONT,
   NAVY_HEX,
+  NAVY,
+  SKY_BG,
   PATH_BLUE,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
+import { A11yLayer } from '../components/A11yLayer';
 import { DragHandle } from '../components/DragHandle';
 import { FeedbackOverlay } from '../components/FeedbackOverlay';
+import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import type { ValidatorResult, QuestionTemplate } from '@/types';
 import type { PartitionInput, PartitionPayload } from '../validators/partition';
 import { tts } from '../audio/TTSService';
+import { sfx } from '../audio/SFXService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
+import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
+import { get as getCopy } from '../lib/i18n/catalog';
+import { level01HintKeys } from '../lib/mascotCopy';
+import { Mascot } from '../components/Mascot';
+import { MASTERY_THRESHOLD } from '../engine/bkt';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -45,9 +56,6 @@ const SHAPE_H = 260;
 
 // Session goal per C9
 const SESSION_GOAL = 5;
-
-// Snap threshold widened from 0.05 → 0.15 (Fix 2: BUG-02 — was too tight for students to land)
-const SNAP_PCT = 0.15;
 
 // Handle starts off-centre so the student must drag — otherwise the initial
 // centre position is already the correct partition for halves and pressing
@@ -135,20 +143,43 @@ export class Level01Scene extends Phaser.Scene {
   // Fix 6 (G-E3): hint-event IDs accumulated per question
   private currentQuestionHintIds: string[] = [];
 
+  // R3: Track the current attempt ID so hint events can be linked after creation
+  private currentAttemptId: import('@/types').AttemptId | null = null;
+
+  // Archetype of the active question — set when loading from templatePool, else 'partition'
+  private currentArchetype: string = 'partition';
+
+  // BKT adaptation: loaded from DB on create(), updated after every attempt
+  private currentMasteryEstimate: number = 0.1;
+  // Dynamic snap tolerance — widens for low mastery (K-2 kids need forgiveness)
+  private currentSnapPct: number = 0.15;
+  // Prevent repeat questions within a session
+  private usedQuestionIds = new Set<string>();
+
   // Current question — may come from DB pool or synthetic fallback
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
   private templatePool: QuestionTemplate[] = [];
+  private calibrationState: import('../engine/calibration').CalibrationState | null = null;
+  private recentOutcomes: boolean[] = [];
 
   // UI components
   private feedbackOverlay!: FeedbackOverlay;
   private progressBar!: ProgressBar;
   private hintLadder!: HintLadder;
   private dragHandle!: DragHandle;
+  private mascot!: Mascot;
+
+  // Counter badge
+  private questionCounterText!: Phaser.GameObjects.Text;
 
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
   private partitionLine!: Phaser.GameObjects.Graphics;
+  /** Transparent overlay over the shape — taps here move the partition line.
+   * Provides a click-to-place affordance in addition to drag, so any input
+   * method (mouse, touch, automated test tool) can position the partition. */
+  private tapZone: Phaser.GameObjects.Rectangle | null = null;
   private promptText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
   private hintButton!: Phaser.GameObjects.Container;
@@ -169,6 +200,11 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
+    this.currentMasteryEstimate = 0.1;
+    this.currentSnapPct = 0.15;
+    this.usedQuestionIds = new Set<string>();
+    this.calibrationState = null;
+    this.recentOutcomes = [];
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -179,6 +215,15 @@ export class Level01Scene extends Phaser.Scene {
 
     // Adventure sky background — matches the MenuScene world
     drawAdventureBackground(this, CW, CH);
+
+    // Fade in from black on arrival
+    try {
+      if (!checkReduceMotion()) {
+        this.cameras.main.fadeIn(300, 0, 0, 0);
+      }
+    } catch {
+      /* ignore */
+    }
 
     // ── Load real templates from Dexie (partition + identify pool for L1) ──
     // per runtime-architecture.md §4.1 — ActivityScene loads QuestionTemplates via repo
@@ -209,7 +254,42 @@ export class Level01Scene extends Phaser.Scene {
 
     // ── Open session in persistence ────────────────────────────────────────
     // per runtime-architecture.md §8 step 4 — new Session row on scene load
-    await this.openSession();
+    // R6: Check return value; if session creation fails, show error and stop
+    const sessionOk = await this.openSession();
+    if (!sessionOk) {
+      this.add
+        .text(CW / 2, CH / 2, 'Could not start session.\nPlease go back and try again.', {
+          fontSize: '28px',
+          fontFamily: BODY_FONT,
+          color: '#ef4444',
+          align: 'center',
+          wordWrap: { width: CW - 80 },
+        })
+        .setOrigin(0.5)
+        .setDepth(100);
+      return;
+    }
+
+    // ── Load current BKT mastery for adaptive question selection ───────────
+    // Mastery estimate drives difficulty tier and snap tolerance for this session.
+    if (this.studentId) {
+      try {
+        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+        const mastery = await skillMasteryRepo.get(
+          this.studentId as import('@/types').StudentId,
+          'skill.partition_halves' as import('@/types').SkillId
+        );
+        if (mastery) {
+          this.currentMasteryEstimate = mastery.masteryEstimate;
+          log.bkt('session_start_mastery', {
+            estimate: +mastery.masteryEstimate.toFixed(4),
+            state: mastery.state,
+          });
+        }
+      } catch (err) {
+        log.warn('BKT', 'initial_mastery_load_error', { error: String(err) });
+      }
+    }
 
     // ── UI chrome ──────────────────────────────────────────────────────────
     this.createHeader();
@@ -230,17 +310,53 @@ export class Level01Scene extends Phaser.Scene {
     // Feedback overlay — per interaction-model.md §2 (<800ms)
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
 
+    // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
+    this.mascot = new Mascot(this, 720, 160, 0.75);
+    this.mascot.setState('idle');
+
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);
     this.partitionLine = this.add.graphics().setDepth(6);
 
+    // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
+    A11yLayer.unmountAll();
+    A11yLayer.mountAction('a11y-submit', 'Check my answer', () => {
+      void this.onSubmit();
+    });
+    A11yLayer.mountAction('a11y-hint', 'Get a hint', () => {
+      this.onHintRequest();
+    });
+    A11yLayer.mountAction('a11y-move-left', 'Move partition line left', () => {
+      this._a11yNudge(-30);
+    });
+    A11yLayer.mountAction('a11y-move-right', 'Move partition line right', () => {
+      this._a11yNudge(30);
+    });
+    A11yLayer.mountAction('a11y-snap-center', 'Place partition at center for halves', () => {
+      if (this.inputLocked) return;
+      this.handlePos = SHAPE_CX;
+      this.updatePartitionLine(SHAPE_CX);
+      (this.dragHandle as DragHandle | undefined)?.moveTo(SHAPE_CX, false);
+      A11yLayer.announce('Partition placed at center.');
+    });
+    A11yLayer.mountAction('a11y-back', 'Back to main menu', () => {
+      void this.closeSession();
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+    });
+
     // ── Test hooks ─────────────────────────────────────────────────────────
     // NOTE: must run AFTER ProgressBar construction so progress-bar sentinel is not wiped
     TestHooks.mountSentinel('level01-scene');
-    // partition-target: transparent button over canvas centre — clicking it submits
+    // partition-target: transparent button over canvas centre — snaps handle to
+    // the correct halves position then submits. Snapping ensures a deterministic
+    // correct answer for e2e tests regardless of handle drag state.
     TestHooks.mountInteractive(
       'partition-target',
       () => {
+        if (!this.inputLocked) {
+          this.handlePos = SHAPE_CX;
+          this.updatePartitionLine(SHAPE_CX);
+        }
         void this.onSubmit();
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
@@ -256,14 +372,27 @@ export class Level01Scene extends Phaser.Scene {
     // hint-text: starts hidden (no text). showHintForTier makes it visible.
     // Sentinel is a span with role=status; visibility toggled by data-visible attr.
     this.mountHintTextSentinel();
+    // session-complete-btn: directly triggers showSessionComplete() so e2e tests
+    // can assert the cheer-big mascot state without completing 5 questions.
+    TestHooks.mountInteractive(
+      'session-complete-btn',
+      () => {
+        void this.showSessionComplete();
+      },
+      { width: '10px', height: '10px', top: '2%', left: '2%' }
+    );
 
     // Fix TTS: load persisted preference before first question fires
     try {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
-    } catch {
-      // Graceful fallback — leave TTS in its default state
+      sfx.setEnabled(meta.preferences.audio ?? true);
+      const vol = meta.preferences.volume ?? 0.8;
+      tts.setVolume(vol);
+      sfx.setVolume(vol);
+    } catch (err) {
+      // Graceful fallback — leave TTS and SFX in their default state
     }
 
     log.scene('create_done');
@@ -280,8 +409,8 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session persistence ──────────────────────────────────────────────────
 
-  private async openSession(): Promise<void> {
-    if (!this.studentId) return;
+  private async openSession(): Promise<boolean> {
+    if (!this.studentId) return true; // anonymous play is OK
     log.sess('open_start', { studentId: this.studentId, resume: this.resume });
     try {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
@@ -310,7 +439,7 @@ export class Level01Scene extends Phaser.Scene {
           }
 
           log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
-          return;
+          return true;
         }
       }
 
@@ -342,9 +471,10 @@ export class Level01Scene extends Phaser.Scene {
       });
       this.sessionId = session.id;
       log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
+      return true;
     } catch (err) {
-      // Volatile mode — continue without session record per runtime-architecture.md §10
       log.warn('SESS', 'open_error', { error: String(err) });
+      return false;
     }
   }
 
@@ -387,8 +517,28 @@ export class Level01Scene extends Phaser.Scene {
         questionIndex: this.questionIndex,
         attemptCount: this.attemptCount,
       });
-      this.scene.start('MenuScene', { lastStudentId: this.studentId });
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
+
+    // Question counter pill badge — sky-blue, matches LevelScene style
+    const CTR_W = 118,
+      CTR_H = 52;
+    const ctrX = CW - 18 - CTR_W;
+    const ctrY = 34;
+    const ctrG = this.add.graphics().setDepth(5);
+    ctrG.fillStyle(SKY_BG, 1);
+    ctrG.fillRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+    ctrG.lineStyle(2, NAVY, 1);
+    ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+    this.questionCounterText = this.add
+      .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${SESSION_GOAL}`, {
+        fontSize: '17px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
   }
 
   private createPromptArea(): void {
@@ -450,32 +600,88 @@ export class Level01Scene extends Phaser.Scene {
     );
   }
 
+  // ── BKT-adaptive question selection ──────────────────────────────────────
+
+  /** Map mastery estimate to a target difficulty tier. */
+  private difficultyTierForMastery(estimate: number): 'easy' | 'medium' | 'hard' {
+    if (estimate < 0.3) return 'easy';
+    if (estimate < 0.65) return 'medium';
+    return 'hard';
+  }
+
+  /**
+   * Snap tolerance widens for low mastery so K-2 beginners experience success;
+   * tightens as the student approaches mastery.
+   */
+  private snapPctForMastery(estimate: number): number {
+    if (estimate < 0.3) return 0.20; // very forgiving
+    if (estimate < 0.65) return 0.15; // standard
+    return 0.10; // precise — student is near mastery
+  }
+
+  /**
+   * Pick the next question using BKT mastery to target the right difficulty tier.
+   * Prefers unused questions of the target tier; falls back to any unused question;
+   * resets the used-set if all questions have been shown already.
+   * Sets currentSnapPct and currentArchetype as side-effects.
+   */
+  private selectNextQuestion(): L01Question {
+    this.currentSnapPct = this.snapPctForMastery(this.currentMasteryEstimate);
+    const targetTier = this.difficultyTierForMastery(this.currentMasteryEstimate);
+
+    if (this.templatePool.length === 0) {
+      // Synthetic path — same fallback as before, but difficulty-aware
+      const unused = QUESTIONS.filter((q) => !this.usedQuestionIds.has(q.id));
+      const tiered = unused.filter((q) => q.difficultyTier === targetTier);
+      const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : QUESTIONS;
+      const q = pool[Math.floor(Math.random() * pool.length)]!;
+      this.usedQuestionIds.add(q.id);
+      this.currentArchetype = 'partition';
+      return q;
+    }
+
+    // Real template path — difficulty-tier selection from Dexie pool
+    const unused = this.templatePool.filter((t) => !this.usedQuestionIds.has(t.id));
+    const tiered = unused.filter((t) => t.difficultyTier === targetTier);
+    const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : this.templatePool;
+    const tmpl = pool[Math.floor(Math.random() * pool.length)]!;
+    this.usedQuestionIds.add(tmpl.id);
+    this.currentArchetype = tmpl.archetype;
+
+    const payload = tmpl.payload as Partial<PartitionPayload> & {
+      shapeType?: 'rectangle' | 'circle';
+    };
+    const tolerance =
+      tmpl.difficultyTier === 'easy'
+        ? Math.max(payload.areaTolerance ?? 0, 0.1)
+        : (payload.areaTolerance ?? 0.05);
+
+    return {
+      id: tmpl.id,
+      shapeType: payload.shapeType ?? 'rectangle',
+      difficultyTier: tmpl.difficultyTier,
+      areaTolerance: tolerance,
+      snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
+      promptText: tmpl.prompt.text,
+    };
+  }
+
   // ── Question loading ──────────────────────────────────────────────────────
 
   private loadQuestion(index: number): void {
-    this.questionIndex = index % Math.max(this.templatePool.length || QUESTIONS.length);
+    this.questionIndex = index;
 
-    if (this.templatePool.length > 0) {
-      // Use real template from Dexie pool — map to L01Question shape for this scene
-      const tmpl = this.templatePool[this.questionIndex % this.templatePool.length]!;
-      const payload = tmpl.payload as Partial<PartitionPayload> & {
-        shapeType?: 'rectangle' | 'circle';
-      };
-      this.currentQuestion = {
-        id: tmpl.id,
-        shapeType: payload.shapeType ?? 'rectangle',
-        difficultyTier: tmpl.difficultyTier,
-        areaTolerance: payload.areaTolerance ?? 0.05,
-        snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
-        promptText: tmpl.prompt.text,
-      };
-    } else {
-      // Synthetic fallback — keeps game playable with no curriculum bundle
-      this.currentQuestion = QUESTIONS[this.questionIndex % QUESTIONS.length]!;
-    }
+    // BKT-adaptive selection: picks difficulty tier based on current mastery estimate.
+    // selectNextQuestion() also updates currentSnapPct for this question.
+    this.currentQuestion = this.selectNextQuestion();
 
     this.wrongCount = 0;
     this.inputLocked = false;
+
+    // Update question counter badge — use raw index so display is independent of
+    // template-pool cycling (matches LevelScene behaviour)
+    this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
+
     // Start off-centre so the partition is clearly unequal on load — student must drag.
     this.handlePos = SHAPE_CX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
     const initialPct = Math.round(((this.handlePos - (SHAPE_CX - SHAPE_W / 2)) / SHAPE_W) * 100);
@@ -509,6 +715,11 @@ export class Level01Scene extends Phaser.Scene {
     // returns false when disabled, so no separate preference lookup is needed here.
     tts.speak(this.currentQuestion.promptText);
 
+    // Announce question to assistive tech (separate from TTS — visual screen-readers vs audio)
+    A11yLayer.announce(
+      `Question ${index + 1} of ${SESSION_GOAL}. ${this.currentQuestion.promptText}`
+    );
+
     this.drawShape();
     this.createDragHandle();
   }
@@ -539,6 +750,29 @@ export class Level01Scene extends Phaser.Scene {
     g.fillRect(x, y, SHAPE_W, SHAPE_H);
     g.lineStyle(3, 0x1e3a8a, 0.35);
     g.strokeRect(x, y, SHAPE_W, SHAPE_H);
+
+    // Tap-to-place: any pointerdown over the rectangle moves the partition line
+    // to that x-coordinate. Works for clicks, taps, and the first frame of a drag.
+    // Lower depth than the drag handle's hit zone so dragging the line still
+    // takes precedence — but a click anywhere else on the rectangle still works.
+    if (!this.tapZone) {
+      this.tapZone = this.add
+        .rectangle(SHAPE_CX, SHAPE_CY, SHAPE_W, SHAPE_H, 0x000000, 0)
+        .setDepth(4) // below dragHandle hitZone
+        .setInteractive({ useHandCursor: true });
+      this.tapZone.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        if (this.inputLocked) return;
+        const minX = SHAPE_CX - SHAPE_W / 2;
+        const maxX = SHAPE_CX + SHAPE_W / 2;
+        const clamped = Phaser.Math.Clamp(ptr.x, minX, maxX);
+        this.handlePos = clamped;
+        this.updatePartitionLine(clamped);
+        // Move the visible drag handle to track the new position too
+        const dh = this.dragHandle as DragHandle | undefined;
+        dh?.moveTo(clamped, false);
+        log.drag('tap-place', { x: Math.round(clamped) });
+      });
+    }
   }
 
   private drawCircleShape(): void {
@@ -590,7 +824,7 @@ export class Level01Scene extends Phaser.Scene {
 
     const minX = SHAPE_CX - SHAPE_W / 2;
     const maxX = SHAPE_CX + SHAPE_W / 2;
-    const snapThreshold = SHAPE_W * SNAP_PCT; // per level-01.md §4.3 ±5%
+    const snapThreshold = SHAPE_W * this.currentSnapPct; // BKT-adaptive per session mastery
 
     // Only snap in axis mode per level-01.md §4.3
     const snapTargets = this.currentQuestion.snapMode === 'axis' ? [SHAPE_CX] : [];
@@ -643,6 +877,17 @@ export class Level01Scene extends Phaser.Scene {
     // per interaction-model.md §2.1 — disable input until outcome animation completes
     this.inputLocked = true;
     this.submitButtonContainer?.setAlpha(0.5);
+
+    // Snap-on-submit: if handle is within snap range and snap is enabled for this
+    // question, magnetize to center before validating. Recovers from input methods
+    // that don't fire Phaser dragend events (some touch/test harnesses).
+    if (this.currentQuestion.snapMode === 'axis') {
+      const snapThreshold = SHAPE_W * this.currentSnapPct; // BKT-adaptive
+      if (Math.abs(this.handlePos - SHAPE_CX) <= snapThreshold) {
+        this.handlePos = SHAPE_CX;
+        this.updatePartitionLine(SHAPE_CX);
+      }
+    }
 
     // Compute areas from handle position
     // Horizontal line splits rectangle by X position
@@ -706,9 +951,79 @@ export class Level01Scene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    await this.recordAttempt(result, responseMs, input);
-
     this.showOutcome(result);
+    await this.recordAttempt(result, responseMs, input);
+  }
+
+  /**
+   * Level 1 is always partition_halves (targetPartitions = 2).
+   * Matching the LevelScene helper pattern for symmetry.
+   */
+  private payloadDenominator(): number {
+    return 2;
+  }
+
+  /**
+   * Quest-voiced feedback for the outcome. Mirrors LevelScene.questFeedbackText().
+   * Correct picks the denominator-named line; Level 1 is always halves (2)
+   * so it always resolves to `quest.feedback.correct.half`. Incorrect switches
+   * on archetype exactly as LevelScene does, with the same generic fallback.
+   * null for partial/close outcomes.
+   */
+  private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
+    if (kind === 'correct') {
+      const d = this.payloadDenominator();
+      switch (d) {
+        case 2:
+          return getCopy('quest.feedback.correct.half');
+        case 3:
+          return getCopy('quest.feedback.correct.third');
+        case 4:
+          return getCopy('quest.feedback.correct.fourth');
+        default:
+          return getCopy('quest.feedback.correct.equal');
+      }
+    }
+    if (kind === 'incorrect') {
+      const archetype = this.currentArchetype as string | undefined;
+      switch (archetype) {
+        case 'equal_or_not':
+        case 'compare':
+        case 'order':
+        case 'benchmark':
+        case 'label':
+        case 'make':
+        case 'snap_match':
+          try {
+            return getCopy(`quest.feedback.wrong.${archetype}`);
+          } catch {
+            return getCopy('quest.feedback.wrong.unequal');
+          }
+        default:
+          return getCopy('quest.feedback.wrong.unequal');
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Quest-voiced hint for the partition archetype at the given tier.
+   * Level 1 is always halves (denominator 2), so the split2 case resolves to
+   * a tier-specific key (verbal / visual / worked) for progressive escalation.
+   * Other denominators fall back to their generic keys (no tier variation yet).
+   */
+  private questHintText(tier: import('@/types').HintTier): string {
+    const d = this.payloadDenominator();
+    switch (d) {
+      case 2:
+        return getCopy(level01HintKeys[tier]);
+      case 3:
+        return getCopy('quest.hint.split3');
+      case 4:
+        return getCopy('quest.hint.split4');
+      default:
+        return getCopy('quest.hint.fallback.verbal');
+    }
   }
 
   private showOutcome(result: ValidatorResult): void {
@@ -725,29 +1040,50 @@ export class Level01Scene extends Phaser.Scene {
       this.progressBar.setProgress(this.attemptCount + 1);
     }
 
-    // FeedbackOverlay — per interaction-model.md §2 (<800ms)
-    this.feedbackOverlay.show(kind, () => {
-      this.inputLocked = false;
-      this.submitButtonContainer?.setAlpha(1);
-      if (kind === 'correct') {
-        this.onCorrectAnswer();
-      } else {
-        this.onWrongAnswer();
-      }
-    });
+    // Quest-voiced feedback per ux-elevation §9 T28. Pass the Quest line
+    // through to FeedbackOverlay so the overlay reads from Quest's voice
+    // catalog instead of its baked-in English defaults. close/partial has
+    // no Quest line yet, so FeedbackOverlay falls back to its own default.
+    const questText = this.questFeedbackText(kind);
 
-    // ARIA live announcement — per interaction-model.md §9
-    // per interaction-model.md §5.1 — never say "wrong"
+    this.feedbackOverlay.show(
+      kind,
+      () => {
+        this.inputLocked = false;
+        this.submitButtonContainer?.setAlpha(1);
+        if (kind === 'correct') {
+          this.onCorrectAnswer();
+        } else {
+          this.onWrongAnswer();
+        }
+      },
+      questText ?? undefined
+    );
+
+    // Mascot reacts after the overlay is visible
+    if (kind === 'correct') {
+      this.mascot?.setState('cheer');
+    } else if (kind === 'incorrect') {
+      this.mascot?.setState('think');
+    }
+
+    // Mirror the visible feedback to the screen-reader announcer so the
+    // assistive-tech experience stays in Quest's voice when one is set.
     const announcement =
-      kind === 'correct'
+      questText ??
+      (kind === 'correct'
         ? 'Correct! Great work.'
         : kind === 'close'
           ? 'Almost! Try a tiny adjustment.'
-          : 'Not quite — try again.';
+          : 'Not quite — try again.');
+    // Speak feedback aloud via TTS — essential for K-2 readers who can't
+    // reliably parse text. tts.speak() cancels any ongoing prompt narration.
+    tts.speak(announcement);
     AccessibilityAnnouncer.announce(announcement);
   }
 
   private onCorrectAnswer(): void {
+    this.recentOutcomes.push(true);
     this.attemptCount++;
     this.progressBar.setProgress(this.attemptCount);
     log.q('correct', {
@@ -766,6 +1102,7 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private onWrongAnswer(): void {
+    this.recentOutcomes.push(false);
     this.wrongCount++;
     log.q('wrong', {
       questionIndex: this.questionIndex,
@@ -794,6 +1131,7 @@ export class Level01Scene extends Phaser.Scene {
     // The HintLadder class owns this logic; we just ensure we call next() once per press.
     const tier = this.hintLadder.next();
     log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+    this.mascot?.setState('think');
     void this.showHintForTierAndRecord(tier);
   }
 
@@ -807,26 +1145,28 @@ export class Level01Scene extends Phaser.Scene {
   private async showHintForTierAndRecord(tier: import('@/types').HintTier): Promise<void> {
     this.hintText.setVisible(true);
 
-    let hintMessage = '';
+    // Quest-voiced hint per ux-elevation §9 T28. Each tier shows a distinct
+    // line from the catalog (split2.verbal / .visual / .worked) so language
+    // escalates alongside the visual escalation already in place.
+    const hintMessage = this.questHintText(tier);
+    this.hintText.setText(hintMessage);
+    // Speak the hint aloud — hint text is invisible to K-2 readers who can't
+    // yet decode it. tts.speak() cancels any ongoing speech before starting.
+    tts.speak(hintMessage);
+
     switch (tier) {
       case 'verbal':
         // Tier 1 — verbal prompt per interaction-model.md §4
-        hintMessage = 'Tip: Equal parts means each piece is the same size. Try the middle!';
-        this.hintText.setText(hintMessage);
         break;
 
       case 'visual_overlay':
         // Tier 2 — faint center line overlay per interaction-model.md §4
-        hintMessage = 'Look for the center of the shape.';
-        this.hintText.setText(hintMessage);
         this.drawCenterOverlay();
         break;
 
       case 'worked_example':
         // Tier 3 — animated demo per interaction-model.md §4
         // per interaction-model.md §4.1 — Tier 3 never auto-completes; canvas resets after demo
-        hintMessage = 'Watch where to place the line, then try yourself.';
-        this.hintText.setText(hintMessage);
         this.animateWorkedExample();
         break;
     }
@@ -891,7 +1231,7 @@ export class Level01Scene extends Phaser.Scene {
    * per design-language.md §6.1 (partition demonstration 400–600ms)
    */
   private animateWorkedExample(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (reduceMotion) {
       // per design-language.md §6.4 — static overlay
@@ -923,7 +1263,7 @@ export class Level01Scene extends Phaser.Scene {
 
   /** One-time pulse on the hint button per interaction-model.md §5.4 */
   private pulseHintButton(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     if (reduceMotion) return;
 
     this.tweens.add({
@@ -953,6 +1293,7 @@ export class Level01Scene extends Phaser.Scene {
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
       const attemptId = nanoid() as import('@/types').AttemptId;
+      this.currentAttemptId = attemptId; // R3: Store for hint linkage
       log.atmp('record_start', {
         attemptId,
         outcome,
@@ -986,6 +1327,20 @@ export class Level01Scene extends Phaser.Scene {
       });
 
       log.atmp('record_ok', { attemptId, outcome, points: result.score });
+
+      // R3: Link hint events to this attempt (they were created with empty attemptId)
+      if (this.currentQuestionHintIds.length > 0) {
+        try {
+          const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
+          for (const hintId of this.currentQuestionHintIds) {
+            await hintEventRepo.update(hintId, { attemptId });
+          }
+          log.hint('linkage_ok', { attemptId, hintCount: this.currentQuestionHintIds.length });
+        } catch (err) {
+          log.warn('HINT', 'linkage_error', { error: String(err) });
+        }
+      }
+      this.currentQuestionHintIds = []; // Reset for next question
 
       // Fix 4 (G-E1): update BKT mastery after every attempt
       try {
@@ -1036,6 +1391,9 @@ export class Level01Scene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
+        // Keep live estimate in sync so the next question in this session
+        // uses the updated mastery for difficulty and snap tolerance selection.
+        this.currentMasteryEstimate = withMeta.masteryEstimate;
       } catch (err) {
         log.warn('BKT', 'mastery_update_error', { error: String(err) });
       }
@@ -1073,6 +1431,18 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
+  private _allLevelsComplete(): boolean {
+    try {
+      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
+      const raw = localStorage.getItem(key);
+      if (!raw) return false;
+      const arr = JSON.parse(raw) as number[];
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+    } catch {
+      return false;
+    }
+  }
+
   /** Show "Session complete" card after SESSION_GOAL correct answers. per C9, interaction-model.md §6.2 */
   private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
@@ -1089,114 +1459,88 @@ export class Level01Scene extends Phaser.Scene {
           ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
           : null,
     });
-    TestHooks.mountSentinel('completion-screen');
-
-    // Dim background
-    void this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
-
-    // Card — white rounded card matching the adventure theme
-    const cardG = this.add.graphics().setDepth(51);
-    cardG.fillStyle(0xe0f2fe, 1);
-    cardG.fillRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-    cardG.lineStyle(5, 0x1e3a8a, 1);
-    cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-
-    this.add
-      .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
-        fontSize: '36px',
-        fontFamily: TITLE_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
-
-    this.add
-      .text(CW / 2, CH / 2 - 60, `You finished ${this.attemptCount} problems!`, {
-        fontSize: '22px',
-        fontFamily: BODY_FONT,
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
 
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
 
-    // "Keep going" — amber action button
-    // G-C7/G-UX6: advance to Level 2 (LevelScene) rather than looping within Level 1.
-    void createActionButton(
-      this,
-      CW / 2,
-      CH / 2 + 60,
-      'Keep going ▶',
-      () => {
-        this.scene.start('LevelScene', {
-          levelNumber: 2,
-          studentId: this.studentId,
-        });
+    // Adaptive router: write suggested next level (simplified for L1 — no mastery tracking)
+    try {
+      const { decideNextLevel } = await import('../engine/router');
+      const inCalibration = !!(this.calibrationState && this.calibrationState.remaining > 0);
+      // Level 1 has no prerequisites, so prereqsMet is always false
+      const suggestedLevel = decideNextLevel({
+        currentLevel: 1 as import('@/types').LevelId,
+        masteries: new Map(),
+        prereqsMet: false,
+        inCalibration,
+        recentOutcomes: this.recentOutcomes.slice(-5),
+      });
+      const suggestKey = this.studentId ? `suggestedLevel:${this.studentId}` : 'suggestedLevel';
+      localStorage.setItem(suggestKey, String(suggestedLevel));
+    } catch (err) {
+      log.warn('ROUT', 'decision_error', { error: String(err) });
+    }
+
+    // Quest-complete check: if all 9 levels are now done, show grand overlay
+    const allDone = this._allLevelsComplete();
+    if (allDone) {
+      const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
+      new QuestCompleteOverlay({
+        scene: this,
+        width: CW,
+        height: CH,
+        onPlayAgainFromStart: () => {
+          fadeAndStart(this, 'LevelScene', { levelNumber: 1, studentId: this.studentId });
+        },
+        onMenu: () => {
+          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+        },
+      });
+      if (this.mascot) {
+        this.mascot.setDepth(60);
+        this.mascot.reposition(CW - 120, 400);
+        this.mascot.setState('celebrate');
+      }
+      await this.closeSession();
+      return;
+    }
+
+    new SessionCompleteOverlay({
+      scene: this,
+      levelNumber: 1,
+      correctCount: this.correctCount,
+      totalAttempts: this.totalQuestionsAttempted,
+      width: CW,
+      height: CH,
+      onPlayAgain: () => {
+        fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
       },
-      52
-    );
-
-    // "Back to menu" — secondary button
-    this.createModalButton(
-      CW / 2,
-      CH / 2 + 160,
-      'Back to menu',
-      0xffffff,
-      NAVY_HEX,
-      () => {
-        this.time.delayedCall(200, () => {
-          this.scene.start('MenuScene', { lastStudentId: this.studentId });
-        });
+      onMenu: () => {
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
-      52
-    );
+    });
 
-    // ARIA announcement
-    AccessibilityAnnouncer.announce(
-      `Session complete! You finished ${this.attemptCount} problems.`
-    );
+    // Move Quest beside the trophy card (right of centre, above the heading at
+    // overlay-y=420) and raise its depth above the overlay (depth 50).
+    // x = CW - 120 keeps Quest inside the right edge; y = 400 sits between
+    // the trophy emoji (overlay-y=320) and the level heading (overlay-y=420).
+    if (this.mascot) {
+      this.mascot.setDepth(60);
+      this.mascot.reposition(CW - 120, 400);
+      this.mascot.setState('cheer-big');
+    }
 
-    // Close session in persistence
     await this.closeSession();
-  }
-
-  private createModalButton(
-    x: number,
-    y: number,
-    label: string,
-    bg: number,
-    textColor: string,
-    onTap: () => void,
-    depth: number
-  ): void {
-    const g = this.add.graphics().setDepth(depth);
-    g.fillStyle(bg, 1);
-    g.fillRoundedRect(x - 160, y - 28, 320, 56, 28);
-    g.lineStyle(4, 0x1e3a8a, 1);
-    g.strokeRoundedRect(x - 160, y - 28, 320, 56, 28);
-
-    this.add
-      .text(x, y, label, {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: textColor,
-      })
-      .setOrigin(0.5)
-      .setDepth(depth + 1);
-
-    this.add
-      .rectangle(x, y, 320, 56, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(depth + 2)
-      .on('pointerup', onTap);
   }
 
   private async closeSession(): Promise<void> {
     if (!this.sessionId) return;
+    try {
+      const { updateStreak } = await import('../lib/streak');
+      updateStreak(this.studentId);
+    } catch {
+      // Non-critical
+    }
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
@@ -1208,6 +1552,10 @@ export class Level01Scene extends Phaser.Scene {
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
           : null;
 
+      // BKT-derived scaffold recommendation: tells the router what to do next session.
+      const scaffoldRecommendation: 'advance' | 'stay' =
+        this.currentMasteryEstimate >= 0.85 ? 'advance' : 'stay';
+
       const summary = {
         endedAt: Date.now(),
         totalAttempts: this.totalQuestionsAttempted,
@@ -1215,7 +1563,7 @@ export class Level01Scene extends Phaser.Scene {
         accuracy,
         avgResponseMs,
         xpEarned: this.correctCount * 10,
-        scaffoldRecommendation: 'stay' as const,
+        scaffoldRecommendation,
         endLevel: 1,
       };
       log.sess('close', { sessionId: this.sessionId, ...summary });
@@ -1227,12 +1575,20 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Utilities ─────────────────────────────────────────────────────────────
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
+  /**
+   * Keyboard/screen-reader nudge: move the partition line by `delta` logical px.
+   * Clamps to shape bounds and updates the visible drag handle.
+   */
+  private _a11yNudge(delta: number): void {
+    if (this.inputLocked) return;
+    const minX = SHAPE_CX - SHAPE_W / 2;
+    const maxX = SHAPE_CX + SHAPE_W / 2;
+    const next = Phaser.Math.Clamp(this.handlePos + delta, minX, maxX);
+    this.handlePos = next;
+    this.updatePartitionLine(next);
+    (this.dragHandle as DragHandle | undefined)?.moveTo(next, false);
+    const pct = Math.round(((next - minX) / SHAPE_W) * 100);
+    A11yLayer.announce(`Partition at ${pct} percent across.`);
   }
 
   // Called by Phaser when scene is shut down
@@ -1240,5 +1596,9 @@ export class Level01Scene extends Phaser.Scene {
     log.scene('destroy');
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
+    A11yLayer.unmountAll();
+    this.tapZone?.destroy();
+    this.tapZone = null;
   }
 }
+

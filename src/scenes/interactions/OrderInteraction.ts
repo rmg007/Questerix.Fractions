@@ -4,9 +4,16 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import {
+  NAVY,
+  OPTION_BORDER,
+  SELECTED_BG,
+  SKY_BG,
+  TEXT_BODY,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface FracDef {
   id: string;
@@ -21,8 +28,10 @@ interface OrderPayload {
   direction?: 'asc' | 'desc';
 }
 
+// Accepts "1/2", "frac:1/2". "frac:" is the curriculum reference prefix.
 function parseFrac(s: string): { n: number; d: number } {
-  const [n, d] = s.split('/').map(Number);
+  const stripped = s.startsWith('frac:') ? s.slice(5) : s;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -39,8 +48,8 @@ export class OrderInteraction implements Interaction {
     const fracs: FracDef[] =
       payload.fractions ??
       (payload.fractionIds ?? []).map((id, i) => {
-        const lbl = payload.labels?.[i] ?? id;
-        const { n, d } = parseFrac(lbl);
+        const { n, d } = parseFrac(id);
+        const lbl = payload.labels?.[i] ?? `${n}/${d}`;
         return { id, label: lbl, numerator: n, denominator: d };
       });
 
@@ -59,14 +68,14 @@ export class OrderInteraction implements Interaction {
     for (let si = 0; si < n; si++) {
       const sx = startX + si * (cardW + gap) + cardW / 2;
       const slot = scene.add
-        .rectangle(sx, slotY, cardW, cardH + 8, CLR.neutral100)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(sx, slotY, cardW, cardH + 8, SKY_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(4);
       scene.add
         .text(sx, slotY + cardH / 2 + 14, `${si + 1}`, {
           fontSize: '13px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral600,
+          color: TEXT_BODY,
         })
         .setOrigin(0.5)
         .setDepth(5);
@@ -87,7 +96,7 @@ export class OrderInteraction implements Interaction {
         numerator: frac.numerator,
         denominator: frac.denominator,
         label: frac.label,
-        fillColor: CLR.primary,
+        fillColor: NAVY,
       });
       this.bars.push(bar);
 
@@ -99,6 +108,13 @@ export class OrderInteraction implements Interaction {
       handle.setData('fracId', frac.id);
       handle.setData('barIdx', i);
 
+      handle.on('dragstart', () => {
+        ctx.pushEvent({
+          type: 'pickUp',
+          targetId: frac.id,
+          timestamp: Date.now(),
+        });
+      });
       handle.on('drag', (_p: unknown, dx: number, dy: number) => {
         handle.setPosition(dx, dy);
       });
@@ -116,7 +132,14 @@ export class OrderInteraction implements Interaction {
         }
         this.sequence[best] = frac.id;
         handle.setPosition(startX + best * (cardW + gap) + cardW / 2, slotY);
-        slotRects[best].setFillStyle(CLR.primarySoft);
+        slotRects[best].setFillStyle(SELECTED_BG);
+
+        ctx.pushEvent({
+          type: 'place',
+          targetId: frac.id,
+          trayIndex: best,
+          timestamp: Date.now(),
+        });
       });
 
       this.gameObjects.push(handle);
@@ -124,13 +147,13 @@ export class OrderInteraction implements Interaction {
 
     // Submit button
     const sy = centerY + 200;
-    const sbg = scene.add.rectangle(centerX, sy, 200, 52, CLR.primary).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 200, 52, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check Order', {
         fontSize: '17px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);

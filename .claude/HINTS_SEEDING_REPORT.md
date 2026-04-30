@@ -15,49 +15,53 @@ Implemented a comprehensive hints seeding solution that loads 213 hint records f
 ## Hints Data Overview
 
 ### Total Records Seeded
+
 - **213 hints** from 71 unique question templates
 - **100% pass rate** on integration tests
 
 ### Distribution by Archetype (Activity Type)
 
-| Archetype | Count | Levels | Notes |
-|-----------|-------|--------|-------|
-| **pt** (parts-to-whole) | 36 | L1, L4, L5 | Largest set; core early content |
-| **id** (identify denominator) | 36 | L1, L2, L3 | Foundational skill building |
-| **lb** (locate on number line) | 33 | L2, L3, L7 | Progression across 3 levels |
-| **cmp** (comparison) | 24 | L6, L7 | Intermediate comparisons |
-| **mk** (make equivalent) | 24 | L4, L5 | Fraction equivalence |
-| **ms** (magnitude/scale) | 24 | L8, L9 | Advanced magnitude work |
-| **bm** (benchmark) | 12 | L8 | Advanced reference frames |
-| **ord** (ordering) | 12 | L9 | Highest difficulty level |
-| **sm** (simplify/reduce) | 12 | L6 | Fraction simplification |
+| Archetype                      | Count | Levels     | Notes                           |
+| ------------------------------ | ----- | ---------- | ------------------------------- |
+| **pt** (parts-to-whole)        | 36    | L1, L4, L5 | Largest set; core early content |
+| **id** (identify denominator)  | 36    | L1, L2, L3 | Foundational skill building     |
+| **lb** (locate on number line) | 33    | L2, L3, L7 | Progression across 3 levels     |
+| **cmp** (comparison)           | 24    | L6, L7     | Intermediate comparisons        |
+| **mk** (make equivalent)       | 24    | L4, L5     | Fraction equivalence            |
+| **ms** (magnitude/scale)       | 24    | L8, L9     | Advanced magnitude work         |
+| **bm** (benchmark)             | 12    | L8         | Advanced reference frames       |
+| **ord** (ordering)             | 12    | L9         | Highest difficulty level        |
+| **sm** (simplify/reduce)       | 12    | L6         | Fraction simplification         |
 
 ### Hint Ordering
 
 **Perfect 3-tier escalation structure:**
+
 - **Order 1 (Verbal)**: 71 hints — foundational prompts
-- **Order 2 (Verbal)**: 71 hints — intermediate scaffolding  
+- **Order 2 (Verbal)**: 71 hints — intermediate scaffolding
 - **Order 3 (Verbal)**: 71 hints — worked example guidance
 
 All templates have sequential 1→2→3 ordering with no gaps or duplicates.
 
 ### Content Structure
 
-| Field | Status | Details |
-|-------|--------|---------|
-| **text** | ✓ 213/213 (100%) | Verbal prompts for all hints |
-| **ttsKey** | ✓ 213/213 (100%) | Text-to-speech keys for accessibility |
-| **assetUrl** | — | 0/213 (0%) — reserved for visual overlays |
-| **pointCost** | ✓ 213/213 (0.0) | No score penalties for hint usage |
+| Field         | Status           | Details                                   |
+| ------------- | ---------------- | ----------------------------------------- |
+| **text**      | ✓ 213/213 (100%) | Verbal prompts for all hints              |
+| **ttsKey**    | ✓ 213/213 (100%) | Text-to-speech keys for accessibility     |
+| **assetUrl**  | —                | 0/213 (0%) — reserved for visual overlays |
+| **pointCost** | ✓ 213/213 (0.0)  | No score penalties for hint usage         |
 
 ---
 
 ## Implementation Files
 
 ### 1. Seeding Script
+
 **File**: `.claude/seed_hints.ts`
 
 A standalone Node.js script that:
+
 - Loads hints.json from pipeline/output/
 - Validates structure and schema compliance
 - Seeds hints into Dexie via `hintRepo.bulkPut()`
@@ -65,6 +69,7 @@ A standalone Node.js script that:
 - Generates a detailed report
 
 **Usage**:
+
 ```bash
 npx tsx .claude/seed_hints.ts
 # or add to package.json scripts:
@@ -74,9 +79,11 @@ npx tsx .claude/seed_hints.ts
 **Output**: JSON report at `.claude/reports/hints_seed_report.json`
 
 ### 2. Integration Test Suite
+
 **File**: `tests/integration/hints_seed.test.ts`
 
 8 comprehensive tests validating:
+
 - ✓ JSON structure and format
 - ✓ ID and template ID format validation (supports 2-3 char archetypes)
 - ✓ Bulk seeding to Dexie store
@@ -87,11 +94,13 @@ npx tsx .claude/seed_hints.ts
 - ✓ Accurate statistics collection
 
 **Run tests**:
+
 ```bash
 npm run test:integration -- hints_seed.test.ts
 ```
 
 **Test Results**:
+
 ```
 Test Files: 1 passed (1)
 Tests: 8 passed (8)
@@ -107,7 +116,7 @@ Duration: 3.69s
 The hints table is registered in the Dexie schema with compound indexing:
 
 ```typescript
-hints: 'id, [questionTemplateId+order]'
+hints: 'id, [questionTemplateId+order]';
 ```
 
 - **Primary key**: `id` (e.g., `h:pt:L1:0001:T1`)
@@ -135,16 +144,16 @@ await hintRepo.clear(): Promise<void>
 
 ```typescript
 interface HintTemplate {
-  id: string;                    // h:pt:L1:0001:T1
-  questionTemplateId: string;    // q:pt:L1:0001
-  type: HintTier;                // 'verbal' | 'visual_overlay' | 'worked_example'
-  order: 1 | 2 | 3;              // escalation tier
+  id: string; // h:pt:L1:0001:T1
+  questionTemplateId: string; // q:pt:L1:0001
+  type: HintTier; // 'verbal' | 'visual_overlay' | 'worked_example'
+  order: 1 | 2 | 3; // escalation tier
   content: {
-    text?: string;               // verbal prompt
-    assetUrl?: string;           // future visual overlays
-    ttsKey?: string;             // TTS localization key
+    text?: string; // verbal prompt
+    assetUrl?: string; // future visual overlays
+    ttsKey?: string; // TTS localization key
   };
-  pointCost: number;             // score deduction (0 for all current hints)
+  pointCost: number; // score deduction (0 for all current hints)
 }
 ```
 
@@ -154,18 +163,18 @@ interface HintTemplate {
 
 Tested 10 random question templates to verify queryability:
 
-| Template ID | Hints Found | Ordering Valid | Notes |
-|------------|-------------|----------------|-------|
-| q:pt:L1:0001 | 3 | ✓ | Orders 1,2,3 sequenced correctly |
-| q:pt:L1:0002 | 3 | ✓ | Compound index retrieval working |
-| q:pt:L1:0003 | 3 | ✓ | Range query across order values |
-| q:id:L1:0001 | 3 | ✓ | Multi-archetype support verified |
-| q:id:L1:0002 | 3 | ✓ | All queries returning sorted results |
-| q:id:L1:0003 | 3 | ✓ | Proper compound key behavior |
-| q:lb:L2:0001 | 3 | ✓ | Template isolation confirmed |
-| q:lb:L2:0002 | 3 | ✓ | No cross-template leakage |
-| q:lb:L2:0003 | 3 | ✓ | Complete hint chains available |
-| q:cmp:L6:0001 | 3 | ✓ | High-level content queryable |
+| Template ID   | Hints Found | Ordering Valid | Notes                                |
+| ------------- | ----------- | -------------- | ------------------------------------ |
+| q:pt:L1:0001  | 3           | ✓              | Orders 1,2,3 sequenced correctly     |
+| q:pt:L1:0002  | 3           | ✓              | Compound index retrieval working     |
+| q:pt:L1:0003  | 3           | ✓              | Range query across order values      |
+| q:id:L1:0001  | 3           | ✓              | Multi-archetype support verified     |
+| q:id:L1:0002  | 3           | ✓              | All queries returning sorted results |
+| q:id:L1:0003  | 3           | ✓              | Proper compound key behavior         |
+| q:lb:L2:0001  | 3           | ✓              | Template isolation confirmed         |
+| q:lb:L2:0002  | 3           | ✓              | No cross-template leakage            |
+| q:lb:L2:0003  | 3           | ✓              | Complete hint chains available       |
+| q:cmp:L6:0001 | 3           | ✓              | High-level content queryable         |
 
 **Non-existent template** (`q:xx:L0:0000`): Returns empty array `[]` as expected.
 
@@ -183,6 +192,7 @@ The hints are integrated into the main curriculum seed flow:
 ### Bootstrap Sequence (per persistence-spec.md §5)
 
 Hints are seeded as part of Step 4 of the static curriculum load:
+
 - **Step 2**: Initialize deviceMeta
 - **Step 3**: Compare content versions (triggers wipe if mismatch)
 - **Step 4**: Atomic transaction seeds all static stores (curriculumPacks, standards, skills, activities, hints, misconceptions, etc.)
@@ -192,6 +202,7 @@ Hints are seeded as part of Step 4 of the static curriculum load:
 ## Validation Summary
 
 ### Data Quality
+
 - ✓ All 213 hints have non-empty `id`, `questionTemplateId`, `type`, `order`
 - ✓ All `order` values are 1, 2, or 3
 - ✓ All `type` values are 'verbal' (100% coverage)
@@ -199,12 +210,14 @@ Hints are seeded as part of Step 4 of the static curriculum load:
 - ✓ Sequential ordering (no gaps: 1→2→3)
 
 ### Schema Compliance
+
 - ✓ All hints conform to HintTemplate interface
 - ✓ Compound index supports efficient `[templateId+order]` queries
 - ✓ Compatible with Dexie v3 schema (version 3)
 - ✓ Point costs correctly set to 0.0
 
 ### Accessibility
+
 - ✓ 100% of hints have TTS keys for audio playback
 - ✓ All hints have plain-text content
 - ✓ Proper escalation tiers ready for visual overlays (not yet populated)
@@ -223,24 +236,26 @@ Hints are seeded as part of Step 4 of the static curriculum load:
 
 ## Files Modified/Created
 
-| File | Type | Purpose |
-|------|------|---------|
-| `.claude/seed_hints.ts` | Script | Standalone seeding tool |
-| `tests/integration/hints_seed.test.ts` | Test | Validation test suite |
-| `src/persistence/repositories/hint.ts` | Existing | No changes; used as-is |
-| `src/persistence/db.ts` | Existing | No changes; schema already supports hints |
-| `.claude/HINTS_SEEDING_REPORT.md` | Report | This document |
+| File                                   | Type     | Purpose                                   |
+| -------------------------------------- | -------- | ----------------------------------------- |
+| `.claude/seed_hints.ts`                | Script   | Standalone seeding tool                   |
+| `tests/integration/hints_seed.test.ts` | Test     | Validation test suite                     |
+| `src/persistence/repositories/hint.ts` | Existing | No changes; used as-is                    |
+| `src/persistence/db.ts`                | Existing | No changes; schema already supports hints |
+| `.claude/HINTS_SEEDING_REPORT.md`      | Report   | This document                             |
 
 ---
 
 ## Build & Deployment
 
 No build changes needed. The hints seeding:
+
 - Runs automatically on app boot via `seedIfEmpty()` in BootScene
 - Uses existing Dexie infrastructure (no new dependencies)
 - Falls back gracefully if hints.json is missing (degrade to synthetic fallback)
 
 **Health Check**:
+
 ```bash
 npm run test:integration -- hints_seed.test.ts
 # Expected: 8/8 passing, 0 errors

@@ -38,7 +38,11 @@ describe('backupToFile', () => {
   it('blob content parses to a valid envelope with correct schema version', async () => {
     const blob = await backupToFile();
     const text = await blob.text();
-    const envelope = JSON.parse(text) as { version: number; exportedAt: number; tables: Record<string, unknown[]> };
+    const envelope = JSON.parse(text) as {
+      version: number;
+      exportedAt: number;
+      tables: Record<string, unknown[]>;
+    };
     expect(envelope.version).toBe(1);
     expect(typeof envelope.exportedAt).toBe('number');
     expect(Array.isArray(envelope.tables.students)).toBe(true);
@@ -81,8 +85,12 @@ describe('reset flow (lastUsedStudent.clear)', () => {
     const store: Record<string, string> = { 'questerix.lastUsedStudentId': 'stu-abc' };
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => store[k] ?? null,
-      setItem: (k: string, v: string) => { store[k] = v; },
-      removeItem: (k: string) => { delete store[k]; },
+      setItem: (k: string, v: string) => {
+        store[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
     });
     lastUsedStudent.clear();
     expect(localStorage.getItem('questerix.lastUsedStudentId')).toBeNull();

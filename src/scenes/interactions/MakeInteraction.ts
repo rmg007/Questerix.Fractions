@@ -5,9 +5,16 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { DragHandle } from '../../components/DragHandle';
 import type { Interaction, InteractionContext } from './types';
+import {
+  ACCENT_C,
+  NAVY,
+  OPTION_BG,
+  OPTION_BORDER,
+  SELECTED_BG,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 const SHAPE_W = 340;
 const SHAPE_H = 260;
@@ -77,13 +84,13 @@ export class MakeInteraction implements Interaction {
 
     // Confirm partition button
     const btnY = centerY + SHAPE_H / 2 + 60;
-    const bbg = scene.add.rectangle(centerX, btnY, 240, 52, CLR.primary).setDepth(7);
+    const bbg = scene.add.rectangle(centerX, btnY, 240, 52, NAVY).setDepth(7);
     const blbl = scene.add
       .text(centerX, btnY, 'Confirm Fold', {
         fontSize: '18px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);
@@ -113,7 +120,7 @@ export class MakeInteraction implements Interaction {
             r.setFillStyle(0, 0);
           } else {
             this.shadedRegions.add(i);
-            r.setFillStyle(CLR.primarySoft, 0.6);
+            r.setFillStyle(SELECTED_BG, 0.6);
           }
         });
         this.regionRects.push(r);
@@ -123,13 +130,13 @@ export class MakeInteraction implements Interaction {
 
     // Submit
     const sy = btnY + 70;
-    const sbg = scene.add.rectangle(centerX, sy, 240, 52, CLR.accentC).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 240, 52, ACCENT_C).setDepth(7);
     scene.add
       .text(centerX, sy, 'Check', {
         fontSize: '18px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);
@@ -164,21 +171,21 @@ export class MakeInteraction implements Interaction {
     cx: number,
     cy: number
   ): void {
-    g.fillStyle(CLR.neutral50, 1);
+    g.fillStyle(OPTION_BG, 1);
     if (shapeType === 'circle') {
       g.fillCircle(cx, cy, SHAPE_W / 2);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
     } else {
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
     }
   }
 
   private updateLine(x: number, cy: number): void {
     this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, CLR.primary, 1);
+    this.partitionLine.lineStyle(4, NAVY, 1);
     this.partitionLine.lineBetween(x, cy - SHAPE_H / 2 - 20, x, cy + SHAPE_H / 2 + 20);
   }
 }

@@ -4,11 +4,11 @@ export default defineConfig({
   testDir: 'tests/e2e',
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5000?testHooks=1',
   },
   webServer: {
     command: 'npm run dev',
-    port: 5173,
+    port: 5000,
     reuseExistingServer: !process.env['CI'],
   },
   projects: [

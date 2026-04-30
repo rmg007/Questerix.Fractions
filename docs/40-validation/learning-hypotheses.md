@@ -5,7 +5,13 @@ owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
 constraint_refs: [C1, C3, C9, C10]
-related: [playtest-protocol.md, in-app-telemetry.md, ../10-curriculum/standards-map.md, ../10-curriculum/misconceptions.md]
+related:
+  [
+    playtest-protocol.md,
+    in-app-telemetry.md,
+    ../10-curriculum/standards-map.md,
+    ../10-curriculum/misconceptions.md,
+  ]
 ---
 
 # Learning Hypotheses
@@ -24,16 +30,16 @@ If we cannot measure a hypothesis with paper-test items + in-app telemetry avail
 
 Each hypothesis has:
 
-| Field | Description |
-|-------|-------------|
-| **H-ID** | Stable identifier (`H-01`, `H-02`, …) |
-| **Statement** | One-sentence claim |
-| **Prediction** | What we expect to observe if the hypothesis is true |
-| **Measurement** | Paper-test items + telemetry queries that produce the data |
-| **Success threshold** | The numeric bar at which we count the hypothesis as supported |
-| **Falsification criterion** | The result that would force us to reject the hypothesis — written in advance, not after seeing data |
-| **Priority** | P0 (MVP-blocking) or P1 (informative but non-blocking) |
-| **Linked skills / standards / misconceptions** | Cross-references |
+| Field                                          | Description                                                                                         |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **H-ID**                                       | Stable identifier (`H-01`, `H-02`, …)                                                               |
+| **Statement**                                  | One-sentence claim                                                                                  |
+| **Prediction**                                 | What we expect to observe if the hypothesis is true                                                 |
+| **Measurement**                                | Paper-test items + telemetry queries that produce the data                                          |
+| **Success threshold**                          | The numeric bar at which we count the hypothesis as supported                                       |
+| **Falsification criterion**                    | The result that would force us to reject the hypothesis — written in advance, not after seeing data |
+| **Priority**                                   | P0 (MVP-blocking) or P1 (informative but non-blocking)                                              |
+| **Linked skills / standards / misconceptions** | Cross-references                                                                                    |
 
 A hypothesis is **not** "we'll see what happens." A hypothesis with no falsification criterion is not a hypothesis.
 
@@ -48,6 +54,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** Mean accuracy on the L1–L3 identification subset of the paper post-test is at least 20 percentage points higher than the pre-test, across the 8–10 student cohort.
 
 **Measurement.**
+
 - **Pre-test:** 5 paper items asking "circle the shape that shows one half" with three distractors. Identical structure for thirds and fourths (15 items total across the three skills).
 - **Post-test:** Parallel 15-item form with different shapes / distractors.
 - **Telemetry:** `Attempt.outcome === "EXACT"` rate on `identify_half`, `identify_third`, `identify_fourth` activities, computed per student per session.
@@ -70,6 +77,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** On post-test items asking "draw a line that splits this shape into two equal parts" (or four), the proportion of student-drawn partitions that fall within ±10% area tolerance increases by at least 20 percentage points compared with pre-test.
 
 **Measurement.**
+
 - **Pre-test:** 5 paper items. Student draws the partition with a pencil. Author scores by overlay on a calibrated tolerance template.
 - **Post-test:** Parallel 5-item form.
 - **Telemetry:** Across `partition_halves` and `partition_fourths` sessions, % of attempts with `outcome === "EXACT"` and the median `errorMagnitude` per student.
@@ -92,6 +100,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** On post-test items asking "circle the bigger fraction" (with shape-pair distractors), accuracy improves by at least 25 pp over pre-test, measured against an unscaffolded baseline.
 
 **Measurement.**
+
 - **Pre-test:** 8 paired-fraction items mixing same-denominator (2 items), same-numerator (3 items), and benchmark (3 items) comparisons.
 - **Post-test:** Parallel 8-item form.
 - **Telemetry:** `compare_*` and `ordering_*` Tier-3 attempt accuracy per session.
@@ -114,6 +123,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** A student who reaches Tier-3 accuracy ≥ 70% at end of Day 1 starts Day 2 with Tier-3 accuracy ≥ 56% (= 80% × 70%) on the same skill, before any new instruction in that session.
 
 **Measurement.**
+
 - **Telemetry only.** For each `(studentId, skillId)` pair, compute end-of-day-1 Tier-3 accuracy from the last 5 attempts of the day.
 - Compute first-5-attempts Tier-3 accuracy at the start of day-2 in the same skill.
 - Retention ratio = day-2-start / day-1-end.
@@ -133,11 +143,12 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 
 ### H-05 — No Negative Interaction with Prior Knowledge (P0)
 
-**Statement.** Students do not get *worse* on any pre-existing fraction skill after using the app. The mechanic does not introduce new misconceptions or unlearn correct prior knowledge.
+**Statement.** Students do not get _worse_ on any pre-existing fraction skill after using the app. The mechanic does not introduce new misconceptions or unlearn correct prior knowledge.
 
 **Prediction.** No student regresses by more than −10 percentage points on any skill subset (identification, partitioning, comparison) between pre-test and post-test. Specifically, no new misconception flags appear in students who entered the playtest free of those misconceptions.
 
 **Measurement.**
+
 - **Paper:** Per-student per-skill-subset pre vs. post. Flag any subset where post − pre < −10.
 - **Telemetry:** For each student, compare the `MisconceptionFlag` records present at session 1 (largely empty) vs. session-N. New flags after the first session are tracked.
 - Qualitative cross-check: observer notes flag any student showing visible frustration or confusion that wasn't present at pre-test.
@@ -159,6 +170,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** Within the cohort, students with `MASTERED` state on `SK-02` outperform `LEARNING`/`APPROACHING` students on the paper "identify halves" subset by ≥ 15 pp.
 
 **Measurement.**
+
 - **Telemetry:** Final `SkillMastery.state` per `(studentId, skillId)`.
 - **Paper:** Per-skill subset post-test accuracy.
 - Compute mean paper accuracy by mastery state.
@@ -180,6 +192,7 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 **Prediction.** For students who reach MASTERED on a skill, mean hints-per-attempt on the last session of that skill is ≤ 50% of the first session.
 
 **Measurement.**
+
 - **Telemetry:** For each `(studentId, skillId)`, compute `HintEvent` count per attempt across the first session vs. the last session in that skill.
 - Compute reduction ratio.
 
@@ -195,15 +208,15 @@ A hypothesis is **not** "we'll see what happens." A hypothesis with no falsifica
 
 ## 3. Hypothesis Map
 
-| H-ID | Type | Priority | Primary Measurement |
-|------|------|----------|---------------------|
-| H-01 | Identification mechanic teaches | P0 | Paper pre/post |
-| H-02 | Partitioning mechanic teaches | P0 | Paper pre/post + telemetry |
-| H-03 | Comparison transfers to paper | P0 | Paper pre/post |
-| H-04 | Retention across days | P0 | Telemetry only |
-| H-05 | No negative interaction | P0 | Paper pre/post + observer notes |
-| H-06 | Mastery state predicts paper performance | P1 | Telemetry × paper |
-| H-07 | Hint reduction tracks learning | P1 | Telemetry only |
+| H-ID | Type                                     | Priority | Primary Measurement             |
+| ---- | ---------------------------------------- | -------- | ------------------------------- |
+| H-01 | Identification mechanic teaches          | P0       | Paper pre/post                  |
+| H-02 | Partitioning mechanic teaches            | P0       | Paper pre/post + telemetry      |
+| H-03 | Comparison transfers to paper            | P0       | Paper pre/post                  |
+| H-04 | Retention across days                    | P0       | Telemetry only                  |
+| H-05 | No negative interaction                  | P0       | Paper pre/post + observer notes |
+| H-06 | Mastery state predicts paper performance | P1       | Telemetry × paper               |
+| H-07 | Hint reduction tracks learning           | P1       | Telemetry only                  |
 
 ---
 
@@ -219,7 +232,7 @@ The MVP is **partially validated** if 3 P0 hypotheses are supported, 0 falsify, 
 
 ## 5. Pre-registration
 
-Per scientific norms, this document should be **frozen** before the first playtest session. The success thresholds and falsification criteria above must not be changed after data collection begins. If a threshold turns out to be wrong, document the lesson in the post-mortem and use a corrected threshold for the *next* validation cycle, not retroactively.
+Per scientific norms, this document should be **frozen** before the first playtest session. The success thresholds and falsification criteria above must not be changed after data collection begins. If a threshold turns out to be wrong, document the lesson in the post-mortem and use a corrected threshold for the _next_ validation cycle, not retroactively.
 
 The git commit that locks this file pre-playtest will be tagged `validation-v1-prereg`.
 

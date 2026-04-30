@@ -1008,4 +1008,382 @@ This is the difference between "we have telemetry" and "our telemetry is already
 
 ---
 
+### 16. UI-Leaf Component Surface — Five Primitives Are Dark
+
+The user-perceived game is a thin UI shell over the engine. Five leaf components — `DragHandle`, `FeedbackOverlay`, `AccessibilityAnnouncer`, `SkipLink`, `ProgressBar` — are where every K-2 student interaction physically lands. None emit telemetry today.
+
+#### 16.1 `src/components/DragHandle.ts` — pointer/keyboard input mix is invisible
+
+* **Deficiency:** `wirePointerEvents` (lines 78–117) and `wireKeyboardEvents` (lines 119–150) handle two completely different input modalities. `dragstart`, `drag`, `dragend`, `keydown` all fire `onMove` / `onCommit` callbacks but emit no own telemetry. The leaf component does not record (a) which input modality triggered each commit (touch vs. arrow-keys-and-Enter), (b) drag latency from `dragstart` to first `drag` event, (c) snap-success rate vs. snap-miss rate (`findSnapTarget` returns `null` when the student released outside the threshold — that branch is the most pedagogically meaningful event because it tells you the student was *trying* to snap and missed), (d) keyboard step count to a commit (low keyboard users vs. high keyboard users).
+* **Location:** `DragHandle.ts:82-116` (pointer events), `119-150` (keyboard events), `162-173` (`findSnapTarget` returning `null`).
+* **Risk:** Accessibility compliance (per the file header citing WCAG 2.5.5 + interaction-model §9) requires keyboard parity — but the team has *no* signal of how many users actually use keyboard input. A regression that breaks keyboard input (e.g. a `keyHandler` wired to a different scene that captures the event first) is invisible. Touch-vs-keyboard mix is also a research signal: "do K-2 students with motor difficulties favour keyboard?" cannot be answered.
+* **Refactoring Directive:** Add a `meter` port to `DragHandleConfig`. On `dragstart`, set `inputModality = 'pointer'`; on the first `keydown` of an arrow, set `inputModality = 'keyboard'`. On `dragend` / Enter commit, increment `drag.commit{modality, snapped: snapped !== null, archetype}`. Record `drag.latency_ms{modality}` as `performance.now() - dragStartTime`.
+
+#### 16.2 `src/components/DragHandle.ts` — animated `moveTo` race on scene shutdown
+
+* **Deficiency:** `moveTo(animate=true)` (lines 185–205) schedules a 500 ms tween whose `onComplete` callback updates `this._pos`. If the scene is shut down between scheduling and completion (the user navigates back to the menu mid-animation), Phaser cancels the owned tween — but there's no telemetry of cancellation, and the `_pos` write into the destroyed handle is suppressed silently.
+* **Location:** `DragHandle.ts:185-205`.
+* **Risk:** This race is a class of bug where state updates land on destroyed objects. With the bare-catch antipattern (§4.1), the symptom is invisible. It also hides genuine UX issues — a hint demonstration (`worked_example`) animates the handle to centre and resets after 1500ms; if the student bails to the menu mid-animation, the wasted hint is invisible to telemetry.
+* **Refactoring Directive:** Wrap the `tweens.add` call with a `scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => tween.stop())` and emit `drag.animation_cancelled` if shutdown beats completion.
+
+#### 16.3 `src/components/FeedbackOverlay.ts` — the synthetic harness's primary metric is computed nowhere
+
+* **Deficiency:** The synthetic harness measures `feedbackShownMs = Date.now() - t0` from click to overlay-visible (per `playtest.spec.ts:137`). Inside `FeedbackOverlay.show()` (line 101), the code calls `setVisible(true).setAlpha(1)` synchronously and then `delayedCall(DISPLAY_MS, ...)` for fade. **The overlay component does not record the moment it became visible.** The synthetic harness measures it externally via Playwright; the production runtime does not.
+* **Location:** `FeedbackOverlay.ts:101-153`. The synthetic-side measurement is `playtest.spec.ts:137` — `feedbackShownMs` after `await expect(feedbackOverlay).toBeVisible()`.
+* **Risk:** The 800 ms feedback budget (per `interaction-model.md §2`) and the 90% within-budget pass criterion (`aggregator.ts:81-84`) are policy-level SLOs. The synthetic harness validates them; production has zero observability for the same metric. A bundle-size regression that pushes synchronous setup time over budget is invisible. The four-line comment block at `FeedbackOverlay.ts:97-100` ("visual feedback must start within 300ms of submit") is unenforced in production.
+* **Refactoring Directive:** Inside `show()`:
+  ```ts
+  const t0 = performance.now();
+  // ... existing setup ...
+  this.bg.setVisible(true).setAlpha(1);
+  // After the synchronous setVisible chain — measure
+  meter.histogram('feedback.show.duration_ms').record(performance.now() - t0, { kind });
+  ```
+  For end-to-end click-to-pixel timing, the call site (`Level01Scene.showOutcome`) must pass in `clickStartedAt` so the measurement spans the full submit→render path. The histogram naturally produces the same p95 the synthetic harness asserts on — closing the contract.
+
+#### 16.4 `src/components/FeedbackOverlay.ts` — dismiss cause taxonomy is missing
+
+* **Deficiency:** Two dismiss paths (line 119–127 — manual click on `feedback-next-btn`; lines 131–137 + 143–151 — auto-dismiss after `DISPLAY_MS = 600`) both call `dismiss()` and emit the same `FEEDBACK_DISMISSED_EVENT` with no discriminator. The downstream consumer cannot tell whether the student tapped Next early or waited.
+* **Location:** `FeedbackOverlay.ts:101-153`.
+* **Risk:** "Did the student read the feedback or skip it?" is a research-grade question. The synthetic harness has personas with different abandon probabilities (per `personas.ts`), but production cannot distinguish patient-readers from skippers. A regression where the auto-dismiss timer doesn't fire (e.g. scene paused mid-feedback) leaves the overlay stuck and the student locked — invisible.
+* **Refactoring Directive:** Emit two distinct events: `feedback.dismissed{kind, cause: 'manual' | 'auto', visibleMs}`. The `visibleMs` measurement gives the dwell-time-on-feedback signal directly.
+
+#### 16.5 `src/components/AccessibilityAnnouncer.ts` — rAF-deferred writes can race
+
+* **Deficiency:** `announce(text)` (lines 46–58) clears `region.textContent`, then defers the new text via `requestAnimationFrame` (line 52). If a second announcement fires before the rAF runs, the second `region.textContent = ''` clears, but only the *second* `requestAnimationFrame` callback's text actually appears — the first announcement is silently dropped. There is no telemetry of announcement-collapse rate, no signal of the screen-reader-relevant cadence.
+* **Location:** `AccessibilityAnnouncer.ts:46-58`.
+* **Risk:** WCAG 4.1.3 ("status messages") compliance hinges on screen readers picking up announcements. A high-cadence game (rapid wrong→hint→try-again cycle) collapses announcements; the team has no data on how often a student missed an aria-live message because it was overwritten before the screen reader could pick it up.
+* **Refactoring Directive:** Track `announcement.queue.collapsed{previousMessage}` whenever a new announce arrives while the prior `requestAnimationFrame` is still pending. Track `announcement.delivered` on the rAF callback's actual execution. The ratio is the screen-reader-fidelity signal.
+
+#### 16.6 `src/components/SkipLink.ts` — silent WCAG-compliance failures
+
+* **Deficiency:** Three bare-catch blocks (lines 31, 77 — both swallow DOM-manipulation failures with comment "safe to swallow (game still runs)"). `labelCanvas()` (lines 17–34) sets ARIA labels on the Phaser canvas — the *only* mechanism by which screen readers know what the canvas is. `injectSkipLink()` (lines 40–80) is the WCAG 2.4.1 "Bypass Blocks" implementation. **If either fails silently, the app is non-compliant with no signal.**
+* **Location:** `SkipLink.ts:31, 77`.
+* **Risk:** Schools that adopt the app may run automated WCAG scanners. A canvas without an aria-label fails the automated check; the team would learn about the regression from a school district, not from telemetry. The comment "Non-browser env — safe to ignore" is wrong for the production case: the only way `document.querySelector('canvas')` errors in a browser is if the document is in an unrecoverable state (which IS a signal worth recording).
+* **Refactoring Directive:** Replace both bare catches with `} catch (err) { reportError(err, { kind: 'a11y.skipLink.injectFailed' | 'a11y.canvas.labelFailed' }); }`. Add a one-time post-init verification that runs `document.querySelector('canvas[aria-label][role]')` and reports if missing — the *positive* assertion of compliance, complementing the error path.
+
+#### 16.7 `src/components/ProgressBar.ts` — the sixth duplicate of `checkReduceMotion`
+
+* **Deficiency:** Lines 119–125 — the *sixth* duplicate of the `try { return window.matchMedia(...).matches } catch { return false }` pattern (the SoC audit found four; the prior round added DragHandle as a fifth; this is the sixth). Every duplicate hides its own bare-catch.
+* **Location:** `ProgressBar.ts:119-125`. Other duplicates: `Level01Scene.ts:1180`, `LevelScene.ts:873`, `MenuScene.ts:767`, `PreloadScene.ts:130`, `DragHandle.ts:217`, `FeedbackOverlay.ts:161`.
+* **Risk:** Six independent catch sites means six independent telemetry holes. A future regression in matchMedia (browser quirk under PWA standalone display mode) silently cascades into "everything assumes reduce-motion is off" with no signal.
+* **Refactoring Directive:** Extract once into `src/lib/observability/reduceMotion.ts` exporting `prefersReducedMotion(): boolean` that emits `prefs.reduceMotion.queryFailed` on the catch path. Six sites collapse into one observable point. The portability and SoC audits prescribed the same extraction; the observability angle is just one more reason.
+
+---
+
+### 17. TestHooks Is Already the Production Instrumentation Surface
+
+#### 17.1 50+ DOM sentinels ship to production with no observation
+
+* **Finding:** `TestHooks` (in `src/scenes/utils/TestHooks.ts`) injects `data-testid`-attributed DOM nodes alongside the Phaser canvas. There is *no* `import.meta.env.DEV` gate — production builds ship the sentinels. Every interactive overlay (per `mountInteractive`) is a transparent button positioned over a Phaser game object that forwards clicks. Grep enumerates 50+ call sites across every scene and three components: `boot-scene`, `boot-start-btn`, `menu-scene`, `level-scene`, `level01-scene`, `levelNN-scene`, `hint-btn`, `hint-text`, `partition-target`, `feedback-overlay`, `feedback-next-btn`, `progress-bar`, `completion-screen`, `settings-scene`, `settings-export-btn`, `settings-reset-btn`, `settings-back-btn`, etc.
+* **Location:** `src/scenes/utils/TestHooks.ts:34-92`; 50+ call sites enumerated by Grep.
+* **Risk (inverted to opportunity):** This is the team's existing user-action instrumentation surface, fully wired, ready to telemeter. Every `mountInteractive(testid, onClick, ...)` is a click the team has already declared interesting enough to test. **Wrapping the `onClick` in a counter increment is one line.** No new abstraction needed.
+* **Refactoring Directive:** Modify `TestHooks.mountInteractive` to wrap `onClick` with telemetry:
+  ```ts
+  btn.addEventListener('click', () => {
+    meter.counter('ui.click').add(1, { testid });
+    const span = tracer.startSpan(`ui.click.${testid}`);
+    try { onClick(); } finally { span.end(); }
+  });
+  ```
+  Every `[data-testid]` becomes a tagged user-action signal automatically. The cardinality is bounded (50ish testids), the contract is already specified, and the test suite is the validation.
+
+#### 17.2 The TestHooks DOM is also the privacy boundary
+
+* **Deficiency:** Production users have a `qf-testhooks` div in their DOM (per `TestHooks.ts:22`) with sentinels for every UI surface. Any future analytics tag that scrapes `data-testid` attributes (a common pattern) would inadvertently exfiltrate the team's private testid surface as cohort data.
+* **Location:** `TestHooks.ts:13-25, 34-50` (the `qf-testhooks` container and all sentinels).
+* **Risk:** Once telemetry egress is wired (§3 / §5), every event must specify whether it includes `testid` as an attribute. Free-text user data is vanishingly low-risk in this app (no chat, no comments, K-2 prompts are curriculum-authored), but the *testid surface itself* is sensitive: leaking `testid="settings-export-btn"` paired with a session ID gives a third party an action funnel they should not have.
+* **Refactoring Directive:** When wiring telemetry attributes, use `testid` as a *bounded enum* drawn from a hand-maintained allow-list (`src/lib/observability/uiActions.ts`). New testids that aren't on the list are tagged `testid: 'unknown'`. This forces a deliberate decision on each new instrumentation point and prevents accidental leakage.
+
+---
+
+### 18. Six Critical Lifecycle Events Are Unhooked
+
+`pagehide`, `beforeunload`, `visibilitychange`, `webglcontextlost`, `webglcontextrestored`, `freeze`/`resume` — verified by Grep, **zero matches in `src/`**. Each represents a different failure or transition moment that telemetry must capture or lose forever.
+
+#### 18.1 `pagehide` — the only reliable buffer flush on iOS Safari
+
+* **Deficiency:** No `pagehide` handler. iOS Safari aggressively backgrounds and evicts pages; the bfcache (`pagehide` with `event.persisted === true`) is the most likely transition, and it is the *last* opportunity to flush an in-memory or partially-flushed telemetry buffer.
+* **Risk:** Without `pagehide`, every iPad-evicted session loses its telemetry buffer wholesale. The team's primary deployment context (per `runtime-architecture.md`) is exactly the platform where this matters most.
+* **Refactoring Directive:**
+  ```ts
+  window.addEventListener('pagehide', (event) => {
+    void flushTelemetryBuffer({ urgent: true, useBeacon: true, persisted: event.persisted });
+    // Sync: write a "session paused" marker into IndexedDB so the next boot can reconcile
+    void sessionRepo.update(currentSessionId, { pausedAt: Date.now(), pauseReason: 'pagehide' });
+  });
+  ```
+  `urgent: true` triggers `navigator.sendBeacon` (which permits payloads up to 64 KB synchronously without blocking the page-hide). The `persisted` flag distinguishes bfcache (recoverable) from real eviction.
+
+#### 18.2 `webglcontextlost` / `webglcontextrestored` — the game-killer for tablets
+
+* **Deficiency:** Phaser instantiates with `Phaser.AUTO` (`main.ts:31`), which prefers WebGL. Browsers can lose WebGL contexts under memory pressure or backgrounding (especially on iPad — every browser zoom-out can do it). The default behaviour: the canvas freezes, no further rendering. Phaser does not auto-recover. There is no listener on the canvas for `webglcontextlost` (which can be `preventDefault()`-cancelled to allow restoration) or `webglcontextrestored`.
+* **Risk:** A K-2 student backgrounding the app for ten minutes returns to a frozen canvas with no signal. The session is dead, the game looks broken, and the team's first signal is a teacher's complaint email.
+* **Refactoring Directive:** In `main.ts` after game instantiation:
+  ```ts
+  const canvas = game.canvas;
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault(); // allows restoration
+    reportError(new Error('WebGL context lost'), { kind: 'gl.context_lost' });
+    meter.counter('gl.context_lost').add(1);
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    meter.counter('gl.context_restored').add(1);
+    // Phaser cannot recover automatically — full reload is required
+    window.location.reload();
+  });
+  ```
+  This converts a silent freeze into an observable + recoverable event. **This is the single most game-breaking unhandled event in the app and is a one-screen fix.**
+
+#### 18.3 `document.visibilitychange` — distinct from Phaser's HIDDEN
+
+* **Deficiency:** No `'visibilitychange'` handler. Phaser's `Phaser.Core.Events.HIDDEN` fires on game-level pause, but the DOM `visibilitychange` event fires *earlier* and on more transitions (tab inactive but window visible, OS-level focus changes that don't blur the window). The two are not equivalent.
+* **Risk:** A user who tab-switches away mid-question for a minute then returns: the response time inflates (`Date.now() - questionStartTime` includes the tab-switch interval), polluting the engagement metric. There's no signal to discount the time.
+* **Refactoring Directive:**
+  ```ts
+  document.addEventListener('visibilitychange', () => {
+    const state = document.visibilityState; // 'visible' | 'hidden'
+    if (state === 'hidden') {
+      meter.counter('visibility.hidden').add(1);
+      questionStartPaused = performance.now(); // freeze the response timer
+    } else if (state === 'visible' && questionStartPaused) {
+      // Subtract the hidden interval from response measurement
+      questionStartTime += (performance.now() - questionStartPaused);
+      questionStartPaused = null;
+      meter.counter('visibility.visible').add(1);
+    }
+  });
+  ```
+  Without this, every BKT input is contaminated by tab-switch time.
+
+#### 18.4 `beforeunload`, `freeze`, `resume`, `unload`
+
+* **Deficiency:** None of these four are hooked. `beforeunload` (synchronous flush opportunity, but increasingly restricted), `freeze` (page freezing for bfcache, Chrome-only), `resume` (page un-freezing), `unload` (least-reliable but historically the final signal).
+* **Risk:** Incremental — each event is a fallback flush opportunity. Not having all of them is not catastrophic if `pagehide` is implemented, but missing them means no recovery if `pagehide` itself fails.
+* **Refactoring Directive:** Implement `pagehide` as the primary; add `beforeunload` and `freeze` as redundant flushes. `unload` is deprecated and should be skipped.
+
+---
+
+### 19. Validator Output Is an Untyped Magic-String Enum
+
+#### 19.1 Ten validators, fourteen+ unique `feedback` strings, no enum
+
+* **Deficiency:** Across the ten validator modules, the `ValidatorResult.feedback` field is an untyped `string`. Discovered values include: `'wrong_partition_count'`, `'degenerate_partition'`, `'exact'`, `'close'`, `'wrong'` (`partition.ts`); plus per the dispatch fallback `'validator_error'` (`Level01Scene.ts:663`, `LevelScene.ts:401`). With ten validator modules, this taxonomy is at 14+ unique strings *plus the magic `'validator_error'` from the catch path*. There is no `ValidatorFeedbackKind` discriminated union, no enum, no exhaustiveness check.
+* **Location:** `src/validators/partition.ts:36, 40, 46, 49, 51` (five strings in one module); each of the other nine validators contributes its own. `src/types/runtime.ts` defines `ValidatorResult` but the `feedback` field is `string` (per the unconstrained shape used at `Level01Scene.ts:663`).
+* **Risk:** Telemetry that ingests `feedback` as a tag attribute either (a) gets unbounded cardinality (one new tag value per validator change), or (b) collapses everything to a single tag and loses the signal. Any analytics dashboard that breaks down "what kinds of wrong answers" cannot trust the field. A typo at any validator (`'wrong_partion_count'`) silently bifurcates the analytics for that bucket.
+* **Refactoring Directive:**
+  1. Define `ValidatorFeedbackKind` as a string-literal union in `src/types/runtime.ts`. Enumerate every legal value.
+  2. Replace `feedback: string` with `feedback: ValidatorFeedbackKind` on `ValidatorResult`.
+  3. Add `'validator_error'` as a member — but rename the catch-path return to use a discriminated property `errorKind` instead, so legitimate-incorrect (`'wrong'`) and exception-incorrect (`errorKind: 'validator_throw'`) are statically distinguishable.
+  4. Add a contract test (per §9.8) that exhaustively asserts every validator's possible return values are members of the union.
+
+#### 19.2 `compare.ts:51` — duplicates engine-layer misconception detection
+
+* **Deficiency:** The `compareRelation` validator (`compare.ts:28-54`) embeds a misconception-detection branch (lines 45–46): "if true relation is `<` and student said `>` and `leftDecimal < rightDecimal`, flag MC-WHB-02." This logic is *also* in `engine/misconceptionDetectors.ts:detectWHB02` (lines 58–96), which evaluates a 60%-rate threshold across recent compare attempts. **Two competing detection paths** for the same misconception; the validator's per-attempt flag and the engine's aggregate-rate flag may agree or disagree.
+* **Location:** `src/validators/compare.ts:45-52`; `src/engine/misconceptionDetectors.ts:58-96`.
+* **Risk:** When the validator emits `detectedMisconception: 'MC-WHB-02'` and the detector also flags MC-WHB-02 from the aggregate path, downstream telemetry counts the same misconception twice. When the validator and detector disagree (the per-attempt heuristic fires but the aggregate threshold doesn't), telemetry has no canonical answer. The team will see "MC-WHB-02 rate" diverge depending on which signal source is queried.
+* **Refactoring Directive:** Choose one canonical source. Either:
+  - The validator emits the per-attempt evidence; the detector consumes the validator's flags (not the raw attempts) to compute the aggregate; the misconception flag on the `Attempt` row is the validator's per-attempt signal, and the aggregate flag on `MisconceptionFlag` rows is the detector's confirmation.
+  - **Or** the validator stays purely judgmental and the detector owns all misconception detection.
+  Either way, telemetry events must tag the source: `misconception.flagged{misconceptionId, source: 'validator' | 'detector'}`. Without the source tag, the duplicate-counting is invisible.
+
+---
+
+### 20. `SessionTelemetry` — Ten Fields Defined, Zero Writers
+
+#### 20.1 The schema is fully specified; the writer is the only missing piece
+
+* **Deficiency:** `src/types/runtime.ts:259-274` defines `SessionTelemetry` with ten fields: `sessionId`, `studentId`, `totalAttempts`, `correctAttempts`, `assistedAttempts`, `abandonedAttempts`, `totalHintsUsed`, `hintsByTier: Record<HintTier, number>`, `avgResponseMs`, `maxResponseMs`, `computedAt`. The Dexie store is declared at `db.ts:50, 67, 80, 105, 136`. The `sessionTelemetry` table is read once at `backup.ts:61`. **No writer exists in `src/`**; verified by Grep — the only `sessionTelemetry.` reference outside the schema and the backup-export is zero.
+* **Location:** `src/types/runtime.ts:259-274` (schema), `src/persistence/db.ts:50-136` (store), `src/persistence/backup.ts:61` (the only reader). Writer absent.
+* **Risk:** Every one of these ten fields is computable from data already captured per attempt (`Attempt`, `HintEvent`). The work is mechanical: at session close, query `attempts where sessionId = X`, compute aggregates, insert `SessionTelemetry`. The schema, the store, the backup pipeline, and the analytics pipeline (since `aggregator.ts` SLOs use most of the same fields) all exist. **Skipping this writer is the single largest gap-vs-effort ratio in the entire audit.**
+* **Refactoring Directive:** Add `closeSessionTelemetry(sessionId)` to a new `src/application/CloseSessionUseCase.ts` (per the SoC audit's F-01 use-case extraction):
+  ```ts
+  async function closeSessionTelemetry(sessionId: SessionId): Promise<void> {
+    const attempts = await attemptRepo.listForSession(sessionId);
+    const hintEvents = await hintEventRepo.listForSession(sessionId);
+    const responseMs = attempts.map(a => a.responseMs).filter(n => n > 0);
+    const hintsByTier = hintEvents.reduce((acc, h) => {
+      acc[h.tier] = (acc[h.tier] ?? 0) + 1;
+      return acc;
+    }, {} as Record<HintTier, number>);
+    await db.sessionTelemetry.put({
+      sessionId,
+      studentId: attempts[0]?.studentId ?? '',
+      totalAttempts: attempts.length,
+      correctAttempts: attempts.filter(a => a.outcome === 'EXACT').length,
+      assistedAttempts: attempts.filter(a => a.hintTier !== null).length,
+      abandonedAttempts: attempts.filter(a => a.outcome === 'ABANDONED').length,
+      totalHintsUsed: hintEvents.length,
+      hintsByTier,
+      avgResponseMs: responseMs.length ? responseMs.reduce((a, b) => a + b, 0) / responseMs.length : 0,
+      maxResponseMs: responseMs.length ? Math.max(...responseMs) : 0,
+      computedAt: Date.now(),
+      syncState: 'local',
+    });
+  }
+  ```
+  Wire into `Level01Scene.closeSession` and `LevelScene.closeSession` (after the existing `sessionRepo.close` call). One use case, ~25 lines, closes ten dark fields.
+
+---
+
+### 21. Phaser Timer & Tween Shutdown Races
+
+#### 21.1 15 timer/tween sites; nested chains in `Level01Scene` create implicit ordering
+
+* **Deficiency:** Grep found 15 occurrences of `delayedCall` or `tweens.add` across seven files. The most fragile is `Level01Scene.ts:912-921` — a 700ms delayed call that schedules an 800ms delayed call inside it (1500ms total chain). If the scene shuts down between 700ms and 1500ms (a real possibility for a worked-example animation that the user bails on), Phaser cancels the outer timer, but there's no signal that the chain was cut short. The hint demonstration is recorded as "shown" without being completed.
+* **Location:** `Level01Scene.ts:878, 900, 912, 914, 1150`; `LevelScene.ts` analogous; `FeedbackOverlay.ts:141, 143`; `ProgressBar.ts:103`; `DragHandle.ts:195`; `SettingsScene.ts:293, 311 (per Grep — read at lines 293)`.
+* **Risk:** Phaser's auto-cancel-on-shutdown is correct behaviour, but the team has no observability of cancellation rate. A regression where the scene shuts down too eagerly (e.g. an over-aggressive back button) silently truncates feedback overlays, hint animations, and progress-bar fills. The user sees flickers; the team sees nothing.
+* **Refactoring Directive:** Wrap timer scheduling in a helper:
+  ```ts
+  function trackedDelayedCall(scene: Phaser.Scene, ms: number, name: string, fn: () => void): Phaser.Time.TimerEvent {
+    const t0 = performance.now();
+    const timer = scene.time.delayedCall(ms, () => {
+      meter.counter('timer.completed').add(1, { name });
+      fn();
+    });
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (!timer.hasDispatched) {
+        meter.counter('timer.cancelled').add(1, { name, elapsed_ms: performance.now() - t0 });
+      }
+    });
+    return timer;
+  }
+  ```
+  Replace all 15 `delayedCall` sites. The `name` argument doubles as the `testid` for the hook — you get a per-name signal of completion vs. cancellation.
+
+---
+
+### 22. `SettingsScene` — Reset and Export Bare-Catch the Most Sensitive Operations
+
+#### 22.1 `executeReset` — silent partial-failure on database wipe
+
+* **Deficiency:** Lines 254–262: `await db.delete()` is wrapped in `try { ... } catch { /* ignore — DB may already be gone */ }`. After the catch, `lastUsedStudent.clear()` and `location.reload()` run unconditionally. **If `db.delete()` throws but the page still reloads, the user sees a "reset" that didn't actually happen**, and the team has no signal of the partial failure.
+* **Location:** `SettingsScene.ts:254-262`.
+* **Risk:** A user who clicks Reset because their account is corrupted, sees the page reload, then logs back into the same corrupted account, has experienced the worst possible UX failure mode. The bare-catch comment ("DB may already be gone") is wishful — the throw could equally mean "another tab holds the DB open" (per §12.1) or "IndexedDB is in a corrupt state." Either way, the user's confidence in the reset action is misplaced.
+* **Refactoring Directive:**
+  ```ts
+  private async executeReset(): Promise<void> {
+    const span = tracer.startSpan('settings.reset');
+    try {
+      await db.delete();
+      await lastUsedStudent.clear();
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (err) {
+      reportError(err, { kind: 'reset.failed' });
+      span.recordException(err as Error);
+      this.showResetError('Reset failed — please try again or contact support.');
+      return; // do NOT reload if reset failed
+    } finally {
+      span.end();
+    }
+    if (typeof location !== 'undefined') location.reload();
+  }
+  ```
+  The crucial fix is the `return` before the reload — partial failure must not silently reload into a still-corrupt state.
+
+#### 22.2 `doExport` — backup failure reduces to a single user-facing string
+
+* **Deficiency:** Lines 273–280: `await backupToFile()` wrapped in `try/catch` that swallows the error and shows `'Export failed — please try again.'`. The error is not reported. The user has no diagnostic; the team has no telemetry. This is the C5 user-controlled disaster recovery — the *one* feature that protects student data from device loss.
+* **Location:** `SettingsScene.ts:273-280`.
+* **Risk:** A user whose backup repeatedly fails (e.g. quota exhaustion, browser policy blocking the download anchor click) cycles through "try again" with no resolution path. The team learns about the failure when the user contacts support, by which point the device may have been wiped.
+* **Refactoring Directive:** Mirror §22.1 — `reportError(err, { kind: 'export.failed', userTriggered: true })`, surface a more specific user message based on the error class (`QuotaExceededError` → "Your device is full. Free up space and try again."; `NotAllowedError` → "Your browser blocked the download. Try a different browser."), and emit `export.attempt{result}` counter.
+
+---
+
+### 23. Build & Asset-Pipeline Silent Drops
+
+#### 23.1 `scripts/build-curriculum.mjs` — three silent-skip paths with no aggregate floor
+
+* **Deficiency:** Lines 44–48 (missing pipeline output silently skipped), 51–55 (JSON parse failure silently skipped), 58–61 (non-array silently skipped), 64–73 (per-record `manual_review === true` and `archetype not in allowed list` silently filtered without per-reason counts). Final log at line 101 prints `totalIncluded` and `totalSkipped` aggregates. **There is no minimum-record floor** — `totalIncluded === 0` is a successful build.
+* **Location:** `scripts/build-curriculum.mjs:36-103`.
+* **Risk:** A pipeline regression that flips every record's `manual_review` to `true` produces an empty bundle; the build succeeds; the deploy ships an empty curriculum; the runtime falls into synthetic-fallback mode for every user; no observable signal at any layer. The synthetic playtest's weekly run *might* catch it, but only on the next Monday.
+* **Refactoring Directive:**
+  1. Add a `--min-records` CLI flag (default 50, configurable per level) that fails the build if any level falls below.
+  2. Emit per-reason counts in the final log: `${droppedManualReview} skipped via manual_review, ${droppedArchetypeMismatch} skipped via archetype mismatch, ${droppedNoArray} files unparseable`.
+  3. Write the per-reason JSON next to the bundle (`public/curriculum/v1.build.json`) — a build-side telemetry artifact that the runtime can fetch on first install to seed `db.deviceMeta.curriculumBuildStats`.
+  4. Update CI to fail on `totalIncluded === 0`.
+
+#### 23.2 `scripts/build-curriculum.mjs` — dual-write to `public/` and `src/` is unverified
+
+* **Deficiency:** Lines 91 and 99 — the bundle is written to two destinations: `public/curriculum/v1.json` (the runtime fetch target) and `src/curriculum/bundle.json` (the static-import fallback). There is no checksum, no content-hash comparison, no test that the two are identical.
+* **Location:** `scripts/build-curriculum.mjs:91-99`.
+* **Risk:** A future refactor that updates the public path but not the src fallback (or vice versa) silently ships a fallback that disagrees with the primary. The runtime catches `TypeError` (network failure) and falls back to the embedded copy (`loader.ts:148-160`); if the two have drifted, the user gets a different curriculum on offline-first devices than online ones.
+* **Refactoring Directive:** Add an integration test: `expect(readFileSync('public/curriculum/v1.json')).toEqual(readFileSync('src/curriculum/bundle.json'))`. Run it in CI. The simplest fix is to write once and hard-link, but the test is a sufficient guardrail.
+
+#### 23.3 `PreloadScene` — no `'loaderror'` handler; 200 ms artificial delay is unmeasured
+
+* **Deficiency:** Lines 36–43 wire `'progress'` and `'complete'` events but not `'loaderror'`. Lines 117–125 add a 200 ms `delayedCall` before transitioning to MenuScene — pure dead time. The scene's `preload()` (lines 32–54) creates only programmatic 1×1 textures (line 53 → `createPaletteTextures`) — no real assets are loaded today.
+* **Location:** `PreloadScene.ts:32-54, 117-125`.
+* **Risk (current):** Today the preload is essentially empty; the 200 ms is wasted but inconsequential. Risk (future): the moment any real asset is added (audio sprite, custom font outside CSS, image atlas) and one fails to load, the failure is silent. The team has no per-asset load-success rate. The 200 ms artificial delay also pollutes the boot-budget metric — synthetic and real boot timings are 200 ms slower than they should be, and removing the delay later is a perf "improvement" that's actually just removing dead code.
+* **Refactoring Directive:**
+  1. Add `this.load.on('loaderror', (file) => reportError(new Error('Asset load failed'), { kind: 'asset.loaderror', src: file.src, type: file.type }))`.
+  2. Either measure the 200 ms (`meter.histogram('preload.artificialDelay_ms')`) or remove it. The comment "Brief pause so 'Ready!' is visible" is a UX call that can be replaced with a deterministic 0 ms in production and the existing 200 ms in dev.
+  3. Add an `asset.load.duration_ms{file}` histogram once real assets exist.
+
+---
+
+### 24. Sampling, Cardinality, and Buffer-Flush Strategy (the Missing Operational Discipline)
+
+The prior sections recommended emitting many signals. Naively emitting all of them into the IndexedDB ring buffer would flood the storage quota within hours.
+
+#### 24.1 High-volume signals must be sampled in the runtime
+
+* **Concern:** `DragHandle.onMove` fires at ~60 Hz during a drag. A 5-second drag emits 300 events. With 5 questions per session × 10 minutes per session × students-per-classroom × classrooms, the cardinality is unbounded. Same for `frame.fps` (60 Hz native), `longtask` events, and `pointer.move` if instrumented.
+* **Risk:** The IndexedDB ring buffer fills, the eviction policy drops older events, *the 1% of events that matter (errors, attempt commits) get evicted alongside the 99% of noise (frame samples)*. A telemetry stack that loses errors under load is worse than no telemetry — it produces a false negative.
+* **Strategy:**
+  1. **Categorize every event** in `src/types/telemetry.ts` as `severity: 'critical' | 'normal' | 'verbose'`. Critical (errors, attempt commits, session boundaries) is never sampled. Normal (validator timings, scene transitions) is sampled at 100% in dev, 10% in production. Verbose (per-frame fps, drag-move samples) is sampled at 1% production / 100% dev.
+  2. **Two ring buffers** keyed by severity: `telemetryEvents.critical` (10 000-row capacity, never evicted by verbose) and `telemetryEvents.verbose` (1 000-row LRU capacity).
+  3. **Aggregate verbose events at emit time** rather than persist raw: instead of emitting 300 `drag.move` events, emit one `drag.session{count, durationMs, distancePx, snapAttempts}` at `dragend`. The signal is preserved, the storage cost is 1/300th.
+
+#### 24.2 Buffer-flush triggers and back-pressure
+
+* **Concern:** Without explicit triggers, the buffer grows monotonically. iOS Safari evicts IndexedDB under pressure (per §12.2). The flush strategy must minimise on-device storage while maximising delivery probability.
+* **Strategy:**
+  1. **Flush on `pagehide`** (per §18.1) — primary trigger.
+  2. **Flush on `online` event** (per §13.1) — drains accumulated offline events.
+  3. **Periodic flush** every 60 seconds via `requestIdleCallback` (back-off to `setTimeout(60_000)` if `requestIdleCallback` is unavailable).
+  4. **Quota-pressure flush** triggered by `navigator.storage.estimate() > 80%` (per §12.2). At 90%, drop verbose events from the buffer before persisting new ones.
+  5. **Back-pressure**: if `flushTelemetryBuffer` fails (network rejection), exponential backoff on the periodic flush from 60 s → 300 s → 900 s. Stop pulling from the critical buffer entirely until a successful flush; verbose events drop silently.
+
+#### 24.3 Cardinality budgets per attribute
+
+* **Concern:** Naive attribution explodes cardinality. `validator.dispatch.duration_ms{templateId}` with 1 000 templates produces 1 000 distinct time series — most analytics backends choke at ~10 000 distinct series per metric.
+* **Strategy:**
+  1. **Coarse attributes by default**: `{validatorId, archetype, difficultyTier}` — bounded at ~30 cardinality.
+  2. **High-cardinality attributes only on errors**: when emitting an error event, attach `templateId`, `studentId` (anonymised hash), `attemptId` — these are *one-shot* attributes, not metric labels.
+  3. **Document cardinality budget** in `src/lib/observability/cardinality.md`. Each new metric proposes its label set; reviewers verify it stays within the budget.
+
+---
+
+### 25. Dead-Letter Sync Fields — `syncState` and `pendingSyncCount`
+
+#### 25.1 Eighteen hardcoded `syncState: 'local'` writes for a 2029 sync feature
+
+* **Deficiency:** Grep enumerates 18+ writes of `syncState: 'local'` (literal string), spread across `engine/misconceptionDetectors.ts`, `curriculum/seed.ts`, `Level01Scene.ts`, `LevelScene.ts`, `backup.ts`, and the `student`/`attempt`/`hintEvent` repositories. The header comment at `types/runtime.ts:3` reads "All carry syncState for the 2029 client→server boundary." The field is provisioned for a future multi-device sync feature that does not exist. Every record is permanently `'local'`. `pendingSyncCount: 0` (`deviceMeta.ts:26`, `seed.ts:80`) is the same — a counter that can never increment in current code.
+* **Location:** 18+ literal sites enumerated by Grep.
+* **Risk:** *Telemetry will inherit this dead-letter convention.* If the new structured `Logger` emits events that include `syncState: 'local'` because the repository writes it, the telemetry payload becomes 5–10% larger with no signal. When sync ships, the telemetry layer must be updated to track the field properly. **The audit must call out: telemetry is not the same surface as sync.** Telemetry events are *ephemeral*; sync state belongs on persisted entities. Conflating the two is an easy mistake.
+* **Refactoring Directive:**
+  1. Centralise the literal `'local'` into a single constant `LOCAL_SYNC_STATE` in `types/runtime.ts`. The 18 writes import the constant. When sync ships, change the writes through the centralised pipeline, not file-by-file.
+  2. Add an ESLint rule banning the literal `'local'` outside `types/runtime.ts`.
+  3. **Telemetry events do not carry `syncState`.** They have their own `flushed: boolean` field on the IndexedDB ring buffer, a transport concern, not a domain field.
+
+---
+
+### 26. Closing — Implementation Gap and Recommended Owner Allocation
+
+The audit at this point is exhaustive. To make the work tractable, the recommended ownership split is:
+
+* **Single engineer, ~1 sprint (10 working days)**: Phases 0–2 of §8 (source maps, ESLint rules, IndexedDB ring buffer, structured logger, Sentry wiring). Closes findings §1, §2 (most), §4.1, §4.2, §4.3, §16.6, §22.
+* **Single engineer, ~1 sprint (10 working days)**: Phases 3–5 (OTel tracing, Dexie middleware, web-vitals/longtask). Closes findings §3, §4.6, §5, §7, §10, §12, §13.
+* **Half-sprint hardening (5 days)**: Privacy gate + COPPA work + privacy.html update (§6, §14), TestHooks instrumentation (§17), validator taxonomy fix (§19), `SessionTelemetry` writer (§20), build-curriculum guardrails (§23), `executeReset` and `doExport` repair (§22).
+* **Out-of-band**: `tsconfig` strict-flag flips (§9.1) and `noUncheckedIndexedAccess` codemod — done as a parallel cleanup track because it touches every source file and benefits from being its own branch.
+
+Total effort: **~25 person-days**. The audit's findings are deep; the implementation is bounded. The single highest leverage 4-day chunk is Phase 0 + the bare-catch sweep — it converts 73 black holes into observable error sites and turns on source maps, gating the value of every later phase.
+
+The synthetic harness's `aggregator.ts` SLOs (≥95% completion, 0 crashes, ≥90% feedback <800 ms) become production SLOs once §15 lands. Alarms fire when those numbers slip on real users instead of waiting for the Monday 06:00 UTC scheduled run to flag it.
+
+The end state: every catch site, every Dexie operation, every validator dispatch, every drag commit, every scene transition, every WebGL context loss, every storage-quota approach, every privacy-consent change, and every misconception flag is observable; in production, on the team's own infrastructure, with no third-party data leakage, behind a deliberate consent gate, with a release-stamped, source-mapped, sampled, back-pressured, durable telemetry pipeline that the synthetic harness has been silently dual-running for months.
+
+---
+
 *End of audit. Re-run on every release-candidate build; append new findings as separate dated sections rather than rewriting prior ones.*

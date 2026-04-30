@@ -1,10 +1,12 @@
-import React from "react";
-import { Play, Settings, ArrowRight } from "lucide-react";
+import React from 'react';
+import { Play, Settings, ArrowRight } from 'lucide-react';
 
 export function CandyKingdom() {
   return (
     <div className="relative min-h-[780px] w-full max-w-[420px] mx-auto overflow-hidden bg-gradient-to-b from-[#FDF2F8] to-[#F3E8FF] flex flex-col items-center justify-center font-['Nunito']">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes float {
           0%, 100% { transform: translateY(0) rotate(0deg); }
           50% { transform: translateY(-15px) rotate(5deg); }
@@ -30,7 +32,9 @@ export function CandyKingdom() {
         .animate-bounce-subtle { animation: bounce-subtle 2s ease-in-out infinite; }
         .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
         .animate-spin-slow { animation: spin-slow 15s linear infinite; }
-      `}} />
+      `,
+        }}
+      />
 
       {/* Background Decor */}
       <div className="absolute top-10 left-10 text-4xl animate-float opacity-70">🍭</div>
@@ -47,12 +51,15 @@ export function CandyKingdom() {
 
       {/* Main Content Container */}
       <div className="relative z-10 w-full px-6 flex flex-col items-center gap-8 mt-12">
-        
         {/* Title Section */}
         <div className="text-center animate-bounce-subtle">
           <h1 className="text-5xl font-extrabold tracking-tight text-[#EC4899] drop-shadow-md font-['Fredoka_One'] uppercase leading-tight flex flex-col">
-            <span className="text-white drop-shadow-[0_4px_4px_rgba(236,72,153,0.8)] stroke-black border-black text-6xl rotate-[-2deg]">Questerix</span>
-            <span className="text-[#FDE047] drop-shadow-[0_4px_4px_rgba(251,146,60,0.8)] rotate-[2deg] text-4xl mt-2">Fractions</span>
+            <span className="text-white drop-shadow-[0_4px_4px_rgba(236,72,153,0.8)] stroke-black border-black text-6xl rotate-[-2deg]">
+              Questerix
+            </span>
+            <span className="text-[#FDE047] drop-shadow-[0_4px_4px_rgba(251,146,60,0.8)] rotate-[2deg] text-4xl mt-2">
+              Fractions
+            </span>
           </h1>
           <p className="mt-4 text-[#A855F7] font-bold text-lg bg-white/60 px-4 py-1.5 rounded-full inline-block shadow-sm">
             A Sweet Math Adventure! 🧁
@@ -63,7 +70,7 @@ export function CandyKingdom() {
         <div className="relative w-48 h-48 my-2 animate-float">
           {/* Sunburst background */}
           <div className="absolute inset-0 bg-[#FDE047] rounded-full opacity-40 animate-spin-slow"></div>
-          
+
           <div className="absolute inset-0 flex items-center justify-center text-8xl drop-shadow-xl">
             {/* Left Half (Full color) */}
             <div className="absolute inset-0 flex items-center justify-center overflow-hidden w-1/2 left-0 pr-1 border-r-4 border-dashed border-white z-20">
@@ -71,7 +78,7 @@ export function CandyKingdom() {
             </div>
             {/* Right Half (Faded) */}
             <div className="absolute inset-0 flex items-center justify-center overflow-hidden w-1/2 right-0 pl-1 z-10 opacity-40 grayscale">
-               <span className="relative right-1/2 -mr-12">🧁</span>
+              <span className="relative right-1/2 -mr-12">🧁</span>
             </div>
             {/* 1/2 Label */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 bg-white text-[#EC4899] font-black text-3xl px-3 py-1 rounded-xl shadow-lg border-4 border-[#EC4899] rotate-[-5deg]">
@@ -106,7 +113,6 @@ export function CandyKingdom() {
             </div>
           </button>
         </div>
-
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ The first level where the student compares two fractions and answers with a rela
 
 This is also the level where **symbolic notation `1/2`, `1/3`, `2/3`, `3/4`** is formally introduced (per `scope-and-sequence.md` §7 and `RoadMap/02_Level_03_05/02_LEARNING_TRAJECTORY.md`). Up through Level 5 the student saw shapes and the words "one half"; from Level 6 onward, the symbol and the visual co-occur.
 
-Per **C8**, this is the first level where the curriculum is *allowed* to mix denominators in a single screen — and even here, the **comparisons** themselves stay same-denominator. Mixed denominators in the *fraction pool* (e.g., a session that contains both 2/3-vs-1/3 problems and 3/4-vs-1/4 problems) are fine; mixed denominators **inside one comparison** start at Level 7.
+Per **C8**, this is the first level where the curriculum is _allowed_ to mix denominators in a single screen — and even here, the **comparisons** themselves stay same-denominator. Mixed denominators in the _fraction pool_ (e.g., a session that contains both 2/3-vs-1/3 problems and 3/4-vs-1/4 problems) are fine; mixed denominators **inside one comparison** start at Level 7.
 
 ---
 
@@ -36,11 +36,11 @@ The level does **not** ask the student to compare across denominators (Level 7),
 
 See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-10/SK-11/SK-12 at L6 collided with L3/L4 IDs; renumbered SK-21/SK-22/SK-23)
 
-| Skill ID | Name | BKT priors |
-|----------|------|------------|
-| `SK-21` | Read symbolic fraction notation `a/b` | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.25` |
-| `SK-22` | Same-denominator comparison (numerator rule) | `pInit=0.30, pTransit=0.30, pSlip=0.10, pGuess=0.33` |
-| `SK-23` | Use of `<`, `=`, `>` symbols | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
+| Skill ID | Name                                         | BKT priors                                           |
+| -------- | -------------------------------------------- | ---------------------------------------------------- |
+| `SK-21`  | Read symbolic fraction notation `a/b`        | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.25` |
+| `SK-22`  | Same-denominator comparison (numerator rule) | `pInit=0.30, pTransit=0.30, pSlip=0.10, pGuess=0.33` |
+| `SK-23`  | Use of `<`, `=`, `>` symbols                 | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
 
 `SK-21` carries forward into Levels 7–9. `SK-22` and `SK-23` are first introduced here. The `pGuess` prior on `SK-22` and `SK-23` is `0.33` because the student is choosing among three options (`<`, `=`, `>`).
 
@@ -50,12 +50,12 @@ Mastery of all three skills at `state: "MASTERED"` is the gate to unlock Level 7
 
 ## 3. Standards Crosswalk (informational)
 
-| Standard | Coverage |
-|----------|----------|
-| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape) | Touched (the bar/circle model duality) |
+| Standard                                                                                            | Coverage                                                                                |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **CCSS.2.G.A.3** (recognize equal shares of identical wholes need not have the same shape)          | Touched (the bar/circle model duality)                                                  |
 | **CCSS.3.NF.A.3.d** (compare two fractions with the same denominator by reasoning about their size) | **Primary** (Grade 3 standard introduced early in MVP scope per `00-MASTER_PLAN.md` §1) |
 
-The MVP intentionally introduces 3.NF.A.3.d at Grade 2 because the comparison-validation question (C10) requires the student to *do* comparison, not just identify partitions.
+The MVP intentionally introduces 3.NF.A.3.d at Grade 2 because the comparison-validation question (C10) requires the student to _do_ comparison, not just identify partitions.
 
 ---
 
@@ -76,11 +76,11 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
 
 #### Difficulty tiers
 
-| Tier | Visual support | Distractors / traps | Hint budget |
-|------|---------------|--------------------|-------------|
-| Easy | Both fractions show bar model + symbolic notation. Bars use the same width. | None — comparisons are clearly unequal (e.g., 1/4 vs 3/4) | 3 |
-| Medium | Bar model shown, but smaller (50% height) | One of the three buttons (`=`) is a trap: never correct in same-denominator pairs unless numerators are also equal — which they are in a small fraction of medium tier items | 2 |
-| Hard | Symbolic only, no bar model unless the student requests via hint | Numerators differ by 1 only (e.g., `2/4` vs `3/4`); equal pairs (`2/3` vs `2/3`) appear as a deliberate trap | 1 |
+| Tier   | Visual support                                                              | Distractors / traps                                                                                                                                                          | Hint budget |
+| ------ | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Easy   | Both fractions show bar model + symbolic notation. Bars use the same width. | None — comparisons are clearly unequal (e.g., 1/4 vs 3/4)                                                                                                                    | 3           |
+| Medium | Bar model shown, but smaller (50% height)                                   | One of the three buttons (`=`) is a trap: never correct in same-denominator pairs unless numerators are also equal — which they are in a small fraction of medium tier items | 2           |
+| Hard   | Symbolic only, no bar model unless the student requests via hint            | Numerators differ by 1 only (e.g., `2/4` vs `3/4`); equal pairs (`2/3` vs `2/3`) appear as a deliberate trap                                                                 | 1           |
 
 #### Question template archetype
 
@@ -145,6 +145,9 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
 }
 
 // Hard — symbolic only, no bar; tests whether SK-22 has internalized
+// WHB-01 tag: student who applies "larger numerator = bigger" shortcut
+// picks the correct answer (2/3 > 1/3) via flawed reasoning — a useful
+// diagnostic marker when the student never struggles on same-denom items.
 {
   "id": "q:cbsd:L6:0011",
   "type": "comparison",
@@ -157,7 +160,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
   "skillIds": ["SK-21", "SK-22", "SK-23"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 ```
@@ -179,11 +182,11 @@ This activity is intentionally lighter on cognitive load than Activity 4.1 (no `
 
 #### Difficulty tiers
 
-| Tier | Timer | Visual | Direction prompt | Hint budget |
-|------|-------|--------|------------------|-------------|
-| Easy | 15s | Bar model on each card | "Tap the BIGGER" only | 2 |
-| Medium | 10s | Compact bar model | Mixed: BIGGER or SMALLER | 1 |
-| Hard | 6s | Symbolic only | Mixed: BIGGER or SMALLER | 0 |
+| Tier   | Timer | Visual                 | Direction prompt         | Hint budget |
+| ------ | ----- | ---------------------- | ------------------------ | ----------- |
+| Easy   | 15s   | Bar model on each card | "Tap the BIGGER" only    | 2           |
+| Medium | 10s   | Compact bar model      | Mixed: BIGGER or SMALLER | 1           |
+| Hard   | 6s    | Symbolic only          | Mixed: BIGGER or SMALLER | 0           |
 
 Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play window: ~12 rounds at 6s = ~2 minutes of timer, plus inter-round transitions and feedback.
 
@@ -247,7 +250,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
   "correctAnswer": "left",
   "validatorId": "validator.comparison.tapSide",
   "skillIds": ["SK-21", "SK-22"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 ```
@@ -263,17 +266,17 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
 **Title:** "Match the Fraction to the Picture"
 **Levels in app:** L6 only
 
-A bridge activity that explicitly trains `SK-21` (read symbolic notation). The student sees three or four shaded shapes (bars or circles) and a single fraction symbol like `2/3`. They drag the symbol card onto the matching shape. This is the *only* same-denominator activity that does not directly involve a comparison — its job is to anchor the symbol to the visual, so that Activities 4.1 and 4.2 can rely on the student reading `2/3` correctly under timer pressure.
+A bridge activity that explicitly trains `SK-21` (read symbolic notation). The student sees three or four shaded shapes (bars or circles) and a single fraction symbol like `2/3`. They drag the symbol card onto the matching shape. This is the _only_ same-denominator activity that does not directly involve a comparison — its job is to anchor the symbol to the visual, so that Activities 4.1 and 4.2 can rely on the student reading `2/3` correctly under timer pressure.
 
 The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a first-class activity here.
 
 #### Difficulty tiers
 
-| Tier | Distractor strategy | Hint budget |
-|------|--------------------|-------------|
-| Easy | 3 options: target + 1 different denominator + 1 unpartitioned shape | 3 |
-| Medium | 3 options: all same denominator, only the numerator differs | 2 |
-| Hard | 4 options: same denominator across all, includes one near-miss (e.g., target `2/3`, distractor `3/3` fully shaded) | 1 |
+| Tier   | Distractor strategy                                                                                                | Hint budget |
+| ------ | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| Easy   | 3 options: target + 1 different denominator + 1 unpartitioned shape                                                | 3           |
+| Medium | 3 options: all same denominator, only the numerator differs                                                        | 2           |
+| Hard   | 4 options: same denominator across all, includes one near-miss (e.g., target `2/3`, distractor `3/3` fully shaded) | 1           |
 
 #### Question template archetype
 
@@ -361,13 +364,13 @@ The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a 
 
 ## 5. Misconceptions Detected at This Level
 
-| MC ID | Name | Detection signal |
-|-------|------|------------------|
-| `MC-WHB-01` | "Whole-number bias on numerator" — student picks the fraction with the *visually larger numerator digit* without checking the denominator | Wrong on `match_symbol_to_shape` Hard items where `3/3` is offered as a distractor for target `2/3` |
-| `MC-EQ-01` | "Equal looks the same" — student picks `=` whenever the two bars look approximately the same length, even with unequal numerators | Wrong "=" on `comparison_battle_same_denom` Medium items where numerators differ by 1 |
-| `MC-SYM-01` | "Reverses `<` and `>`" — student knows the rule but consistently picks the wrong direction symbol | Correct relative judgement on `fraction_snap_same_denom` (which side to tap) but wrong direction symbol on `comparison_battle_same_denom` |
+| MC ID       | Name                                                                                                                                      | Detection signal                                                                                                                          |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `MC-WHB-01` | "Whole-number bias on numerator" — student picks the fraction with the _visually larger numerator digit_ without checking the denominator | Wrong on `match_symbol_to_shape` Hard items where `3/3` is offered as a distractor for target `2/3`                                       |
+| `MC-EQ-01`  | "Equal looks the same" — student picks `=` whenever the two bars look approximately the same length, even with unequal numerators         | Wrong "=" on `comparison_battle_same_denom` Medium items where numerators differ by 1                                                     |
+| `MC-SYM-01` | "Reverses `<` and `>`" — student knows the rule but consistently picks the wrong direction symbol                                         | Correct relative judgement on `fraction_snap_same_denom` (which side to tap) but wrong direction symbol on `comparison_battle_same_denom` |
 
-`MC-WHB-02` (whole-number bias on the *denominator*, the classic "1/4 > 1/3 because 4 > 3" error) is **not yet** observable here because all comparisons share a denominator. It first appears at Level 7.
+`MC-WHB-02` (whole-number bias on the _denominator_, the classic "1/4 > 1/3 because 4 > 3" error) is **not yet** observable here because all comparisons share a denominator. It first appears at Level 7.
 
 Detail and intervention activities live in `../misconceptions.md` (TBD; salvage from `RoadMap/02_Level_03_05/misconceptions/MISCONCEPTIONS_FRAMEWORK.md`).
 
@@ -379,12 +382,54 @@ Per **C8**, Level 6 uses denominators 2, 3, and 4. Sixths and eighths arrive at 
 
 ```json
 [
-  { "id": "frac:1/2", "numerator": 1, "denominator": 2, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "halves"  },
-  { "id": "frac:1/3", "numerator": 1, "denominator": 3, "decimalValue": 0.333,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:2/3", "numerator": 2, "denominator": 3, "decimalValue": 0.667,  "benchmark": "almost_half",  "denominatorFamily": "thirds"  },
-  { "id": "frac:1/4", "numerator": 1, "denominator": 4, "decimalValue": 0.25,   "benchmark": "almost_zero",  "denominatorFamily": "fourths" },
-  { "id": "frac:2/4", "numerator": 2, "denominator": 4, "decimalValue": 0.5,    "benchmark": "half",         "denominatorFamily": "fourths" },
-  { "id": "frac:3/4", "numerator": 3, "denominator": 4, "decimalValue": 0.75,   "benchmark": "almost_one",   "denominatorFamily": "fourths" }
+  {
+    "id": "frac:1/2",
+    "numerator": 1,
+    "denominator": 2,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "halves"
+  },
+  {
+    "id": "frac:1/3",
+    "numerator": 1,
+    "denominator": 3,
+    "decimalValue": 0.333,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:2/3",
+    "numerator": 2,
+    "denominator": 3,
+    "decimalValue": 0.667,
+    "benchmark": "almost_half",
+    "denominatorFamily": "thirds"
+  },
+  {
+    "id": "frac:1/4",
+    "numerator": 1,
+    "denominator": 4,
+    "decimalValue": 0.25,
+    "benchmark": "almost_zero",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:2/4",
+    "numerator": 2,
+    "denominator": 4,
+    "decimalValue": 0.5,
+    "benchmark": "half",
+    "denominatorFamily": "fourths"
+  },
+  {
+    "id": "frac:3/4",
+    "numerator": 3,
+    "denominator": 4,
+    "decimalValue": 0.75,
+    "benchmark": "almost_one",
+    "denominatorFamily": "fourths"
+  }
 ]
 ```
 
@@ -418,14 +463,14 @@ A pure `fraction_snap_same_denom` Hard session can fit ~25 rounds in 10 minutes;
 
 ## 9. Authoring Status
 
-| Item | Required | Authored | Notes |
-|------|----------|----------|-------|
-| `comparison_battle_same_denom` templates | 12 | 4 examples shown | Need 8 more |
-| `fraction_snap_same_denom` templates | 10 | 3 examples shown | Need 7 more |
-| `match_symbol_to_shape` templates | 8 | 2 examples shown | Need 6 more |
-| TTS audio scripts | 30 | 0 | Generate from `prompt.text` via SpeechSynthesis API at runtime |
-| Hint definitions | ~90 (3 per template) | 0 | TBD |
-| Validator function specs | 3 | High-level only | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
+| Item                                     | Required             | Authored         | Notes                                                                  |
+| ---------------------------------------- | -------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `comparison_battle_same_denom` templates | 12                   | 4 examples shown | Need 8 more                                                            |
+| `fraction_snap_same_denom` templates     | 10                   | 3 examples shown | Need 7 more                                                            |
+| `match_symbol_to_shape` templates        | 8                    | 2 examples shown | Need 6 more                                                            |
+| TTS audio scripts                        | 30                   | 0                | Generate from `prompt.text` via SpeechSynthesis API at runtime         |
+| Hint definitions                         | ~90 (3 per template) | 0                | TBD                                                                    |
+| Validator function specs                 | 3                    | High-level only  | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md` |
 
 ---
 

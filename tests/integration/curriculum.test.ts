@@ -16,7 +16,7 @@ import { QuestionTemplateId, ValidatorId, SkillId, MisconceptionId } from '../..
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 function makeTemplate(
-  overrides: Partial<QuestionTemplate> & { id: string; archetype: string },
+  overrides: Partial<QuestionTemplate> & { id: string; archetype: string }
 ): QuestionTemplate {
   return {
     id: QuestionTemplateId(overrides.id),
@@ -69,10 +69,13 @@ afterEach(() => {
 describe('seedIfEmpty', () => {
   it('seeds empty DB from mock fetch', async () => {
     // Mock fetch to return the mock bundle
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_BUNDLE,
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_BUNDLE,
+      })
+    );
 
     const result = await seedIfEmpty();
 
@@ -115,10 +118,13 @@ describe('seedIfEmpty', () => {
   });
 
   it('returns seeded=0 and does not throw on missing fetch (404)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      })
+    );
 
     const result = await seedIfEmpty();
 
@@ -168,10 +174,13 @@ describe('questionTemplateRepo.getByLevel', () => {
 
 describe('loadCurriculumBundle', () => {
   it('flattens levels into a single array', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_BUNDLE,
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_BUNDLE,
+      })
+    );
 
     const bundle = await loadCurriculumBundle();
     expect(bundle.questionTemplates).toHaveLength(L1_TEMPLATES.length + L2_TEMPLATES.length);

@@ -35,6 +35,6 @@ export const LEVEL_META: LevelMeta[] = [
     concept: 'Compare same-numerator fractions',
     gradeBand: '2',
   },
-  { number: 8, name: 'Benchmarks', concept: 'Place fractions at 0, ½, and 1', gradeBand: '2' },
+  { number: 8, name: 'Benchmarks', concept: 'Place fractions at 0, 1/2, and 1', gradeBand: '2' },
   { number: 9, name: 'Order Fractions', concept: 'Order 3+ fractions (capstone)', gradeBand: '2' },
 ] as const;

@@ -38,20 +38,21 @@ conform exactly to the schema below.
 ---
 
 ## Archetype Registry (canonical 10 values)
+
 per data-schema.md §2.7 (audit §1.5 fix)
 
-| Value         | Short code | Description                              |
-|---------------|------------|------------------------------------------|
-| `partition`   | `pt`       | Draw lines to split a shape into N parts |
-| `identify`    | `id`       | Pick the shape that shows the fraction   |
-| `label`       | `lb`       | Drag fraction labels onto shaded regions |
-| `make`        | `mk`       | Fold/shade a shape to show a fraction    |
-| `compare`     | `cmp`      | Which fraction is bigger?                |
-| `benchmark`   | `bmk`      | Is this fraction closer to 0, 1/2, or 1?|
-| `order`       | `ord`      | Sort fraction cards on a number line     |
-| `snap_match`  | `sm`       | Drag fraction to snap to equivalent form |
-| `equal_or_not`| `eon`      | Are these two parts equal in size?       |
-| `placement`   | `ms`       | Drag fraction card to its spot on 0–1 line|
+| Value          | Short code | Description                                |
+| -------------- | ---------- | ------------------------------------------ |
+| `partition`    | `pt`       | Draw lines to split a shape into N parts   |
+| `identify`     | `id`       | Pick the shape that shows the fraction     |
+| `label`        | `lb`       | Drag fraction labels onto shaded regions   |
+| `make`         | `mk`       | Fold/shade a shape to show a fraction      |
+| `compare`      | `cmp`      | Which fraction is bigger?                  |
+| `benchmark`    | `bmk`      | Is this fraction closer to 0, 1/2, or 1?   |
+| `order`        | `ord`      | Sort fraction cards on a number line       |
+| `snap_match`   | `sm`       | Drag fraction to snap to equivalent form   |
+| `equal_or_not` | `eon`      | Are these two parts equal in size?         |
+| `placement`    | `ms`       | Drag fraction card to its spot on 0–1 line |
 
 ---
 

@@ -24,6 +24,7 @@ Per Phase 6 (C6.8) and interaction-model.md §9, keyboard and switch-access user
 ## Switch Access Support
 
 Users with switch-access devices can:
+
 1. Tab to any interactive element
 2. Use switch to "scan" and select elements
 3. Arrow keys work for dragging within the game canvas

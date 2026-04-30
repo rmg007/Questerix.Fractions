@@ -29,6 +29,8 @@
  * In production builds (import.meta.env.PROD) only WARN/ERROR are emitted.
  */
 
+import { logger } from './observability';
+
 const START = Date.now();
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -37,8 +39,8 @@ function getFilter(): string {
   try {
     const url = new URLSearchParams(window.location.search).get('log');
     if (url !== null) return url;
-    return localStorage.getItem('LOG') ?? '*';
-  } catch {
+    return localStorage.getItem('LOG') ?? 'Q,VALID,HINT';
+  } catch (err) {
     return '*';
   }
 }
@@ -74,11 +76,25 @@ const STYLES: Record<string, string> = {
 };
 
 function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): void {
-  if (!isEnabled(category)) return;
+  // We keep the isEnabled check for console filtering
+  const enabled = isEnabled(category);
+
+  // Always log to observability logger (it handles its own filtering/consent)
+  if (fn === 'error') {
+    logger.error(event, { category, data: data as Record<string, any> });
+  } else if (fn === 'warn') {
+    logger.warn(event, { category, data: data as Record<string, any> });
+  } else {
+    logger.info(event, { category, data: data as Record<string, any> });
+  }
+
+  if (!enabled) return;
+
   const cat = category.toUpperCase().padEnd(5);
   const style = STYLES[cat.trim()] ?? 'color:#374151;font-weight:700';
   const prefix = `%c[${ts()}] ${cat}%c ${event}`;
   const reset = 'color:inherit;font-weight:normal';
+  
   if (data !== undefined) {
     (console[fn] as (...a: unknown[]) => void)(prefix, style, reset, data);
   } else {
@@ -124,3 +140,4 @@ if (import.meta.env.DEV) {
     },
   };
 }
+

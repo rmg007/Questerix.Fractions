@@ -1,6 +1,6 @@
 # MATERIALS LIST — GRADE 1 FRACTIONS
 
-> *"A curriculum is useless without its materials. This list tells you what to gather, when, and why."*
+> _"A curriculum is useless without its materials. This list tells you what to gather, when, and why."_
 
 ---
 
@@ -17,6 +17,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 ## CATEGORY 1 — PAPER AND PRINTING
 
 ### Essential:
+
 - **Construction paper** (large, varied colors): 100 sheets
 - **White cardstock** (for durable templates): 50 sheets
 - **Printer paper** (standard): 500 sheets
@@ -24,6 +25,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 - **Poster board** (for anchor charts): 10 sheets
 
 ### For Activities:
+
 - **Pre-cut 12" circles** ("pizzas"): 30 per class × 10 weeks = 300
   - Print, cut, or purchase pre-cut
 - **Pre-cut shapes** (squares, rectangles, triangles, hexagons, hearts): 50 each
@@ -37,6 +39,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 ## CATEGORY 2 — MANIPULATIVES
 
 ### Essential:
+
 - **Counters** (pom-poms, bingo chips): 200
 - **Small plates** (paper or foam): 60
 - **Cups** (for water comparison in Week 2): 10
@@ -46,6 +49,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 - **Balance scale**: 1-2 per classroom (for equality verification)
 
 ### Useful:
+
 - **Magnetic fraction pieces**: 1 set per classroom (halves and fourths for vertical demos)
 - **Velcro fraction pieces**: Useful for motor-challenged students
 - **Large foam fraction circles**: 1 set per class
@@ -55,6 +59,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 ## CATEGORY 3 — CHARACTER AND NARRATIVE MATERIALS
 
 ### Essential:
+
 - **Character images** (printable from curriculum):
   - Pia
   - Whola the Wise
@@ -66,6 +71,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
   - The Fraction Fairy
 
 ### Useful:
+
 - **Puppets or plushies** (handmade or purchased):
   - Halfie and Halvo
   - Crumb
@@ -79,6 +85,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 - **Fraction Fairy prop:** Sparkle wand
 
 ### The Big Items:
+
 - **Large Halving Kingdom Map** (posted on wall): 1
 - **Kingdom's Fraction Laws anchor chart**: 1
 - **The Whole Hearth display**: 1 (can be cardboard or fabric)
@@ -114,6 +121,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
   - Royal Sharemaster Medal + Certificate
 
 ### Suggestions:
+
 - Print certificates on cardstock for durability
 - Use sticker paper for badges
 - Consider ribbon for "medal" effect
@@ -123,22 +131,26 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 ## CATEGORY 6 — SPECIAL EVENT MATERIALS
 
 ### Week 6 — First Queen Equallia Ceremony:
+
 - Large Kingdom Pie (18" circle, decorated)
 - Queen Equallia costume elements
 - Halver & Fourther badges
 
 ### Week 20 — Halving Detective Trial:
+
 - 20 "evidence" pieces (pre-made, varied real/fake)
 - Trial ceremony materials
 - Courtroom setup (optional)
 
 ### Week 30 — Great Kingdom Feast:
+
 - Paper (or real) feast food
 - Feast banners
 - Communication with families re: dietary needs
 - Community-style seating
 
 ### Week 32 — Coronation:
+
 - Royal Sharemaster medals
 - Coronation certificates
 - Decorations (gold, silver)
@@ -151,12 +163,14 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 ## CATEGORY 7 — TECHNOLOGY (OPTIONAL)
 
 ### Useful:
+
 - **Projector** or **smart board** (for images, read-alouds)
 - **Document camera** (for modeling folds)
 - **Audio recorder** (for child explanations, portfolios)
 - **Tablet** (if digital portfolio via Seesaw etc.)
 
 ### Not required:
+
 - Fraction apps (this curriculum is primarily analog by design)
 
 ---
@@ -166,6 +180,7 @@ This list covers ALL materials needed for a full Grade 1 year of fraction instru
 If conducting real-food activities (pizza party, feast):
 
 ### Essential:
+
 - **Advance communication with families** (allergies, dietary restrictions)
 - **Alternative: paper food** for children who can't eat real food
 - **Variety:**
@@ -176,6 +191,7 @@ If conducting real-food activities (pizza party, feast):
   - Nut-free environment
 
 ### Suggested real foods:
+
 - Individual mini-pizzas (pre-made, teacher halves/fourths)
 - Apple slices (teacher pre-cut)
 - Sandwich halves
@@ -188,21 +204,25 @@ If conducting real-food activities (pizza party, feast):
 ## PURCHASING GUIDE
 
 ### Must-Buy:
+
 - Classroom supplies above (paper, crayons, manipulatives)
 - Printer ink / toner
 - Binders for portfolios
 
 ### Nice-to-Buy:
+
 - Quality foam fraction pieces
 - Character plushes (even handmade)
 - Real pizza party supplies
 
 ### Try-to-Borrow:
+
 - Balance scales (from science department)
 - Classroom puppets (from library)
 - Costumes (from drama department)
 
 ### DIY Alternatives:
+
 - Certificates: design in free tools (Canva)
 - Puppets: make with paper bags
 - Map: draw on large paper
@@ -266,17 +286,20 @@ Store somewhere accessible between years.
 ## PREP TIMELINE
 
 ### Summer (before year begins):
+
 - Purchase all one-time items
 - Print all certificates, badges, and posters
 - Laminate durable items
 - Organize into bins
 
 ### Weekly (during year):
+
 - Prep upcoming week's consumables (5-10 min/week)
 - Refill daily supplies
 - Update displays
 
 ### End of Year:
+
 - Clean and store durable items
 - Inventory for next year
 - Note what needs replacing
@@ -288,20 +311,24 @@ Store somewhere accessible between years.
 ### Additional items for differentiation:
 
 **For ELLs:**
+
 - Bilingual vocabulary cards (printable)
 - Audio recordings of read-alouds in home languages (if available)
 
 **For Motor Challenges:**
+
 - Pre-scored paper (score lines made with ruler)
 - Adaptive scissors (available through special ed)
 - Large-format manipulatives
 
 **For Visual Needs:**
+
 - High-contrast versions of all materials
 - Large-print assessment sheets
 - Tactile fraction pieces (foam with textured backing)
 
 **For Sensory Sensitivities:**
+
 - Quiet corner materials (soft cushions, weighted lap pad)
 - Noise-reducing headphones
 
@@ -310,6 +337,7 @@ Store somewhere accessible between years.
 ## DONATIONS AND COMMUNITY
 
 Consider asking:
+
 - Parents for excess art supplies
 - Local businesses for paper donations
 - PTA/PTO funds for one-time investments
@@ -326,4 +354,4 @@ Consider asking:
 
 ---
 
-*Next: see `PRINTABLE_TEMPLATES.md` for print-ready materials.*
+_Next: see `PRINTABLE_TEMPLATES.md` for print-ready materials._

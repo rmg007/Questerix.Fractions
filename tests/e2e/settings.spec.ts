@@ -41,7 +41,9 @@ test.describe('Settings scene', () => {
     await expect(page.locator('[data-testid="settings-scene"]')).toBeVisible({ timeout: 5000 });
 
     // Export and Reset overlays must be present
-    await expect(page.locator('[data-testid="settings-export-btn"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="settings-export-btn"]')).toBeVisible({
+      timeout: 3000,
+    });
     await expect(page.locator('[data-testid="settings-reset-btn"]')).toBeVisible({ timeout: 3000 });
 
     // Back button present

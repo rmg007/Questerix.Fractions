@@ -1,0 +1,37 @@
+My honest opinion on v2
+It's substantively better than v1. The North Star ("Quest for Whole"), the persona bible, the motion language, and the misconception-to-surface mapping are real intellectual additions, not just more decoration. v1 was tactics; v2 has a thesis.
+
+That said, several things bother me. In rough order of how much:
+
+Where I think the plan is genuinely strong
+The North Star actually constrains decisions instead of decorating them. Naming "wholeness" as the unifying frame is the kind of move that makes downstream taste calls automatic.
+Quest-as-progress is a genuinely clever IA move. Collapsing the progress meter into the mascot reduces cognitive load, frees a real-estate slot, and ties celebration to character in one stroke.
+Appendix B (Inclusion Charter) is the single best addition. Non-reader mode, caregiver handoffs, ELL prep — these are the kinds of commitments most plans gesture at and don't make. The autoSpeak default-on-for-N-days pattern is concrete in a way most accessibility work isn't.
+§6 ties surfaces to misconceptions. "Compare Bridge fights whole-number bias" is real LX work. v1 was decorating around the math; v2 decorates with it.
+§8 hypothesis table includes counter-metrics. Specifying what would tell you you caused harm even if the primary metric improved is mature research thinking. Most plans skip this.
+§12 Anti-patterns is brave. Explicitly saying "no XP, no streaks, no currency" against the grain of the K-2 market is a values-stand most plans avoid.
+Where I'm skeptical
+Quest-as-progress retreats from itself. §T25.C requires a persistent text chip "3 / 5" alongside Quest, and admits it's the source of truth. That's the right accessibility call — but it means what actually ships is "Quest plus a chip," not "the mascot IS progress." The plan's own rhetoric is a bit of marketing on top of the real design. Be honest about the chip being load-bearing.
+The five-pointed-star resolution has an unaddressed tension with P3. P3 says errors are "unfilled, not failed." Quest's body is unfilled until you complete the session. So during gameplay, Quest is visibly not whole. That subtly contradicts the North Star ("Quest is on a journey to make broken things whole" — but Quest is the broken thing being made whole? By the player?). The framing needs another pass; right now it's load-bearing on a metaphor that wobbles.
+§T26.B says Quest replaces the trophy, then keeps three sub-stars below Quest. Either commit to Quest-as-only-reward or admit you're shipping two reward visualizations. The "no separate trophy" claim is undercut by the very next paragraph.
+The hypothesis methodology is overconfident. H1's success threshold ("≥ 50% higher smile/lean-in count, n=8") cannot reliably detect a 50% effect at that sample. Counter-metrics are good; effect-size discipline isn't there. Either widen the band or reduce confidence in the prediction.
+The cognitive-load count of "exactly 7" in §T18 is performative. It counts a prompt panel as one element. A prompt panel contains text + an interactive shape + parts. The budget makes the rigor feel rigorous without actually being rigorous. Either drop the count or define what a "cognitive element" is precisely.
+T29 (frustration recovery) ships at PR 9, after T26 celebrations at PR 7–8. For the window between releases, the app celebrates winners louder while losers still have no off-ramp. That's the worst possible interim state. T29 should ship in the same release as T26, or before it.
+The 35-second first-run "resolution" splits the difference instead of engaging the substance. UXR's 30s and LX's 45–60s were arguments about what's in the intro, not duration. Picking 35s doesn't answer LX's content concern; it just ends the meeting.
+Lexend's bundle cost is hand-waved. "≈30 KB gzip" assumes one weight; Lexend ships seven. With proper hierarchy you commit to two or three. Real cost is more like 60–90 KB. Fine if budgeted; not fine if waved through.
+The plan doesn't engage with what happens to existing E2E tests. The harden-and-polish plan is adding level-card-L1..L9, settings-btn, etc. to MenuScene. T19 (world map) replaces the level grid entirely. The two plans contradict each other on the MenuScene level chooser. Resolve, or sequence so harden lands tests against a UI that's about to be replaced.
+No migration story for existing players. A child mid-session when v2 ships sees their progress bar disappear and Quest's points appear at 2/5. Continuity is silent.
+T0's CI-blocking copy linter at FK ≤ 2.0 will fight you. Region names like "Number-Line River," "Equivalence Garden" are above FK 2.0. Either the linter has a robust allow-list, or it becomes contributor friction. Underspecified.
+The roundtable framing slightly performs disagreement. Every cross-functional disagreement in §1 gets a clean resolution paragraph. Real disagreements are messier. The neatness suggests the disagreements were authored from one mind rather than negotiated. That's fine — but trust your own conviction; the rhetorical scaffolding is doing more work than it needs to.
+The single biggest risk
+Sequencing T29 after T26. Everything else can be patched in flight. Shipping celebration before recovery means the players who most need help see the app become more exclusive of them for the duration of the gap. That's a real harm, not a polish issue.
+
+Bottom line
+I'd ship this plan with five edits:
+
+Move T29 to the same release as T26 (or before).
+Drop the "Quest replaces the trophy" claim, or actually drop the sub-stars.
+Rework H1's effect-size to something detectable at n=8 (or commit to n=20+).
+Resolve the MenuScene contradiction with the harden-and-polish plan before either lands.
+Re-budget Lexend honestly with weight count.
+The conceptual core — North Star, persona bible, motion budget, inclusion charter, misconception-mapping — is strong enough that I'd back this plan over v1 even with the issues above. It's a real plan, not a feature list. Ship it after the five edits.

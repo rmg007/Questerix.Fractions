@@ -14,17 +14,18 @@ The Questerix Fractions hint system provides a 3-tier progressive disclosure fra
 
 Each question template has exactly 3 hints in a **Tier 1 → Tier 2 → Tier 3 progression**:
 
-| Tier | Type | Purpose | Example |
-|------|------|---------|---------|
-| **1** | Verbal | Questioning / metacognitive prompt | "What does it mean for parts to be equal?" |
-| **2** | Verbal | Guided instruction / procedural nudge | "Make sure both pieces are the same size." |
-| **3** | Verbal | Explicit solution / demonstration | "Draw a line through the middle so both halves look the same." |
+| Tier  | Type   | Purpose                               | Example                                                        |
+| ----- | ------ | ------------------------------------- | -------------------------------------------------------------- |
+| **1** | Verbal | Questioning / metacognitive prompt    | "What does it mean for parts to be equal?"                     |
+| **2** | Verbal | Guided instruction / procedural nudge | "Make sure both pieces are the same size."                     |
+| **3** | Verbal | Explicit solution / demonstration     | "Draw a line through the middle so both halves look the same." |
 
 ### ID Scheme
 
 Hint IDs follow the pattern: `h:<archetype>:<level>:<template_id>:T<tier>`
 
 Example: `h:pt:L1:0001:T1`
+
 - `h` = hint artifact type
 - `pt` = archetype (Parts/Thirds, Identity, etc.)
 - `L1` = Level 1
@@ -56,16 +57,16 @@ Example: `h:pt:L1:0001:T1`
 
 ### Field Reference
 
-| Field | Type | Constraints | Notes |
-|-------|------|-------------|-------|
-| `id` | string | Unique identifier | Concatenation of archetype, level, template, tier |
-| `questionTemplateId` | string | FK to question template | Links hint to question |
-| `type` | enum | `"verbal"` \| `"visual_overlay"` \| `"worked_example"` | Currently: all verbal |
-| `order` | number | 1, 2, or 3 | Tier sequence (immutable) |
-| `content.text` | string | Max 15 words (avg 9.2w) | Pedagogically concise |
-| `content.assetUrl` | URL \| null | Optional external asset | Reserved for future visual hints |
-| `content.ttsKey` | string | Dot-notation path | References audio asset in TTS system |
-| `pointCost` | number | ≥ 0 (currently 0.0) | Cost to reveal hint in game |
+| Field                | Type        | Constraints                                            | Notes                                             |
+| -------------------- | ----------- | ------------------------------------------------------ | ------------------------------------------------- |
+| `id`                 | string      | Unique identifier                                      | Concatenation of archetype, level, template, tier |
+| `questionTemplateId` | string      | FK to question template                                | Links hint to question                            |
+| `type`               | enum        | `"verbal"` \| `"visual_overlay"` \| `"worked_example"` | Currently: all verbal                             |
+| `order`              | number      | 1, 2, or 3                                             | Tier sequence (immutable)                         |
+| `content.text`       | string      | Max 15 words (avg 9.2w)                                | Pedagogically concise                             |
+| `content.assetUrl`   | URL \| null | Optional external asset                                | Reserved for future visual hints                  |
+| `content.ttsKey`     | string      | Dot-notation path                                      | References audio asset in TTS system              |
+| `pointCost`          | number      | ≥ 0 (currently 0.0)                                    | Cost to reveal hint in game                       |
 
 ---
 
@@ -76,6 +77,7 @@ Example: `h:pt:L1:0001:T1`
 Location: `pipeline/validate_and_report.py`
 
 Automated checks:
+
 - **Structural**: All required fields present
 - **Cascade integrity**: Each template has exactly 3 hints
 - **Ordering**: Hints ordered 1, 2, 3 with no gaps
@@ -116,7 +118,7 @@ Output: Printed report + JSON report at `pipeline/output/hint_validation_report.
 
 ```typescript
 // Load hints for a question
-const hints = hintsDatabase.getByTemplateId("q:pt:L1:0001");
+const hints = hintsDatabase.getByTemplateId('q:pt:L1:0001');
 // hints = [Tier 1, Tier 2, Tier 3] sorted by order
 
 // Reveal hint on demand
@@ -124,16 +126,16 @@ if (student.requestsHint()) {
   const nextHintIndex = student.hintsRevealed[question.id] || 0;
   if (nextHintIndex < hints.length) {
     const hint = hints[nextHintIndex];
-    
+
     // Apply cost
     student.points -= hint.pointCost;
-    
+
     // Display hint
     ui.showHint(hint.content.text);
-    
+
     // Optionally: trigger TTS
     tts.play(hint.content.ttsKey);
-    
+
     // Track
     student.hintsRevealed[question.id] = nextHintIndex + 1;
   }
@@ -184,16 +186,19 @@ Currently, all hints have `pointCost: 0.0` (free). To implement cost:
 ### Common Tasks
 
 **Add or modify a hint**:
+
 1. Edit or regenerate `pipeline/output/hints.json`
 2. Re-run validation: `python3 pipeline/validate_and_report.py pipeline/output/hints.json`
 3. If pass rate = 100%, safe to commit
 
 **Audit hint quality**:
+
 1. Check `pipeline/output/hint_validation_report.json` for samples
 2. Review word counts (target: 8–12 words for clarity and cognitive load)
 3. Ensure Tier 1 is questioning, Tier 2 is procedural, Tier 3 is explicit
 
 **Troubleshoot validation failures**:
+
 - **"Expected 3 hints, got N"**: Template is incomplete; regenerate
 - **"Word count exceeds 15"**: Rewrite hint to be more concise
 - **"Invalid type"**: Check enum; ensure type ∈ [`"verbal"`, `"visual_overlay"`, `"worked_example"`]
@@ -227,13 +232,13 @@ Currently, all hints have `pointCost: 0.0` (free). To implement cost:
 
 ## Files & References
 
-| File | Purpose |
-|------|---------|
-| `pipeline/output/hints.json` | Production hints dataset (213 hints, 71 templates) |
-| `pipeline/validate_and_report.py` | Validation script; generates reports |
-| `pipeline/output/hint_validation_report.json` | Detailed validation results (JSON) |
-| `.claude/CLAUDE.md` | Project conventions; hints status summary |
-| `.claude/HINTS_INTEGRATION.md` | This document |
+| File                                          | Purpose                                            |
+| --------------------------------------------- | -------------------------------------------------- |
+| `pipeline/output/hints.json`                  | Production hints dataset (213 hints, 71 templates) |
+| `pipeline/validate_and_report.py`             | Validation script; generates reports               |
+| `pipeline/output/hint_validation_report.json` | Detailed validation results (JSON)                 |
+| `.claude/CLAUDE.md`                           | Project conventions; hints status summary          |
+| `.claude/HINTS_INTEGRATION.md`                | This document                                      |
 
 ---
 

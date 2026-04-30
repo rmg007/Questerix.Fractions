@@ -1,6 +1,6 @@
 # DIFFERENTIATION GUIDE — GRADE 1 FRACTIONS
 
-> *"Equity is not giving every child the same thing. Equity is giving every child what they need. A first-grade classroom is 20+ different minds; a great curriculum anticipates this."*
+> _"Equity is not giving every child the same thing. Equity is giving every child what they need. A first-grade classroom is 20+ different minds; a great curriculum anticipates this."_
 
 ---
 
@@ -29,23 +29,27 @@ We differentiate along five dimensions:
 ### For English Language Learners (ELLs):
 
 **At all levels of proficiency:**
+
 - Pair with a bilingual buddy when possible
 - Use gesture consistently for key concepts (half = hand chop; whole = hand circle)
 - Provide visual supports alongside all text
 - Allow non-verbal demonstration as valid responses
 
 **For beginning ELLs:**
+
 - Focus on picture-based tasks
 - Provide vocabulary cards in home language
 - Accept one-word answers or pointing
 - Don't require complete sentences
 
 **For intermediate ELLs:**
-- Provide sentence frames: "I halved the _____." "Two halves make a _____."
+
+- Provide sentence frames: "I halved the **\_**." "Two halves make a **\_**."
 - Pair oral and written vocabulary practice
 - Encourage labeling with words and pictures
 
 **For advanced ELLs:**
+
 - Support academic vocabulary (equal, partition, compose)
 - Encourage extended explanations
 - May participate in all tasks with minimal accommodation
@@ -53,6 +57,7 @@ We differentiate along five dimensions:
 ### Translations Provided:
 
 Key vocabulary translated in `materials/BILINGUAL_VOCABULARY.md` into:
+
 - Spanish
 - Mandarin
 - Arabic
@@ -69,17 +74,20 @@ Key vocabulary translated in `materials/BILINGUAL_VOCABULARY.md` into:
 ### For Students Working Above Grade Level:
 
 **Do not:**
+
 - Give them Grade 2 worksheets
 - Isolate them from peers
 - Push symbolic notation early
 
 **Do:**
+
 - Provide **extension tasks** (see `extensions/`) that deepen rather than accelerate
 - Offer leadership roles (peer teaching, assistant to Queen Equallia, Problem Designer)
 - Encourage creativity: "Invent a new fraction story" "Design a new Crumb mistake"
 - Introduce concepts informally without requiring them: "What do you think a THIRD is?"
 
 **Sample extension tasks:**
+
 - "How many ways can you halve this square?"
 - "Create a word problem for your classmates"
 - "Teach Crumb how to avoid a specific mistake"
@@ -88,12 +96,14 @@ Key vocabulary translated in `materials/BILINGUAL_VOCABULARY.md` into:
 ### For Students Working Below Grade Level:
 
 **Do not:**
+
 - Give up or lower expectations permanently
 - Segregate into "slow group"
 - Skip core content
 - Retain based on fraction progress alone
 
 **Do:**
+
 - Provide MORE time at foundational levels
 - Use LARGER, more concrete materials
 - Pair with supportive peer
@@ -103,6 +113,7 @@ Key vocabulary translated in `materials/BILINGUAL_VOCABULARY.md` into:
 - Celebrate incremental growth
 
 **Sample supports:**
+
 - Pre-folded paper (child doesn't have to fold)
 - Fewer items per task (3 shapes instead of 5)
 - Extra check-ins
@@ -119,6 +130,7 @@ Specific accommodations depend on the IEP. General principles:
 - Document what works
 
 **Common IEP accommodations useful here:**
+
 - Extended time
 - Reduced item count
 - Alternative response modes (pointing, yes/no questions)
@@ -129,6 +141,7 @@ Specific accommodations depend on the IEP. General principles:
 ### For 504 Plans:
 
 Common accommodations:
+
 - Preferential seating (near instruction)
 - Check-ins and refocusing
 - Modified materials
@@ -182,6 +195,7 @@ The Halving Kingdom is a **vessel**, not a doctrine. Adapt to your students' cul
 ### Food Adaptations:
 
 Default: pizza. Alternatives:
+
 - Tortillas (Mexican, Central/South American)
 - Naan (Indian, South Asian)
 - Injera (Ethiopian)
@@ -202,6 +216,7 @@ Use the foods that reflect your classroom.
 ### Cultural Narrative Alternatives:
 
 For communities uncomfortable with monarchy themes:
+
 - **The Sharing Village** (cooperative community, not kingdom)
 - **The Fair Federation** (democratic, voted leaders)
 - **The Equal Nation** (general civic setting)
@@ -271,17 +286,20 @@ Each activity plan contains a **Differentiation** section with specific accommod
 This curriculum follows UDL principles:
 
 ### Multiple Means of Engagement:
+
 - Narrative engages emotional investment
 - Characters provide identification options
 - Choice of tasks where appropriate
 - Celebration built-in
 
 ### Multiple Means of Representation:
+
 - Oral read-alouds AND written stories AND pictures
 - Concrete materials AND drawings AND words
 - Videos (when useful) AND live demonstrations
 
 ### Multiple Means of Action and Expression:
+
 - Drawing, speaking, folding, cutting, pointing as valid responses
 - Written and oral explanations both honored
 - Performance assessments complement paper tasks
@@ -293,22 +311,26 @@ This curriculum follows UDL principles:
 When a student or group of students needs more support, organize **Small-Group Interventions**:
 
 ### Structure:
+
 - 3-5 students in a group
 - 15-20 minutes, 3x/week
 - Pulled aside during independent work time
 - Teacher-led (or trained aide)
 
 ### Content:
+
 - Re-teach the most foundational concept
 - Use concrete materials exclusively
 - Slow pace, many repetitions
 - Celebrate each small gain
 
 ### Duration:
+
 - 2-4 weeks for most interventions
 - Re-assess after 2 weeks; adjust
 
 ### Exit criteria:
+
 - Student demonstrates target concept at Meeting level on 3 consecutive checks
 
 ---
@@ -336,11 +358,11 @@ Differentiation is transparent with families:
 
 ## RESEARCH BASIS
 
-- **CAST (2018)** — *Universal Design for Learning Guidelines*
-- **Echevarría et al. (2017)** — *Making Content Comprehensible for English Learners (SIOP)*
-- **Tomlinson (2014)** — *The Differentiated Classroom*
-- **Aguirre et al. (2013)** — *Toward a Mathematics of Identity*
+- **CAST (2018)** — _Universal Design for Learning Guidelines_
+- **Echevarría et al. (2017)** — _Making Content Comprehensible for English Learners (SIOP)_
+- **Tomlinson (2014)** — _The Differentiated Classroom_
+- **Aguirre et al. (2013)** — _Toward a Mathematics of Identity_
 
 ---
 
-*Every child belongs in this kingdom. Every child learns fractions. That is our promise.*
+_Every child belongs in this kingdom. Every child learns fractions. That is our promise._

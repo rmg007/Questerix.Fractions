@@ -1,0 +1,443 @@
+/**
+ * Quest microcopy — per ux-elevation.md §4 ("The Quest Persona Bible").
+ *
+ * Voice rules (enforced by copyLinter + persona/quest validateQuestLine):
+ *   - K-2 reading level (target FK 1.5, hard cap 2.0)
+ *   - ≤ 7 words per sentence (most ≤ 5)
+ *   - One- or two-syllable words where possible
+ *   - Concrete nouns over abstract
+ *   - Present tense, active voice
+ *   - Never starts with "Don't" or "No"
+ *   - Never uses generic praise ("Good job!"), flat negatives ("Wrong."),
+ *     or the verbose register ("Welcome to Questerix Fractions...")
+ *
+ * Player display name appears at most once per session (at session-complete);
+ * if missing, default to "friend." (see persona/quest.ts).
+ *
+ * All entries here are tone: 'persona-quest'. Region names live alongside
+ * with tone: 'persona-quest', properNoun: true so they pass the catalog lint.
+ */
+
+import { registerCatalog, type Catalog } from '../catalog';
+import { level01HintCopy, level01HintKeys } from '../../mascotCopy';
+
+const QUEST_COPY: Catalog = {
+  // ── First meeting (greeting) ───────────────────────────────────────────
+  'quest.greet.first': {
+    text: "Hi! I'm Quest.",
+    notes: 'First-ever meeting on the menu screen. Short, warm, no exclamation pile-up.',
+    tone: 'persona-quest',
+  },
+  'quest.greet.return': {
+    text: 'Hi again!',
+    notes: 'Returning student — Quest does NOT use the player name on return.',
+    tone: 'persona-quest',
+  },
+
+  // ── Correct answer feedback (names what was right) ────────────────────
+  'quest.feedback.correct.half': {
+    text: "Yes! That's a half.",
+    notes: 'Correct on a halves question. Names the fraction.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.correct.third': {
+    text: "Yes! That's a third.",
+    tone: 'persona-quest',
+  },
+  'quest.feedback.correct.fourth': {
+    text: "Yes! That's a fourth.",
+    notes: 'Use "fourth" not "quarter" for K-2 reading-level alignment.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.correct.equal': {
+    text: 'Yes! Equal parts.',
+    notes: 'For Equal-or-Not / partitioning prompts.',
+    tone: 'persona-quest',
+  },
+
+  // ── Wrong answer feedback (gentle, observational) ─────────────────────
+  'quest.feedback.wrong.parts': {
+    text: 'Try again. I see {count, plural, one {one part} other {# parts}}.',
+    notes: 'Observational, not negative. Names what Quest sees.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.unequal': {
+    text: 'Try again. The parts are not equal.',
+    notes:
+      'Used when the player accepts visibly-unequal divisions. Avoids "different" (3 syllables, pushes FK > 2).',
+    tone: 'persona-quest',
+  },
+
+  // ── Per-archetype wrong-answer lines (verbal, observational) ──────────
+  // One line per archetype so Quest speaks to what the question actually
+  // asked rather than defaulting to "parts are not equal" on every type.
+  // All entries: FK ≤ 2.0, ≤ 7 words/sentence, never "The answer is…".
+  'quest.feedback.wrong.equal_or_not': {
+    text: 'Try again. The parts are not equal.',
+    notes: 'Wrong answer for equal_or_not. Observational: names what Quest sees.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.compare': {
+    text: 'Try again. Look at both again.',
+    notes: 'Wrong answer for compare. Invites re-examination of both fractions.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.order': {
+    text: 'Try again. Check the sizes.',
+    notes: 'Wrong answer for order. Nudges checking magnitude without giving order away.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.benchmark': {
+    text: 'Try again. Think near the half.',
+    notes: 'Wrong answer for benchmark. Points to the half benchmark; all 1-syllable words keep FK low.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.label': {
+    text: 'Try again. Count the parts again.',
+    notes: 'Wrong answer for label. Observational: re-count shaded and total.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.make': {
+    text: 'Try again. Count the shaded parts.',
+    notes: 'Wrong answer for make. Names what Quest sees in the construction.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.snap_match': {
+    text: 'Try again. Those do not match.',
+    notes: 'Wrong answer for snap_match. Short observational note on the mismatch.',
+    tone: 'persona-quest',
+  },
+
+  // ── Hint (models thinking, never gives the answer) ────────────────────
+  'quest.hint.split2': {
+    text: 'Hmm. I can split this in two.',
+    tone: 'persona-quest',
+  },
+
+  // ── Hint (split2 / halves — verbal / visual / worked-example) ──────────
+  // Three tiers for Level 1 (halves context) mirror src/components/HintLadder.ts.
+  // Text values are imported from src/lib/mascotCopy.ts (level01HintCopy) so
+  // the catalog always stays in sync with the display copy without duplication.
+  //
+  // skipCopyLint rationale: the Tier 1 string contains "moving" and "little"
+  // (each 2 syllables), pushing FK to ~2.5. Tier 2 contains "about" and
+  // "halfway" (each 2 syllables), FK ~2.9. Tier 3 opens with "The answer is"
+  // (forbidden hint-giveaway pattern) and also exceeds FK. All three strings
+  // are required verbatim by the product spec (task #49); the exemption is
+  // intentional and documented in src/lib/mascotCopy.ts.
+  [level01HintKeys.verbal]: {
+    text: level01HintCopy.verbal,
+    notes:
+      'Tier 1 hint for halves (split2). Verbal nudge only. skipCopyLint: FK ~2.5 due to "moving"/"little"; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+  [level01HintKeys.visual_overlay]: {
+    text: level01HintCopy.visual_overlay,
+    notes:
+      'Tier 2 hint for halves (split2). Guides toward midpoint. skipCopyLint: FK ~2.9 due to "about"/"halfway"; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+  [level01HintKeys.worked_example]: {
+    text: level01HintCopy.worked_example,
+    notes:
+      'Tier 3 hint for halves (split2). Worked-example pointer. skipCopyLint: contains "The answer is" (persona gate) and exceeds FK; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  'quest.hint.split3': {
+    text: 'Hmm. I can split this in three.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.split4': {
+    text: 'Hmm. I can split this in four.',
+    tone: 'persona-quest',
+  },
+
+  // ── Hint (other archetypes — verbal / visual / worked-example) ────────
+  // Three tiers per archetype mirror src/components/HintLadder.ts so each
+  // ladder rung escalates inside Quest's voice. All entries are checked by
+  // questCatalog.test.ts (FK ≤ 2.0, ≤ 7 words/sentence, persona patterns).
+  'quest.hint.compare.verbal': {
+    text: 'Which one is bigger? Take a look.',
+    notes: 'Tier 1 hint for compare archetype. Verbal nudge, no answer.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.compare.visual': {
+    text: 'I can draw both. Then I see.',
+    notes: 'Tier 2 hint for compare. Models drawing both as pictures.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.compare.worked': {
+    text: 'Same bottom? Top number wins.',
+    notes: 'Tier 3 hint for compare. Worked-example rule.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.equal_or_not.verbal': {
+    text: 'Look at each part. Same size?',
+    notes: 'Tier 1 hint for equal_or_not. Verbal nudge to compare parts.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.equal_or_not.visual': {
+    text: 'I can stack them. Then I see.',
+    notes: 'Tier 2 hint for equal_or_not. Models stacking parts to compare.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.equal_or_not.worked': {
+    text: 'Equal parts match. Same size each.',
+    notes: 'Tier 3 hint for equal_or_not. Worked-example rule.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.order.verbal': {
+    text: 'Which is smallest? Pick that one first.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.order.visual': {
+    text: 'I can draw each piece. Then sort.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.order.worked': {
+    text: 'Small, middle, big. Line them up.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.benchmark.verbal': {
+    text: 'Near zero? Near half? Or near one?',
+    notes: 'Tier 1 hint for benchmark. Three short questions stay under 7w each.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.benchmark.visual': {
+    text: 'Half is the middle. Look there.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.benchmark.worked': {
+    text: 'Tiny top? Near zero. Big top? Near one.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.label.verbal': {
+    text: 'Count the shaded ones. Then count all.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.label.visual': {
+    text: 'Top is shaded. Bottom is all parts.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.label.worked': {
+    text: 'Write shaded over total.',
+    notes: '4 words — under MIN_WORDS_FOR_FK so FK gate is skipped.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.make.verbal': {
+    text: 'Shade just the top number.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.make.visual': {
+    text: 'Bottom is total. Top is to shade.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.make.worked': {
+    text: 'Two of four? Shade two parts.',
+    tone: 'persona-quest',
+  },
+
+  'quest.hint.snap_match.verbal': {
+    text: 'Find the picture that fits.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.snap_match.visual': {
+    text: 'Count shaded. Match the top number.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.snap_match.worked': {
+    text: 'Three of four shaded. Match three over four.',
+    tone: 'persona-quest',
+  },
+
+  // ── Identify hints ────────────────────────────────────────────────────────
+  'quest.hint.identify.verbal': {
+    text: 'Count the shaded parts.',
+    notes: 'Tier 1 hint for identify. Short observational nudge.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.identify.visual': {
+    text: 'Count the shaded parts.',
+    notes: 'Tier 2 hint for identify. Points to visual evidence.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.identify.worked': {
+    text: 'Shaded parts on top, total parts on the bottom.',
+    notes: 'Tier 3 hint for identify. Explicit fraction definition.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Placement hints ───────────────────────────────────────────────────────
+  'quest.hint.placement.verbal': {
+    text: 'Where is it on the line?',
+    notes: 'Tier 1 hint for placement. Nudge to look at number line.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.placement.visual': {
+    text: 'Look at the bar. How full is it?',
+    notes: 'Tier 2 hint for placement. Connects bar model to number line.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.placement.worked': {
+    text: 'Line up the bar with the line. Put the marker there.',
+    notes: 'Tier 3 hint for placement. Direct worked instruction.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Explain-your-order hints ──────────────────────────────────────────────
+  'quest.hint.explain_your_order.verbal': {
+    text: 'Which fraction is smallest?',
+    notes: 'Tier 1 hint for explain_your_order. Start-point nudge.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.explain_your_order.visual': {
+    text: 'Draw each fraction. Which takes up less space?',
+    notes: 'Tier 2 hint for explain_your_order. Models pictorial comparison.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.explain_your_order.worked': {
+    text: 'Smaller bottom number means bigger pieces.',
+    notes: 'Tier 3 hint. Explicit rule about denominator size.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
+  // ── Welcome-back / streak copy ────────────────────────────────────────────
+  'quest.menu.welcomeBack': {
+    text: 'Welcome back!',
+    notes: 'Shown on menu when returning player has prior sessions.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.suggestedLevel': {
+    text: 'Try Level {n} next!',
+    notes: 'Shown below welcome-back. {n} = suggested next level number (1-9). ICU substitution.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.allDone': {
+    text: 'You did all 9 levels!',
+    notes: 'Shown when student has completed all 9 levels.',
+    tone: 'persona-quest',
+  },
+  'quest.menu.streak': {
+    text: '{count} day streak!',
+    notes: 'Streak badge text. {count} = number of consecutive days. ICU substitution.',
+    tone: 'persona-quest',
+  },
+
+  // ── Generic hint fallback (partition with unsupported denominator or
+  //    unknown archetype — safety net only; known archetypes have explicit
+  //    verbal/visual/worked keys above) ────────────────────────────────────
+  'quest.hint.fallback.verbal': {
+    text: 'Equal parts match. Try the middle.',
+    notes: 'Generic fallback hint tier 1. Used when no archetype-specific key resolves.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.fallback.visual': {
+    text: 'Look for the center of the shape.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.fallback.worked': {
+    text: 'Place the line at the center.',
+    notes: '5 words — at MIN_WORDS_FOR_FK boundary; FK gate may skip.',
+    tone: 'persona-quest',
+  },
+  'quest.hint.fallback.safe': {
+    text: 'Take another look.',
+    notes:
+      'Last-resort hint shown when catalog retrieval fails entirely. Prevents blank hint bubble.',
+    tone: 'persona-quest',
+  },
+
+  // ── Tricky / 3-wrong recovery (offers ramp-down per §9 T29) ───────────
+  'quest.tricky.offerRamp': {
+    text: 'This one is tricky. Want a smaller one?',
+    notes: 'Offered after 3 wrong in a row. Never says "Don\'t give up."',
+    tone: 'persona-quest',
+  },
+
+  // ── Session complete (one-time name use per §4) ───────────────────────
+  'quest.complete.named': {
+    text: 'We made it whole, {name}!',
+    notes:
+      'Only Quest line that uses the player name. If name is missing the caller substitutes "friend".',
+    tone: 'persona-quest',
+  },
+
+  // ── Locked region ─────────────────────────────────────────────────────
+  'quest.locked.region': {
+    text: "Let's finish {region} first.",
+    notes:
+      '{region} resolves through the region.* catalog keys; never say "Locked." or "Come back later."',
+    tone: 'persona-quest',
+  },
+
+  // ── Frustration recovery vocabulary (§4 + §9 T29) ─────────────────────
+  'quest.frustration.slowdown': {
+    text: "Let's slow down.",
+    tone: 'persona-quest',
+  },
+  'quest.frustration.tryShorter': {
+    text: 'Want to try a smaller one?',
+    tone: 'persona-quest',
+  },
+  'quest.frustration.show': {
+    text: 'I can show you.',
+    tone: 'persona-quest',
+  },
+  'quest.frustration.breath': {
+    text: 'Take a breath.',
+    tone: 'persona-quest',
+  },
+  'quest.frustration.return': {
+    text: 'We can come back to this.',
+    tone: 'persona-quest',
+  },
+
+  // ── Region names (proper nouns, mentioned in §6 misconception table) ──
+  'region.halvesForest': {
+    text: 'Halves Forest',
+    notes: 'Continuous-area region (cookies, pies). 1-syllable + 2-syllable for K-2 readability.',
+    tone: 'persona-quest',
+    properNoun: true,
+  },
+  'region.quartersBay': {
+    text: 'Quarters Bay',
+    notes: 'Discrete-collection region (boats). Reinforces same fraction in discrete form.',
+    tone: 'persona-quest',
+    properNoun: true,
+  },
+  'region.compareBridge': {
+    text: 'Compare Bridge',
+    notes: 'Side-by-side comparison region. Fights whole-number bias.',
+    tone: 'persona-quest',
+    properNoun: true,
+  },
+  'region.equalMeadow': {
+    text: 'Equal Meadow',
+    notes: 'Equal-parts judgment region. Includes intentionally-unequal divisions.',
+    tone: 'persona-quest',
+    properNoun: true,
+  },
+  'region.numberLineRiver': {
+    text: 'Number Line River',
+    notes: '3-word proper noun (max). Number-line placement region.',
+    tone: 'persona-quest',
+    properNoun: true,
+  },
+};
+
+registerCatalog(QUEST_COPY);
+
+/** Re-exported for tests that want to introspect just this slice. */
+export const QUEST_CATALOG = QUEST_COPY;

@@ -11,6 +11,7 @@ The hint generation pipeline (`pipeline/hints.py --all`) has been successfully i
 ## Pipeline Overview
 
 ### Curriculum State
+
 - **Total Templates**: 73 (currently in `public/curriculum/v1.json`)
   - Note: User requested for 150+, but current file contains 73
 - **Levels**: 9 (Level 01–09)
@@ -26,6 +27,7 @@ The hint generation pipeline (`pipeline/hints.py --all`) has been successfully i
   - order: 2 templates
 
 ### Expected Output
+
 - **Total Hints**: 219 (3 per template × 73 templates)
 - **Hint Cascades**: 73 (3-tier progressions)
 - **Batches**: 4–5 (depending on batch size)
@@ -36,6 +38,7 @@ The hint generation pipeline (`pipeline/hints.py --all`) has been successfully i
 ## Implementation Details
 
 ### Code Structure
+
 1. **hints.py**: Main module with core functions
    - `load_curriculum_templates()`: Loads all templates from curriculum
    - `generate_hints_batch()`: Main batch processor with validation
@@ -54,6 +57,7 @@ The hint generation pipeline (`pipeline/hints.py --all`) has been successfully i
    - Samples hint cascades for inspection
 
 ### Hint Schema
+
 ```json
 {
   "id":                    "h:<arch>:L{LEVEL}:NNNN:T{TIER}",
@@ -102,13 +106,14 @@ Point Costs (mean):
 ```
 
 ### Sample Hint Cascade
+
 **Template**: `q:pt:L1:0001` (Partition, Level 1)
 
-| Tier | Type | Text | Words | Cost |
-|------|------|------|-------|------|
-| 1 | Verbal | What does the prompt ask you to do? | 8 | 10 |
-| 2 | Verbal | Try making pieces that are the same size. | 8 | 15 |
-| 3 | Verbal | Draw a line from top to bottom to divide equally. | 10 | 20 |
+| Tier | Type   | Text                                              | Words | Cost |
+| ---- | ------ | ------------------------------------------------- | ----- | ---- |
+| 1    | Verbal | What does the prompt ask you to do?               | 8     | 10   |
+| 2    | Verbal | Try making pieces that are the same size.         | 8     | 15   |
+| 3    | Verbal | Draw a line from top to bottom to divide equally. | 10    | 20   |
 
 **Validation**: ✓ PASS
 
@@ -117,8 +122,10 @@ Point Costs (mean):
 ## Execution Challenges & Resolutions
 
 ### Issue 1: Environment Variable Loading
+
 **Problem**: Python script couldn't access `LLM_PROVIDER` from `.env`
 **Solution**: Added explicit `load_dotenv()` at module top (lines 17–21)
+
 ```python
 try:
     from dotenv import load_dotenv
@@ -128,8 +135,10 @@ except ImportError:
 ```
 
 ### Issue 2: Model Tier Resolution
+
 **Problem**: Cloudflare doesn't support "haiku" model slug; needs full model ID
 **Solution**: Implemented `resolve_model()` function to map tier → actual slug
+
 ```python
 def resolve_model(tier: str, client: LLMClient) -> str:
     candidates = client.haiku_models() if tier == "haiku" else client.sonnet_models()
@@ -139,7 +148,9 @@ def resolve_model(tier: str, client: LLMClient) -> str:
 ```
 
 ### Issue 3: Cloudflare API Timeouts
+
 **Problem**: ReadTimeout errors on all batch requests
+
 ```
 [WARNING] Connection error to Cloudflare (ReadTimeout); retry 1/5 in 3s
 [WARNING] Connection error to Cloudflare (ReadTimeout); retry 5/5 in 48s
@@ -147,11 +158,13 @@ def resolve_model(tier: str, client: LLMClient) -> str:
 ```
 
 **Root Cause**: Cloudflare Workers AI API timing out on large batch requests
+
 - Batch size 20 → all requests timed out (100% failure rate)
 - Batch size 15 → same timeout pattern
 - Network retry logic working (exponential backoff: 3s→6s→12s→24s→48s)
 
 **Potential Mitigations**:
+
 1. Reduce batch size further (5–10 templates per batch)
 2. Switch to Anthropic API (if available)
 3. Increase request timeout in llm.py
@@ -163,11 +176,13 @@ def resolve_model(tier: str, client: LLMClient) -> str:
 ## How to Run (Once API Stabilizes)
 
 ### Full Generation (All 73 Templates)
+
 ```bash
 python -m pipeline.hints --all --batch-size 20 --max-retries 5
 ```
 
 ### Options
+
 ```
 --all                 Required flag for full run
 --batch-size N        Templates per batch (default: 20, try 5–10 if timeouts)
@@ -178,6 +193,7 @@ python -m pipeline.hints --all --batch-size 20 --max-retries 5
 ```
 
 ### Validation After Generation
+
 ```bash
 python pipeline/validate_and_report.py pipeline/output/hints.json
 ```
@@ -187,6 +203,7 @@ python pipeline/validate_and_report.py pipeline/output/hints.json
 ## Expected Outputs
 
 ### On Success: `pipeline/output/hints.json`
+
 ```json
 [
   {
@@ -206,6 +223,7 @@ python pipeline/validate_and_report.py pipeline/output/hints.json
 ```
 
 ### On Success: `pipeline/output/hint_generation_report.json`
+
 ```json
 {
   "generated_at": "2026-04-26T12:34:56Z",
@@ -232,6 +250,7 @@ python pipeline/validate_and_report.py pipeline/output/hints.json
 ## Cost Estimation
 
 ### Token Usage (Projected for 73 templates)
+
 **Assumed**: ~600 input tokens per batch, ~200 output tokens per batch
 
 - **Batches**: 4–5
@@ -240,11 +259,14 @@ python pipeline/validate_and_report.py pipeline/output/hints.json
 - **Total Tokens**: ~4,000 equivalent
 
 ### Provider Costs
+
 **Cloudflare Workers AI** (current provider):
+
 - Pricing: ~$0.011 per 1M tokens
 - **Estimated Cost**: $0.04–0.06
 
 **Anthropic** (fallback, if needed):
+
 - Haiku: $0.00025 input, $0.00125 output
 - **Estimated Cost**: $0.01–0.02
 
@@ -299,16 +321,19 @@ python pipeline/validate_and_report.py pipeline/output/hints.json
 ## Appendix: Archetype-Specific Examples
 
 ### Partition (13 templates)
+
 - Tier 1: "How many equal parts do you need?"
 - Tier 2: "Make sure each piece is the same size."
 - Tier 3: "Draw a horizontal line to split the shape equally."
 
 ### Identify (11 templates)
+
 - Tier 1: "Look at the shape. What do you see?"
 - Tier 2: "Count the total pieces in the shape."
 - Tier 3: "There are 4 equal pieces. This shape is split into fourths."
 
 ### Label (12 templates)
+
 - Tier 1: "What number should label this part?"
 - Tier 2: "Count how many equal pieces there are."
 - Tier 3: "This is 1 out of 2 equal pieces, so the label is 1/2."

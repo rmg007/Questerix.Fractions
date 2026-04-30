@@ -4,16 +4,24 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # Allow manual re-deploy from Actions tab
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false # Don't cancel a deploy in progress
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       deployments: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need git history for build SHA injection
 
       - uses: actions/setup-node@v4
         with:
@@ -23,44 +31,38 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Production build
-        run: npm run build
+      # Pre-deploy gates: typecheck → lint → unit tests (173) → curriculum
+      # validation → build → bundle size guard. Any failure aborts the deploy.
+      - name: Run predeploy gate
+        run: npm run predeploy
 
-      # Bundle size gate before deploy — per docs/30-architecture/performance-budget.md §1
-      - name: Bundle size guard
-        run: |
-          GZ=$(find dist -name '*.js' -exec gzip -c {} \; | wc -c)
-          echo "Gzipped JS total: ${GZ} bytes (budget: 1048576)"
-          if [ "$GZ" -gt 1048576 ]; then
-            echo "ERROR: Bundle exceeds 1.0 MB gzipped — deploy blocked."
-            exit 1
-          fi
-
+      # Deploy with wrangler. Env vars are read by wrangler automatically.
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
-          directory: dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler pages deploy dist \
+            --project-name questerix-fractions \
+            --branch main \
+            --commit-dirty=true
 
-# ─── Required secrets (set in GitHub repo Settings → Secrets → Actions) ──────
+      # Wait for the new deployment to propagate to the live URL before checking
+      - name: Wait for propagation
+        run: sleep 20
+
+      # Verify live site: 17 checks (security headers, MIME, SPA fallback,
+      # privacy, build version, A11yLayer present, COEP absent).
+      - name: Run postdeploy check
+        run: node scripts/postdeploy-check.mjs
+
+# ─── Required secrets (Settings → Secrets and variables → Actions) ──────────
 #
-#   CLOUDFLARE_API_TOKEN   — dash.cloudflare.com → My Profile → API Tokens →
-#                            Create Token → "Edit Cloudflare Workers" template
-#                            (or custom: Account.Cloudflare Pages: Edit)
-#   CLOUDFLARE_ACCOUNT_ID  — dash.cloudflare.com right sidebar on any zone /
-#                            Workers & Pages page
+#   CLOUDFLARE_API_TOKEN   dash.cloudflare.com → My Profile → API Tokens →
+#                          Create Token → permissions: Account.Cloudflare Pages:Edit
+#                          (zone-read also useful if managing custom domains)
+#   CLOUDFLARE_ACCOUNT_ID  dash.cloudflare.com sidebar (Workers & Pages section)
+#                          For this repo: 1ad655f025b0db1974614aac7ebec10a
 #
-# ─── Analytics reminder ───────────────────────────────────────────────────────
-#
-# After first deploy, verify in the Cloudflare dashboard that:
-#   - Web Analytics is OFF (Workers & Pages → project → Settings → Web Analytics)
-# per docs/40-validation/privacy-notice.md "no third parties."
-#
-# ─── Alternate hosts ──────────────────────────────────────────────────────────
-#
-# Vercel and Netlify configs are kept in deploy/ as alternates. To switch
-# back, replace the "Deploy to Cloudflare Pages" step with the appropriate
-# host action and update the secrets.
+# Local-dev path remains: `npm run deploy` from your machine. CI is the
+# canonical deploy path; manual local deploys are for emergencies.

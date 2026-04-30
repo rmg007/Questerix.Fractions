@@ -9,6 +9,25 @@
 
 const CONTAINER_ID = 'qf-testhooks';
 
+// Test hooks are only enabled when ?testHooks=1 is in the URL or in dev mode.
+// Production users never see the invisible interactive overlays that mount
+// transparent L6/L7 shortcut buttons over the menu.
+export function testHooksEnabled(): boolean {
+  if (typeof window === 'undefined') return true; // jsdom / node — let tests run
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('testHooks') === '1') return true;
+  } catch (err) {
+    /* ignore */
+  }
+  // Vite injects import.meta.env.DEV at build time
+  try {
+    return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
+  } catch (err) {
+    return false;
+  }
+}
+
 /** @internal */
 function getOrCreateContainer(): HTMLElement | null {
   if (typeof document === 'undefined') return null;
@@ -18,7 +37,7 @@ function getOrCreateContainer(): HTMLElement | null {
     el.id = CONTAINER_ID;
     el.setAttribute('aria-hidden', 'true');
     el.style.cssText =
-      'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;';
+      'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:99999;';
     document.body?.appendChild(el);
   }
   return el;
@@ -27,6 +46,10 @@ function getOrCreateContainer(): HTMLElement | null {
 const registry = new Map<string, HTMLElement>();
 
 export const TestHooks = {
+  /** Check if test hooks are currently enabled. */
+  isEnabled(): boolean {
+    return testHooksEnabled();
+  },
   /**
    * Mount a hidden, non-interactive sentinel div with the given data-testid.
    * Safe to call multiple times — returns existing element if already mounted.
@@ -60,6 +83,9 @@ export const TestHooks = {
     opts?: { top?: string; left?: string; width?: string; height?: string }
   ): HTMLElement | null {
     if (typeof document === 'undefined') return null;
+    // Production guard: invisible interactive overlays must NEVER ship to real users.
+    // They are e2e affordances only. Enable with ?testHooks=1 or in dev mode.
+    if (!testHooksEnabled()) return null;
     // Remove stale button if it exists
     this.unmount(testid);
 
@@ -68,7 +94,6 @@ export const TestHooks = {
 
     const btn = document.createElement('button');
     btn.setAttribute('data-testid', testid);
-    btn.setAttribute('aria-hidden', 'true');
     btn.setAttribute('tabindex', '-1');
     btn.style.cssText = [
       'position:fixed',
@@ -77,7 +102,7 @@ export const TestHooks = {
       `width:${opts?.width ?? '80px'}`,
       `height:${opts?.height ?? '80px'}`,
       'transform:translate(-50%,-50%)',
-      'opacity:0',
+      'opacity:0.01',
       'cursor:pointer',
       'z-index:9999',
       'background:transparent',
@@ -123,3 +148,4 @@ export const TestHooks = {
     return registry.get(testid);
   },
 };
+

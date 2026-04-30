@@ -1,6 +1,6 @@
 # GRADE 1 LEARNING TRAJECTORY — THE HALVING KINGDOM JOURNEY
 
-> *"A trajectory is not a schedule. It is a theory of how children learn. The trajectory tells us WHY this must come before that, not merely that it does."*
+> _"A trajectory is not a schedule. It is a theory of how children learn. The trajectory tells us WHY this must come before that, not merely that it does."_
 
 ---
 
@@ -55,6 +55,7 @@ Children apply halves and fourths in novel contexts and begin identity formation
 Children cannot meaningfully divide what they do not first see as ONE. The whole-referent is the invisible but essential anchor for all fraction understanding.
 
 **Objectives:**
+
 - **D1:** Identify a "whole" as a single, complete, undivided unit across multiple contexts (single object, set of objects, line, region).
 - **D1.1:** Distinguish "whole" from "partial" (half-eaten, broken, incomplete).
 - **D1.2:** Articulate that a whole can be any shape, size, or context.
@@ -78,6 +79,7 @@ Given five pictures (three wholes, two partials), child correctly identifies all
 "Half" is not "any two pieces" — it is "two equal pieces." Before children can produce equal pieces, they must perceive equality visually and articulate it verbally. Perception precedes production.
 
 **Objectives:**
+
 - **D2:** Distinguish equal from unequal visual pairs.
 - **D3:** Articulate WHY two items are equal or unequal.
 - **D4:** Use language: "equal," "same," "match," "fair," "more," "less."
@@ -101,6 +103,7 @@ Given 8 visual pairs (mix of equal and unequal, including tricky cases like same
 Halving is first a BODILY experience (the body's bilateral symmetry), then a GESTURE (the fold), then a CONCEPT ("one of two equal parts of a whole"). This ordering is non-negotiable for age 6.
 
 **Objectives:**
+
 - **D5:** Locate the "line of halving" (symmetry) in one's own body and in symmetric shapes.
 - **D6:** Fold simple shapes so that two halves match.
 - **D7:** Articulate that "half" = one of two equal parts of a whole.
@@ -126,6 +129,7 @@ Child folds a circle into halves, identifies the fold line, cuts into two parts,
 A concept is not mastered until it transfers. Children who can halve a circle cannot necessarily halve a rectangle, a ribbon, a set of blocks, or a dough ball — each transfer is a learning event.
 
 **Objectives:**
+
 - **F1:** Halve a region (circle, square, rectangle, triangle, irregular shapes).
 - **F2:** Halve a length (ribbon, line, string).
 - **F3:** Halve a set of objects (count-based halving).
@@ -151,6 +155,7 @@ The challenge case — a circle cut horizontally vs. vertically vs. diagonally �
 Children should discover fourths as "halving again" — NOT as "divide into four." The compositional move is pedagogically superior because it links fourths to halves naturally.
 
 **Objectives:**
+
 - **F5:** Create fourths by halving a half.
 - **F6:** Identify fourths in multiple contexts (regions, lengths, sets).
 - **F7:** Articulate: "A fourth is one of four equal parts. It's also half of a half."
@@ -166,6 +171,7 @@ Given a whole, child folds it into halves, then folds again to make fourths, and
 
 **Why "Half of a Half" Matters:**
 This framing is compositional. It teaches children that fractions are NESTED. This idea will serve them in Grades 2-5:
+
 - A half IS two fourths
 - A fourth IS half of a half
 - Fractions can be decomposed and recomposed
@@ -180,6 +186,7 @@ Teaching fourths as "divide by 4" is atomic and blocks the compositional underst
 Once children can DO halving and fourthing, they must acquire the LANGUAGE to name, describe, and reason about their actions. This level is mostly vocabulary and recognition practice, embedded in varied contexts.
 
 **Objectives:**
+
 - **F8:** Use the words "half," "halves," "fourth," "fourths," "quarter," "quarters" correctly.
 - **F9:** Recognize halves and fourths in pictures and real-world contexts (clocks, rulers, pie charts in kid-form).
 - **F10:** Name what fraction a piece represents ("this is one half," "this is one fourth").
@@ -204,6 +211,7 @@ We explicitly do NOT teach symbolic notation (1/2, 1/4) in Grade 1. CCSS does no
 The deepest Grade 1 concept is that fractions COMPOSE. Two halves together make a whole. Four fourths together make a whole. Two fourths together make a half. This is not just vocabulary — it is structural insight.
 
 **Objectives:**
+
 - **F11:** State and verify: "Two halves make a whole."
 - **F12:** State and verify: "Four fourths make a whole."
 - **F13:** State and verify: "Two fourths make one half."
@@ -229,6 +237,7 @@ Act II Climax — the Halving Detective Trial (Week 20) — requires Level 7 mas
 Fractions learned in the Halving Kingdom must live OUTSIDE the kingdom. Transfer is the ultimate test of understanding.
 
 **Objectives:**
+
 - **T1:** Recognize and describe halves and fourths in food (pizza slices, sandwich halves, quartered apple).
 - **T2:** Recognize and describe halves and fourths in time (half an hour, quarter past).
 - **T3:** Recognize and describe halves and fourths in money (half a dollar, quarter).
@@ -250,40 +259,40 @@ Given a novel real-world problem (e.g., "Share 8 cookies with 4 friends — how 
 
 ## WEEK-BY-WEEK PACING
 
-| Wk | Phase | Level | Activity | Key Concept | Narrative Beat |
-|----|-------|-------|----------|-------------|----------------|
-| 1 | Discovery | 1 | 01_Whole_Discovery | Whole as unit | Pia meets Whola |
-| 2 | Discovery | 2 | 02_Equal_Or_Not | Equal vs unequal | Crumb appears |
-| 3 | Discovery | 3 | 03_Body_Math_Halves | Halving as motion | Halfie and Halvo arrive |
-| 4 | Discovery | 3-4 | 04_The_Halving_Adventure | Apply halving | Fraction Fairy first visit |
-| 5 | Discovery | 4-5 | 05_Pizza_Party_Protocol | Halving in context | Pia's first solo success |
-| 6 | Discovery | 5 | 06_The_Fourths_Festival | Fourths introduced | Fee/Fi/Fo/Fum arrive; Queen Equallia ceremony |
-| 7 | Formalize | 4 | 07_Folding_Fun | Diverse folding | Lord Notenough's first attack |
-| 8 | Formalize | 4 | (Folding, cont.) | Irregular shapes | Pia's detective training |
-| 9 | Formalize | 4 | (Folding, cont.) | Length halving | Kingdom ribbons |
-| 10 | Formalize | 5 | (Fourths, deep) | Fourth contexts | Fourth Friends training |
-| 11 | Formalize | 6 | 08_Equal_Detectives | Naming practice | Kingdom equality spies |
-| 12 | Formalize | 6 | (Naming, cont.) | Fourth recognition | Crumb's confused parade |
-| 13 | Formalize | 6 | (Naming, cont.) | Vocabulary expansion | The Scribe Scroll |
-| 14 | Formalize | 6 | (Naming, cont.) | Mixed contexts | Queen's mid-year review |
-| 15 | Formalize | 6-7 | 09_Snack_Time_Math | Fraction of snacks | Real kingdom feast |
-| 16 | Formalize | 7 | (Snack, cont.) | Sets | Halfie-Halvo birthday |
-| 17 | Formalize | 7 | (Snack, cont.) | Pizza math | Pizza prep week |
-| 18 | Formalize | 7 | (Composition) | Decompose/compose | Kingdom puzzles |
-| 19 | Formalize | 7 | (Composition) | 2 halves = whole | Reunification week |
-| 20 | Formalize | 7 | (Trial prep) | Mixed mastery | Halving Detective Trial climax |
-| 21 | Transfer | 8 | 10_Story_Solver | Word problems | Whola's illness |
-| 22 | Transfer | 8 | (Stories, cont.) | Sharing stories | Kingdom call for help |
-| 23 | Transfer | 8 | (Time) | Half an hour | Clocks appear |
-| 24 | Transfer | 8 | (Money) | Half a dollar | Coin magic |
-| 25 | Transfer | 8 | (Length) | Half a ribbon | Ribbon festival |
-| 26 | Transfer | 8 | 11_Build_A_Whole | Decomposition | Kingdom reconstruction |
-| 27 | Transfer | 8 | (Build, cont.) | Composition | Reassembly |
-| 28 | Transfer | 8 | 12_Real_World_Hunt | Fractions in life | Kingdom-wide hunt |
-| 29 | Transfer | 8 | (Hunt, cont.) | Identity formation | Hunger Storm arrives |
-| 30 | Transfer | 8 | (Hunt, cont.) | Community sharing | Great Kingdom Feast |
-| 31 | Transfer | 8 | (Transfer, deep) | Mixed applications | Storm defeated |
-| 32 | Transfer | 8 | (Coronation) | Final assessment | Pia crowned |
+| Wk  | Phase     | Level | Activity                 | Key Concept          | Narrative Beat                                |
+| --- | --------- | ----- | ------------------------ | -------------------- | --------------------------------------------- |
+| 1   | Discovery | 1     | 01_Whole_Discovery       | Whole as unit        | Pia meets Whola                               |
+| 2   | Discovery | 2     | 02_Equal_Or_Not          | Equal vs unequal     | Crumb appears                                 |
+| 3   | Discovery | 3     | 03_Body_Math_Halves      | Halving as motion    | Halfie and Halvo arrive                       |
+| 4   | Discovery | 3-4   | 04_The_Halving_Adventure | Apply halving        | Fraction Fairy first visit                    |
+| 5   | Discovery | 4-5   | 05_Pizza_Party_Protocol  | Halving in context   | Pia's first solo success                      |
+| 6   | Discovery | 5     | 06_The_Fourths_Festival  | Fourths introduced   | Fee/Fi/Fo/Fum arrive; Queen Equallia ceremony |
+| 7   | Formalize | 4     | 07_Folding_Fun           | Diverse folding      | Lord Notenough's first attack                 |
+| 8   | Formalize | 4     | (Folding, cont.)         | Irregular shapes     | Pia's detective training                      |
+| 9   | Formalize | 4     | (Folding, cont.)         | Length halving       | Kingdom ribbons                               |
+| 10  | Formalize | 5     | (Fourths, deep)          | Fourth contexts      | Fourth Friends training                       |
+| 11  | Formalize | 6     | 08_Equal_Detectives      | Naming practice      | Kingdom equality spies                        |
+| 12  | Formalize | 6     | (Naming, cont.)          | Fourth recognition   | Crumb's confused parade                       |
+| 13  | Formalize | 6     | (Naming, cont.)          | Vocabulary expansion | The Scribe Scroll                             |
+| 14  | Formalize | 6     | (Naming, cont.)          | Mixed contexts       | Queen's mid-year review                       |
+| 15  | Formalize | 6-7   | 09_Snack_Time_Math       | Fraction of snacks   | Real kingdom feast                            |
+| 16  | Formalize | 7     | (Snack, cont.)           | Sets                 | Halfie-Halvo birthday                         |
+| 17  | Formalize | 7     | (Snack, cont.)           | Pizza math           | Pizza prep week                               |
+| 18  | Formalize | 7     | (Composition)            | Decompose/compose    | Kingdom puzzles                               |
+| 19  | Formalize | 7     | (Composition)            | 2 halves = whole     | Reunification week                            |
+| 20  | Formalize | 7     | (Trial prep)             | Mixed mastery        | Halving Detective Trial climax                |
+| 21  | Transfer  | 8     | 10_Story_Solver          | Word problems        | Whola's illness                               |
+| 22  | Transfer  | 8     | (Stories, cont.)         | Sharing stories      | Kingdom call for help                         |
+| 23  | Transfer  | 8     | (Time)                   | Half an hour         | Clocks appear                                 |
+| 24  | Transfer  | 8     | (Money)                  | Half a dollar        | Coin magic                                    |
+| 25  | Transfer  | 8     | (Length)                 | Half a ribbon        | Ribbon festival                               |
+| 26  | Transfer  | 8     | 11_Build_A_Whole         | Decomposition        | Kingdom reconstruction                        |
+| 27  | Transfer  | 8     | (Build, cont.)           | Composition          | Reassembly                                    |
+| 28  | Transfer  | 8     | 12_Real_World_Hunt       | Fractions in life    | Kingdom-wide hunt                             |
+| 29  | Transfer  | 8     | (Hunt, cont.)            | Identity formation   | Hunger Storm arrives                          |
+| 30  | Transfer  | 8     | (Hunt, cont.)            | Community sharing    | Great Kingdom Feast                           |
+| 31  | Transfer  | 8     | (Transfer, deep)         | Mixed applications   | Storm defeated                                |
+| 32  | Transfer  | 8     | (Coronation)             | Final assessment     | Pia crowned                                   |
 
 ---
 
@@ -304,6 +313,7 @@ If more than 30% of a class has not reached the mastery indicator for a level, t
 ## ASSESSMENT ALIGNMENT
 
 Each level has:
+
 - **A formative assessment** (during the week of instruction)
 - **A portfolio piece** (collected and retained for year-end)
 - **An observational rubric** (teacher records anecdotal data)
@@ -328,9 +338,11 @@ See `differentiation/` folder for detailed branch plans.
 ## TRAJECTORY VS. STANDARDS
 
 **CCSS 1.G.A.3** states:
-> *"Partition circles and rectangles into two and four equal shares, describe the shares using the words halves, fourths, and quarters, and use the phrases half of, fourth of, and quarter of. Describe the whole as two of, or four of the shares. Understand for these examples that decomposing into more equal shares creates smaller shares."*
+
+> _"Partition circles and rectangles into two and four equal shares, describe the shares using the words halves, fourths, and quarters, and use the phrases half of, fourth of, and quarter of. Describe the whole as two of, or four of the shares. Understand for these examples that decomposing into more equal shares creates smaller shares."_
 
 Our trajectory exceeds this standard by:
+
 - Adding whole-referent understanding as a prerequisite (Level 1)
 - Adding equality recognition (Level 2)
 - Embedding halves/fourths in MANY contexts, not just circles/rectangles (Levels 4, 8)
@@ -343,16 +355,16 @@ This is **intentional rigor beyond the standard**. Grade 2 curriculum will thank
 
 ## RESEARCH CITATIONS
 
-- Behr, M. J., Lesh, R., Post, T. R., & Silver, E. A. (1983). Rational number concepts. *Acquisition of mathematics concepts and processes*, 91-126.
-- Clements, D. H., & Sarama, J. (2014). *Learning and teaching early math: The learning trajectories approach*. Routledge.
-- Empson, S. B., & Levi, L. (2011). *Extending children's mathematics: Fractions and decimals*. Heinemann.
-- Lakoff, G., & Núñez, R. E. (2000). *Where mathematics comes from*. Basic Books.
-- Lamon, S. J. (2012). *Teaching fractions and ratios for understanding*. Routledge.
-- Tzur, R. (2020). Adolescents' fractions schemes. *ZDM Mathematics Education*.
-- Tzur, R., & Hunt, J. (2015). Iteration: Unit fraction knowledge and the French fry tasks. *Teaching Children Mathematics*.
-- Wiggins, G., & McTighe, J. (2005). *Understanding by design*. ASCD.
-- Willingham, D. (2009). *Why don't students like school?* Jossey-Bass.
+- Behr, M. J., Lesh, R., Post, T. R., & Silver, E. A. (1983). Rational number concepts. _Acquisition of mathematics concepts and processes_, 91-126.
+- Clements, D. H., & Sarama, J. (2014). _Learning and teaching early math: The learning trajectories approach_. Routledge.
+- Empson, S. B., & Levi, L. (2011). _Extending children's mathematics: Fractions and decimals_. Heinemann.
+- Lakoff, G., & Núñez, R. E. (2000). _Where mathematics comes from_. Basic Books.
+- Lamon, S. J. (2012). _Teaching fractions and ratios for understanding_. Routledge.
+- Tzur, R. (2020). Adolescents' fractions schemes. _ZDM Mathematics Education_.
+- Tzur, R., & Hunt, J. (2015). Iteration: Unit fraction knowledge and the French fry tasks. _Teaching Children Mathematics_.
+- Wiggins, G., & McTighe, J. (2005). _Understanding by design_. ASCD.
+- Willingham, D. (2009). _Why don't students like school?_ Jossey-Bass.
 
 ---
 
-*Next: see `03_STANDARDS_ALIGNMENT.md` for detailed CCSS and NCTM mapping.*
+_Next: see `03_STANDARDS_ALIGNMENT.md` for detailed CCSS and NCTM mapping._

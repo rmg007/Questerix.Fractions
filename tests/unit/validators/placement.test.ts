@@ -40,7 +40,7 @@ describe('validator.placement.snap8', () => {
     // target 0.5, placed 0.57 → error 0.07 > 0.0625, < closeTolerance(0.15) → partial
     const result = fn(
       { studentPlacedDecimal: 0.57 },
-      { targetDecimal: 0.5, exactTolerance: 0.10, closeTolerance: 0.15 }
+      { targetDecimal: 0.5, exactTolerance: 0.1, closeTolerance: 0.15 }
     );
     expect(result.outcome).toBe('partial');
   });
@@ -49,7 +49,7 @@ describe('validator.placement.snap8', () => {
     // error = 0.04 < 0.0625 → correct
     const result = fn(
       { studentPlacedDecimal: 0.54 },
-      { targetDecimal: 0.5, exactTolerance: 0.10, closeTolerance: 0.20 }
+      { targetDecimal: 0.5, exactTolerance: 0.1, closeTolerance: 0.2 }
     );
     expect(result.outcome).toBe('correct');
   });
@@ -57,7 +57,7 @@ describe('validator.placement.snap8', () => {
   it('returns incorrect beyond closeTolerance', () => {
     const result = fn(
       { studentPlacedDecimal: 0.1 },
-      { targetDecimal: 0.5, exactTolerance: 0.10, closeTolerance: 0.15 }
+      { targetDecimal: 0.5, exactTolerance: 0.1, closeTolerance: 0.15 }
     );
     expect(result.outcome).toBe('incorrect');
   });

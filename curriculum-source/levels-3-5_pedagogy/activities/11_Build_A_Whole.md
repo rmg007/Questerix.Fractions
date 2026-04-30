@@ -1,6 +1,6 @@
 # ACTIVITY 11 — BUILD A WHOLE: COMPOSITIONAL REASONING
 
-> *"The deepest fraction insight of Grade 1: the whole doesn't disappear when we divide. It is always the sum of its parts."*
+> _"The deepest fraction insight of Grade 1: the whole doesn't disappear when we divide. It is always the sum of its parts."_
 
 **Phase:** Transfer | **Weeks:** 26-27 (with connections to Weeks 18-20) | **Duration:** 40-50 min/day | **Standard:** CCSS 1.G.A.3
 
@@ -12,6 +12,7 @@
 
 **Why This Activity:**
 This is the **deepest** conceptual work of Grade 1. The understanding that:
+
 - 2 halves = 1 whole
 - 4 fourths = 1 whole
 - 2 fourths = 1 half
@@ -19,6 +20,7 @@ This is the **deepest** conceptual work of Grade 1. The understanding that:
 ...is the hinge between Grade 1 fraction work and Grade 2-5 fraction operations. Children who reach this level are **Grade 2 ready**.
 
 **Learning Objectives:**
+
 - **F11:** State and verify: 2 halves = 1 whole
 - **F12:** State and verify: 4 fourths = 1 whole
 - **F13:** State and verify: 2 fourths = 1 half
@@ -31,6 +33,7 @@ This is the **deepest** conceptual work of Grade 1. The understanding that:
 The Hunger Storm approaches. Lord Notenough has scattered the kingdom's wholes — he has cut every pizza, every cake, every pie into pieces. The kingdom needs Pia to lead a **Great Reunification** — putting pieces BACK together.
 
 Children become Reunification Specialists. They must:
+
 - Identify which pieces make a whole
 - Match halves to their partners
 - Assemble fourths back into halves or wholes
@@ -46,6 +49,7 @@ Children become Reunification Specialists. They must:
 **Duration:** 45 min
 
 **Materials:**
+
 - Read-aloud: "Lord Notenough's Scattered Pieces"
 - A large ONE pizza, pre-cut into 2 halves
 - A large ONE pie, pre-cut into 4 fourths
@@ -56,14 +60,17 @@ Lord Notenough has scattered pieces. Pia finds a pile: two halves of a pizza. Sh
 
 **Demo (10 min):**
 Teacher shows:
+
 - Two halves together = 1 whole ✓
 - Four fourths together = 1 whole ✓
 
 Then the magic move:
+
 - 2 fourths together = ? Children predict. Teacher shows: they make ONE HALF!
 
 **Activity (20 min):**
 Children work with pre-cut halves and fourths. They assemble:
+
 - 2 halves → 1 whole (many trials with different "pizzas")
 - 4 fourths → 1 whole
 - 2 fourths → 1 half (this is the key discovery)
@@ -78,11 +85,13 @@ Class chants: "Two halves, one whole! Four fourths, one whole! Two fourths, one 
 **Duration:** 40 min
 
 **Materials:**
+
 - Paper pizzas (whole)
 - Scissors (teacher-assist)
 
 **Activity:**
 Reverse direction. Children START with a whole, then:
+
 - Decompose into 2 halves
 - Then further into 4 fourths
 - Then experiment: can I recompose the fourths back into 2 halves? Yes!
@@ -97,6 +106,7 @@ This bidirectional work (decompose ↔ recompose) is the essence of compositiona
 **Duration:** 45 min
 
 **Materials:**
+
 - Mixed piles of pieces from DIFFERENT wholes (halves of pizza A, fourths of pie B, halves of sandwich C — all scattered)
 - Origin guides (pictures of the original wholes)
 
@@ -113,14 +123,17 @@ Pieces only reassemble when they came from the SAME whole. Halves of different p
 **Duration:** 45 min
 
 **Materials:**
+
 - One "target" whole per child (a specific circle, for example)
 - A pile of pieces: halves, fourths, and foreign pieces (from other wholes)
 - Task card
 
 **Challenge:**
-> *"Build your target whole using these pieces. You can use halves OR fourths OR both. But they must all come from the SAME whole."*
+
+> _"Build your target whole using these pieces. You can use halves OR fourths OR both. But they must all come from the SAME whole."_
 
 Children might solve with:
+
 - 2 halves
 - 4 fourths
 - 1 half + 2 fourths (= 2 halves total = 1 whole)
@@ -128,7 +141,8 @@ Children might solve with:
 The last solution — mixing halves and fourths — is the **compositional pinnacle** for Grade 1.
 
 **Discussion:**
-> *"Some of you used 2 halves. Some used 4 fourths. Some used 1 half PLUS 2 fourths. Why did they ALL work?"*
+
+> _"Some of you used 2 halves. Some used 4 fourths. Some used 1 half PLUS 2 fourths. Why did they ALL work?"_
 
 Children articulate: because 2 fourths = 1 half. So 1 half + 2 fourths = 1 half + 1 half = 1 whole.
 
@@ -178,21 +192,25 @@ These four statements are the **durable residue** of Grade 1. Children should be
 ## DIFFERENTIATION
 
 ### For ELLs:
+
 - Chant the Kingdom's Fraction Laws daily
 - Visual anchor chart with pictures
 - Bilingual versions of chants
 
 ### For Motor Challenges:
+
 - Larger pre-cut pieces
 - Velcro-backed pieces for assembly
 - Magnetic fraction pieces
 
 ### For Advanced:
+
 - Extension: "How many ways can you build a whole using halves and fourths?"
 - Pre-teaching: "A fourth plus a fourth plus a half — what does that equal?"
 - Introduce the word "equivalent" conceptually (not symbolically)
 
 ### For Struggling:
+
 - Focus on 2 halves = 1 whole first; add fourths later
 - Use same-colored pieces from same whole (reduces confusion)
 - Small-group intensive
@@ -202,16 +220,16 @@ These four statements are the **durable residue** of Grade 1. Children should be
 ## COMMON MISCONCEPTIONS ADDRESSED
 
 **M1:** "Halves and fourths can't be combined — they're different."
-*Mitigation:* Day 4 explicitly shows combining.
+_Mitigation:_ Day 4 explicitly shows combining.
 
 **M2:** "Any two halves make a whole."
-*Mitigation:* Day 3 shows halves from DIFFERENT wholes don't reassemble.
+_Mitigation:_ Day 3 shows halves from DIFFERENT wholes don't reassemble.
 
 **M3:** "If I have 4 pieces, it must be a whole."
-*Mitigation:* 4 fourths make a whole ONLY if they're fourths of the same whole.
+_Mitigation:_ 4 fourths make a whole ONLY if they're fourths of the same whole.
 
 **M4:** "Putting pieces together is easier than cutting them apart."
-*Mitigation:* Decomposition (Day 2) and composition are BOTH emphasized.
+_Mitigation:_ Decomposition (Day 2) and composition are BOTH emphasized.
 
 ---
 
@@ -235,12 +253,14 @@ Children feel triumphant: they have mastered the deepest Grade 1 concept.
 ## TEACHER PREP CHECKLIST
 
 **Before Week 26:**
+
 - [ ] Pre-cut pizzas and pies (halves and fourths)
 - [ ] Prepare Reunification Journals
 - [ ] Print Kingdom's Fraction Laws anchor chart
 - [ ] Plan mixed-piece challenges (color-code pieces from same whole)
 
 **Before Week 27:**
+
 - [ ] Cross-context materials (shapes, sets, ribbons)
 - [ ] Phase 3 Midpoint Assessment Sheets
 
@@ -250,4 +270,4 @@ Children feel triumphant: they have mastered the deepest Grade 1 concept.
 
 Weeks 28-31 build toward the Hunger Storm climax. Week 32 is coronation. Activity 11 (this activity) is the LAST deep conceptual block. After this, the curriculum emphasizes APPLICATION and CELEBRATION.
 
-*End of Activity 11. Next: Activity 12 — Real World Hunt.*
+_End of Activity 11. Next: Activity 12 — Real World Hunt._

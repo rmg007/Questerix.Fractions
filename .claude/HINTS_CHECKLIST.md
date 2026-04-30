@@ -57,6 +57,7 @@
 ## File Summary
 
 ### Created (4 files)
+
 - [x] `.claude/seed_hints.ts` (218 lines) — seeding script
 - [x] `tests/integration/hints_seed.test.ts` (231 lines) — test suite
 - [x] `.claude/HINTS_SEEDING_REPORT.md` (280 lines) — technical report
@@ -65,6 +66,7 @@
 - [x] `.claude/HINTS_CHECKLIST.md` — this checklist
 
 ### Existing (Used As-Is)
+
 - [x] `src/persistence/repositories/hint.ts` — repository API
 - [x] `src/persistence/db.ts` — Dexie schema (v3)
 - [x] `src/types/hint.ts` — HintTemplate interface
@@ -73,6 +75,7 @@
 ## Test Results
 
 ### Integration Test Suite
+
 ```
 Test File: tests/integration/hints_seed.test.ts
 Total Tests: 8
@@ -93,6 +96,7 @@ Test Breakdown:
 ```
 
 ### Query Validation
+
 ```
 Sample Templates Tested: 10
 Pass Rate: 100% (10/10)
@@ -104,6 +108,7 @@ Typical Query Time: <1ms
 ## Data Summary
 
 ### Totals
+
 - Total Hints: 213 ✓
 - Unique Templates: 71 ✓
 - Escalation Tiers: 3 (all balanced at 71/71/71) ✓
@@ -112,6 +117,7 @@ Typical Query Time: <1ms
 - Point Costs: 0.0 for all ✓
 
 ### Distribution
+
 - Archetypes: 9 types ✓
 - Levels: 1-9 (distributed) ✓
 - Orders: Perfect 1-2-3 sequences ✓
@@ -120,6 +126,7 @@ Typical Query Time: <1ms
 ## Integration Verification
 
 ### Dexie Schema
+
 - [x] Hints table in v3 schema
 - [x] Primary key: id
 - [x] Compound index: [questionTemplateId+order]
@@ -127,12 +134,14 @@ Typical Query Time: <1ms
 - [x] Atomic transaction in seedAllStores()
 
 ### Repository API
+
 - [x] get(id) → single hint or undefined
 - [x] getForQuestion(templateId) → HintTemplate[] sorted by order
 - [x] bulkPut(hints) → batch insert
 - [x] clear() → reset store
 
 ### Bootstrap Pipeline
+
 - [x] Integrated in src/curriculum/seed.ts
 - [x] Part of seedAllStores() atomic transaction
 - [x] Called on app boot via seedIfEmpty()

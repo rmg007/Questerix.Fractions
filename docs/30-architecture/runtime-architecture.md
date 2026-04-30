@@ -5,12 +5,19 @@ owner: solo
 last_reviewed: 2026-04-24
 applies_to: [mvp]
 constraint_refs: [C1, C2, C4, C5, C9]
-related: [stack.md, data-schema.md, persistence-spec.md, ../20-mechanic/activity-archetypes.md, ../20-mechanic/interaction-model.md]
+related:
+  [
+    stack.md,
+    data-schema.md,
+    persistence-spec.md,
+    ../20-mechanic/activity-archetypes.md,
+    ../20-mechanic/interaction-model.md,
+  ]
 ---
 
 # Runtime Architecture
 
-How the pieces named in `stack.md` are arranged in memory while the app runs. This is the *control flow*; `data-schema.md` is the *data shape*; `persistence-spec.md` is the *durability story*.
+How the pieces named in `stack.md` are arranged in memory while the app runs. This is the _control flow_; `data-schema.md` is the _data shape_; `persistence-spec.md` is the _durability story_.
 
 A reader of this document should be able to trace a single student tap from input event → validator → IndexedDB write → BKT update → UI re-render, with each layer named and its boundaries clear.
 
@@ -75,15 +82,15 @@ The diagram has four horizontal layers:
 
 The prototype today has `MenuScene` and `FractionScene` (per `src/scenes/`). The MVP architecture expands this to:
 
-| Scene | Purpose | Roughly equivalent to existing |
-|-------|---------|-------------------------------|
-| `BootScene` | Asset preload, Dexie init, version reconciliation | (new — replaces inline boot in `main.ts`) |
-| `StudentSelectScene` | Student profile picker / creator | (new) |
-| `MenuScene` | Level / activity picker | `src/scenes/MenuScene.ts` |
-| `ActivityScene` | Generic per-activity host. Receives `(activityId, levelNumber)` and dispatches to the correct mechanic system | Generalization of `src/scenes/FractionScene.ts` |
-| `SessionEndScene` | End-of-session summary card (per `interaction-model.md §6.2`) | (new) |
-| `LevelCompleteScene` | Level-mastery celebration (per `interaction-model.md §6.3`) | (new) |
-| `SettingsScene` | Preferences (audio, motion, contrast) | (new) — opened as modal overlay |
+| Scene                | Purpose                                                                                                       | Roughly equivalent to existing                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `BootScene`          | Asset preload, Dexie init, version reconciliation                                                             | (new — replaces inline boot in `main.ts`)       |
+| `StudentSelectScene` | Student profile picker / creator                                                                              | (new)                                           |
+| `MenuScene`          | Level / activity picker                                                                                       | `src/scenes/MenuScene.ts`                       |
+| `ActivityScene`      | Generic per-activity host. Receives `(activityId, levelNumber)` and dispatches to the correct mechanic system | Generalization of `src/scenes/FractionScene.ts` |
+| `SessionEndScene`    | End-of-session summary card (per `interaction-model.md §6.2`)                                                 | (new)                                           |
+| `LevelCompleteScene` | Level-mastery celebration (per `interaction-model.md §6.3`)                                                   | (new)                                           |
+| `SettingsScene`      | Preferences (audio, motion, contrast)                                                                         | (new) — opened as modal overlay                 |
 
 `ActivityScene` is the workhorse. Its `init` method takes the activity slug + level number; it loads the relevant `Activity`, `ActivityLevel`, and `QuestionTemplate` records via the Curriculum Loader; it registers the matching mechanic systems for the activity's `mechanic` field (per `data-schema.md §2.4`).
 
@@ -95,16 +102,16 @@ Per **C2 (no teacher/parent surface)**, no scene serves a non-student persona. T
 
 The existing prototype already implements a systems registry pattern (see `src/scenes/FractionScene.ts` lines 35–43). The MVP extends this convention:
 
-| System | Responsibility |
-|--------|----------------|
-| `BackgroundSystem` | Render the activity background (per `design-language.md` neutrals) |
-| `TargetSystem` | The "whole" shape being acted on (rectangle, circle, etc.) |
-| `SlotSystem` | Drop targets within the activity (regions, number-line ticks, zones) |
-| `PaletteSystem` | Tray of draggable items (fraction cards, label tiles, dividers) |
-| `DragSystem` | Implements the universal drag vocabulary from `interaction-model.md §1.1` and the snap engine from §3 |
-| `EffectsSystem` | Snap pulses, shakes, success/failure animations (per `interaction-model.md`) |
-| `UISystem` | Prompt text, hint button, audio replay button, score |
-| `MechanicSystem` | One per archetype (Partition, Identify, Compare, etc.) — implements the validator hookup and writes Attempt records |
+| System             | Responsibility                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `BackgroundSystem` | Render the activity background (per `design-language.md` neutrals)                                                  |
+| `TargetSystem`     | The "whole" shape being acted on (rectangle, circle, etc.)                                                          |
+| `SlotSystem`       | Drop targets within the activity (regions, number-line ticks, zones)                                                |
+| `PaletteSystem`    | Tray of draggable items (fraction cards, label tiles, dividers)                                                     |
+| `DragSystem`       | Implements the universal drag vocabulary from `interaction-model.md §1.1` and the snap engine from §3               |
+| `EffectsSystem`    | Snap pulses, shakes, success/failure animations (per `interaction-model.md`)                                        |
+| `UISystem`         | Prompt text, hint button, audio replay button, score                                                                |
+| `MechanicSystem`   | One per archetype (Partition, Identify, Compare, etc.) — implements the validator hookup and writes Attempt records |
 
 A scene's `create()` method instantiates the systems it needs (the existing `systems: Record<string, GameSystem>` registry pattern stays intact). Systems communicate via the scene's `events` emitter rather than direct references — consistent with the prototype's existing `'piece-snapped'` event handling in `FractionScene.ts`.
 
@@ -159,6 +166,7 @@ The session-level decision-maker. After each `Attempt`, the engine:
 BKT formulas live in `src/progression/bkt.ts`. They are pure functions over the prior `SkillMastery` row + the new attempt outcome.
 
 The advancement gate (per `level-01.md §7`) is checked at session end:
+
 - All gating skills `MASTERED`?
 - Minimum attempts met?
 - Tier-3 accuracy threshold met?
@@ -175,7 +183,7 @@ Thin wrapper around the Dexie schema declared in `persistence-spec.md §4`. Expo
 class PersistenceLayer {
   // Static reads (curriculum)
   curriculum: CurriculumLoader
-  
+
   // Dynamic reads/writes (student progress)
   students: StudentRepo
   sessions: SessionRepo
@@ -280,30 +288,30 @@ Where each part of the data model is touched at runtime:
 
 ### 7.1 Static stores (read-only after seed)
 
-| Store | Read by |
-|-------|---------|
-| `curriculumPacks` | BootScene (version check) |
-| `standards` | (informational; not read at runtime) |
-| `skills` | ProgressionEngine (BKT priors) |
-| `activities` | MenuScene, ActivityScene |
-| `activityLevels` | ActivityScene |
-| `fractionBank` | All MechanicSystems, Validators (via payload references) |
-| `questionTemplates` | ActivityScene |
-| `misconceptions` | ProgressionEngine (lookup on detection) |
-| `hints` | UISystem (when student requests hint) |
+| Store               | Read by                                                  |
+| ------------------- | -------------------------------------------------------- |
+| `curriculumPacks`   | BootScene (version check)                                |
+| `standards`         | (informational; not read at runtime)                     |
+| `skills`            | ProgressionEngine (BKT priors)                           |
+| `activities`        | MenuScene, ActivityScene                                 |
+| `activityLevels`    | ActivityScene                                            |
+| `fractionBank`      | All MechanicSystems, Validators (via payload references) |
+| `questionTemplates` | ActivityScene                                            |
+| `misconceptions`    | ProgressionEngine (lookup on detection)                  |
+| `hints`             | UISystem (when student requests hint)                    |
 
 ### 7.2 Dynamic stores (read + write)
 
-| Store | Read by | Written by |
-|-------|---------|-----------|
-| `students` | BootScene, StudentSelectScene | StudentSelectScene |
-| `sessions` | ActivityScene, SessionEndScene | ActivityScene (on start, on close) |
-| `attempts` | ProgressionEngine, SessionEndScene | MechanicSystem (on submit) |
-| `hintEvents` | (analytics only — local) | UISystem (on hint tap) |
-| `misconceptionFlags` | ProgressionEngine | ProgressionEngine (on detection) |
-| `skillMastery` | ProgressionEngine | ProgressionEngine (after each attempt) |
-| `progressionStat` | MenuScene, ProgressionEngine | ProgressionEngine (after each session close) |
-| `deviceMeta` | BootScene, SettingsScene | BootScene (init), SettingsScene (preference change) |
+| Store                | Read by                            | Written by                                          |
+| -------------------- | ---------------------------------- | --------------------------------------------------- |
+| `students`           | BootScene, StudentSelectScene      | StudentSelectScene                                  |
+| `sessions`           | ActivityScene, SessionEndScene     | ActivityScene (on start, on close)                  |
+| `attempts`           | ProgressionEngine, SessionEndScene | MechanicSystem (on submit)                          |
+| `hintEvents`         | (analytics only — local)           | UISystem (on hint tap)                              |
+| `misconceptionFlags` | ProgressionEngine                  | ProgressionEngine (on detection)                    |
+| `skillMastery`       | ProgressionEngine                  | ProgressionEngine (after each attempt)              |
+| `progressionStat`    | MenuScene, ProgressionEngine       | ProgressionEngine (after each session close)        |
+| `deviceMeta`         | BootScene, SettingsScene           | BootScene (init), SettingsScene (preference change) |
 
 Per `data-schema.md §3`, every dynamic write carries `syncState: "local"`. The 2029 sync worker is not built; the field exists for forward-compat.
 
@@ -313,19 +321,19 @@ Per `data-schema.md §3`, every dynamic write carries `syncState: "local"`. The 
 
 A student's complete session, top to bottom:
 
-| Step | Scene / System | Side effects |
-|------|----------------|--------------|
-| 1. App launch | `BootScene` | Dexie open, deviceMeta read, content version reconciled |
-| 2. Student picks profile | `StudentSelectScene` | `localStorage.lastUsedStudentId` updated |
-| 3. Level pick | `MenuScene` | reads `ProgressionStat` to mark unlocked levels |
-| 4. Scene load | `ActivityScene.init` | Activity + Level + Templates loaded; new `Session` row written |
-| 5. First question shown | `ActivityScene.create` → `MechanicSystem` | `Attempt.startedAt` set on first interaction |
-| 6. Each attempt submitted | `MechanicSystem` → Validator → `ProgressionEngine` | `Attempt`, `SkillMastery`, `ProgressionStat` written |
-| 7. Hint requested | `UISystem` → `Hint` lookup | `HintEvent` written |
-| 8. Misconception detected | `ProgressionEngine` | `MisconceptionFlag` upserted |
-| 9. Session close (timer / user exit) | `SessionEndScene` | `Session.endedAt`, `accuracy`, `avgResponseMs`, `scaffoldRecommendation` written |
-| 10. Mastery recompute | `ProgressionEngine.checkMastery(studentId, levelNumber)` | `SkillMastery.state` flipped to `MASTERED` if criteria met |
-| 11. Next-level recommendation | `MenuScene` reads updated `ProgressionStat` and `SkillMastery` | Student is auto-routed to L+1 (if advanced) or returns to MenuScene |
+| Step                                 | Scene / System                                                 | Side effects                                                                     |
+| ------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1. App launch                        | `BootScene`                                                    | Dexie open, deviceMeta read, content version reconciled                          |
+| 2. Student picks profile             | `StudentSelectScene`                                           | `localStorage.lastUsedStudentId` updated                                         |
+| 3. Level pick                        | `MenuScene`                                                    | reads `ProgressionStat` to mark unlocked levels                                  |
+| 4. Scene load                        | `ActivityScene.init`                                           | Activity + Level + Templates loaded; new `Session` row written                   |
+| 5. First question shown              | `ActivityScene.create` → `MechanicSystem`                      | `Attempt.startedAt` set on first interaction                                     |
+| 6. Each attempt submitted            | `MechanicSystem` → Validator → `ProgressionEngine`             | `Attempt`, `SkillMastery`, `ProgressionStat` written                             |
+| 7. Hint requested                    | `UISystem` → `Hint` lookup                                     | `HintEvent` written                                                              |
+| 8. Misconception detected            | `ProgressionEngine`                                            | `MisconceptionFlag` upserted                                                     |
+| 9. Session close (timer / user exit) | `SessionEndScene`                                              | `Session.endedAt`, `accuracy`, `avgResponseMs`, `scaffoldRecommendation` written |
+| 10. Mastery recompute                | `ProgressionEngine.checkMastery(studentId, levelNumber)`       | `SkillMastery.state` flipped to `MASTERED` if criteria met                       |
+| 11. Next-level recommendation        | `MenuScene` reads updated `ProgressionStat` and `SkillMastery` | Student is auto-routed to L+1 (if advanced) or returns to MenuScene              |
 
 Per **C9 (sessions are short)**, step 9 fires after 10–15 minutes whether or not the level is mastered. A "completed session" requires only 5 attempts; full mastery typically takes 3–5 sessions across 2–3 days.
 
@@ -348,13 +356,13 @@ If profiling ever shows a Dexie write blocking a frame, the mitigation is to enq
 
 ## 10. Failure Modes
 
-| Failure | Detection | Recovery |
-|---------|-----------|----------|
-| Dexie open fails (rare; quota / corrupt DB) | `BootScene` catch | Show "We couldn't load your progress" modal with "Restore from backup" CTA |
+| Failure                                     | Detection                               | Recovery                                                                                                     |
+| ------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Dexie open fails (rare; quota / corrupt DB) | `BootScene` catch                       | Show "We couldn't load your progress" modal with "Restore from backup" CTA                                   |
 | Static seed fails (corrupt curriculum JSON) | Schema validation in `CurriculumLoader` | Refuse to boot; show error; user must reload (the bundled JSON is shipped, so this is an authoring-time bug) |
-| Validator throws (defensive fallback) | Try/catch around validator call | Mark attempt as `outcome: "ABANDONED"`, log error, show generic "Try again" prompt |
-| Phaser canvas fails to initialize | `main.ts` window error handler | Show static fallback HTML message (no game) |
-| `navigator.storage.persist()` denied | Recorded in `DeviceMeta.preferences` | After 5 sessions, auto-prompt JSON backup (per `persistence-spec.md §9`) |
+| Validator throws (defensive fallback)       | Try/catch around validator call         | Mark attempt as `outcome: "ABANDONED"`, log error, show generic "Try again" prompt                           |
+| Phaser canvas fails to initialize           | `main.ts` window error handler          | Show static fallback HTML message (no game)                                                                  |
+| `navigator.storage.persist()` denied        | Recorded in `DeviceMeta.preferences`    | After 5 sessions, auto-prompt JSON backup (per `persistence-spec.md §9`)                                     |
 
 ---
 

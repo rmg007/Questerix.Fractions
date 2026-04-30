@@ -15,7 +15,7 @@ An educational browser-based math game for K-2 students focused on fraction conc
 
 - `src/` — Application source code
   - `main.ts` — Entry point
-  - `scenes/` — Phaser scenes (Boot, Preload, Menu, Level)
+  - `scenes/` — Phaser scenes (Boot, Preload, Menu, LevelMap, Level01, Level, Settings)
   - `engine/` — Core game logic (BKT, router)
   - `components/` — UI components
   - `persistence/` — Dexie database schemas/repositories
@@ -46,7 +46,7 @@ at the top (Settings, blue circle). Each station has a chunky 3D-shadow button
 and a fraction badge above it. Pale sky background with two soft glow circles.
 
 - Title font is **Fredoka One** (self-hosted in `public/fonts/`); body text
-  uses **Nunito** (400/700, also self-hosted). Per the privacy notice no
+  uses **Lexend** (400/600, also self-hosted) with Nunito as fallback. Per the privacy notice no
   third-party font services are called at runtime.
 - The path is drawn from a single bezier sample and gets a wide light-blue
   base stroke plus marching white dashes on top. Dash motion is gated on
@@ -58,3 +58,25 @@ and a fraction badge above it. Pale sky background with two soft glow circles.
 - Test hooks (`level-card-L1`, `L6`, `L7`) are unchanged so existing
   Playwright selectors keep working. The `level-card-L1` overlay was moved
   to `top: 86%` to track the new Play! button position.
+
+## Adventure Map — LevelMapScene
+
+`LevelMapScene.ts` sits between `MenuScene` and the level scenes. The Play! and
+"Choose Level" buttons on the menu now navigate here instead of jumping directly
+into a level. From the map, players tap a node to launch that level.
+
+- **Path**: 9 circular nodes arranged in a snake pattern across the full canvas.
+  A wide PATH_BLUE track with animated white dashes connects them.
+- **Node states**:
+  - *Completed* — amber circle with ⭐ (still tappable for replay)
+  - *Unlocked/current* — emerald circle with level number + name; gentle
+    scale-pulse tween; ▶ Play pill label below
+  - *Locked* — gray circle with 🔒, non-interactive
+- Completion status is read from the `unlockedLevels` localStorage key (same
+  source as the rest of the game). A level is "completed" when the next level
+  key is present.
+- Fade transitions (prefers-reduced-motion aware) on both arrival and departure.
+- "← Menu" back button returns to MenuScene.
+- Full WCAG A11yLayer DOM mirror for keyboard/screen-reader users.
+- The old inline "Choose a Level" 3×3 overlay in MenuScene was removed; it is
+  now fully replaced by LevelMapScene.

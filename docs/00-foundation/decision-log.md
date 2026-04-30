@@ -12,6 +12,7 @@ related: [constraints.md, open-questions.md]
 Append-only record of every notable planning decision. Once a decision is here, it's the answer until explicitly revised in a new entry.
 
 Format:
+
 - **Date** of decision
 - **Decision ID** (`D-NN`) for cross-reference
 - **What was decided**
@@ -22,6 +23,41 @@ Format:
 Decisions are ordered chronologically. **Newest at the top.**
 
 ---
+
+## D-23 — 2026-04-30 — Ratification of 9-KC Consolidation Taxonomy
+
+**Decision:** The curriculum's Knowledge Component (KC) taxonomy is consolidated from 33 skills (`SK-NN`) to 9 high-level KCs: `KC-HALVES-VIS`, `KC-UNITS-VIS`, `KC-SET-MODEL`, `KC-PRODUCTION-1`, `KC-PRODUCTION-2`, `KC-SYMBOL-BASIC`, `KC-SYMBOL-ADV`, `KC-MAGNITUDE`, and `KC-ORDERING`.
+
+**Why:** 33 KCs were too granular for effective BKT convergence during short student pilots. Consolidation provides ~31 templates per KC, ensuring stable mastery estimates faster.
+
+**Alternatives:** 12-KC model. Rejected as still too fragmented for 15-minute sessions.
+
+**Source:** `AUDIT_REPORT_A5.md`, `PLANS/curriculum-update.md`
+
+---
+
+## D-22 — 2026-04-30 — Parity Contract: Items, Misconceptions, and Hints
+
+**Decision:** A strict "Parity Contract" is enforced. Every Item Template must target a specific KC and optionally "bait" a specific Misconception. Every detected Misconception must have a corresponding Hint ladder.
+
+**Why:** Prevents "diagnostic black holes" where students fail but the system doesn't know why, or knows why but has no specific remediation.
+
+**Alternatives:** Ad-hoc authoring. Rejected as non-scalable for educational validation.
+
+**Source:** `PLANS/curriculum-update.md §2.2`
+
+---
+
+## D-21 — 2026-04-30 — Adoption of Multi-Phase Curriculum Update Plan
+
+**Decision:** The project officially adopts the 8-phase curriculum update plan (`PLANS/curriculum-update.md`) as the master roadmap for Phase 1 completion.
+
+**Why:** Solidifies the pedagogical foundation (CPA, Equal-Sharing) and aligns the content pipeline with research-grounded standards.
+
+**Alternatives:** Iterative "next-bug" approach. Rejected for lack of systemic rigor.
+
+**Source:** `PLANS/curriculum-update.md`
+
 
 ## D-20 — 2026-04-24 — Content-pipeline retry budget standardized to 3 retries
 
@@ -109,7 +145,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 **Decision:** Generated `QuestionTemplate` records are verified by Python clones of the runtime validators, not by LLM "accuracy reviewer" agents.
 
-**Why:** K–2 fraction math is finitely verifiable. `1/2 + 1/4 = 3/4` is a one-line check. An LLM reviewer is slower, more expensive, and *less* reliable than executable code.
+**Why:** K–2 fraction math is finitely verifiable. `1/2 + 1/4 = 3/4` is a one-line check. An LLM reviewer is slower, more expensive, and _less_ reliable than executable code.
 
 **Alternatives:** 3-agent reviewer team from the inherited LangGraph plan. Rejected — over-engineering for trivially-verifiable content.
 
@@ -186,6 +222,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 ## D-07 — 2026-04-24 — Storage: Dexie.js on IndexedDB + PWA + persist + JSON export
 
 **Decision:** Persistence stack:
+
 - **Dexie.js v4** wrapping IndexedDB (~22 KB gzipped)
 - App ships as installable **PWA** with valid manifest
 - App calls `navigator.storage.persist()` after first engagement
@@ -225,7 +262,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ## D-04 — 2026-04-24 — Visual style: simple + bright (deprecate neon sci-fi)
 
-**Decision:** Flat design, primary colors, sans-serif (Nunito 400/700). The original neon "Cosmic Blue + Cyan/Pink" theme in `src/data/config.ts` is deprecated.
+**Decision:** Flat design, primary colors, sans-serif (Lexend 400/600, with Nunito 400/700 as fallback). The original neon "Cosmic Blue + Cyan/Pink" theme in `src/data/config.ts` is deprecated.
 
 **Why:** Validation needs the mechanic to be testable, not stylish. K–2 students parse simple shapes faster; A/B testing pedagogy without aesthetic confounds is more reliable.
 
@@ -239,7 +276,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 **Decision:** MVP covers Levels 1–9 (Grade K through Grade 2 fraction concepts). Levels 10+ (Grade 3 operations, Grade 4 reduction, Grade 5 decimals) are post-MVP-2029.
 
-**Why:** Levels 1–5 build the partition+identify+make schema. Levels 6–9 prove that schema teaches *magnitude* (the only outcome that matters). Operations are a different mechanic and a different validation question.
+**Why:** Levels 1–5 build the partition+identify+make schema. Levels 6–9 prove that schema teaches _magnitude_ (the only outcome that matters). Operations are a different mechanic and a different validation question.
 
 **Alternatives:** L1–L5 only (faster) or L1–L15 (broader). Rejected — L1–L9 is the smallest scope that proves the mechanic actually teaches.
 

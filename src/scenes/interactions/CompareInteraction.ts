@@ -4,21 +4,45 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
+import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import {
+  ACCENT_B,
+  ACTION_FILL,
+  NAVY,
+  NAVY_HEX,
+  SELECTED_BG,
+  TEXT_HEADING,
+} from '../utils/levelTheme';
+
+const RELATION_TESTID: Record<'<' | '=' | '>', string> = {
+  '>': 'compare-relation-gt',
+  '=': 'compare-relation-eq',
+  '<': 'compare-relation-lt',
+};
+
+type FractionRef = string | { numerator: number; denominator: number; label?: string } | undefined;
 
 interface ComparePayload {
-  fractionA?: { numerator: number; denominator: number; label?: string };
-  fractionB?: { numerator: number; denominator: number; label?: string };
+  fractionA?: FractionRef;
+  fractionB?: FractionRef;
   leftLabel?: string;
   rightLabel?: string;
 }
 
-function parseFrac(s?: string): { n: number; d: number } {
-  if (!s) return { n: 1, d: 2 };
-  const [n, d] = s.split('/').map(Number);
+// Accepts "1/2", "frac:1/2", or {numerator, denominator}. The "frac:" ID prefix
+// is the curriculum's canonical reference format for fractions.
+function parseFrac(ref?: FractionRef): { n: number; d: number; label?: string } {
+  if (!ref) return { n: 1, d: 2 };
+  if (typeof ref === 'object') {
+    const out: { n: number; d: number; label?: string } = { n: ref.numerator, d: ref.denominator };
+    if (ref.label !== undefined) out.label = ref.label;
+    return out;
+  }
+  const stripped = ref.startsWith('frac:') ? ref.slice(5) : ref;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -32,12 +56,10 @@ export class CompareInteraction implements Interaction {
     const { scene, template, centerX, centerY, onCommit } = ctx;
     const payload = template.payload as ComparePayload;
 
-    const rawA = payload.fractionA;
-    const rawB = payload.fractionB;
-    const aFrac = rawA ? { n: rawA.numerator, d: rawA.denominator } : parseFrac(payload.leftLabel);
-    const bFrac = rawB ? { n: rawB.numerator, d: rawB.denominator } : parseFrac(payload.rightLabel);
-    const aLabel = rawA?.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
-    const bLabel = rawB?.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
+    const aFrac = payload.fractionA ? parseFrac(payload.fractionA) : parseFrac(payload.leftLabel);
+    const bFrac = payload.fractionB ? parseFrac(payload.fractionB) : parseFrac(payload.rightLabel);
+    const aLabel = aFrac.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
+    const bLabel = bFrac.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
 
     const barW = 220;
     const barH = 48;
@@ -52,7 +74,7 @@ export class CompareInteraction implements Interaction {
       numerator: aFrac.n,
       denominator: aFrac.d,
       label: aLabel,
-      fillColor: CLR.accentA,
+      fillColor: ACTION_FILL,
     });
     this.bars.push(aBar);
 
@@ -65,7 +87,7 @@ export class CompareInteraction implements Interaction {
       numerator: bFrac.n,
       denominator: bFrac.d,
       label: bLabel,
-      fillColor: CLR.accentB,
+      fillColor: ACCENT_B,
     });
     this.bars.push(bBar);
 
@@ -78,7 +100,7 @@ export class CompareInteraction implements Interaction {
       aFrac.d,
       {
         fontSize: '20px',
-        color: HEX.neutral900,
+        color: TEXT_HEADING,
       }
     );
     this.fractionDisplays.push(aDisplay);
@@ -89,7 +111,7 @@ export class CompareInteraction implements Interaction {
       centerY - 80 + barH + gap + barH + 30,
       bFrac.n,
       bFrac.d,
-      { fontSize: '20px', color: HEX.neutral900 }
+      { fontSize: '20px', color: TEXT_HEADING }
     );
     this.fractionDisplays.push(bDisplay);
 
@@ -104,15 +126,15 @@ export class CompareInteraction implements Interaction {
     defs.forEach(({ label, val }, i) => {
       const bx = centerX - 220 + i * 220;
       const bg = scene.add
-        .rectangle(bx, btnY, 180, 56, CLR.primarySoft)
-        .setStrokeStyle(2, CLR.primary)
+        .rectangle(bx, btnY, 180, 56, SELECTED_BG)
+        .setStrokeStyle(2, NAVY)
         .setDepth(6);
       scene.add
         .text(bx, btnY, label, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
-          color: HEX.primary,
+          color: NAVY_HEX,
           align: 'center',
           wordWrap: { width: 168 },
         })
@@ -122,18 +144,25 @@ export class CompareInteraction implements Interaction {
         .rectangle(bx, btnY, 180, 56, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(8);
-      // Compute relation for onCommit
       const aVal = aFrac.n / aFrac.d;
       const bVal = bFrac.n / bFrac.d;
-      hit.on('pointerup', () => {
+      const submit = () => {
         const correct = aVal > bVal ? '>' : aVal < bVal ? '<' : '=';
         onCommit({ relation: val, correct: val === correct });
+      };
+      hit.on('pointerup', submit);
+      TestHooks.mountInteractive(RELATION_TESTID[val], submit, {
+        top: `${(btnY / 1280) * 100}%`,
+        left: `${(bx / 800) * 100}%`,
+        width: '180px',
+        height: '56px',
       });
       this.gameObjects.push(bg, hit);
     });
   }
 
   unmount(): void {
+    (Object.values(RELATION_TESTID) as string[]).forEach((id) => TestHooks.unmount(id));
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
     this.bars.forEach((b) => b.destroy());

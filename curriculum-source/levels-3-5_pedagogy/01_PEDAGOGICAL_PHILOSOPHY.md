@@ -1,4 +1,5 @@
 # PEDAGOGICAL PHILOSOPHY
+
 ## Why We Teach Grade 1 Fractions This Way
 
 ---
@@ -7,7 +8,7 @@
 
 Every choice in this curriculum is deliberate. Every activity is grounded in
 research about how 6–7-year-old children actually learn mathematics. This
-document explains the *why* behind the *what*.
+document explains the _why_ behind the _what_.
 
 If you are a teacher, designer, or skeptic who wants to know whether this
 curriculum is rigorous, this is the document for you.
@@ -21,7 +22,7 @@ curriculum is rigorous, this is the document for you.
 ```
 COGNITIVE READINESS (Piaget's Concrete Operational Stage, beginning)
 ├─ Can perform mental operations on CONCRETE objects but not abstractions
-├─ Conservation (understanding that quantity persists despite shape change) 
+├─ Conservation (understanding that quantity persists despite shape change)
 │   is JUST EMERGING — about 60–70% of 6-year-olds have it stable
 ├─ Reversibility (mental "undoing") is fragile; needs scaffolding
 ├─ Decentration (considering multiple attributes at once) is partial
@@ -63,6 +64,7 @@ SOCIAL-EMOTIONAL
 ### Implication for Curriculum Design
 
 A curriculum that ignores this profile (which is most curricula) will:
+
 - Overwhelm working memory
 - Force premature abstraction
 - Trigger math anxiety
@@ -76,9 +78,10 @@ Our curriculum is designed to fit this profile, not fight it.
 
 ### Framework 1: Bruner's CRA Sequence
 
-**Source**: Bruner, J. (1966). *Toward a Theory of Instruction.*
+**Source**: Bruner, J. (1966). _Toward a Theory of Instruction._
 
 **Principle**: Children learn mathematics in three modes, in this order:
+
 - **Concrete (Enactive)**: Physical objects they manipulate.
 - **Representational (Iconic)**: Pictures, drawings, models.
 - **Abstract (Symbolic)**: Numerals, equations, formal symbols.
@@ -115,12 +118,13 @@ mastery in struggling students by 40% over symbolic-first instruction.
 
 ### Framework 2: Piaget's Concrete Operational Stage
 
-**Source**: Piaget, J. (1952). *The Child's Conception of Number.*
+**Source**: Piaget, J. (1952). _The Child's Conception of Number._
 
 **Principle**: Children aged 6–11 reason logically but ONLY about concrete
 objects. They cannot yet do operations on operations (formal abstract reasoning).
 
-**Specific Implication for Fractions**: 
+**Specific Implication for Fractions**:
+
 - A child who has not achieved "conservation" cannot understand that two halves
   equal one whole, even if they can recite it.
 - Conservation of liquid (Piaget's classic experiment) typically arrives 6–7.
@@ -153,7 +157,7 @@ parrot "1/2 + 1/2 = 1" but cannot apply it to a real cookie.
 
 ### Framework 3: Vygotsky's Zone of Proximal Development (ZPD)
 
-**Source**: Vygotsky, L. (1978). *Mind in Society.*
+**Source**: Vygotsky, L. (1978). _Mind in Society._
 
 **Principle**: Children learn most in the gap between what they can do alone
 (actual development) and what they can do with help (potential development).
@@ -189,13 +193,14 @@ not a label — it's responsive to the moment.
 
 ### Framework 4: Embodied Cognition
 
-**Source**: Lakoff & Núñez (2000). *Where Mathematics Comes From.*
+**Source**: Lakoff & Núñez (2000). _Where Mathematics Comes From._
 
 **Principle**: Mathematical concepts are NOT abstractions floating in mind;
 they are grounded in bodily experience. Counting comes from finger-counting.
 "Greater than" comes from physical largeness. Halves come from bodily division.
 
 **Specific to Fractions**:
+
 - "Half" originates in bodily symmetry (left/right, top/bottom)
 - "Equal" originates in bodily fairness (you got the same as me)
 - "Whole" originates in unity of self (one body)
@@ -223,7 +228,7 @@ and better transfer (Glenberg, 2008; Tran et al., 2017).
 
 ### Framework 5: Universal Design for Learning (UDL)
 
-**Source**: CAST (2018). *Universal Design for Learning Guidelines.*
+**Source**: CAST (2018). _Universal Design for Learning Guidelines._
 
 **Principle**: Design curriculum so it works for the widest range of learners
 from the start, rather than retrofitting accommodations.
@@ -233,7 +238,7 @@ from the start, rather than retrofitting accommodations.
 ```
 1. RECOGNITION NETWORKS (the "what" of learning)
    → Multiple means of representation
-   
+
    Our application:
    ├─ Every concept presented in 3+ ways:
    │   ├─ Visual (drawings, models)
@@ -244,7 +249,7 @@ from the start, rather than retrofitting accommodations.
 
 2. STRATEGIC NETWORKS (the "how" of learning)
    → Multiple means of action and expression
-   
+
    Our application:
    ├─ Children can demonstrate understanding by:
    │   ├─ Drawing
@@ -257,7 +262,7 @@ from the start, rather than retrofitting accommodations.
 
 3. AFFECTIVE NETWORKS (the "why" of learning)
    → Multiple means of engagement
-   
+
    Our application:
    ├─ Story narrative provides intrinsic motivation
    ├─ Choice within activities (which shape to fold)
@@ -270,13 +275,14 @@ from the start, rather than retrofitting accommodations.
 
 ### Framework 6: Cognitive Load Theory
 
-**Source**: Sweller, J. (2011). *Cognitive Load Theory.*
+**Source**: Sweller, J. (2011). _Cognitive Load Theory._
 
 **Principle**: Working memory has limited capacity. Curriculum must minimize
 EXTRANEOUS cognitive load (anything not directly related to the learning goal)
 to free capacity for INTRINSIC and GERMANE load (the actual learning).
 
 **Common Mistakes That Overload**:
+
 - Cluttered worksheets with decorative borders, multiple problem types
 - Instructions in long paragraphs
 - Multiple objectives per lesson
@@ -422,6 +428,7 @@ Grade 1 (Cvencek, Meltzoff, & Greenwald, 2011). Children who feel mathematically
 incompetent in Grade 1 are 5x more likely to disengage from math by Grade 5.
 
 **This is especially true for**:
+
 - Girls (despite no actual ability difference)
 - Black and Latinx children (due to stereotype threat exposure)
 - Children from low-income backgrounds (due to less prior exposure to math
@@ -433,32 +440,38 @@ incompetent in Grade 1 are 5x more likely to disengage from math by Grade 5.
 ### Specific Anti-Inequity Design Choices
 
 **1. No Public Comparison**
+
 - No leaderboards
 - No "fastest" recognition
 - No "smartest" labels
 - Mastery is internal, not relative
 
 **2. Multiple Entry Points**
+
 - Children can be brilliant at body math but slow at folding (and vice versa)
 - Multiple modes mean every child can shine somewhere
 
 **3. Identity-Safe Language**
+
 - Teacher addresses children as "Mathematicians"
 - "When you struggle, your brain is GROWING"
 - Mistakes are framed as essential to learning (Boaler, 2016)
 
 **4. Asset-Based Framing**
+
 - ELL students bring linguistic richness ("mitad" → "half")
 - Low-income students bring resourcefulness (sharing experience)
 - Children with disabilities bring diverse perspectives
 - All assets are explicitly named and valued
 
 **5. Family Funds of Knowledge**
+
 - Sharing scenarios reflect home contexts (tortilla, naan, dosa, pizza)
 - Parent companion document invites family math stories
 - Multilingual home activities
 
 **6. Anti-Bias Vocabulary**
+
 - "Boys and girls" → "Mathematicians" or "Friends"
 - Pronoun-flexible characters (Pia is gender-flexibly named)
 - Diverse representation in all visuals
@@ -473,7 +486,8 @@ identity-safe, asset-based math instruction in K–2 closes achievement gaps by
 
 ### We Do Not Use Worksheets (Except Sparingly)
 
-**Reasoning**: 
+**Reasoning**:
+
 - Worksheets are typically 80% extraneous load (decorative, motor demands)
   and only 20% concept.
 - Children can complete worksheets without understanding (pattern matching).
@@ -487,6 +501,7 @@ portfolios. They are NOT instructional tools.
 ### We Do Not Time Children
 
 **Reasoning**:
+
 - Math anxiety begins in Grade 1 with timed instruction (Boaler, 2014).
 - Speed is not a measure of understanding.
 - Slow processors are often deeper thinkers.
@@ -499,6 +514,7 @@ child is timed.
 ### We Do Not Introduce Symbols Early
 
 **Reasoning**:
+
 - Symbol-first instruction creates shallow learning (rote recitation).
 - The symbol "1/2" is meaningless without the concrete schema.
 - Premature symbols crowd out conceptual development.
@@ -511,6 +527,7 @@ as "what we WRITE for 'one half'" — but never assess on it in Grade 1.
 ### We Do Not Use Pre-Divided Models Exclusively
 
 **Reasoning**:
+
 - Children must DO the dividing themselves to build schema.
 - Pre-divided models hide the partitioning operation.
 
@@ -522,6 +539,7 @@ They draw their OWN dividing lines.
 ### We Do Not Compare Fractions in Grade 1
 
 **Reasoning**:
+
 - Comparing fractions (1/2 vs 1/4) requires understanding both fractions
   AND the relationship between them. This is double cognitive load.
 - Phase 2 builds individual fraction concepts deeply.
@@ -572,12 +590,14 @@ from external support to internal mastery.
 ### What Assessment Is FOR (in Grade 1)
 
 Assessment in Grade 1 should:
+
 1. **Inform teaching** (formative assessment)
 2. **Document growth** (portfolio assessment)
 3. **Identify struggles** (diagnostic assessment)
 4. **Celebrate mastery** (affirming assessment)
 
 Assessment in Grade 1 should NOT:
+
 1. ❌ Sort children into ability groups
 2. ❌ Generate grades or percentages
 3. ❌ Rank or compare children
@@ -592,7 +612,7 @@ Assessment in Grade 1 should NOT:
    ├─ → Attempting with support
    ├─ ✓ Attempting independently
    └─ ★ Confident and explaining
-   
+
    No quizzes. No tests. Just watching with intention.
 
 2. CONFERRING (WEEKLY, 5 MIN PER CHILD)
@@ -601,7 +621,7 @@ Assessment in Grade 1 should NOT:
    ├─ "What's a half?"
    ├─ "Why are fourths smaller than halves?"
    └─ Notes child's exact words; identifies misconceptions.
-   
+
    This is the most powerful assessment for understanding cognition.
 
 3. PERFORMANCE TASKS (PHASE GATES, 3X YEAR)
@@ -614,6 +634,7 @@ Assessment in Grade 1 should NOT:
 ### Documentation: The Portfolio
 
 Each child has a portfolio containing:
+
 - Photographs of their folded paper, constructions
 - Drawings they made
 - Quotes from conferring (what they SAID)
@@ -621,6 +642,7 @@ Each child has a portfolio containing:
 - Phase-gate performance task evidence
 
 This portfolio is:
+
 - Shared with parents quarterly
 - Sent home at end of year
 - Foundation for Grade 2 teacher's understanding
@@ -654,6 +676,7 @@ Teacher observes for emergent understanding.
 feels game-like, but is pedagogically targeted.
 
 **Why Play Matters**:
+
 - Reduces cognitive anxiety (allows risk-taking)
 - Increases engagement (intrinsic motivation)
 - Builds creative problem-solving
@@ -785,29 +808,29 @@ This document is theoretical. The next documents make it practical:
 
 ## REFERENCES
 
-- Aguirre, J., Mayfield-Ingram, K., & Martin, D. (2013). *The Impact of
-  Identity in K–8 Mathematics: Rethinking Equity-Based Practices.*
-- Beilock, S. (2010). *Choke: What the Secrets of the Brain Reveal.*
+- Aguirre, J., Mayfield-Ingram, K., & Martin, D. (2013). _The Impact of
+  Identity in K–8 Mathematics: Rethinking Equity-Based Practices._
+- Beilock, S. (2010). _Choke: What the Secrets of the Brain Reveal._
 - Boaler, J. (2014). "Research suggests that timed tests cause math anxiety."
-- Boaler, J. (2016). *Mathematical Mindsets.*
-- Bruner, J. (1966). *Toward a Theory of Instruction.*
-- CAST (2018). *Universal Design for Learning Guidelines.*
+- Boaler, J. (2016). _Mathematical Mindsets._
+- Bruner, J. (1966). _Toward a Theory of Instruction._
+- CAST (2018). _Universal Design for Learning Guidelines._
 - Confrey, J. (1994). "Splitting, similarity, and rate of change."
 - Cvencek, D., Meltzoff, A., & Greenwald, A. (2011). "Math-gender stereotypes."
-- Empson, S., & Levi, L. (2011). *Extending Children's Mathematics: Fractions.*
+- Empson, S., & Levi, L. (2011). _Extending Children's Mathematics: Fractions._
 - Glenberg, A. (2008). "Toward the integration of bodily states, language."
 - Green, M., & Brock, T. (2000). "The role of transportation in narrative."
 - Hirsh-Pasek, K., Golinkoff, R., Berk, L., & Singer, D. (2009).
-  *A Mandate for Playful Learning in Preschool.*
-- Lakoff, G., & Núñez, R. (2000). *Where Mathematics Comes From.*
+  _A Mandate for Playful Learning in Preschool._
+- Lakoff, G., & Núñez, R. (2000). _Where Mathematics Comes From._
 - Pearson, P., & Gallagher, M. (1983). "The instruction of reading
   comprehension."
-- Piaget, J. (1952). *The Child's Conception of Number.*
-- Sweller, J. (2011). *Cognitive Load Theory.*
+- Piaget, J. (1952). _The Child's Conception of Number._
+- Sweller, J. (2011). _Cognitive Load Theory._
 - Tran, C., Smith, B., & Buschkuehl, M. (2017). "Support of mathematical
   thinking through embodied cognition."
-- Vygotsky, L. (1978). *Mind in Society.*
-- Wiggins, G. (1998). *Educative Assessment.*
+- Vygotsky, L. (1978). _Mind in Society._
+- Wiggins, G. (1998). _Educative Assessment._
 - Witzel, B., Mercer, C., & Miller, M. (2003). "Teaching algebra to students
   with learning difficulties."
 - Wong, M., & Evans, D. (2007). "Improving basic multiplication fact recall

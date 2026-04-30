@@ -5,7 +5,13 @@ owner: solo
 last_reviewed: 2026-04-24
 applies_to: [mvp]
 constraint_refs: [C1, C2, C5, C10]
-related: [playtest-protocol.md, learning-hypotheses.md, ../30-architecture/data-schema.md, ../30-architecture/persistence-spec.md]
+related:
+  [
+    playtest-protocol.md,
+    learning-hypotheses.md,
+    ../30-architecture/data-schema.md,
+    ../30-architecture/persistence-spec.md,
+  ]
 ---
 
 # In-App Telemetry
@@ -32,85 +38,85 @@ The same writes the runtime engine does normally. Reproduced here from `data-sch
 
 ### 2.1 Session — One row per session
 
-| Field | Playtest use |
-|-------|--------------|
-| `id` | Join key for attempts |
-| `studentId` | Pseudonym-based UUID |
-| `activityId` | Which activity slug |
-| `levelNumber` | Which MVP level |
-| `scaffoldLevel` | Hint and snap settings during this session |
-| `startedAt` | Session start timestamp |
-| `endedAt` | Session end timestamp (null while active) |
-| `totalAttempts`, `correctAttempts`, `accuracy` | Denormalized session aggregates |
-| `avgResponseMs` | Response time signal |
-| `xpEarned` | Score; not directly used in analysis |
-| `scaffoldRecommendation` | Engine's advance/stay/regress signal |
-| `endLevel` | Level at session close (may differ from start if engine advanced mid-session) |
-| `device.type`, `device.viewport` | iPad vs. Chromebook split for analysis |
-| `syncState` | Always `"local"` per C1 |
+| Field                                          | Playtest use                                                                  |
+| ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| `id`                                           | Join key for attempts                                                         |
+| `studentId`                                    | Pseudonym-based UUID                                                          |
+| `activityId`                                   | Which activity slug                                                           |
+| `levelNumber`                                  | Which MVP level                                                               |
+| `scaffoldLevel`                                | Hint and snap settings during this session                                    |
+| `startedAt`                                    | Session start timestamp                                                       |
+| `endedAt`                                      | Session end timestamp (null while active)                                     |
+| `totalAttempts`, `correctAttempts`, `accuracy` | Denormalized session aggregates                                               |
+| `avgResponseMs`                                | Response time signal                                                          |
+| `xpEarned`                                     | Score; not directly used in analysis                                          |
+| `scaffoldRecommendation`                       | Engine's advance/stay/regress signal                                          |
+| `endLevel`                                     | Level at session close (may differ from start if engine advanced mid-session) |
+| `device.type`, `device.viewport`               | iPad vs. Chromebook split for analysis                                        |
+| `syncState`                                    | Always `"local"` per C1                                                       |
 
 ### 2.2 Attempt — One row per student answer (append-only)
 
-| Field | Playtest use |
-|-------|--------------|
-| `id` | Unique attempt key |
-| `sessionId` | Which session |
-| `questionTemplateId` | Which question |
-| `roundNumber`, `attemptNumber` | Retry tracking |
-| `startedAt`, `submittedAt`, `responseMs` | Timing analysis (e.g., long pauses) |
-| `studentAnswerRaw` | What the student actually did (placement coords, partition lines, comparison choice) |
-| `correctAnswerRaw` | Snapshot of expected answer |
-| `outcome` | EXACT / CLOSE / WRONG / ASSISTED / ABANDONED |
-| `errorMagnitude` | Numeric error (e.g., placement off by 0.125) |
-| `pointsEarned` | Score awarded |
-| `hintsUsedIds` | Which hints were shown for this attempt |
-| `flaggedMisconceptionIds` | Misconceptions detected from this attempt |
-| `syncState` | Always `"local"` |
+| Field                                    | Playtest use                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| `id`                                     | Unique attempt key                                                                   |
+| `sessionId`                              | Which session                                                                        |
+| `questionTemplateId`                     | Which question                                                                       |
+| `roundNumber`, `attemptNumber`           | Retry tracking                                                                       |
+| `startedAt`, `submittedAt`, `responseMs` | Timing analysis (e.g., long pauses)                                                  |
+| `studentAnswerRaw`                       | What the student actually did (placement coords, partition lines, comparison choice) |
+| `correctAnswerRaw`                       | Snapshot of expected answer                                                          |
+| `outcome`                                | EXACT / CLOSE / WRONG / ASSISTED / ABANDONED                                         |
+| `errorMagnitude`                         | Numeric error (e.g., placement off by 0.125)                                         |
+| `pointsEarned`                           | Score awarded                                                                        |
+| `hintsUsedIds`                           | Which hints were shown for this attempt                                              |
+| `flaggedMisconceptionIds`                | Misconceptions detected from this attempt                                            |
+| `syncState`                              | Always `"local"`                                                                     |
 
 ### 2.3 HintEvent — One row per hint shown
 
-| Field | Playtest use |
-|-------|--------------|
-| `id` | Unique key |
-| `attemptId` | Which attempt requested the hint |
-| `hintId` | Which hint shown |
-| `shownAt` | Timestamp |
+| Field               | Playtest use                                            |
+| ------------------- | ------------------------------------------------------- |
+| `id`                | Unique key                                              |
+| `attemptId`         | Which attempt requested the hint                        |
+| `hintId`            | Which hint shown                                        |
+| `shownAt`           | Timestamp                                               |
 | `acceptedByStudent` | Did the student keep the hint open or dismiss instantly |
-| `pointCostApplied` | Score deduction |
+| `pointCostApplied`  | Score deduction                                         |
 
 Hint patterns are central to H-07 (hint reduction over sessions).
 
 ### 2.4 MisconceptionFlag — One row per detected pattern
 
-| Field | Playtest use |
-|-------|--------------|
-| `studentId`, `misconceptionId` | Which student showed which misconception |
-| `firstObservedAt`, `lastObservedAt` | Time bounds |
-| `observationCount` | How many times confirmed |
-| `resolvedAt` | When (if ever) the student passed remediation |
-| `evidenceAttemptIds` | The attempts that triggered detection |
+| Field                               | Playtest use                                  |
+| ----------------------------------- | --------------------------------------------- |
+| `studentId`, `misconceptionId`      | Which student showed which misconception      |
+| `firstObservedAt`, `lastObservedAt` | Time bounds                                   |
+| `observationCount`                  | How many times confirmed                      |
+| `resolvedAt`                        | When (if ever) the student passed remediation |
+| `evidenceAttemptIds`                | The attempts that triggered detection         |
 
 Central to H-05 (no negative interaction).
 
 ### 2.5 SkillMastery — One row per (student, skill)
 
-| Field | Playtest use |
-|-------|--------------|
-| `masteryEstimate` | BKT posterior 0–1 |
-| `state` | NOT_STARTED / LEARNING / APPROACHING / MASTERED / DECAYED |
-| `consecutiveCorrectUnassisted`, `totalAttempts`, `correctAttempts` | Practice volume |
-| `lastAttemptAt`, `masteredAt`, `decayedAt` | Time bounds |
+| Field                                                              | Playtest use                                              |
+| ------------------------------------------------------------------ | --------------------------------------------------------- |
+| `masteryEstimate`                                                  | BKT posterior 0–1                                         |
+| `state`                                                            | NOT_STARTED / LEARNING / APPROACHING / MASTERED / DECAYED |
+| `consecutiveCorrectUnassisted`, `totalAttempts`, `correctAttempts` | Practice volume                                           |
+| `lastAttemptAt`, `masteredAt`, `decayedAt`                         | Time bounds                                               |
 
 Central to H-06 (mastery state predicts paper performance).
 
 ### 2.6 ProgressionStat — One row per (student, activity)
 
-| Field | Playtest use |
-|-------|--------------|
-| `currentLevel`, `highestLevelReached` | Where the student got to |
-| `sessionsAtCurrentLevel`, `totalSessions` | Repetition signal |
-| `consecutiveRegressEvents` | Struggle signal |
-| `totalXp` | Score |
+| Field                                     | Playtest use             |
+| ----------------------------------------- | ------------------------ |
+| `currentLevel`, `highestLevelReached`     | Where the student got to |
+| `sessionsAtCurrentLevel`, `totalSessions` | Repetition signal        |
+| `consecutiveRegressEvents`                | Struggle signal          |
+| `totalXp`                                 | Score                    |
 
 ### 2.7 DeviceMeta — Singleton per device
 
@@ -122,19 +128,19 @@ Captures `installId`, `schemaVersion`, `contentVersion`, and user `preferences`.
 
 Explicitly out of scope for the MVP:
 
-| Not recorded | Why |
-|-------------|-----|
-| Mouse/touch position over time (continuous) | Privacy; not needed for hypotheses; would 100x the data volume |
-| Mouse/touch movement traces between events | Same |
-| Screen recording / video | Privacy; consent-gated audio/video is OUT OF SCOPE for MVP |
-| Audio recording | Same |
-| Webcam / facial expression | Same |
-| Keystroke timing | Privacy and not relevant for K–2 (very little keyboard input) |
-| Scroll position / viewport movements | Not relevant to fraction tasks |
-| Real name, email, school, district, class code | C2 — no admin / teacher / parent surface |
-| IP address / geolocation | C1 — no backend, no server log |
-| OS / browser / device fingerprint beyond `device.type` and viewport | Not relevant |
-| External activity (other tabs, other apps) | Privacy; impossible from a sandboxed web app anyway |
+| Not recorded                                                        | Why                                                            |
+| ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Mouse/touch position over time (continuous)                         | Privacy; not needed for hypotheses; would 100x the data volume |
+| Mouse/touch movement traces between events                          | Same                                                           |
+| Screen recording / video                                            | Privacy; consent-gated audio/video is OUT OF SCOPE for MVP     |
+| Audio recording                                                     | Same                                                           |
+| Webcam / facial expression                                          | Same                                                           |
+| Keystroke timing                                                    | Privacy and not relevant for K–2 (very little keyboard input)  |
+| Scroll position / viewport movements                                | Not relevant to fraction tasks                                 |
+| Real name, email, school, district, class code                      | C2 — no admin / teacher / parent surface                       |
+| IP address / geolocation                                            | C1 — no backend, no server log                                 |
+| OS / browser / device fingerprint beyond `device.type` and viewport | Not relevant                                                   |
+| External activity (other tabs, other apps)                          | Privacy; impossible from a sandboxed web app anyway            |
 
 If a future research collaboration wants any of these, that requires a formal IRB process and a different consent form. **Out of scope for the MVP playtest.**
 
@@ -142,15 +148,15 @@ If a future research collaboration wants any of these, that requires a formal IR
 
 ## 4. Mapping Hypotheses to Telemetry
 
-| Hypothesis | Primary telemetry source | Aggregation |
-|-----------|--------------------------|-------------|
-| H-01 (identification teaches) | `Attempt` filtered by `activityId in [identify_*]` | Accuracy by session, by skill |
-| H-02 (partitioning teaches) | `Attempt` filtered by `activityId in [partition_*]` | Accuracy + median errorMagnitude per session |
-| H-03 (comparison transfers) | `Attempt` filtered by `activityId in [compare_*, ordering_*, benchmark_sort]` | Tier-3 accuracy by session |
-| H-04 (retention across days) | `Attempt` grouped by `(studentId, skillId, day)` | Day-end accuracy vs. next-day-start accuracy |
-| H-05 (no negative interaction) | `MisconceptionFlag.firstObservedAt` after Session 1 | Count of new flags per student |
-| H-06 (mastery predicts paper) | `SkillMastery.state` at end of Session 3 | Cross-tabulated with paper-test scores |
-| H-07 (hint reduction) | `HintEvent` per `Attempt` over time | Hints/attempt at session 1 vs. session N |
+| Hypothesis                     | Primary telemetry source                                                      | Aggregation                                  |
+| ------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------- |
+| H-01 (identification teaches)  | `Attempt` filtered by `activityId in [identify_*]`                            | Accuracy by session, by skill                |
+| H-02 (partitioning teaches)    | `Attempt` filtered by `activityId in [partition_*]`                           | Accuracy + median errorMagnitude per session |
+| H-03 (comparison transfers)    | `Attempt` filtered by `activityId in [compare_*, ordering_*, benchmark_sort]` | Tier-3 accuracy by session                   |
+| H-04 (retention across days)   | `Attempt` grouped by `(studentId, skillId, day)`                              | Day-end accuracy vs. next-day-start accuracy |
+| H-05 (no negative interaction) | `MisconceptionFlag.firstObservedAt` after Session 1                           | Count of new flags per student               |
+| H-06 (mastery predicts paper)  | `SkillMastery.state` at end of Session 3                                      | Cross-tabulated with paper-test scores       |
+| H-07 (hint reduction)          | `HintEvent` per `Attempt` over time                                           | Hints/attempt at session 1 vs. session N     |
 
 ---
 
@@ -178,15 +184,29 @@ The same button is the playtest export. There is no separate "playtest export" b
     "displayName": "Maya",
     "gradeLevel": 1,
     "createdAt": 1713000000000,
-    "lastActiveAt": 1714053720000
+    "lastActiveAt": 1714053720000,
   },
-  "sessions": [ /* Session records */ ],
-  "attempts": [ /* Attempt records (append-only, all of them) */ ],
-  "hintEvents": [ /* HintEvent records */ ],
-  "misconceptionFlags": [ /* MisconceptionFlag records */ ],
-  "skillMastery": [ /* SkillMastery records */ ],
-  "progressionStat": [ /* ProgressionStat records */ ],
-  "deviceMeta": { /* DeviceMeta singleton */ }
+  "sessions": [
+    /* Session records */
+  ],
+  "attempts": [
+    /* Attempt records (append-only, all of them) */
+  ],
+  "hintEvents": [
+    /* HintEvent records */
+  ],
+  "misconceptionFlags": [
+    /* MisconceptionFlag records */
+  ],
+  "skillMastery": [
+    /* SkillMastery records */
+  ],
+  "progressionStat": [
+    /* ProgressionStat records */
+  ],
+  "deviceMeta": {
+    /* DeviceMeta singleton */
+  },
 }
 ```
 
@@ -258,15 +278,15 @@ Failures here indicate a runtime bug worth fixing before more cohort data is col
 
 ## 9. Summary
 
-| Question | Answer |
-|----------|--------|
-| Where does telemetry live? | IndexedDB on the tester's device. |
-| How is it exported? | One button → JSON file download. |
-| Is anything sent to a server? | No (C1). |
-| Is PII recorded? | Display name only. |
-| Are mouse/screen/audio/video recorded? | No. |
-| Is the data the same as runtime gameplay data? | Yes — telemetry is just the gameplay write log. |
-| What format is the export? | JSON with the entity types from `data-schema.md`. |
-| What's the typical export size? | 20–60 KB per student per 3-session playtest. |
+| Question                                       | Answer                                            |
+| ---------------------------------------------- | ------------------------------------------------- |
+| Where does telemetry live?                     | IndexedDB on the tester's device.                 |
+| How is it exported?                            | One button → JSON file download.                  |
+| Is anything sent to a server?                  | No (C1).                                          |
+| Is PII recorded?                               | Display name only.                                |
+| Are mouse/screen/audio/video recorded?         | No.                                               |
+| Is the data the same as runtime gameplay data? | Yes — telemetry is just the gameplay write log.   |
+| What format is the export?                     | JSON with the entity types from `data-schema.md`. |
+| What's the typical export size?                | 20–60 KB per student per 3-session playtest.      |
 
 Last reviewed: 2026-04-24.

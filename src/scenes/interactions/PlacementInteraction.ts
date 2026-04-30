@@ -4,9 +4,9 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { NAVY, TEXT_BODY } from '../utils/levelTheme';
 
 interface PlacementPayload {
   targetFracId?: string;
@@ -56,8 +56,18 @@ export class PlacementInteraction implements Interaction {
       numerator: frac.n,
       denominator: frac.d,
       label,
-      fillColor: CLR.primary,
+      fillColor: NAVY,
     });
+
+    // Build tick marks that match the question's denominator so kids see
+    // labelled fraction ticks (e.g. 0, 1/3, 2/3, 1) rather than raw decimals.
+    // For halves we keep the existing single midpoint; for other denominators
+    // we generate evenly-spaced ticks for every k/d value.
+    const tickDenominator = frac.d;
+    const tickFractions: number[] =
+      tickDenominator > 1
+        ? Array.from({ length: tickDenominator + 1 }, (_, i) => i / tickDenominator)
+        : [0, 1];
 
     // Number line with snap positions
     const lineW = Math.min(560, width - 80);
@@ -65,7 +75,8 @@ export class PlacementInteraction implements Interaction {
       x: centerX,
       y: centerY - 20,
       length: lineW,
-      tickFractions: [0.5],
+      tickFractions,
+      ...(tickDenominator > 1 ? { denominator: tickDenominator } : {}),
       snapPositions: snaps,
     });
     // Start the marker on the far end of the line from the correct value so a
@@ -83,7 +94,7 @@ export class PlacementInteraction implements Interaction {
       .text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
         fontSize: '15px',
         fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
+        color: TEXT_BODY,
         align: 'center',
       })
       .setOrigin(0.5)

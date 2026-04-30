@@ -128,7 +128,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
   try {
     envelope = JSON.parse(text) as BackupEnvelope;
-  } catch {
+  } catch (err) {
     throw new Error('backup.restore: invalid JSON');
   }
 
@@ -209,3 +209,117 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
 // Suppress unused-import warning — Dexie is referenced for Table generic above
 void (Dexie as unknown);
+
+// ── Playtest export ────────────────────────────────────────────────────────
+
+/**
+ * Export a flat, researcher-friendly JSON file for playtest analysis.
+ * Unlike backupToFile() (which is for restore), this format is optimised
+ * for spreadsheet import and statistical analysis:
+ *   - ISO timestamps instead of epoch ms
+ *   - Durations in minutes / seconds rather than ms
+ *   - Pre-computed per-session accuracy and per-skill accuracy
+ *   - No internal Dexie keys or sync metadata
+ *
+ * per docs/40-validation/in-app-telemetry.md (Export for Playtest)
+ */
+export async function playtestExportToFile(): Promise<Blob> {
+  const [sessions, attempts, skillMastery, misconceptionFlags] = await Promise.all([
+    db.sessions.toArray(),
+    db.attempts.toArray(),
+    db.skillMastery.toArray(),
+    db.misconceptionFlags.toArray(),
+  ]);
+
+  const exportSessions = sessions.map((s: Session) => ({
+    sessionId: s.id,
+    studentId: s.studentId,
+    level: s.levelNumber,
+    activity: s.activityId,
+    startedAt: new Date(s.startedAt).toISOString(),
+    endedAt: s.endedAt != null ? new Date(s.endedAt).toISOString() : null,
+    durationMinutes:
+      s.endedAt != null ? +((s.endedAt - s.startedAt) / 60000).toFixed(2) : null,
+    accuracy: s.accuracy != null ? +s.accuracy.toFixed(3) : null,
+    avgResponseSeconds:
+      s.avgResponseMs != null ? +(s.avgResponseMs / 1000).toFixed(2) : null,
+    correctAnswers: s.correctAttempts,
+    totalAttempts: s.totalAttempts,
+    scaffoldRecommendation: s.scaffoldRecommendation ?? null,
+  }));
+
+  const exportAttempts = attempts.map((a: Attempt) => ({
+    attemptId: String(a.id),
+    sessionId: a.sessionId,
+    studentId: a.studentId,
+    questionId: a.questionTemplateId,
+    archetype: a.archetype,
+    roundNumber: a.roundNumber,
+    attemptNumber: a.attemptNumber,
+    outcome: a.outcome,
+    hintsUsed: a.hintsUsedIds?.length ?? 0,
+    responseSeconds: a.responseMs != null ? +(a.responseMs / 1000).toFixed(2) : null,
+  }));
+
+  const exportSkills = skillMastery.map((sm: SkillMastery) => ({
+    studentId: sm.studentId,
+    skillId: sm.skillId,
+    masteryEstimate: +sm.masteryEstimate.toFixed(4),
+    state: sm.state,
+    totalAttempts: sm.totalAttempts,
+    correctAttempts: sm.correctAttempts,
+    accuracy:
+      sm.totalAttempts > 0
+        ? +(sm.correctAttempts / sm.totalAttempts).toFixed(3)
+        : null,
+    lastAttemptAt:
+      sm.lastAttemptAt != null ? new Date(sm.lastAttemptAt).toISOString() : null,
+    masteredAt: sm.masteredAt != null ? new Date(sm.masteredAt).toISOString() : null,
+  }));
+
+  const exportMisconceptions = misconceptionFlags.map((mf: MisconceptionFlag) => ({
+    studentId: mf.studentId,
+    misconceptionId: mf.misconceptionId,
+    firstObservedAt: new Date(mf.firstObservedAt).toISOString(),
+    lastObservedAt: new Date(mf.lastObservedAt).toISOString(),
+    observationCount: mf.observationCount,
+    resolvedAt: mf.resolvedAt != null ? new Date(mf.resolvedAt).toISOString() : null,
+  }));
+
+  const accuracies = exportSessions
+    .map((s: { accuracy: number | null }) => s.accuracy)
+    .filter((a: number | null): a is number => a != null);
+
+  const envelope = {
+    exportedAt: new Date().toISOString(),
+    exportFormat: 'playtest-v1' as const,
+    summary: {
+      students: new Set(sessions.map((s: Session) => s.studentId)).size,
+      sessions: exportSessions.length,
+      attempts: exportAttempts.length,
+      avgAccuracy:
+        accuracies.length > 0
+          ? +(accuracies.reduce((a: number, b: number) => a + b, 0) / accuracies.length).toFixed(3)
+          : null,
+    },
+    sessions: exportSessions,
+    attempts: exportAttempts,
+    skillProgress: exportSkills,
+    misconceptionFlags: exportMisconceptions,
+  };
+
+  const json = JSON.stringify(envelope, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+
+  if (typeof document !== 'undefined' && typeof URL.createObjectURL === 'function') {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `questerix-playtest-${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return blob;
+}
+

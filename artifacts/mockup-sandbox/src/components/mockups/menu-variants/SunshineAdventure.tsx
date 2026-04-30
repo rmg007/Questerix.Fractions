@@ -1,5 +1,5 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 export function SunshineAdventure() {
   return (
@@ -48,61 +48,119 @@ export function SunshineAdventure() {
 
         {/* Clouds */}
         <div className="absolute top-8 right-8 text-6xl animate-cloud-drift opacity-90">☁️</div>
-        <div className="absolute top-24 left-1/2 text-5xl animate-cloud-drift opacity-80" style={{ animationDelay: '-3s' }}>☁️</div>
+        <div
+          className="absolute top-24 left-1/2 text-5xl animate-cloud-drift opacity-80"
+          style={{ animationDelay: '-3s' }}
+        >
+          ☁️
+        </div>
 
         {/* Fraction Character */}
         <div className="relative z-10 animate-float mt-12 drop-shadow-xl">
-          <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            width="160"
+            height="160"
+            viewBox="0 0 160 160"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             {/* Face circle */}
-            <circle cx="80" cy="80" r="76" fill="#FDE68A" stroke="#B45309" strokeWidth="8"/>
+            <circle cx="80" cy="80" r="76" fill="#FDE68A" stroke="#B45309" strokeWidth="8" />
             {/* Split line (fraction divider) */}
-            <path d="M80 4V156" stroke="#B45309" strokeWidth="8" strokeDasharray="8 8"/>
+            <path d="M80 4V156" stroke="#B45309" strokeWidth="8" strokeDasharray="8 8" />
 
             {/* Left eye — big cartoon eye */}
-            <ellipse cx="54" cy="66" rx="13" ry="14" fill="white" stroke="#B45309" strokeWidth="3"/>
-            <circle cx="57" cy="68" r="8" fill="#1E3A5F"/>
-            <circle cx="60" cy="65" r="3" fill="white"/>
+            <ellipse
+              cx="54"
+              cy="66"
+              rx="13"
+              ry="14"
+              fill="white"
+              stroke="#B45309"
+              strokeWidth="3"
+            />
+            <circle cx="57" cy="68" r="8" fill="#1E3A5F" />
+            <circle cx="60" cy="65" r="3" fill="white" />
 
             {/* Right eye — big cartoon eye */}
-            <ellipse cx="106" cy="66" rx="13" ry="14" fill="white" stroke="#B45309" strokeWidth="3"/>
-            <circle cx="109" cy="68" r="8" fill="#1E3A5F"/>
-            <circle cx="112" cy="65" r="3" fill="white"/>
+            <ellipse
+              cx="106"
+              cy="66"
+              rx="13"
+              ry="14"
+              fill="white"
+              stroke="#B45309"
+              strokeWidth="3"
+            />
+            <circle cx="109" cy="68" r="8" fill="#1E3A5F" />
+            <circle cx="112" cy="65" r="3" fill="white" />
 
             {/* Happy eyebrows */}
-            <path d="M38 50 Q54 40 68 48" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
-            <path d="M92 48 Q106 40 122 50" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
+            <path
+              d="M38 50 Q54 40 68 48"
+              stroke="#B45309"
+              strokeWidth="5"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <path
+              d="M92 48 Q106 40 122 50"
+              stroke="#B45309"
+              strokeWidth="5"
+              strokeLinecap="round"
+              fill="none"
+            />
 
             {/* Wide grin with teeth */}
-            <path d="M38 96 Q80 132 122 96" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none"/>
-            <path d="M46 100 Q80 130 114 100" fill="white" stroke="none"/>
-            <path d="M46 100 Q80 130 114 100 Q80 108 46 100Z" fill="white"/>
-            <line x1="63" y1="102" x2="63" y2="118" stroke="#B45309" strokeWidth="3"/>
-            <line x1="80" y1="104" x2="80" y2="121" stroke="#B45309" strokeWidth="3"/>
-            <line x1="97" y1="102" x2="97" y2="118" stroke="#B45309" strokeWidth="3"/>
+            <path
+              d="M38 96 Q80 132 122 96"
+              stroke="#B45309"
+              strokeWidth="5"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <path d="M46 100 Q80 130 114 100" fill="white" stroke="none" />
+            <path d="M46 100 Q80 130 114 100 Q80 108 46 100Z" fill="white" />
+            <line x1="63" y1="102" x2="63" y2="118" stroke="#B45309" strokeWidth="3" />
+            <line x1="80" y1="104" x2="80" y2="121" stroke="#B45309" strokeWidth="3" />
+            <line x1="97" y1="102" x2="97" y2="118" stroke="#B45309" strokeWidth="3" />
 
             {/* Rosy cheeks */}
-            <ellipse cx="35" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45"/>
-            <ellipse cx="125" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45"/>
+            <ellipse cx="35" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45" />
+            <ellipse cx="125" cy="88" rx="12" ry="8" fill="#FB7185" opacity="0.45" />
           </svg>
         </div>
       </div>
 
       {/* Grass Transition */}
       <div className="relative w-full h-12 shrink-0">
-        <svg preserveAspectRatio="none" viewBox="0 0 1440 320" className="w-full h-full absolute bottom-0">
-          <path fill="#4ADE80" fillOpacity="1" d="M0,128L48,138.7C96,149,192,171,288,186.7C384,203,480,213,576,192C672,171,768,117,864,106.7C960,96,1056,128,1152,144C1248,160,1344,171,1392,176L1440,181.3L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        <svg
+          preserveAspectRatio="none"
+          viewBox="0 0 1440 320"
+          className="w-full h-full absolute bottom-0"
+        >
+          <path
+            fill="#4ADE80"
+            fillOpacity="1"
+            d="M0,128L48,138.7C96,149,192,171,288,186.7C384,203,480,213,576,192C672,171,768,117,864,106.7C960,96,1056,128,1152,144C1248,160,1344,171,1392,176L1440,181.3L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
         </svg>
       </div>
 
       {/* Ground / UI Area */}
       <div className="flex-1 bg-[#4ADE80] flex flex-col items-center pt-2 pb-8 px-6">
-        
         {/* Titles */}
         <div className="text-center mb-8 drop-shadow-md">
-          <h1 className="text-5xl font-['Fredoka_One'] font-black text-white tracking-wide uppercase" style={{ textShadow: '0 4px 0 #15803D' }}>
+          <h1
+            className="text-5xl font-['Fredoka_One'] font-black text-white tracking-wide uppercase"
+            style={{ textShadow: '0 4px 0 #15803D' }}
+          >
             Questerix
           </h1>
-          <h2 className="text-4xl font-['Fredoka_One'] font-black text-[#FCD34D] uppercase mt-[-5px]" style={{ textShadow: '0 4px 0 #B45309' }}>
+          <h2
+            className="text-4xl font-['Fredoka_One'] font-black text-[#FCD34D] uppercase mt-[-5px]"
+            style={{ textShadow: '0 4px 0 #B45309' }}
+          >
             Fractions
           </h2>
           <p className="text-white font-bold text-lg mt-3 bg-[#15803D] px-4 py-1 rounded-full inline-block">
@@ -125,7 +183,6 @@ export function SunshineAdventure() {
             ⚙️ Settings
           </button>
         </div>
-        
       </div>
     </div>
   );

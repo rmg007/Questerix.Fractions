@@ -10,7 +10,7 @@ export const activityRepo = {
   async get(id: ActivityId): Promise<Activity | undefined> {
     try {
       return await db.activities.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -18,7 +18,7 @@ export const activityRepo = {
   async getAll(): Promise<Activity[]> {
     try {
       return await db.activities.toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -26,7 +26,7 @@ export const activityRepo = {
   async getByLevelGroup(levelGroup: '01-02' | '03-05' | '06-09'): Promise<Activity[]> {
     try {
       return await db.activities.where('levelGroup').equals(levelGroup).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -34,7 +34,7 @@ export const activityRepo = {
   async getByArchetype(archetype: ArchetypeId): Promise<Activity[]> {
     try {
       return await db.activities.where('archetype').equals(archetype).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -47,3 +47,4 @@ export const activityRepo = {
     await db.activities.clear();
   },
 };
+

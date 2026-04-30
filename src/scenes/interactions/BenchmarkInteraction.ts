@@ -4,12 +4,13 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { NAVY, OPTION_BG, OPTION_BORDER, TEXT_HEADING } from '../utils/levelTheme';
 
 interface BenchmarkPayload {
   targetFracId?: string;
+  fractionId?: string; // curriculum's canonical "frac:N/D" reference
   targetLabel?: string;
   numerator?: number;
   denominator?: number;
@@ -17,9 +18,11 @@ interface BenchmarkPayload {
 
 type Zone = 'zero' | 'half' | 'one';
 
+// Accepts "1/4", "frac:1/4". "frac:" is the curriculum reference prefix.
 function parseFrac(s?: string): { n: number; d: number } {
   if (!s) return { n: 1, d: 4 };
-  const [n, d] = s.split('/').map(Number);
+  const stripped = s.startsWith('frac:') ? s.slice(5) : s;
+  const [n, d] = stripped.split('/').map(Number);
   return { n: n ?? 1, d: d ?? 1 };
 }
 
@@ -32,11 +35,12 @@ export class BenchmarkInteraction implements Interaction {
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as BenchmarkPayload;
-    const label = payload.targetLabel ?? payload.targetFracId ?? '1/4';
+    const fracRef = payload.targetLabel ?? payload.targetFracId ?? payload.fractionId ?? '1/4';
     const frac =
       payload.numerator !== undefined
         ? { n: payload.numerator, d: payload.denominator ?? 1 }
-        : parseFrac(label);
+        : parseFrac(fracRef);
+    const label = fracRef.startsWith('frac:') ? fracRef.slice(5) : fracRef;
 
     // Target bar model at top
     this.bar = new BarModel(scene, {
@@ -47,7 +51,7 @@ export class BenchmarkInteraction implements Interaction {
       numerator: frac.n,
       denominator: frac.d,
       label,
-      fillColor: CLR.primary,
+      fillColor: NAVY,
     });
 
     // Number line 0..1 with ½ tick
@@ -62,7 +66,7 @@ export class BenchmarkInteraction implements Interaction {
     // Three drop zones
     const zones: Array<{ key: Zone; label: string; value: number }> = [
       { key: 'zero', label: 'Closer to 0', value: 0 },
-      { key: 'half', label: 'Closer to ½', value: 0.5 },
+      { key: 'half', label: 'Closer to 1/2', value: 0.5 },
       { key: 'one', label: 'Closer to 1', value: 1 },
     ];
     const zoneW = Math.min(160, (width - 80) / 3 - 12);
@@ -72,14 +76,14 @@ export class BenchmarkInteraction implements Interaction {
     zones.forEach(({ key, label: zl }, i) => {
       const bx = centerX - spread + i * spread;
       const bg = scene.add
-        .rectangle(bx, zoneY, zoneW, 64, CLR.neutral50)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(bx, zoneY, zoneW, 64, OPTION_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(5);
       scene.add
         .text(bx, zoneY, zl, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral900,
+          color: TEXT_HEADING,
           align: 'center',
           wordWrap: { width: zoneW - 12 },
         })

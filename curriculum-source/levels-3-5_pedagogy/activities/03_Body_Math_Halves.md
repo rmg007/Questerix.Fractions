@@ -1,6 +1,6 @@
 # ACTIVITY 03 — BODY MATH HALVES
 
-> *"Before the hand divides paper, the body learns the line of symmetry. Halving is a gesture before it is a concept."*
+> _"Before the hand divides paper, the body learns the line of symmetry. Halving is a gesture before it is a concept."_
 
 **Phase:** Discovery | **Week:** 3 | **Duration:** 5 days (35-45 min/day) | **Standard:** CCSS 1.G.A.3
 
@@ -11,11 +11,12 @@
 **Goal:** Introduce the concept of HALVING through whole-body movement, where the child's OWN body is the first "whole" they divide in half.
 
 **Why Body Before Paper:**
-Lakoff and Núñez (2000) in *Where Mathematics Comes From* argue that mathematical concepts are grounded in bodily experience. The concept of "half" begins with the child's experience of their own body's bilateral symmetry — left/right, top/bottom, front/back. Before a child can see a piece of paper as halvable, they must feel their own halvability.
+Lakoff and Núñez (2000) in _Where Mathematics Comes From_ argue that mathematical concepts are grounded in bodily experience. The concept of "half" begins with the child's experience of their own body's bilateral symmetry — left/right, top/bottom, front/back. Before a child can see a piece of paper as halvable, they must feel their own halvability.
 
 This week, Pia meets Halfie and Halvo for the first time. Children BECOME Halfie and Halvo through movement and mirror-play.
 
 **Learning Objectives:**
+
 - **D5:** Students can identify a "line of symmetry" in their own bodies and in simple shapes.
 - **D6:** Students can physically divide themselves and objects into two equal parts through folding, mirroring, and motor actions.
 - **D7:** Students can articulate that a "half" is ONE of TWO equal parts of a whole.
@@ -38,6 +39,7 @@ This week, Pia meets Halfie and Halvo for the first time. Children BECOME Halfie
 **Duration:** 40 minutes
 
 **Materials:**
+
 - Read-aloud: "Pia's First Halving" (in `narrative/STORY_SCRIPTS.md`)
 - Halfie/Halvo visual cards (showing their half-blue, half-yellow shirts)
 - Large floor space
@@ -45,7 +47,7 @@ This week, Pia meets Halfie and Halvo for the first time. Children BECOME Halfie
 
 **Story (10 min):**
 
-> *"Last week we met Crumb. This week, we meet two MORE of Pia's friends. Their names are Halfie and Halvo. They are TWINS. And they are VERY special because they are the HALVING HILLS TWINS. Listen to what happens when Pia meets them."*
+> _"Last week we met Crumb. This week, we meet two MORE of Pia's friends. Their names are Halfie and Halvo. They are TWINS. And they are VERY special because they are the HALVING HILLS TWINS. Listen to what happens when Pia meets them."_
 
 [Read "Pia's First Halving"]
 
@@ -57,15 +59,18 @@ The story ends BEFORE the answer. Children will discover the answer through this
 
 **1. Find Your Middle Line (5 min):**
 Children stand in a circle. Teacher:
-> *"Touch the top of your head. Now touch your belly button. Draw an invisible line from head to belly button to toes. This is your MIDDLE LINE. You are divided into two halves right here!"*
+
+> _"Touch the top of your head. Now touch your belly button. Draw an invisible line from head to belly button to toes. This is your MIDDLE LINE. You are divided into two halves right here!"_
 
 Children touch and trace their middle line.
 
 **2. Half-and-Half Bodies (10 min):**
 Teacher:
-> *"Show me your LEFT half! [children wave left hand]. Now show me your RIGHT half! [wave right]. You are two halves! You make a whole person!"*
+
+> _"Show me your LEFT half! [children wave left hand]. Now show me your RIGHT half! [wave right]. You are two halves! You make a whole person!"_
 
 Children play:
+
 - "Lift your left arm only!" (one half moves)
 - "Wiggle your right leg only!" (other half moves)
 - "Both halves dance!" (whole body)
@@ -74,10 +79,12 @@ Children play:
 Pairs stand face-to-face. They pretend to be Halfie and Halvo (mirror twins). One moves, the other mirrors exactly. If Halfie raises left arm, Halvo raises right arm (mirror).
 
 Debrief:
-> *"When you and your partner are PERFECT mirrors, you become HALVES of one shared whole. Halfie and Halvo do this all day."*
+
+> _"When you and your partner are PERFECT mirrors, you become HALVES of one shared whole. Halfie and Halvo do this all day."_
 
 **Closure (5 min):**
-> *"You have found your halves. Tomorrow we will fold and find halves in paper."*
+
+> _"You have found your halves. Tomorrow we will fold and find halves in paper."_
 
 ---
 
@@ -86,35 +93,40 @@ Debrief:
 **Duration:** 40 minutes
 
 **Materials:**
+
 - 5 paper shapes per child (circle, square, rectangle, heart, triangle) in color
 - Crayons
 - "Fold Journal" (stapled booklet of 5 half-pages)
 
 **Opening (5 min):**
 
-> *"Yesterday your BODY was a whole divided into halves. Today, we'll make PAPER into halves. We'll use a magic move called a FOLD."*
+> _"Yesterday your BODY was a whole divided into halves. Today, we'll make PAPER into halves. We'll use a magic move called a FOLD."_
 
 **Fold Demonstration (10 min):**
 
 Teacher takes a circle.
-> *"Watch. I'm going to fold this circle so that both halves MATCH. That's the magic rule: when you fold, the two halves must LAND on each other perfectly."*
+
+> _"Watch. I'm going to fold this circle so that both halves MATCH. That's the magic rule: when you fold, the two halves must LAND on each other perfectly."_
 
 Teacher folds slowly, explaining:
+
 - Line up the edges first.
 - Press down.
 - Open — see the FOLD LINE! That's where the halves meet.
 
-Teacher holds up: *"Two halves. They MATCH. Are they equal?"* Children (now Equal Detectives from Week 2) judge: YES.
+Teacher holds up: _"Two halves. They MATCH. Are they equal?"_ Children (now Equal Detectives from Week 2) judge: YES.
 
 **Fold Exploration (20 min):**
 
 Each child works with their 5 shapes. For each:
+
 1. Fold it so the two halves match.
 2. Open it and trace the FOLD LINE with a crayon.
 3. Color each half a different color (so they can see two halves side by side).
 4. Add to Fold Journal.
 
 Teacher circulates:
+
 - "Are your two halves equal?"
 - "Can you fold the square a DIFFERENT way and still get equal halves?" (Yes — vertical, horizontal, diagonal)
 - "Show me your fold line."
@@ -124,10 +136,12 @@ Teacher circulates:
 Some shapes can be folded into halves MANY ways (square, circle). Some have fewer ways (rectangle can fold two ways easily). Triangles are tricky (for equilateral, three ways; for scalene, not easily at all).
 
 Teacher gathers:
-> *"Halving is about FOLDING SO THE SIDES MATCH. Some shapes fold into halves many ways. Some fold only one way. Let's remember this."*
+
+> _"Halving is about FOLDING SO THE SIDES MATCH. Some shapes fold into halves many ways. Some fold only one way. Let's remember this."_
 
 **Closure:**
-> *"Tomorrow, Pia will fold her first pizza."*
+
+> _"Tomorrow, Pia will fold her first pizza."_
 
 ---
 
@@ -136,6 +150,7 @@ Teacher gathers:
 **Duration:** 45 minutes
 
 **Materials:**
+
 - 1 paper "pizza" (large circle) per child, with crayon toppings from Week 1 if available
 - Child-safe scissors (teacher-cut assistance as needed)
 - Pizza plates (paper plates)
@@ -145,15 +160,17 @@ Teacher gathers:
 **Opening Story (10 min):**
 
 Teacher projects or holds up the Halfie and Halvo figures.
-> *"Halfie and Halvo are VERY hungry. Pia has ONE pizza. You know what Pia needs to do now."*
+
+> _"Halfie and Halvo are VERY hungry. Pia has ONE pizza. You know what Pia needs to do now."_
 
 Children: "FOLD IT! HALVE IT!"
 
-> *"That's right! Today each of you is Pia. Each of you has ONE pizza and TWO friends to feed. Let's do it."*
+> _"That's right! Today each of you is Pia. Each of you has ONE pizza and TWO friends to feed. Let's do it."_
 
 **The Halving Ceremony (25 min):**
 
 Each child:
+
 1. Receives one paper pizza (from Week 1 or new).
 2. Folds it carefully, edges matching.
 3. Presses the fold.
@@ -163,22 +180,26 @@ Each child:
 7. Hold up the two plates.
 
 Teacher circulates:
-> *"Are both plates equal?"* (Equal-Detective skill reactivated from Week 2.)
-> *"How do you know?"*
-> *"If Halfie got this piece and Halvo got this piece, would they BOTH be happy?"*
+
+> _"Are both plates equal?"_ (Equal-Detective skill reactivated from Week 2.)
+> _"How do you know?"_
+> _"If Halfie got this piece and Halvo got this piece, would they BOTH be happy?"_
 
 If a child's halves are unequal, teacher gently:
-> *"Let's look again. Are Halfie and Halvo going to be happy? What could we do to make it more equal?"*
+
+> _"Let's look again. Are Halfie and Halvo going to be happy? What could we do to make it more equal?"_
 
 Children re-fold, re-cut if needed. Mistakes are welcomed.
 
 **Gallery Walk (10 min):**
 
 Children place their two plates on the "Halving Hills" display area. Everyone walks the gallery. Queen Equallia (teacher voice or image) "arrives" and validates each:
-> *"I see equal halves! I see Halfie and Halvo will both be happy. This child has HALVED correctly."*
+
+> _"I see equal halves! I see Halfie and Halvo will both be happy. This child has HALVED correctly."_
 
 **Closure:**
-> *"You have halved. You have done what Pia did. Tomorrow, we halve many other things."*
+
+> _"You have halved. You have done what Pia did. Tomorrow, we halve many other things."_
 
 ---
 
@@ -187,6 +208,7 @@ Children place their two plates on the "Halving Hills" display area. Everyone wa
 **Duration:** 45 minutes
 
 **Materials:**
+
 - Stations set up around the room:
   - **Station 1:** Paper rectangles ("halve the sandwich")
   - **Station 2:** Modeling clay/play-dough ("halve the dough ball")
@@ -196,11 +218,12 @@ Children place their two plates on the "Halving Hills" display area. Everyone wa
 
 **Opening (5 min):**
 
-> *"Yesterday we halved pizza. But remember — a WHOLE can be MANY things. Today we'll halve MANY kinds of wholes."*
+> _"Yesterday we halved pizza. But remember — a WHOLE can be MANY things. Today we'll halve MANY kinds of wholes."_
 
 **Station Rotation (30 min):**
 
 Children rotate through 5 stations in small groups (5-6 min per station). At each station, they:
+
 1. Find the whole.
 2. Make equal halves.
 3. Check with the station "Equal Detector" (an older student helper, teacher assistant, or self-check mirror).
@@ -224,17 +247,20 @@ Given printed shapes on paper, draw the fold line that would make halves. No fol
 **Gathering (10 min):**
 
 Children return to circle with their Station Passports.
-> *"What did you halve today?"*
-Children: "A rectangle! Dough! A ribbon! Blocks! Shapes!"
-> *"Wonderful. You are becoming MASTERS of halving. What did you notice?"*
+
+> _"What did you halve today?"_
+> Children: "A rectangle! Dough! A ribbon! Blocks! Shapes!"
+> _"Wonderful. You are becoming MASTERS of halving. What did you notice?"_
 
 Desired discoveries:
+
 - "Halving works on lots of things."
 - "Blocks in sets of odd numbers are hard to halve evenly."
 - "Some shapes can be halved many ways."
 
 **Closure:**
-> *"Tomorrow is our assessment and celebration. You are ready."*
+
+> _"Tomorrow is our assessment and celebration. You are ready."_
 
 ---
 
@@ -243,6 +269,7 @@ Desired discoveries:
 **Duration:** 45 minutes
 
 **Materials:**
+
 - Halving Assessment Sheet (provided, `assessment/03_Halving_Assessment.pdf`)
 - "Halver Certificate" (printable, `materials/03_Halver_Certificate.pdf`)
 - Materials for the Halving Ceremony (a big paper "kingdom pie" prepared in advance)
@@ -250,7 +277,7 @@ Desired discoveries:
 
 **Opening (5 min):**
 
-> *"Today is our HALVING CEREMONY. Queen Equallia will be watching."*
+> _"Today is our HALVING CEREMONY. Queen Equallia will be watching."_
 
 **Assessment (25 min):**
 
@@ -265,6 +292,7 @@ Each child receives an Assessment Sheet with the following tasks:
 **Part 4: Explain.** 1-on-1 conversation: "What does 'half' mean?" Child explains.
 
 **Rubric:**
+
 - **Meeting:** Successfully folds and cuts equal halves; identifies 5+ of 6 correctly; explains "half is two equal parts of a whole" or similar.
 - **Developing:** Folds/cuts with some inequality; identifies 3-4 of 6; emerging explanation.
 - **Beginning:** Needs support with motor task; identifies fewer than 3; limited explanation — plan for small-group re-teach.
@@ -272,41 +300,48 @@ Each child receives an Assessment Sheet with the following tasks:
 **The Halving Ceremony (15 min):**
 
 Teacher brings out a large paper "Kingdom Pie" (approx 18" circle, decorated).
-> *"Class, this is the Halving Kingdom's ceremonial pie. Each week, a chef halves this pie to celebrate. Today, ONE of you will halve it in front of Queen Equallia."*
+
+> _"Class, this is the Halving Kingdom's ceremonial pie. Each week, a chef halves this pie to celebrate. Today, ONE of you will halve it in front of Queen Equallia."_
 
 Teacher picks a child (volunteer or random). Child folds the pie, presses the fold, traces the line, and (with teacher help) cuts.
 
 Class chants: "HALVES! HALVES! HALVES!"
 
 Teacher as Queen Equallia:
-> *"I pour the truth-water... [pantomimes]. The water glows GOLD. These are TRUE halves. This child is a HALVER."*
+
+> _"I pour the truth-water... [pantomimes]. The water glows GOLD. These are TRUE halves. This child is a HALVER."_
 
 All children receive Halver Certificates. Class cheers.
 
 **Closure:**
-> *"You are HALVERS. Next week, Pia has a BIG adventure — the Halving Adventure. See you there."*
+
+> _"You are HALVERS. Next week, Pia has a BIG adventure — the Halving Adventure. See you there."_
 
 ---
 
 ## DIFFERENTIATION
 
 ### For English Language Learners:
+
 - Teach vocabulary via gesture: "half" = hand-chop motion; "whole" = hand-circle motion
 - Bilingual cards: half (mitad, 半, نصف, moitié, etc.)
 - Label all classroom objects with "whole" / "half" stickers during the week
 
 ### For Students with Motor Challenges:
+
 - Pre-creased paper (fold lines pre-scored)
 - Larger shapes (14" circles instead of 12")
 - Teacher/aide cuts along child's drawn fold line
 - Use magnets or Velcro pieces that physically snap together for "equal check"
 
 ### For Advanced Students:
+
 - Challenge: "Can you halve this shape 4 different ways?" (square)
 - Challenge: "Can you halve this irregular shape?" (asymmetric blob — harder!)
 - Journal: "How would you explain halving to a kindergartener?"
 
 ### For Students Struggling:
+
 - Continue into a 2nd week if needed
 - Small-group sessions with teacher
 - Use symmetrical shapes only (no irregular ones)
@@ -317,25 +352,26 @@ All children receive Halver Certificates. Class cheers.
 ## COMMON MISCONCEPTIONS THIS WEEK
 
 **M1: "Any two pieces are halves."**
-*Mitigation:* Reactivate Equal Detective skill from Week 2; emphasize "EQUAL halves."
+_Mitigation:_ Reactivate Equal Detective skill from Week 2; emphasize "EQUAL halves."
 
 **M2: "Half only means 'cut in the middle.'"**
-*Mitigation:* Day 4's odd-number blocks shows that "half" sometimes can't happen with simple cutting. Discuss.
+_Mitigation:_ Day 4's odd-number blocks shows that "half" sometimes can't happen with simple cutting. Discuss.
 
 **M3: "Half is about shape of the piece."**
-*Mitigation:* Different shapes can all be halved; halves of different shapes can all be halves.
+_Mitigation:_ Different shapes can all be halved; halves of different shapes can all be halves.
 
 **M4: "Half means small."** (Vocabulary confusion with "halfway")
-*Mitigation:* Use "half" consistently in the context of division; avoid "halfway there" language this week.
+_Mitigation:_ Use "half" consistently in the context of division; avoid "halfway there" language this week.
 
 **M5: "Once I cut, I can't undo."**
-*Mitigation:* Demonstrate with the fold-line-only method first (no cutting). Show that HALVING can be a concept without destroying the whole.
+_Mitigation:_ Demonstrate with the fold-line-only method first (no cutting). Show that HALVING can be a concept without destroying the whole.
 
 ---
 
 ## CONNECTION TO NARRATIVE
 
 By end of Week 3:
+
 - Children have MET Halfie and Halvo.
 - Children have BEEN Halfie and Halvo (mirror play).
 - Children have HELPED Pia with her first sharing problem.
@@ -348,6 +384,7 @@ They are no longer audience. They are participants in the kingdom.
 ## TEACHER PREP CHECKLIST
 
 **One Week Before:**
+
 - [ ] Print paper shapes for Days 2, 3 (circles, rectangles, squares, hearts, triangles)
 - [ ] Print Fold Journals (stapled booklets)
 - [ ] Prepare 5 stations for Day 4 (materials for each)
@@ -375,6 +412,7 @@ Week 4 (The Halving Adventure): A full-day kingdom journey applying halving skil
 Week 5 (The Fourths Festival): Introduce fourths as "half of a half."
 
 By now, children should have:
+
 - Firm understanding of WHOLE (Week 1)
 - Sharp EQUAL-detection (Week 2)
 - Confident HALVING motion and concept (Week 3)
@@ -394,4 +432,4 @@ This week combines four research-based moves:
 
 ---
 
-*End of Activity 03. Next: Activity 04 — The Halving Adventure.*
+_End of Activity 03. Next: Activity 04 — The Halving Adventure._

@@ -16,7 +16,7 @@ const allSessions: SessionRecord[] = [];
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 async function sleep(ms: number): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Clear IndexedDB between sessions to ensure independence. */
@@ -55,7 +55,9 @@ async function selectLevel(page: Page, level: number): Promise<boolean> {
     const card = page.locator(`[data-testid="level-card-L${level}"]`);
     await expect(card).toBeVisible({ timeout: 3000 });
     await card.click();
-    await expect(page.locator('[data-testid="level01-scene"], [data-testid^="level"]')).toBeVisible({ timeout: 6000 });
+    await expect(page.locator('[data-testid="level01-scene"], [data-testid^="level"]')).toBeVisible(
+      { timeout: 6000 }
+    );
     return true;
   } catch {
     return false;
@@ -80,7 +82,7 @@ async function simulateAttempt(
   persona: Persona,
   level: number,
   attemptIndex: number,
-  sessionId: string,
+  sessionId: string
 ): Promise<AttemptRecord> {
   const thinkMs = persona.responseTimeMs();
 
@@ -103,7 +105,9 @@ async function simulateAttempt(
         hintUsed = true;
         await sleep(800);
       }
-    } catch { /* hint not available; continue */ }
+    } catch {
+      /* hint not available; continue */
+    }
   }
 
   // Decide correct vs wrong based on persona accuracy
@@ -122,10 +126,7 @@ async function simulateAttempt(
       if (box) {
         const offsetX = (Math.random() - 0.5) * box.width * 2.5;
         const offsetY = (Math.random() - 0.5) * box.height * 2.5;
-        await page.mouse.click(
-          box.x + box.width / 2 + offsetX,
-          box.y + box.height / 2 + offsetY,
-        );
+        await page.mouse.click(box.x + box.width / 2 + offsetX, box.y + box.height / 2 + offsetY);
       } else {
         await partitionTarget.click(); // fallback
       }
@@ -166,7 +167,7 @@ async function simulateAttempt(
 async function runSession(
   browser: Browser,
   persona: Persona,
-  sessionIndex: number,
+  sessionIndex: number
 ): Promise<SessionRecord> {
   const sessionId = `${persona.name}-${sessionIndex}-${Date.now()}`;
   const context: BrowserContext = await browser.newContext({
@@ -175,10 +176,10 @@ async function runSession(
   const page: Page = await context.newPage();
 
   const consoleErrors: string[] = [];
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     if (msg.type() === 'error') consoleErrors.push(msg.text());
   });
-  page.on('pageerror', err => {
+  page.on('pageerror', (err) => {
     consoleErrors.push(`[uncaught] ${err.message}`);
   });
 
@@ -242,7 +243,9 @@ async function runSession(
 
     // Session complete if we did all attempts OR saw the completion screen
     const completionScreen = page.locator('[data-testid="completion-screen"]');
-    const completionVisible = await completionScreen.isVisible({ timeout: 3000 }).catch(() => false);
+    const completionVisible = await completionScreen
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
     if (completionVisible || sessionRecord.attempts.length >= ATTEMPTS_PER_SESSION) {
       sessionRecord.completed = true;
@@ -256,21 +259,26 @@ async function runSession(
 
     // Optionally advance level if router offers it
     try {
-      const nextLevelBtn = page.locator('[data-testid="next-level-btn"], [data-testid="advance-btn"]');
+      const nextLevelBtn = page.locator(
+        '[data-testid="next-level-btn"], [data-testid="advance-btn"]'
+      );
       const canAdvance = await nextLevelBtn.isVisible({ timeout: 1500 });
       if (canAdvance && currentLevel < 9) {
         currentLevel++;
         await nextLevelBtn.click();
       }
-    } catch { /* no advance offered */ }
+    } catch {
+      /* no advance offered */
+    }
     sessionRecord.finalLevel = currentLevel;
 
     // Capture performance metrics
     try {
       const metrics = await page.metrics();
-      sessionRecord.taskDurationMs = (metrics['TaskDuration'] as number ?? null);
-    } catch { /* metrics not available */ }
-
+      sessionRecord.taskDurationMs = (metrics['TaskDuration'] as number) ?? null;
+    } catch {
+      /* metrics not available */
+    }
   } catch (err: unknown) {
     sessionRecord.crashed = true;
     consoleErrors.push(`[crash] ${err instanceof Error ? err.message : String(err)}`);
@@ -287,34 +295,42 @@ async function runSession(
 test.describe('Synthetic Playtest Harness', () => {
   test.setTimeout(TOTAL_TIMEOUT_MS);
 
-  test('runs all persona sessions and validates completion/crash/latency criteria', async ({ browser }) => {
+  test('runs all persona sessions and validates completion/crash/latency criteria', async ({
+    browser,
+  }) => {
     const runStart = Date.now();
 
     for (const persona of ALL_PERSONAS) {
       for (let i = 0; i < SESSIONS_PER_PERSONA; i++) {
         // Abort entire run if wall-clock budget exhausted
         if (Date.now() - runStart > TOTAL_TIMEOUT_MS - SESSION_TIMEOUT_MS) {
-          console.warn(`[playtest] Time budget nearly exhausted; stopping at session ${allSessions.length}`);
+          console.warn(
+            `[playtest] Time budget nearly exhausted; stopping at session ${allSessions.length}`
+          );
           break;
         }
 
         const record = await Promise.race([
           runSession(browser, persona, i),
           // Session hard timeout — kill and continue
-          new Promise<SessionRecord>(resolve =>
-            setTimeout(() => resolve({
-              sessionId: `${persona.name}-${i}-timeout`,
-              personaName: persona.name,
-              startLevel: 1,
-              finalLevel: 1,
-              attempts: [],
-              completed: false,
-              abandoned: false,
-              crashed: true,
-              consoleErrors: ['[harness] session timed out after 90s'],
-              totalDurationMs: SESSION_TIMEOUT_MS,
-              taskDurationMs: null,
-            }), SESSION_TIMEOUT_MS)
+          new Promise<SessionRecord>((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  sessionId: `${persona.name}-${i}-timeout`,
+                  personaName: persona.name,
+                  startLevel: 1,
+                  finalLevel: 1,
+                  attempts: [],
+                  completed: false,
+                  abandoned: false,
+                  crashed: true,
+                  consoleErrors: ['[harness] session timed out after 90s'],
+                  totalDurationMs: SESSION_TIMEOUT_MS,
+                  taskDurationMs: null,
+                }),
+              SESSION_TIMEOUT_MS
+            )
           ),
         ]);
 
@@ -336,33 +352,35 @@ test.describe('Synthetic Playtest Harness', () => {
 
     // Zero uncaught JS errors across all sessions (per harness requirements)
     const sessionErrors = allSessions
-      .filter(s => s.consoleErrors.some(e => e.startsWith('[uncaught]')))
-      .map(s => `${s.sessionId}: ${s.consoleErrors.filter(e => e.startsWith('[uncaught]')).join('; ')}`);
+      .filter((s) => s.consoleErrors.some((e) => e.startsWith('[uncaught]')))
+      .map(
+        (s) =>
+          `${s.sessionId}: ${s.consoleErrors.filter((e) => e.startsWith('[uncaught]')).join('; ')}`
+      );
 
-    expect(
-      sessionErrors,
-      `Uncaught JS errors detected:\n${sessionErrors.join('\n')}`
-    ).toHaveLength(0);
+    expect(sessionErrors, `Uncaught JS errors detected:\n${sessionErrors.join('\n')}`).toHaveLength(
+      0
+    );
 
     // Zero unhandled rejections
-    const rejectionErrors = allSessions
-      .filter(s => s.consoleErrors.some(e => e.includes('UnhandledPromiseRejection')))
-      .length;
+    const rejectionErrors = allSessions.filter((s) =>
+      s.consoleErrors.some((e) => e.includes('UnhandledPromiseRejection'))
+    ).length;
     expect(rejectionErrors, 'Unhandled promise rejections detected').toBe(0);
 
     // Every non-abandoned session must have seen feedback-overlay at least once
     const noFeedbackSessions = allSessions.filter(
-      s => !s.abandoned && !s.crashed && s.attempts.filter(a => a.feedbackShownMs !== null).length === 0
+      (s) =>
+        !s.abandoned &&
+        !s.crashed &&
+        s.attempts.filter((a) => a.feedbackShownMs !== null).length === 0
     );
     expect(
       noFeedbackSessions,
-      `Sessions that never reached feedback-overlay: ${noFeedbackSessions.map(s => s.sessionId).join(', ')}`
+      `Sessions that never reached feedback-overlay: ${noFeedbackSessions.map((s) => s.sessionId).join(', ')}`
     ).toHaveLength(0);
 
     // Overall pass/fail per aggregated criteria
-    expect(
-      report.passed,
-      `Playtest FAILED:\n${report.failReasons.join('\n')}`
-    ).toBe(true);
+    expect(report.passed, `Playtest FAILED:\n${report.failReasons.join('\n')}`).toBe(true);
   });
 });
