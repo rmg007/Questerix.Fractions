@@ -10,6 +10,7 @@
     "build:curriculum": "node scripts/build-curriculum.mjs",
     "prebuild": "npm run build:curriculum",
     "build": "tsc && vite build",
+    "gen:workflows": "node scripts/workflows/generator.mjs",
     "preview": "vite preview",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
