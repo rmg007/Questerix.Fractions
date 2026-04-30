@@ -35,6 +35,7 @@ import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
 import { get as getCopy } from '../lib/i18n/catalog';
+import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
@@ -862,15 +863,16 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   /**
-   * Quest-voiced hint for the partition archetype at any tier.
-   * Level 1 is always halves (denominator 2), so this always returns
-   * the split-in-two line from the catalog.
+   * Quest-voiced hint for the partition archetype at the given tier.
+   * Level 1 is always halves (denominator 2), so the split2 case resolves to
+   * a tier-specific key (verbal / visual / worked) for progressive escalation.
+   * Other denominators fall back to their generic keys (no tier variation yet).
    */
-  private questHintText(): string {
+  private questHintText(tier: import('@/types').HintTier): string {
     const d = this.payloadDenominator();
     switch (d) {
       case 2:
-        return getCopy('quest.hint.split2');
+        return getCopy(level01HintKeys[tier]);
       case 3:
         return getCopy('quest.hint.split3');
       case 4:
@@ -993,10 +995,10 @@ export class Level01Scene extends Phaser.Scene {
   private async showHintForTierAndRecord(tier: import('@/types').HintTier): Promise<void> {
     this.hintText.setVisible(true);
 
-    // Quest-voiced hint per ux-elevation §9 T28. Level 1 is always halves
-    // (denominator 2), so every tier shows the same split-in-two line from
-    // the catalog. Visual escalation (overlay, animation) still happens.
-    const hintMessage = this.questHintText();
+    // Quest-voiced hint per ux-elevation §9 T28. Each tier shows a distinct
+    // line from the catalog (split2.verbal / .visual / .worked) so language
+    // escalates alongside the visual escalation already in place.
+    const hintMessage = this.questHintText(tier);
     this.hintText.setText(hintMessage);
 
     switch (tier) {

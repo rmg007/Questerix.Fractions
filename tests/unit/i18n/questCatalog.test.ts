@@ -23,11 +23,12 @@ describe('Quest catalog gate', () => {
     expect(report.ok).toBe(true);
   });
 
-  it('passes persona check on every persona-quest entry (non-proper-noun)', () => {
+  it('passes persona check on every persona-quest entry (non-proper-noun, non-skipCopyLint)', () => {
     const failures: string[] = [];
     for (const [key, entry] of allEntries()) {
       if (entry.tone !== 'persona-quest') continue;
       if (entry.properNoun) continue;
+      if (entry.skipCopyLint) continue; // explicitly exempted entries (see catalog.ts CatalogEntry.skipCopyLint)
       const v = validateQuestLine(entry.text);
       if (v.length > 0) {
         failures.push(`${key} ("${entry.text}"): ${v.map((x) => x.reason).join('; ')}`);

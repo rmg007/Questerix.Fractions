@@ -19,6 +19,7 @@
  */
 
 import { registerCatalog, type Catalog } from '../catalog';
+import { level01HintCopy, level01HintKeys } from '../../mascotCopy';
 
 const QUEST_COPY: Catalog = {
   // ── First meeting (greeting) ───────────────────────────────────────────
@@ -112,6 +113,40 @@ const QUEST_COPY: Catalog = {
     text: 'Hmm. I can split this in two.',
     tone: 'persona-quest',
   },
+
+  // ── Hint (split2 / halves — verbal / visual / worked-example) ──────────
+  // Three tiers for Level 1 (halves context) mirror src/components/HintLadder.ts.
+  // Text values are imported from src/lib/mascotCopy.ts (level01HintCopy) so
+  // the catalog always stays in sync with the display copy without duplication.
+  //
+  // skipCopyLint rationale: the Tier 1 string contains "moving" and "little"
+  // (each 2 syllables), pushing FK to ~2.5. Tier 2 contains "about" and
+  // "halfway" (each 2 syllables), FK ~2.9. Tier 3 opens with "The answer is"
+  // (forbidden hint-giveaway pattern) and also exceeds FK. All three strings
+  // are required verbatim by the product spec (task #49); the exemption is
+  // intentional and documented in src/lib/mascotCopy.ts.
+  [level01HintKeys.verbal]: {
+    text: level01HintCopy.verbal,
+    notes:
+      'Tier 1 hint for halves (split2). Verbal nudge only. skipCopyLint: FK ~2.5 due to "moving"/"little"; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+  [level01HintKeys.visual_overlay]: {
+    text: level01HintCopy.visual_overlay,
+    notes:
+      'Tier 2 hint for halves (split2). Guides toward midpoint. skipCopyLint: FK ~2.9 due to "about"/"halfway"; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+  [level01HintKeys.worked_example]: {
+    text: level01HintCopy.worked_example,
+    notes:
+      'Tier 3 hint for halves (split2). Worked-example pointer. skipCopyLint: contains "The answer is" (persona gate) and exceeds FK; required verbatim by task #49.',
+    tone: 'persona-quest',
+    skipCopyLint: true,
+  },
+
   'quest.hint.split3': {
     text: 'Hmm. I can split this in three.',
     tone: 'persona-quest',

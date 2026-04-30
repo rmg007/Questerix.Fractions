@@ -34,6 +34,20 @@ export interface CatalogEntry {
   tone: Tone;
   /** Mark as a proper noun (region/level name); subject to alt-gates. */
   properNoun?: boolean;
+  /**
+   * Exempt this entry from both FK-grade and persona-pattern linting.
+   *
+   * Use ONLY when the product spec explicitly requires copy that cannot
+   * satisfy both the K-2 reading-grade cap and the voice-persona rules at
+   * the same time (e.g. a Tier 3 worked-example that must say "The answer
+   * is right around here" despite the hint-giveaway pattern check).
+   *
+   * The entry MUST carry an explanatory `notes` field documenting why the
+   * exemption is intentional. Entries without notes will still be skipped
+   * by the linter, but reviewers should treat the absence of notes as a
+   * flag for follow-up.
+   */
+  skipCopyLint?: boolean;
 }
 
 /** Keys are stable identifiers — never change once shipped. */
@@ -99,11 +113,13 @@ export function allEntries(): ReadonlyArray<readonly [CatalogKey, CatalogEntry]>
  * never literal `{...}` syntax that would inflate word/syllable counts.
  */
 export function toLintInputs(): LintInput[] {
-  return allEntries().map(([key, entry]) => {
-    const input: LintInput = { id: key, text: expandForLint(entry.text) };
-    if (entry.properNoun) input.properNoun = true;
-    return input;
-  });
+  return allEntries()
+    .filter(([, entry]) => !entry.skipCopyLint)
+    .map(([key, entry]) => {
+      const input: LintInput = { id: key, text: expandForLint(entry.text) };
+      if (entry.properNoun) input.properNoun = true;
+      return input;
+    });
 }
 
 /** Test-only escape hatch to clear the registry between tests. */

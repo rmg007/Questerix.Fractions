@@ -39,10 +39,14 @@ import { get as getCopy } from '@/lib/i18n/catalog';
 import { resolveQuestName } from '@/lib/persona/quest';
 // eslint-disable-next-line import/order
 import { Level01Scene } from '@/scenes/Level01Scene';
+// eslint-disable-next-line import/order
+import { level01HintCopy, level01HintKeys } from '@/lib/mascotCopy';
+// eslint-disable-next-line import/order
+import type { HintTier } from '@/types/hint';
 
 type AnyScene = Level01Scene & {
   questFeedbackText: (kind: 'correct' | 'incorrect' | 'close') => string | null;
-  questHintText: () => string;
+  questHintText: (tier: HintTier) => string;
   payloadDenominator: () => number;
   studentDisplayName: string | null;
   currentArchetype: string;
@@ -129,17 +133,27 @@ describe('Level01Scene Quest wiring (T28 — introductory level)', () => {
   });
 
   describe('questHintText', () => {
-    it('returns the split-in-two Quest line verbatim', () => {
-      expect(scene.questHintText()).toBe('Hmm. I can split this in two.');
+    it('returns a distinct line for each hint tier', () => {
+      const verbal = scene.questHintText('verbal');
+      const visual = scene.questHintText('visual_overlay');
+      const worked = scene.questHintText('worked_example');
+      expect(verbal).not.toBe(visual);
+      expect(visual).not.toBe(worked);
+      expect(verbal).not.toBe(worked);
     });
 
-    it('matches the catalog entry directly', () => {
-      expect(scene.questHintText()).toBe(getCopy('quest.hint.split2'));
+    it('matches the catalog entry for each tier directly', () => {
+      expect(scene.questHintText('verbal')).toBe(getCopy(level01HintKeys.verbal));
+      expect(scene.questHintText('visual_overlay')).toBe(getCopy(level01HintKeys.visual_overlay));
+      expect(scene.questHintText('worked_example')).toBe(getCopy(level01HintKeys.worked_example));
     });
 
-    it('returns the same line for all three hint tiers (verbal / visual / worked)', () => {
-      const line = scene.questHintText();
-      expect(line).toBe('Hmm. I can split this in two.');
+    it('returns the exact strings required by the product spec', () => {
+      expect(scene.questHintText('verbal')).toBe('Try moving the line a little.');
+      expect(scene.questHintText('visual_overlay')).toBe('Think about where halfway is.');
+      expect(scene.questHintText('worked_example')).toBe(
+        'The answer is right around here — give it a try!',
+      );
     });
   });
 
