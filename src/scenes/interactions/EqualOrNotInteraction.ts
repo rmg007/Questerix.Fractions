@@ -18,9 +18,16 @@ import {
 export class EqualOrNotInteraction implements Interaction {
   readonly archetype = 'equal_or_not' as const;
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
+  private _scene!: Phaser.Scene;
+  private _cx = 0;
+  private _cy = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, centerX, centerY, width, onCommit } = ctx;
+    this._scene = scene;
+    this._cx = centerX;
+    this._cy = centerY;
     const btnW = Math.min(240, width / 3);
     const btnH = 88;
     const gap = 24;
@@ -79,6 +86,28 @@ export class EqualOrNotInteraction implements Interaction {
   unmount(): void {
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
     import('../utils/TestHooks').then(({ TestHooks }) => TestHooks.unmountAll());
+  }
+
+  showVisualOverlay(): void {
+    // Draw a faint amber crosshair at the centre of the shape so students can
+    // visually measure whether the partitioned sections are equal in size.
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.45);
+    overlay.lineStyle(2, 0xfbbf24, 1);
+    const shapeX = this._cx - 170;
+    const shapeY = this._cy - 130;
+    overlay.lineBetween(shapeX + 170, shapeY, shapeX + 170, shapeY + 260);
+    overlay.lineBetween(shapeX, shapeY + 130, shapeX + 340, shapeY + 130);
+
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }

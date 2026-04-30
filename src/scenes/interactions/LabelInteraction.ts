@@ -31,6 +31,11 @@ export class LabelInteraction implements Interaction {
   readonly archetype = 'label' as const;
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private placements: Record<string, string> = {};
+  private _scene!: Phaser.Scene;
+  private _cx = 0;
+  private _cy = 0;
+  private _regionCount = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -40,6 +45,11 @@ export class LabelInteraction implements Interaction {
       { id: 'r0', alt: 'left region' },
       { id: 'r1', alt: 'right region' },
     ];
+
+    this._scene = scene;
+    this._cx = centerX;
+    this._cy = centerY;
+    this._regionCount = regions.length;
 
     // Draw region boxes
     const regionW = 140;
@@ -150,6 +160,28 @@ export class LabelInteraction implements Interaction {
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
     this.placements = {};
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
     TestHooks.unmountAll();
+  }
+
+  showVisualOverlay(): void {
+    // Highlight each region box with an amber outline to show where labels belong.
+    const regionW = 140;
+    const regionH = 140;
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.7);
+    overlay.lineStyle(4, 0xfbbf24, 1);
+    for (let i = 0; i < this._regionCount; i++) {
+      const rx = this._cx - (this._regionCount - 1) * 80 + i * 160;
+      overlay.strokeRect(rx - regionW / 2, this._cy - 60 - regionH / 2, regionW, regionH);
+    }
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }

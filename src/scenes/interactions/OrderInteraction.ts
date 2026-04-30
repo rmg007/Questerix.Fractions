@@ -40,6 +40,12 @@ export class OrderInteraction implements Interaction {
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private bars: BarModel[] = [];
   private sequence: (string | null)[] = [];
+  private _scene!: Phaser.Scene;
+  private _n = 0;
+  private _startX = 0;
+  private _cardW = 0;
+  private _slotY = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
@@ -61,6 +67,12 @@ export class OrderInteraction implements Interaction {
     const gap = 12;
     const totalW = n * (cardW + gap) - gap;
     const startX = centerX - totalW / 2;
+
+    this._scene = scene;
+    this._n = n;
+    this._startX = startX;
+    this._cardW = cardW;
+    this._slotY = centerY + 80;
 
     // Slot outlines (bottom lane)
     const slotY = centerY + 80;
@@ -171,5 +183,27 @@ export class OrderInteraction implements Interaction {
     this.bars.forEach((b) => b.destroy());
     this.bars = [];
     this.sequence = [];
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    // Highlight each slot with an amber outline so students see the drop zones.
+    const cardH = 44;
+    const gap = 12;
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.7);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    for (let i = 0; i < this._n; i++) {
+      const sx = this._startX + i * (this._cardW + gap) + this._cardW / 2;
+      overlay.strokeRect(sx - this._cardW / 2, this._slotY - (cardH + 8) / 2, this._cardW, cardH + 8);
+    }
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }

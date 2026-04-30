@@ -32,6 +32,7 @@ export class PartitionInteraction implements Interaction {
   private shapeCenterX!: number;
   private shapeCenterY!: number;
   private shapeType!: 'rectangle' | 'circle';
+  private targetPartitions = 2;
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
@@ -56,6 +57,7 @@ export class PartitionInteraction implements Interaction {
     this.shapeCenterX = centerX;
     this.shapeCenterY = centerY;
     this.shapeType = shapeType;
+    this.targetPartitions = payload.targetPartitions ?? 2;
 
     this.drawShape(shapeType, centerX, centerY);
     this.updatePartitionLine(this.handlePos, centerY);
@@ -129,6 +131,48 @@ export class PartitionInteraction implements Interaction {
     TestHooks.unmount('partition-target');
   }
 
+  /**
+   * Draws dashed cut-line hints at the correct division positions.
+   * Satisfies the Interaction.showVisualOverlay() interface contract.
+   * Uses the targetPartitions stored during mount.
+   */
+  showVisualOverlay(): void {
+    this.cutLineHint?.destroy();
+    this.cutLineHint = this.scene.add.graphics().setDepth(7).setAlpha(0.85);
+
+    const CUT_COLOR = 0xffaa00;
+    const LINE_WIDTH = 3;
+    const DASH_LEN = 12;
+    const GAP_LEN = 7;
+
+    this.cutLineHint.lineStyle(LINE_WIDTH, CUT_COLOR, 1);
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+    const n = this.targetPartitions;
+
+    if (this.shapeType === 'rectangle') {
+      const left = cx - SHAPE_W / 2;
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      for (let i = 1; i < n; i++) {
+        const x = left + (SHAPE_W * i) / n;
+        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
+      }
+    } else {
+      const radius = SHAPE_W / 2;
+      const angleStep = (2 * Math.PI) / n;
+      for (let i = 0; i < n; i++) {
+        const angle = angleStep * i;
+        const ex = cx + radius * Math.cos(angle);
+        const ey = cy + radius * Math.sin(angle);
+        this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
+      }
+    }
+
+    log.scene('cut_line_hint_shown', { shapeType: this.shapeType, targetPartitions: n });
+  }
+
   private drawShape(shapeType: 'rectangle' | 'circle', cx: number, cy: number): void {
     const g = this.shapeGraphics;
     g.clear();
@@ -153,57 +197,6 @@ export class PartitionInteraction implements Interaction {
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
   }
 
-  /**
-   * Draws dashed "cut line" hints at the correct division positions for
-   * thirds (N=3) or quarters (N=4). Called by LevelScene when the
-   * visual_overlay hint tier is reached on a partition question.
-   * Layered at depth 7 — above the shape (5) and partition line (6)
-   * but below drag handles (20+).
-   */
-  showCutLineHint(targetPartitions: number): void {
-    // Clear any previously drawn hint so re-triggering is idempotent
-    this.cutLineHint?.destroy();
-    this.cutLineHint = this.scene.add.graphics().setDepth(7).setAlpha(0.85);
-
-    const CUT_COLOR = 0xffaa00; // orange/gold
-    const LINE_WIDTH = 3;
-    const DASH_LEN = 12;
-    const GAP_LEN = 7;
-
-    this.cutLineHint.lineStyle(LINE_WIDTH, CUT_COLOR, 1);
-
-    const cx = this.shapeCenterX;
-    const cy = this.shapeCenterY;
-
-    if (this.shapeType === 'rectangle') {
-      const left = cx - SHAPE_W / 2;
-      const top = cy - SHAPE_H / 2;
-      const bottom = cy + SHAPE_H / 2;
-      // Draw N-1 vertical cut lines evenly spaced across the width
-      for (let i = 1; i < targetPartitions; i++) {
-        const x = left + (SHAPE_W * i) / targetPartitions;
-        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
-      }
-    } else {
-      // Circle: draw N radii from the centre at equal 2π/N intervals.
-      // Each radius goes from centre to circumference edge, creating N equal sectors.
-      const radius = SHAPE_W / 2;
-      const angleStep = (2 * Math.PI) / targetPartitions;
-      for (let i = 0; i < targetPartitions; i++) {
-        const angle = angleStep * i;
-        const ex = cx + radius * Math.cos(angle);
-        const ey = cy + radius * Math.sin(angle);
-        this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
-      }
-    }
-
-    log.scene('cut_line_hint_shown', {
-      shapeType: this.shapeType,
-      targetPartitions,
-    });
-  }
-
-  /** Draws a dashed line between two points onto the given Graphics object. */
   private drawDashedLine(
     g: Phaser.GameObjects.Graphics,
     x1: number,
@@ -216,8 +209,8 @@ export class PartitionInteraction implements Interaction {
     const dx = x2 - x1;
     const dy = y2 - y1;
     const totalLen = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / totalLen; // unit vector x
-    const uy = dy / totalLen; // unit vector y
+    const ux = dx / totalLen;
+    const uy = dy / totalLen;
     let traveled = 0;
     let drawing = true;
 

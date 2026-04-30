@@ -21,4 +21,6 @@ export interface Interaction {
   archetype: ArchetypeId;
   mount(ctx: InteractionContext): void;
   unmount(): void;
+  /** Tier 2 hint: draw a contextual visual overlay atop the interaction canvas. */
+  showVisualOverlay?(): void;
 }

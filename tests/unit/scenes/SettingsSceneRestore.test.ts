@@ -81,13 +81,25 @@ type AnyScene = SettingsScene & {
   _keyHandler: ((e: KeyboardEvent) => void) | null;
   _restoreTimerId: number | null;
   _restoreIntervalId: number | null;
-  _restoreCountdownText: { destroy: () => void } | null;
+  _restoreCountdownText: { destroy: () => void; setText: (s: string) => void } | null;
   _restoreCancelGraphic: { destroy: () => void } | null;
   _restoreCancelBtnText: { destroy: () => void } | null;
-  _restoreCancelHit: { destroy: () => void } | null;
+  _restoreCancelHit: { destroy: () => void; on: (...args: unknown[]) => void } | null;
   add: {
     text: (x: number, y: number, msg: string, style: object) => {
       setOrigin: (n: number) => { setDepth: (n: number) => object };
+    };
+    graphics: () => {
+      fillStyle: (color: number, alpha: number) => void;
+      fillRoundedRect: (x: number, y: number, w: number, h: number, r: number) => void;
+      setDepth: (d: number) => object;
+      destroy: () => void;
+    };
+    rectangle: (x: number, y: number, w: number, h: number, color: number, alpha: number) => {
+      setInteractive: (opts: object) => { setDepth: (d: number) => { on: (...args: unknown[]) => object } };
+      setDepth: (d: number) => object;
+      destroy: () => void;
+      on: (...args: unknown[]) => void;
     };
   };
   time: {
@@ -112,34 +124,43 @@ function makeScene(): AnyScene {
   scene._restoreCancelBtnText = null;
   scene._restoreCancelHit = null;
 
-  // Track the last message passed to add.text() for assertions
-  const capturedText = { msg: '' };
+  // Track all messages passed to add.text() — first is the status/countdown label
+  const capturedText = { msgs: [] as string[] };
+
+  const makeTextObj = (msg: string) => ({
+    setOrigin: (_n: number) => ({
+      setDepth: (_d: number) => {
+        capturedText.msgs.push(msg);
+        return {};
+      },
+    }),
+    destroy: vi.fn(),
+    setText: vi.fn(),
+  });
+
+  const makeGraphicsObj = () => ({
+    fillStyle: vi.fn(),
+    fillRoundedRect: vi.fn(),
+    setDepth: vi.fn().mockReturnThis(),
+    destroy: vi.fn(),
+  });
+
+  const makeRectObj = () => {
+    const obj = {
+      setInteractive: (_opts: object) => ({
+        setDepth: (_d: number) => ({ on: vi.fn().mockReturnThis() }),
+      }),
+      setDepth: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+      on: vi.fn(),
+    };
+    return obj;
+  };
 
   scene.add = {
-    text: (_x: number, _y: number, msg: string, _style: object) => ({
-      setOrigin: (_n: number) => ({
-        setDepth: (_d: number) => {
-          capturedText.msg = msg;
-          return { destroy: vi.fn(), setText: vi.fn() };
-        },
-      }),
-      destroy: vi.fn(),
-      setText: vi.fn(),
-    }),
-    graphics: () => ({
-      fillStyle: vi.fn(function () { return this; }),
-      fillRoundedRect: vi.fn(function () { return this; }),
-      setDepth: vi.fn(function () { return this; }),
-      destroy: vi.fn(),
-    }),
-    rectangle: () => ({
-      setInteractive: vi.fn(function () { return this; }),
-      setDepth: vi.fn(function () { return this; }),
-      on: vi.fn(),
-      destroy: vi.fn(),
-      emit: vi.fn(),
-      setVisible: vi.fn(),
-    }),
+    text: (_x: number, _y: number, msg: string, _style: object) => makeTextObj(msg),
+    graphics: () => makeGraphicsObj(),
+    rectangle: (_x: number, _y: number, _w: number, _h: number, _c: number, _a: number) => makeRectObj(),
   };
 
   scene.time = {
@@ -153,7 +174,8 @@ function makeScene(): AnyScene {
 }
 
 function capturedStatus(scene: AnyScene): string {
-  return (scene as unknown as { _capturedText: { msg: string } })._capturedText.msg;
+  const data = (scene as unknown as { _capturedText: { msgs: string[] } })._capturedText;
+  return data.msgs[0] ?? '';
 }
 
 // ── Setup ──────────────────────────────────────────────────────────────────

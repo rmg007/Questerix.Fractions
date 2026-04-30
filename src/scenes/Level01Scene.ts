@@ -41,7 +41,6 @@ import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
-import { MASTERY_THRESHOLD } from '../engine/bkt';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -142,9 +141,6 @@ export class Level01Scene extends Phaser.Scene {
 
   // Fix 6 (G-E3): hint-event IDs accumulated per question
   private currentQuestionHintIds: string[] = [];
-
-  // R3: Track the current attempt ID so hint events can be linked after creation
-  private currentAttemptId: import('@/types').AttemptId | null = null;
 
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
@@ -1293,7 +1289,6 @@ export class Level01Scene extends Phaser.Scene {
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
 
       const attemptId = nanoid() as import('@/types').AttemptId;
-      this.currentAttemptId = attemptId; // R3: Store for hint linkage
       log.atmp('record_start', {
         attemptId,
         outcome,
@@ -1323,6 +1318,12 @@ export class Level01Scene extends Phaser.Scene {
         hintsUsed: [],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
+        payload: {
+          shapeType: this.currentQuestion.shapeType,
+          targetPartitions: 2,
+          snapMode: this.currentQuestion.snapMode,
+          areaTolerance: this.currentQuestion.areaTolerance,
+        },
         syncState: 'local',
       });
 

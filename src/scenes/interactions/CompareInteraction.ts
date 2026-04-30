@@ -51,6 +51,12 @@ export class CompareInteraction implements Interaction {
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private bars: BarModel[] = [];
   private fractionDisplays: SymbolicFractionDisplay[] = [];
+  private _scene!: Phaser.Scene;
+  private _cx = 0;
+  private _cy = 0;
+  private _aVal = 0;
+  private _bVal = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -58,6 +64,12 @@ export class CompareInteraction implements Interaction {
 
     const aFrac = payload.fractionA ? parseFrac(payload.fractionA) : parseFrac(payload.leftLabel);
     const bFrac = payload.fractionB ? parseFrac(payload.fractionB) : parseFrac(payload.rightLabel);
+
+    this._scene = scene;
+    this._cx = centerX;
+    this._cy = centerY;
+    this._aVal = aFrac.n / aFrac.d;
+    this._bVal = bFrac.n / bFrac.d;
     const aLabel = aFrac.label ?? payload.leftLabel ?? `${aFrac.n}/${aFrac.d}`;
     const bLabel = bFrac.label ?? payload.rightLabel ?? `${bFrac.n}/${bFrac.d}`;
 
@@ -169,5 +181,32 @@ export class CompareInteraction implements Interaction {
     this.bars = [];
     this.fractionDisplays.forEach((d) => d.destroy());
     this.fractionDisplays = [];
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    const barW = 220;
+    const barH = 48;
+    const gap = 80;
+    const barLeft = this._cx - barW / 2;
+    const aBarY = this._cy - 80;
+    const bBarY = this._cy - 80 + barH + gap;
+    const aFillX = barLeft + this._aVal * barW;
+    const bFillX = barLeft + this._bVal * barW;
+
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.75);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    overlay.lineBetween(aFillX, aBarY - barH / 2 - 10, aFillX, aBarY + barH / 2 + 10);
+    overlay.lineBetween(bFillX, bBarY - barH / 2 - 10, bFillX, bBarY + barH / 2 + 10);
+
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }

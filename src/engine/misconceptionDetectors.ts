@@ -6,6 +6,14 @@
 import type { Attempt, MisconceptionFlag } from '../types/runtime';
 import type { MisconceptionId } from '../types/branded';
 
+let nanoidFn: () => string;
+(async () => {
+  const { nanoid } = await import('nanoid').catch(() => ({
+    nanoid: () => `mc-${Date.now()}`,
+  }));
+  nanoidFn = nanoid;
+})();
+
 /**
  * WHB-01 — Whole-Number Bias (Numerator)
  * Pattern: student picks larger-numerator option ≥ 60% of time on L6+ compare activities.
@@ -693,11 +701,8 @@ export async function detectORD01(attempts: Attempt[], level: number): Promise<M
   // Flag if rate ≥ 50% and at least 3 observations
   const rate = evidenceIds.length / orderingAttempts.length;
   if (rate >= evidenceThreshold && evidenceIds.length >= 3) {
-    const { nanoid } = await import('nanoid').catch(() => ({
-      nanoid: () => `mc-${Date.now()}`,
-    }));
     return {
-      id: (nanoid as any)() as string,
+      id: nanoidFn() as string,
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-ORD-01' as import('@/types').MisconceptionId,
       firstObservedAt: Date.now(),

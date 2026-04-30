@@ -37,6 +37,10 @@ export class MakeInteraction implements Interaction {
   private shadedRegions: Set<number> = new Set();
   private regionRects: Phaser.GameObjects.Rectangle[] = [];
   private phase: 'partition' | 'shade' = 'partition';
+  private _scene!: Phaser.Scene;
+  private _cx = 0;
+  private _cy = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -46,6 +50,9 @@ export class MakeInteraction implements Interaction {
     const targetNumerator = payload.targetNumerator ?? 1;
     const areaTolerance = payload.areaTolerance ?? 0.05;
 
+    this._scene = scene;
+    this._cx = centerX;
+    this._cy = centerY;
     this.handlePos = centerX;
     this.phase = 'partition';
     this.shadedRegions = new Set();
@@ -163,6 +170,24 @@ export class MakeInteraction implements Interaction {
     this.gameObjects = [];
     this.regionRects = [];
     (this.dragHandle as DragHandle | undefined)?.destroy();
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    // Draw a faint amber reference line at the centre of the shape showing
+    // where a halves fold would land — a structural cue, not the worked example.
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.5);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    overlay.lineBetween(this._cx, this._cy - SHAPE_H / 2 - 20, this._cx, this._cy + SHAPE_H / 2 + 20);
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 
   private drawShape(
