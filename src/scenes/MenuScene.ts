@@ -130,11 +130,10 @@ export class MenuScene extends Phaser.Scene {
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
     const unlocked = this._getUnlockedLevels();
     const currentLevel = Math.max(...Array.from(unlocked));
-    const playLabel = currentLevel > 1 ? `Play Level ${currentLevel}` : 'Play Level 1';
 
     A11yLayer.unmountAll();
-    A11yLayer.mountAction('a11y-play', playLabel, () => {
-      this._startLevel(currentLevel);
+    A11yLayer.mountAction('a11y-play', 'Open Adventure Map', () => {
+      fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
     });
     if (this.lastStudentId) {
       A11yLayer.mountAction('a11y-continue', 'Continue from your last spot', () => {
@@ -144,21 +143,24 @@ export class MenuScene extends Phaser.Scene {
     A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
       fadeAndStart(this, 'SettingsScene');
     });
-    A11yLayer.mountAction('a11y-choose-level', 'Choose a different level', () => {
-      this._openLevelChooser();
+    A11yLayer.mountAction('a11y-choose-level', 'Open Adventure Map', () => {
+      fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
     });
     A11yLayer.announce(
-      'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to start Level 1.'
+      'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to open the Adventure Map.'
     );
 
-    // ── Test hooks (kept identical so e2e selectors still work) ────────────
+    // ── Test hooks ─────────────────────────────────────────────────────────
+    // level-card-L1 mirrors the Play! button which now opens the Adventure Map.
+    // Tests that need to start a specific level directly can use LevelMapScene's
+    // own test hooks or the off-canvas L6/L7 shortcuts below.
     TestHooks.unmountAll();
     TestHooks.mountSentinel('menu-scene');
-    // Position test hook over the new Play! button location (~86% down).
+    // Position test hook over the Play! button location (~86% down).
     TestHooks.mountInteractive(
       'level-card-L1',
       () => {
-        fadeAndStart(this, 'Level01Scene', { studentId: this.lastStudentId });
+        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
       },
       { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
@@ -295,16 +297,12 @@ export class MenuScene extends Phaser.Scene {
       shadowOffset: 8,
       rounded: true,
       onTap: () => {
-        this._startLevel(currentLevel);
+        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
       },
     });
 
-    // G-C3/G-C4: "Choose Level" button — Option B chosen because MenuScene has no
-    // existing level-node game objects to tap; adding a dedicated button requires
-    // less new code than retrofitting decorative nodes.
-    // Unlock model: Level 1 always unlocked; Level N+1 unlocks when localStorage
-    // key 'unlockedLevels' (JSON number[]) includes N.  When a studentId is present
-    // the key is prefixed with the studentId for isolation.
+    // "Choose Level" pill button — opens the Adventure Map (LevelMapScene)
+    // where players can see all levels on a winding path and tap to choose one.
     this.createChooseLevelButton();
 
     // ── Mascot — friendly guide character ────────────────────────────────────
@@ -331,10 +329,10 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
-  // ── Level chooser ─────────────────────────────────────────────────────────
+  // ── Adventure Map entry button ────────────────────────────────────────────
 
   /**
-   * Tiny pill button that opens a 3×3 level grid overlay.
+   * Tiny pill button that opens LevelMapScene (the visual adventure map).
    * Placed below the Play button so it doesn't compete with primary CTA.
    */
   private createChooseLevelButton(): void {
@@ -363,7 +361,7 @@ export class MenuScene extends Phaser.Scene {
       .rectangle(bx, by, W, H, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(18)
-      .on('pointerup', () => void this._openLevelChooser());
+      .on('pointerup', () => fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId }));
   }
 
   /** Read unlocked levels from localStorage (with optional studentId prefix). */
@@ -395,136 +393,27 @@ export class MenuScene extends Phaser.Scene {
 
   static markLevelComplete(levelNumber: number, studentId: string | null): void {
     try {
-      const key = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(key);
+      // Unlock the next level (levels 1–8 only — no level 10 exists)
+      const unlockKey = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
+      const raw = localStorage.getItem(unlockKey);
       const arr: number[] = raw ? (JSON.parse(raw) as number[]) : [];
       const next = levelNumber + 1;
       if (next <= 9 && !arr.includes(next)) {
         arr.push(next);
-        localStorage.setItem(key, JSON.stringify(arr));
+        localStorage.setItem(unlockKey, JSON.stringify(arr));
+      }
+
+      // Record this level as explicitly completed (covers Level 9 which has no successor)
+      const compKey = studentId ? `completedLevels:${studentId}` : 'completedLevels';
+      const rawComp = localStorage.getItem(compKey);
+      const compArr: number[] = rawComp ? (JSON.parse(rawComp) as number[]) : [];
+      if (!compArr.includes(levelNumber)) {
+        compArr.push(levelNumber);
+        localStorage.setItem(compKey, JSON.stringify(compArr));
       }
     } catch (err) {
       // Ignore storage errors
     }
-  }
-
-  private _openLevelChooser(): void {
-    const unlocked = this._getUnlockedLevels();
-    this._renderLevelGrid(unlocked);
-    A11yLayer.announce('Level chooser opened. Select a level to play.');
-  }
-
-  private _renderLevelGrid(unlocked: Set<number>): void {
-    const CX = CW / 2;
-    const CY = CH / 2;
-    const CARD_W = 640,
-      CARD_H = 520;
-
-    this.add.rectangle(CX, CY, CW, CH, 0x000000, 0.55).setDepth(60);
-
-    // Card
-    const cardG = this.add.graphics().setDepth(61);
-    cardG.fillStyle(0xe0f2fe, 1);
-    cardG.fillRoundedRect(CX - CARD_W / 2, CY - CARD_H / 2, CARD_W, CARD_H, 20);
-    cardG.lineStyle(4, NAVY, 1);
-    cardG.strokeRoundedRect(CX - CARD_W / 2, CY - CARD_H / 2, CARD_W, CARD_H, 20);
-
-    this.add
-      .text(CX, CY - CARD_H / 2 + 36, 'Choose a Level', {
-        fontFamily: TITLE_FONT,
-        fontSize: '34px',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(62);
-
-    // ── Accessibility: level buttons (mirror grid)
-    A11yLayer.mountAction('a11y-close-grid', 'Close level grid', () => {
-      this._closeLevelGrid();
-    });
-
-    // 3×3 grid of level buttons
-    const COLS = 3;
-    const CELL = 160;
-    const startX = CX - CELL;
-    const startY = CY - CARD_H / 2 + 110;
-
-    for (let lvl = 1; lvl <= 9; lvl++) {
-      const col = (lvl - 1) % COLS;
-      const row = Math.floor((lvl - 1) / COLS);
-      const bx = startX + col * CELL;
-      const by = startY + row * (CELL - 20);
-      const isUnlocked = unlocked.has(lvl);
-
-      const bW = 120,
-        bH = 64;
-      const bg = this.add.graphics().setDepth(62);
-      if (isUnlocked) {
-        bg.fillStyle(PLAY_FILL, 1);
-        bg.lineStyle(4, PLAY_BORDER, 1);
-      } else {
-        bg.fillStyle(0xd1d5db, 1); // gray-300
-        bg.lineStyle(4, 0x9ca3af, 1); // gray-400
-      }
-      bg.fillRoundedRect(bx - bW / 2, by - bH / 2, bW, bH, 12);
-      bg.strokeRoundedRect(bx - bW / 2, by - bH / 2, bW, bH, 12);
-
-      this.add
-        .text(bx, by, isUnlocked ? `Level ${lvl}` : `🔒 ${lvl}`, {
-          fontFamily: TITLE_FONT,
-          fontSize: '20px',
-          color: isUnlocked ? PLAY_TEXT : '#6b7280',
-        })
-        .setOrigin(0.5)
-        .setDepth(63);
-
-      if (isUnlocked) {
-        A11yLayer.mountAction(`a11y-level-${lvl}`, `Start Level ${lvl}`, () => {
-          this._closeLevelGrid();
-          this._startLevel(lvl);
-        });
-
-        this.add
-          .rectangle(bx, by, bW, bH, 0, 0)
-          .setInteractive({ useHandCursor: true })
-          .setDepth(64)
-          .on('pointerup', () => {
-            this._closeLevelGrid();
-            this._startLevel(lvl);
-          });
-      }
-    }
-
-    // Close button (×)
-    const closeG = this.add.graphics().setDepth(62);
-    const closeX = CX + CARD_W / 2 - 28;
-    const closeY = CY - CARD_H / 2 + 28;
-    closeG.fillStyle(NAVY, 1);
-    closeG.fillCircle(closeX, closeY, 20);
-
-    this.add
-      .text(closeX, closeY, '×', {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '28px',
-        color: WHITE_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(63);
-
-    this.add
-      .circle(closeX, closeY, 20, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(64)
-      .on('pointerup', () => this._closeLevelGrid());
-  }
-
-  private _closeLevelGrid(): void {
-    this.children.list
-      .filter((o) => 'depth' in o && (o as { depth: number }).depth >= 60)
-      .forEach((o) => o.destroy());
-    // Restore primary menu a11y actions
-    this.create(); // Re-runs create to reset a11y buttons, slightly heavy but reliable
   }
 
   // ── Drawing helpers ───────────────────────────────────────────────────────

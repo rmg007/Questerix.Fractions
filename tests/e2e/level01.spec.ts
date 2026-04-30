@@ -8,10 +8,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Level 01 — full 5-attempt flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/?testHooks=1');
-    // Navigate Boot → Menu → L1
+    // Navigate Boot → Menu → Adventure Map → Level 1
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 15000 });
+    // level-card-L1 now opens LevelMapScene (Adventure Map)
     await page.locator('[data-testid="level-card-L1"]').click();
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 15000 });
+    // Select Level 1 from the map
+    await page.locator('[data-testid="map-level-1"]').click();
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
   });
 

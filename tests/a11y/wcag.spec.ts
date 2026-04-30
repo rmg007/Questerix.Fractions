@@ -21,7 +21,10 @@ test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    // level-card-L1 opens the Adventure Map; select Level 1 from there
     await page.locator('[data-testid="level-card-L1"]').click();
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="map-level-1"]').click();
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
 
     const results = await new AxeBuilder({ page })
@@ -80,7 +83,10 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    // level-card-L1 opens the Adventure Map; select Level 1 from there
     await page.locator('[data-testid="level-card-L1"]').click();
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="map-level-1"]').click();
     await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
 
     const violations = await auditTouchTargets(page);

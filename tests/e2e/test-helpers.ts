@@ -7,7 +7,8 @@ import { expect } from '@playwright/test';
 
 /**
  * Navigate from root to Level01Scene via DOM sentinels.
- * Waits for boot-start-btn → clicks → waits for menu → clicks level-card-L1 → waits for level01.
+ * Route: boot-start-btn → menu-scene → level-card-L1 (opens Adventure Map)
+ *        → level-map-scene → map-level-1 → level01-scene.
  */
 export async function navigateToLevel01(page: Page): Promise<void> {
   await page.goto('/');
@@ -15,7 +16,11 @@ export async function navigateToLevel01(page: Page): Promise<void> {
   await expect(startBtn).toBeVisible({ timeout: 8000 });
   await startBtn.click();
   await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 5000 });
+  // level-card-L1 now opens the Adventure Map (LevelMapScene)
   await page.locator('[data-testid="level-card-L1"]').click();
+  await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 8000 });
+  // Select Level 1 from the map
+  await page.locator('[data-testid="map-level-1"]').click();
   await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 8000 });
 }
 
