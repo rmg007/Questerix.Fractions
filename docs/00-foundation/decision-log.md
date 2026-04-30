@@ -262,7 +262,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ## D-04 — 2026-04-24 — Visual style: simple + bright (deprecate neon sci-fi)
 
-**Decision:** Flat design, primary colors, sans-serif (Nunito 400/700). The original neon "Cosmic Blue + Cyan/Pink" theme in `src/data/config.ts` is deprecated.
+**Decision:** Flat design, primary colors, sans-serif (Lexend 400/600, with Nunito 400/700 as fallback). The original neon "Cosmic Blue + Cyan/Pink" theme in `src/data/config.ts` is deprecated.
 
 **Why:** Validation needs the mechanic to be testable, not stylish. K–2 students parse simple shapes faster; A/B testing pedagogy without aesthetic confounds is more reliable.
 

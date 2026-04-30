@@ -128,7 +128,7 @@ Targets are **gzipped** transfer size. Values below the line are **hard limits**
 | App code (TypeScript compiled) | ≤ 80 KB              | Includes scenes, systems, persistence layer |
 | Curriculum JSON (static seed)  | ≤ 500 KB gzip        | ~2 MB raw, per `persistence-spec §7`        |
 | Audio assets (SFX × 5)         | ≤ 50 KB total        | Short Ogg/MP3                               |
-| Fonts (Nunito subset)          | ≤ 30 KB              | Latin subset, woff2                         |
+| Fonts (Lexend + Nunito subset) | ≤ 30 KB              | Latin subset, woff2                         |
 | **Total initial transfer**     | **≤ 1.0 MB gzipped** | First-meaningful-paint budget               |
 
 A 1 MB initial transfer over a typical 4G connection (~5 Mbps) loads in ~1.6 seconds. Acceptable for a PWA target; further optimization is a post-MVP problem.

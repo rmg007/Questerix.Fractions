@@ -90,17 +90,17 @@ Per C6, **one** sans-serif family, **two** weights.
 ### 3.1 Family
 
 ```
-font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+font-family: "Lexend", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 ```
 
-Nunito is chosen because:
+Lexend is chosen because:
 
-- Rounded letterforms are more legible to young readers than geometric sans (e.g. Inter, Roboto)
+- Designed specifically to reduce visual stress and improve reading fluency for young and struggling readers
 - Free via Google Fonts; subset to Latin to keep payload < 30 KB
 - Pairs cleanly with simple shape illustrations
-- Falls back gracefully to system UI fonts on offline-first scenarios
+- Falls back to Nunito (also self-hosted) and then system UI fonts on offline-first scenarios
 
-If Nunito fails to load (offline first session, before service-worker cache), the system fallback chain remains legible without rebuild.
+If Lexend fails to load (offline first session, before service-worker cache), the Nunito fallback and system fallback chain remain legible without rebuild.
 
 ### 3.2 Weights
 

@@ -46,7 +46,7 @@ at the top (Settings, blue circle). Each station has a chunky 3D-shadow button
 and a fraction badge above it. Pale sky background with two soft glow circles.
 
 - Title font is **Fredoka One** (self-hosted in `public/fonts/`); body text
-  uses **Nunito** (400/700, also self-hosted). Per the privacy notice no
+  uses **Lexend** (400/600, also self-hosted) with Nunito as fallback. Per the privacy notice no
   third-party font services are called at runtime.
 - The path is drawn from a single bezier sample and gets a wide light-blue
   base stroke plus marching white dashes on top. Dash motion is gated on
