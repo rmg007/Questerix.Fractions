@@ -1,0 +1,77 @@
+name: R4 — Auto-rebuild curriculum bundles
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'pipeline/output/**'
+      - 'pipeline/schemas.py'
+      - 'pipeline/validators_py.py'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-rebuild-bundles-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  rebuild-bundles:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Loop guard — skip bot-triggered runs
+        if: github.actor == 'github-actions[bot]'
+        run: |
+          echo "::notice::Skipping: triggered by bot commit"
+          exit 0
+
+      - name: Fork guard — skip forks (no write token)
+        if: github.event.pull_request.head.repo.fork == true
+        run: |
+          echo "::notice::Skipping: fork PR — no write token available"
+          exit 0
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install pipeline Python dependencies
+        run: cd pipeline && pip install -r requirements.txt -q
+
+      - name: Rebuild curriculum bundles
+        run: npm run build:curriculum
+
+      - name: Check if bundles changed
+        id: diff-check
+        run: |
+          git diff --quiet public/curriculum/v1.json src/curriculum/bundle.json
+          DIFF_EXIT=$?
+          if [ $DIFF_EXIT -eq 0 ]; then
+            echo "::notice::Curriculum bundles already in sync. No commit needed."
+            exit 0
+          fi
+
+      - name: Commit and push synced bundles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/curriculum/v1.json src/curriculum/bundle.json
+          git commit -m "chore(curriculum): auto-sync bundles [bot]"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
