@@ -14,6 +14,10 @@ import {
   TITLE_FONT,
   BODY_FONT,
   NAVY_HEX,
+  NAVY,
+  SKY_BG,
+  PATH_BLUE,
+  OPTION_BG,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
@@ -289,7 +293,10 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = Date.now();
 
     // Instantiate and mount interaction
-    const interaction = getInteractionForArchetype(this.currentTemplate.archetype, this.currentTemplate.validatorId);
+    const interaction = getInteractionForArchetype(
+      this.currentTemplate.archetype,
+      this.currentTemplate.validatorId
+    );
     this.activeInteraction = interaction;
     interaction.mount({
       scene: this,
@@ -327,9 +334,9 @@ export class LevelScene extends Phaser.Scene {
   private createHeader(): void {
     // White card banner spanning the top — matches the adventure card style
     const headerG = this.add.graphics().setDepth(4);
-    headerG.fillStyle(0xffffff, 0.95);
+    headerG.fillStyle(OPTION_BG, 0.95);
     headerG.fillRoundedRect(10, 10, CW - 20, 92, 20);
-    headerG.lineStyle(3, 0x1e3a8a, 1);
+    headerG.lineStyle(3, NAVY, 1);
     headerG.strokeRoundedRect(10, 10, CW - 20, 92, 20);
 
     // Level title — centred, Fredoka One
@@ -344,11 +351,12 @@ export class LevelScene extends Phaser.Scene {
       .setDepth(5);
 
     // Back pill — left side
-    const BACK_W = 118, BACK_H = 52;
+    const BACK_W = 118,
+      BACK_H = 52;
     const backG = this.add.graphics().setDepth(5);
-    backG.fillStyle(0xe0f2fe, 1);
+    backG.fillStyle(SKY_BG, 1);
     backG.fillRoundedRect(18, 27, BACK_W, BACK_H, 14);
-    backG.lineStyle(2, 0x1e3a8a, 1);
+    backG.lineStyle(2, NAVY, 1);
     backG.strokeRoundedRect(18, 27, BACK_W, BACK_H, 14);
 
     const backBtn = this.add
@@ -379,9 +387,9 @@ export class LevelScene extends Phaser.Scene {
   private createPromptArea(): void {
     // Question prompt card — white with PATH_BLUE border, matching adventure cards
     const promptG = this.add.graphics().setDepth(4);
-    promptG.fillStyle(0xffffff, 1);
+    promptG.fillStyle(OPTION_BG, 1);
     promptG.fillRoundedRect(60, 114, CW - 120, 100, 18);
-    promptG.lineStyle(3, 0x93c5fd, 1);
+    promptG.lineStyle(3, PATH_BLUE, 1);
     promptG.strokeRoundedRect(60, 114, CW - 120, 100, 18);
 
     this.promptText = this.add
@@ -721,8 +729,7 @@ export class LevelScene extends Phaser.Scene {
     // with unsupported denominator). Route through generic catalog keys so
     // all displayed hints come from Quest's voice.
     if (msg === '') {
-      const suffix =
-        tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
+      const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
       try {
         msg = getCopy(`quest.hint.fallback.${suffix}`);
       } catch {
@@ -1125,4 +1132,3 @@ export class LevelScene extends Phaser.Scene {
     A11yLayer.unmountAll();
   }
 }
-

@@ -6,10 +6,19 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { TestHooks } from '../utils/TestHooks';
+import {
+  NAVY,
+  OPTION_BG,
+  OPTION_BORDER,
+  SELECTED_BG,
+  SKY_BG,
+  TEXT_BODY,
+  TEXT_HEADING,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface FracDef {
   id: string;
@@ -68,14 +77,14 @@ export class ExplainYourOrderInteraction implements Interaction {
     for (let si = 0; si < n; si++) {
       const sx = startX + si * (cardW + gap) + cardW / 2;
       const slot = scene.add
-        .rectangle(sx, slotY, cardW, cardH + 8, CLR.neutral100)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(sx, slotY, cardW, cardH + 8, SKY_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(4);
       scene.add
         .text(sx, slotY + cardH / 2 + 14, `${si + 1}`, {
           fontSize: '13px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral600,
+          color: TEXT_BODY,
         })
         .setOrigin(0.5)
         .setDepth(5);
@@ -96,7 +105,7 @@ export class ExplainYourOrderInteraction implements Interaction {
         numerator: frac.numerator,
         denominator: frac.denominator,
         label: `${frac.numerator}/${frac.denominator}`,
-        fillColor: CLR.primary,
+        fillColor: NAVY,
       });
       this.bars.push(bar);
 
@@ -104,7 +113,7 @@ export class ExplainYourOrderInteraction implements Interaction {
         .rectangle(cx, cy, cardW, cardH + 8, 0, 0)
         .setInteractive({ draggable: true, useHandCursor: true })
         .setDepth(10);
-      
+
       handle.on('dragstart', () => {
         this.ctx.pushEvent({
           type: 'pickUp',
@@ -133,7 +142,7 @@ export class ExplainYourOrderInteraction implements Interaction {
         const targetX = startX + best * (cardW + gap) + cardW / 2;
         handle.setPosition(targetX, slotY);
         bar.setPosition(targetX, slotY);
-        slotRects[best].setFillStyle(CLR.primarySoft);
+        slotRects[best].setFillStyle(SELECTED_BG);
 
         this.ctx.pushEvent({
           type: 'place',
@@ -148,13 +157,13 @@ export class ExplainYourOrderInteraction implements Interaction {
 
     // Check Button
     const sy = centerY + 240;
-    const sbg = scene.add.rectangle(centerX, sy, 220, 56, CLR.primary).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 220, 56, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check Order', {
         fontSize: '18px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);
@@ -164,23 +173,27 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setDepth(9);
 
     shit.on('pointerup', () => {
-      const filled = this.sequence.every(s => s !== null);
+      const filled = this.sequence.every((s) => s !== null);
       if (filled) {
         this.renderExplainingPhase();
       }
     });
 
-    TestHooks.mountInteractive('order-check', () => {
-      const filled = this.sequence.every(s => s !== null);
-      if (filled) {
-        this.renderExplainingPhase();
+    TestHooks.mountInteractive(
+      'order-check',
+      () => {
+        const filled = this.sequence.every((s) => s !== null);
+        if (filled) {
+          this.renderExplainingPhase();
+        }
+      },
+      {
+        top: `${(sy / 1280) * 100}%`,
+        left: `${(centerX / 800) * 100}%`,
+        width: '220px',
+        height: '56px',
       }
-    }, {
-      top: `${(sy / 1280) * 100}%`,
-      left: `${(centerX / 800) * 100}%`,
-      width: '220px',
-      height: '56px',
-    });
+    );
 
     this.gameObjects.push(sbg, stxt, shit);
   }
@@ -191,14 +204,17 @@ export class ExplainYourOrderInteraction implements Interaction {
     const payload = template.payload as OrderWithRulePayload;
     const postStep = payload.postStep;
 
-    const title = scene.add.text(centerX, centerY - 200, postStep.prompt, {
-      fontSize: '24px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral900,
-      align: 'center',
-      wordWrap: { width: width - 80 }
-    }).setOrigin(0.5).setDepth(10);
+    const title = scene.add
+      .text(centerX, centerY - 200, postStep.prompt, {
+        fontSize: '24px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: TEXT_HEADING,
+        align: 'center',
+        wordWrap: { width: width - 80 },
+      })
+      .setOrigin(0.5)
+      .setDepth(10);
     this.gameObjects.push(title);
 
     const options = postStep.options;
@@ -209,30 +225,35 @@ export class ExplainYourOrderInteraction implements Interaction {
 
     options.forEach((optKey, i) => {
       const y = startY + i * (optionH + spacing);
-      const bg = scene.add.rectangle(centerX, y, width - 100, optionH, CLR.neutral50).setDepth(5);
-      bg.setStrokeStyle(2, CLR.neutral300);
-      
-      const label = scene.add.text(centerX, y, RULE_LABELS[optKey] || optKey, {
-        fontSize: '16px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral900,
-      }).setOrigin(0.5).setDepth(6);
+      const bg = scene.add.rectangle(centerX, y, width - 100, optionH, OPTION_BG).setDepth(5);
+      bg.setStrokeStyle(2, OPTION_BORDER);
 
-      const hit = scene.add.rectangle(centerX, y, width - 100, optionH, 0, 0)
+      const label = scene.add
+        .text(centerX, y, RULE_LABELS[optKey] || optKey, {
+          fontSize: '16px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: TEXT_HEADING,
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
+
+      const hit = scene.add
+        .rectangle(centerX, y, width - 100, optionH, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
 
       const select = () => {
-        this.gameObjects.filter(o => o instanceof Phaser.GameObjects.Rectangle && o.depth === 5)
-          .forEach(r => (r as Phaser.GameObjects.Rectangle).setFillStyle(CLR.neutral50));
-        bg.setFillStyle(CLR.primarySoft);
+        this.gameObjects
+          .filter((o) => o instanceof Phaser.GameObjects.Rectangle && o.depth === 5)
+          .forEach((r) => (r as Phaser.GameObjects.Rectangle).setFillStyle(OPTION_BG));
+        bg.setFillStyle(SELECTED_BG);
         this.selectedRule = optKey;
-        submitBtn.setFillStyle(CLR.primary);
-        submitTxt.setColor(HEX.neutral0);
+        submitBtn.setFillStyle(NAVY);
+        submitTxt.setColor(TEXT_ON_FILL);
       };
 
       hit.on('pointerup', select);
-      
+
       TestHooks.mountInteractive(`rule-option-${optKey}`, select, {
         top: `${(y / 1280) * 100}%`,
         left: `${(centerX / 800) * 100}%`,
@@ -245,14 +266,18 @@ export class ExplainYourOrderInteraction implements Interaction {
 
     // Final Submit
     const sy = centerY + 240;
-    const submitBtn = scene.add.rectangle(centerX, sy, 220, 56, CLR.neutral100).setDepth(7);
-    const submitTxt = scene.add.text(centerX, sy, 'Submit', {
-      fontSize: '20px',
-      fontFamily: '"Nunito", system-ui, sans-serif',
-      fontStyle: 'bold',
-      color: HEX.neutral600,
-    }).setOrigin(0.5).setDepth(8);
-    const submitHit = scene.add.rectangle(centerX, sy, 220, 56, 0, 0)
+    const submitBtn = scene.add.rectangle(centerX, sy, 220, 56, SKY_BG).setDepth(7);
+    const submitTxt = scene.add
+      .text(centerX, sy, 'Submit', {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontStyle: 'bold',
+        color: TEXT_BODY,
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
+    const submitHit = scene.add
+      .rectangle(centerX, sy, 220, 56, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
@@ -260,7 +285,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       if (this.selectedRule) {
         onCommit({
           sequence: this.sequence,
-          rule: this.selectedRule
+          rule: this.selectedRule,
         });
       }
     };
@@ -277,9 +302,9 @@ export class ExplainYourOrderInteraction implements Interaction {
   }
 
   private clearUI(): void {
-    this.gameObjects.forEach(o => o.destroy());
+    this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
-    this.bars.forEach(b => b.destroy());
+    this.bars.forEach((b) => b.destroy());
     this.bars = [];
     TestHooks.unmountAll();
   }

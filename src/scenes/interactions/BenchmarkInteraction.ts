@@ -4,9 +4,9 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { NAVY, OPTION_BG, OPTION_BORDER, TEXT_HEADING } from '../utils/levelTheme';
 
 interface BenchmarkPayload {
   targetFracId?: string;
@@ -51,7 +51,7 @@ export class BenchmarkInteraction implements Interaction {
       numerator: frac.n,
       denominator: frac.d,
       label,
-      fillColor: CLR.primary,
+      fillColor: NAVY,
     });
 
     // Number line 0..1 with ½ tick
@@ -76,14 +76,14 @@ export class BenchmarkInteraction implements Interaction {
     zones.forEach(({ key, label: zl }, i) => {
       const bx = centerX - spread + i * spread;
       const bg = scene.add
-        .rectangle(bx, zoneY, zoneW, 64, CLR.neutral50)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(bx, zoneY, zoneW, 64, OPTION_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(5);
       scene.add
         .text(bx, zoneY, zl, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral900,
+          color: TEXT_HEADING,
           align: 'center',
           wordWrap: { width: zoneW - 12 },
         })

@@ -47,14 +47,38 @@ function PieChartHalf() {
       <circle cx="80" cy="80" r="72" fill={SKY} stroke={NAVY} strokeWidth="3" />
       <path d="M80 8 A72 72 0 0 1 80 152 Z" fill={PATH_BLUE} stroke={NAVY} strokeWidth="2.5" />
       <line x1="80" y1="8" x2="80" y2="152" stroke={NAVY} strokeWidth="3" />
-      <text x="48" y="88" fontSize="18" fontFamily="Nunito, sans-serif" fontWeight="bold" fill={NAVY} textAnchor="middle">
+      <text
+        x="48"
+        y="88"
+        fontSize="18"
+        fontFamily="Nunito, sans-serif"
+        fontWeight="bold"
+        fill={NAVY}
+        textAnchor="middle"
+      >
         1
       </text>
       <line x1="36" y1="94" x2="60" y2="94" stroke={NAVY} strokeWidth="2" />
-      <text x="48" y="110" fontSize="18" fontFamily="Nunito, sans-serif" fontWeight="bold" fill={NAVY} textAnchor="middle">
+      <text
+        x="48"
+        y="110"
+        fontSize="18"
+        fontFamily="Nunito, sans-serif"
+        fontWeight="bold"
+        fill={NAVY}
+        textAnchor="middle"
+      >
         2
       </text>
-      <text x="114" y="100" fontSize="18" fontFamily="Nunito, sans-serif" fontWeight="bold" fill={NAVY} textAnchor="middle">
+      <text
+        x="114"
+        y="100"
+        fontSize="18"
+        fontFamily="Nunito, sans-serif"
+        fontWeight="bold"
+        fill={NAVY}
+        textAnchor="middle"
+      >
         1/2
       </text>
     </svg>
@@ -174,7 +198,10 @@ export default function LevelScreen() {
       </div>
 
       {/* ── Fraction visual ──────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4" style={{ zIndex: 10 }}>
+      <div
+        className="flex-1 flex flex-col items-center justify-center gap-3 px-4"
+        style={{ zIndex: 10 }}
+      >
         {/* Pie chart */}
         <div
           className="rounded-3xl flex items-center justify-center p-4"

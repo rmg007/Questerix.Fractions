@@ -4,9 +4,9 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { NAVY, TEXT_BODY } from '../utils/levelTheme';
 
 interface PlacementPayload {
   targetFracId?: string;
@@ -56,7 +56,7 @@ export class PlacementInteraction implements Interaction {
       numerator: frac.n,
       denominator: frac.d,
       label,
-      fillColor: CLR.primary,
+      fillColor: NAVY,
     });
 
     // Number line with snap positions
@@ -83,7 +83,7 @@ export class PlacementInteraction implements Interaction {
       .text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
         fontSize: '15px',
         fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
+        color: TEXT_BODY,
         align: 'center',
       })
       .setOrigin(0.5)

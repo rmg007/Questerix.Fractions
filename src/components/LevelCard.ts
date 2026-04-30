@@ -21,12 +21,12 @@ import type { LevelMeta } from '../scenes/utils/levelMeta';
 
 // ── Adventure theme colours ───────────────────────────────────────────────────
 
-const UNLOCKED_BG     = SKY_BG;        // #E0F2FE — pale sky
-const UNLOCKED_BORDER = PATH_BLUE;     // #93C5FD — light blue path
-const LOCKED_BG       = 0xf1f5f9;     // slate-100 — muted for locked
-const LOCKED_BORDER   = 0xc8d6e0;     // soft blue-grey
-const HOVER_BG        = PATH_BLUE;    // blue-300 on hover
-const BADGE_FILL      = ACTION_FILL;  // amber — matches Check button / Play station
+const UNLOCKED_BG = SKY_BG; // #E0F2FE — pale sky
+const UNLOCKED_BORDER = PATH_BLUE; // #93C5FD — light blue path
+const LOCKED_BG = 0xf1f5f9; // slate-100 — muted for locked
+const LOCKED_BORDER = 0xc8d6e0; // soft blue-grey
+const HOVER_BG = PATH_BLUE; // blue-300 on hover
+const BADGE_FILL = ACTION_FILL; // amber — matches Check button / Play station
 
 const CARD_W = 220;
 const CARD_H = 160;
@@ -127,11 +127,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
 
     // Lock icon for locked levels
     if (!this.unlocked) {
-      this.add(
-        s.add
-          .text(0, -36, '🔒', { fontSize: '22px' })
-          .setOrigin(0.5)
-      );
+      this.add(s.add.text(0, -36, '🔒', { fontSize: '22px' }).setOrigin(0.5));
     }
 
     // "Suggested next" amber badge — bottom centre

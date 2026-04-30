@@ -4,9 +4,18 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import {
+  NAVY,
+  OPTION_BG,
+  OPTION_BORDER,
+  SELECTED_BG,
+  SKY_BG,
+  TEXT_BODY,
+  TEXT_HEADING,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface IdentifyOption {
   shapeType?: string;
@@ -59,13 +68,13 @@ export class IdentifyInteraction implements Interaction {
 
     options.forEach((opt, i) => {
       const x = startX + i * (cardW + spacing) + cardW / 2;
-      const bg = scene.add.rectangle(x, cardY, cardW, cardH, CLR.neutral50).setDepth(5);
-      bg.setStrokeStyle(2, CLR.neutral300);
+      const bg = scene.add.rectangle(x, cardY, cardW, cardH, OPTION_BG).setDepth(5);
+      bg.setStrokeStyle(2, OPTION_BORDER);
       const label = scene.add
         .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral900,
+          color: TEXT_HEADING,
           align: 'center',
           wordWrap: { width: cardW - 16 },
         })
@@ -84,12 +93,12 @@ export class IdentifyInteraction implements Interaction {
             (o): o is Phaser.GameObjects.Rectangle =>
               o instanceof Phaser.GameObjects.Rectangle && o !== hit
           )
-          .forEach((r) => r.setFillStyle(CLR.neutral50));
-        bg.setFillStyle(CLR.primarySoft);
+          .forEach((r) => r.setFillStyle(OPTION_BG));
+        bg.setFillStyle(SELECTED_BG);
         this.selectedIndex = i;
         if (this.submitBtn) {
-          this.submitBtn.setFillStyle(CLR.primary);
-          this.submitLabel?.setColor(HEX.neutral0);
+          this.submitBtn.setFillStyle(NAVY);
+          this.submitLabel?.setColor(TEXT_ON_FILL);
         }
       };
 
@@ -107,13 +116,13 @@ export class IdentifyInteraction implements Interaction {
 
     // Submit button
     const submitY = cardY + cardH / 2 + 60;
-    const sbg = scene.add.rectangle(centerX, submitY, 280, 56, CLR.neutral100).setDepth(5);
+    const sbg = scene.add.rectangle(centerX, submitY, 280, 56, SKY_BG).setDepth(5);
     const slbl = scene.add
       .text(centerX, submitY, 'Check', {
         fontSize: '20px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral600,
+        color: TEXT_BODY,
       })
       .setOrigin(0.5)
       .setDepth(6);

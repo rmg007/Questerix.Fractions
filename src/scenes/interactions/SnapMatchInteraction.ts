@@ -5,9 +5,18 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import {
+  ACCENT_C,
+  CHOICE_YES,
+  NAVY,
+  NAVY_HEX,
+  OPTION_BG,
+  OPTION_BORDER,
+  SELECTED_BG,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface MatchItem {
   id: string;
@@ -62,15 +71,15 @@ export class SnapMatchInteraction implements Interaction {
         height: barH,
         numerator: n,
         denominator: d,
-        fillColor: CLR.accentC,
+        fillColor: ACCENT_C,
       });
       this.bars.push(bar);
       this.rightPositions.set(item.id, { x: colRight + barW / 2, y: ry });
 
       // Right slot outline (behind bar)
       const slotBox = scene.add
-        .rectangle(colRight + barW / 2, ry, barW + 8, barH + 8, CLR.neutral50)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(colRight + barW / 2, ry, barW + 8, barH + 8, OPTION_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(4);
       this.gameObjects.push(slotBox);
     });
@@ -79,8 +88,8 @@ export class SnapMatchInteraction implements Interaction {
     left.forEach((item, i) => {
       const ly = startY + i * rowH;
       const card = scene.add
-        .rectangle(colLeft, ly, 120, 48, CLR.primarySoft)
-        .setStrokeStyle(2, CLR.primary)
+        .rectangle(colLeft, ly, 120, 48, SELECTED_BG)
+        .setStrokeStyle(2, NAVY)
         .setDepth(7)
         .setInteractive({ draggable: true, useHandCursor: true });
       const txt = scene.add
@@ -88,7 +97,7 @@ export class SnapMatchInteraction implements Interaction {
           fontSize: '18px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
-          color: HEX.primary,
+          color: NAVY_HEX,
         })
         .setOrigin(0.5)
         .setDepth(8);
@@ -120,7 +129,7 @@ export class SnapMatchInteraction implements Interaction {
           this.pairs.push([item.id, bestId]);
           // Draw connection line
           const lineG = scene.add.graphics().setDepth(6);
-          lineG.lineStyle(2, CLR.success, 1);
+          lineG.lineStyle(2, CHOICE_YES, 1);
           lineG.lineBetween(rpos.x - barW - 20 + 60, rpos.y, rpos.x - barW / 2, rpos.y);
           this.lines.push(lineG);
         } else {
@@ -134,13 +143,13 @@ export class SnapMatchInteraction implements Interaction {
 
     // Submit
     const sy = startY + rows * rowH + 32;
-    const sbg = scene.add.rectangle(centerX, sy, 200, 52, CLR.primary).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 200, 52, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check', {
         fontSize: '18px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);

@@ -4,9 +4,16 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import {
+  NAVY,
+  OPTION_BORDER,
+  SELECTED_BG,
+  SKY_BG,
+  TEXT_BODY,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 interface FracDef {
   id: string;
@@ -61,14 +68,14 @@ export class OrderInteraction implements Interaction {
     for (let si = 0; si < n; si++) {
       const sx = startX + si * (cardW + gap) + cardW / 2;
       const slot = scene.add
-        .rectangle(sx, slotY, cardW, cardH + 8, CLR.neutral100)
-        .setStrokeStyle(2, CLR.neutral300)
+        .rectangle(sx, slotY, cardW, cardH + 8, SKY_BG)
+        .setStrokeStyle(2, OPTION_BORDER)
         .setDepth(4);
       scene.add
         .text(sx, slotY + cardH / 2 + 14, `${si + 1}`, {
           fontSize: '13px',
           fontFamily: '"Nunito", system-ui, sans-serif',
-          color: HEX.neutral600,
+          color: TEXT_BODY,
         })
         .setOrigin(0.5)
         .setDepth(5);
@@ -89,7 +96,7 @@ export class OrderInteraction implements Interaction {
         numerator: frac.numerator,
         denominator: frac.denominator,
         label: frac.label,
-        fillColor: CLR.primary,
+        fillColor: NAVY,
       });
       this.bars.push(bar);
 
@@ -125,7 +132,7 @@ export class OrderInteraction implements Interaction {
         }
         this.sequence[best] = frac.id;
         handle.setPosition(startX + best * (cardW + gap) + cardW / 2, slotY);
-        slotRects[best].setFillStyle(CLR.primarySoft);
+        slotRects[best].setFillStyle(SELECTED_BG);
 
         ctx.pushEvent({
           type: 'place',
@@ -140,13 +147,13 @@ export class OrderInteraction implements Interaction {
 
     // Submit button
     const sy = centerY + 200;
-    const sbg = scene.add.rectangle(centerX, sy, 200, 52, CLR.primary).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 200, 52, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check Order', {
         fontSize: '17px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
-        color: HEX.neutral0,
+        color: TEXT_ON_FILL,
       })
       .setOrigin(0.5)
       .setDepth(8);

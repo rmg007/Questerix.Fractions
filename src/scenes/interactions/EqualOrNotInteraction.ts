@@ -4,9 +4,16 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import {
+  CHOICE_NO,
+  CHOICE_YES,
+  NAVY,
+  OPTION_BG,
+  OPTION_BORDER,
+  TEXT_ON_FILL,
+} from '../utils/levelTheme';
 
 export class EqualOrNotInteraction implements Interaction {
   readonly archetype = 'equal_or_not' as const;
@@ -21,9 +28,9 @@ export class EqualOrNotInteraction implements Interaction {
 
     // Shape display — simple visual placeholder
     const shapeG = scene.add.graphics().setDepth(5);
-    shapeG.fillStyle(CLR.neutral50, 1);
+    shapeG.fillStyle(OPTION_BG, 1);
     shapeG.fillRect(centerX - 170, centerY - 130, 340, 260);
-    shapeG.lineStyle(3, CLR.neutral300, 1);
+    shapeG.lineStyle(3, OPTION_BORDER, 1);
     shapeG.strokeRect(centerX - 170, centerY - 130, 340, 260);
     // Draw the partition lines from payload
     const payload = ctx.template.payload as { partitionLines?: number[][][]; rotation?: number };
@@ -33,7 +40,7 @@ export class EqualOrNotInteraction implements Interaction {
         const y1 = centerY - 130 + line[0]![1]! * 260;
         const x2 = centerX - 170 + line[1]![0]! * 340;
         const y2 = centerY - 130 + line[1]![1]! * 260;
-        shapeG.lineStyle(3, CLR.primary, 1);
+        shapeG.lineStyle(3, NAVY, 1);
         shapeG.lineBetween(x1, y1, x2, y2);
       }
     });
@@ -46,7 +53,7 @@ export class EqualOrNotInteraction implements Interaction {
           fontSize: '22px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
-          color: HEX.neutral0,
+          color: TEXT_ON_FILL,
         })
         .setOrigin(0.5)
         .setDepth(6);
@@ -65,8 +72,8 @@ export class EqualOrNotInteraction implements Interaction {
       this.gameObjects.push(bg, lbl, hit);
     };
 
-    makeBtn(centerX - btnW / 2 - gap / 2, '✓ Equal', true, CLR.success, 'equal-btn');
-    makeBtn(centerX + btnW / 2 + gap / 2, '✗ Not equal', false, CLR.error, 'not-equal-btn');
+    makeBtn(centerX - btnW / 2 - gap / 2, '✓ Equal', true, CHOICE_YES, 'equal-btn');
+    makeBtn(centerX + btnW / 2 + gap / 2, '✗ Not equal', false, CHOICE_NO, 'not-equal-btn');
   }
 
   unmount(): void {

@@ -5,12 +5,12 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR } from '../utils/colors';
 import { DragHandle } from '../../components/DragHandle';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import type { PartitionInput, PartitionPayload } from '../../validators/partition';
 import { log } from '../../lib/log';
+import { NAVY, OPTION_BG, OPTION_BORDER } from '../utils/levelTheme';
 
 const SHAPE_W = 340;
 const SHAPE_H = 260;
@@ -123,21 +123,21 @@ export class PartitionInteraction implements Interaction {
     const g = this.shapeGraphics;
     g.clear();
     if (shapeType === 'rectangle') {
-      g.fillStyle(CLR.neutral50, 1);
+      g.fillStyle(OPTION_BG, 1);
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
     } else {
-      g.fillStyle(CLR.neutral50, 1);
+      g.fillStyle(OPTION_BG, 1);
       g.fillCircle(cx, cy, SHAPE_W / 2);
-      g.lineStyle(3, CLR.neutral300, 1);
+      g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
     }
   }
 
   private updatePartitionLine(handleX: number, cy: number): void {
     this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, CLR.primary, 1);
+    this.partitionLine.lineStyle(4, NAVY, 1);
     const top = cy - SHAPE_H / 2;
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);

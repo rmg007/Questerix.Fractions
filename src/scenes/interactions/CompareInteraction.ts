@@ -4,11 +4,18 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../utils/colors';
 import { BarModel } from './utils';
 import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import {
+  ACCENT_B,
+  ACTION_FILL,
+  NAVY,
+  NAVY_HEX,
+  SELECTED_BG,
+  TEXT_HEADING,
+} from '../utils/levelTheme';
 
 const RELATION_TESTID: Record<'<' | '=' | '>', string> = {
   '>': 'compare-relation-gt',
@@ -67,7 +74,7 @@ export class CompareInteraction implements Interaction {
       numerator: aFrac.n,
       denominator: aFrac.d,
       label: aLabel,
-      fillColor: CLR.accentA,
+      fillColor: ACTION_FILL,
     });
     this.bars.push(aBar);
 
@@ -80,7 +87,7 @@ export class CompareInteraction implements Interaction {
       numerator: bFrac.n,
       denominator: bFrac.d,
       label: bLabel,
-      fillColor: CLR.accentB,
+      fillColor: ACCENT_B,
     });
     this.bars.push(bBar);
 
@@ -93,7 +100,7 @@ export class CompareInteraction implements Interaction {
       aFrac.d,
       {
         fontSize: '20px',
-        color: HEX.neutral900,
+        color: TEXT_HEADING,
       }
     );
     this.fractionDisplays.push(aDisplay);
@@ -104,7 +111,7 @@ export class CompareInteraction implements Interaction {
       centerY - 80 + barH + gap + barH + 30,
       bFrac.n,
       bFrac.d,
-      { fontSize: '20px', color: HEX.neutral900 }
+      { fontSize: '20px', color: TEXT_HEADING }
     );
     this.fractionDisplays.push(bDisplay);
 
@@ -119,15 +126,15 @@ export class CompareInteraction implements Interaction {
     defs.forEach(({ label, val }, i) => {
       const bx = centerX - 220 + i * 220;
       const bg = scene.add
-        .rectangle(bx, btnY, 180, 56, CLR.primarySoft)
-        .setStrokeStyle(2, CLR.primary)
+        .rectangle(bx, btnY, 180, 56, SELECTED_BG)
+        .setStrokeStyle(2, NAVY)
         .setDepth(6);
       scene.add
         .text(bx, btnY, label, {
           fontSize: '14px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
-          color: HEX.primary,
+          color: NAVY_HEX,
           align: 'center',
           wordWrap: { width: 168 },
         })
