@@ -23,7 +23,8 @@
           "SK-02"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "easy"
       },
@@ -46,7 +47,8 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "easy"
       },
@@ -60,7 +62,8 @@
         "payload": {
           "shapeType": "rectangle",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -69,7 +72,9 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "easy"
       },
@@ -92,7 +97,8 @@
           "SK-01"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "easy"
       },
@@ -106,7 +112,8 @@
         "payload": {
           "shapeType": "rectangle",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -115,7 +122,9 @@
           "SK-02"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "easy"
       },
@@ -138,7 +147,8 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "easy"
       },
@@ -184,7 +194,8 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "medium"
       },
@@ -221,7 +232,8 @@
         "payload": {
           "shapeType": "square",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -230,7 +242,9 @@
           "SK-01"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "medium"
       },
@@ -244,7 +258,8 @@
         "payload": {
           "shapeType": "rectangle",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -253,7 +268,9 @@
           "SK-02"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "medium"
       },
@@ -276,7 +293,8 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "medium"
       },
@@ -298,7 +316,8 @@
           "SK-01"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "hard"
       },
@@ -320,7 +339,8 @@
           "SK-02"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "hard"
       },
@@ -334,7 +354,8 @@
         "payload": {
           "shapeType": "rectangle",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -342,7 +363,9 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "hard"
       },
@@ -364,7 +387,8 @@
           "SK-01"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "hard"
       },
@@ -378,7 +402,8 @@
         "payload": {
           "shapeType": "rectangle",
           "targetPartitions": 2,
-          "areaTolerance": 0.05
+          "areaTolerance": 0.05,
+          "shapeScale": "small"
         },
         "correctAnswer": true,
         "validatorId": "validator.partition.equalAreas",
@@ -386,7 +411,9 @@
           "SK-02"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-SHP-01",
+          "MC-SHP-02"
         ],
         "difficultyTier": "hard"
       },
@@ -408,7 +435,8 @@
           "SK-03"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-SHP-01"
         ],
         "difficultyTier": "hard"
       },

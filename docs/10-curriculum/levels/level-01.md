@@ -308,10 +308,12 @@ The student sees a whole shape and drags a line across it to split it into 2 equ
 
 | MC ID       | Name                                                                                          | Detection signal                                                       |
 | ----------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `MC-EOL-01` | "More pieces = bigger" — student says unequal partition is equal because there are more lines | Wrong "yes" on `equal_or_not` Tier 1 cases with skewed partition       |
-| `MC-EOL-02` | "Rotated halves are unequal" — student says rotated 50/50 is unequal                          | Wrong "no" on `equal_or_not` Tier 2 with non-zero rotation             |
-| `MC-EOL-03` | "Visual symmetry = equality" — student misjudges curved partitions                            | Wrong on Tier 3 curved/skewed cases                                    |
-| `MC-WHB-01` | "Whole-number bias" — student picks shape with most highlighted regions, ignoring count       | Wrong on `identify_half` distractors with multiple highlighted regions |
+| `MC-EOL-01` | "More pieces = bigger" — student says unequal partition is equal because there are more lines | Wrong "yes" on `equal_or_not` Tier 1 cases with skewed partition                                  |
+| `MC-EOL-02` | "Rotated halves are unequal" — student says rotated 50/50 is unequal                          | Wrong "no" on `equal_or_not` Tier 2 with non-zero rotation                                        |
+| `MC-EOL-03` | "Visual symmetry = equality" — student misjudges curved partitions                            | Wrong on Tier 3 curved/skewed cases                                                               |
+| `MC-SHP-01` | "Only circles are wholes" — student balks at partitioning rectangles or squares               | Attempt time > 2× median for circle attempts AND max hints requested on L1 `partition` rectangles |
+| `MC-SHP-02` | "Bigger = more whole" — student says small shapes can't be halved                            | Error rate on `shapeScale:"small"` items > 2× error rate on large-shape items                    |
+| `MC-WHB-01` | "Whole-number bias" — student picks shape with most highlighted regions, ignoring count       | Wrong on `identify_half` distractors with multiple highlighted regions                            |
 
 Detail and intervention activities live in `../misconceptions.md` (TBD; salvage from `RoadMap/02_Level_03_05/misconceptions/MISCONCEPTIONS_FRAMEWORK.md`).
 

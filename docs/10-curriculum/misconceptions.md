@@ -235,7 +235,7 @@ Misconceptions about where fractions sit relative to landmark values.
 ## MC-SHP-01 — Whole = Circle
 
 **Detector:** detectSHP01
-**Templates baiting:** 3 (q:pt:L1:N001, q:pt:L1:N002, q:pt:L1:N003)
+**Templates baiting:** 19 (all L01 partition templates with shapeType=rectangle or square: q:pt:L1:0001–0006 easy, q:pt:L1:0002/0004/0005/0006 medium, q:pt:L1:0001–0006 hard, q:pt:L1:N001/N002/N003)
 
 | Field                | Value                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -249,7 +249,7 @@ Misconceptions about where fractions sit relative to landmark values.
 ## MC-SHP-02 — Size = Wholeness
 
 **Detector:** detectSHP02
-**Templates baiting:** 0
+**Templates baiting:** 6 (payload `shapeScale:"small"` set on q:pt:L1:0003/easy, q:pt:L1:0005/easy, q:pt:L1:0004/medium, q:pt:L1:0005/medium, q:pt:L1:0003/hard, q:pt:L1:0005/hard)
 
 | Field                | Value                                                                                           |
 | -------------------- | ----------------------------------------------------------------------------------------------- |
