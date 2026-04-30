@@ -261,7 +261,7 @@ export class Level01Scene extends Phaser.Scene {
 
     // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
     this.mascot = new Mascot(this, 720, 160, 0.75);
-    this.mascot.idle();
+    this.mascot.setState('idle');
 
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);

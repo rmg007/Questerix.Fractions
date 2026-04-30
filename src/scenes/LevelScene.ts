@@ -166,7 +166,7 @@ export class LevelScene extends Phaser.Scene {
 
     // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
     this.mascot = new Mascot(this, 720, 160, 0.75);
-    this.mascot.idle();
+    this.mascot.setState('idle');
 
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
     A11yLayer.unmountAll();
