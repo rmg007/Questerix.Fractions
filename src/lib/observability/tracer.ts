@@ -1,12 +1,10 @@
-import { WebTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { WebTracerProvider, StackContextManager, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
 import { SimpleSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { trace, type Tracer } from '@opentelemetry/api';
 
 class TracerService {
@@ -33,14 +31,14 @@ class TracerService {
 
     this.provider = new WebTracerProvider({
       resource: resourceFromAttributes({
-        [SEMRESATTRS_SERVICE_NAME]: 'questerix-fractions',
-        [SEMRESATTRS_SERVICE_VERSION]: import.meta.env.VITE_GIT_SHA || 'dev',
+        'service.name': 'questerix-fractions',
+        'service.version': import.meta.env.VITE_GIT_SHA || 'dev',
       }),
       spanProcessors,
     });
 
     this.provider.register({
-      contextManager: new ZoneContextManager(),
+      contextManager: new StackContextManager(),
     });
 
     registerInstrumentations({
