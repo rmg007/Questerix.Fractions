@@ -75,6 +75,18 @@ test.describe('Mascot on MenuScene', () => {
 });
 
 test.describe('Mascot reactions (T27) — e2e smoke', () => {
+  test('mascot sentinel is idle immediately after level loads before any answer', async ({ page }) => {
+    await navigateToLevel01(page);
+
+    // The sentinel must already carry data-state="idle" from the moment the
+    // level scene finishes constructing — before any answer is submitted.
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'idle',
+      { timeout: 3000 }
+    );
+  });
+
   test('correct answer sets mascot sentinel to cheer', async ({ page }) => {
     await navigateToLevel01(page);
 
