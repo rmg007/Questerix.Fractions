@@ -4,6 +4,9 @@
  * per interaction-model.md §2 (feedback timing), §6.1 (success), §5.2 (failure)
  * per design-language.md §6.1 (snap pulse 180–240ms), §2.3 (semantic tokens)
  *
+ * Entry animations: correct = bounce-in + star burst; incorrect = shake; close = pulse.
+ * Reduced-motion: instant show, no animations.
+ *
  * Plain class (not a Phaser Container) to avoid name conflicts.
  */
 
@@ -51,6 +54,9 @@ export class FeedbackOverlay {
   private iconGO: Phaser.GameObjects.Text;
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
+  private readonly cx: number;
+  private readonly cy: number;
+  private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
   /** Subscribe to dismiss events. */
   readonly events: Phaser.Events.EventEmitter;
@@ -61,8 +67,11 @@ export class FeedbackOverlay {
     this.scene = scene;
     this.events = new Phaser.Events.EventEmitter();
 
-    const cx = width / 2;
-    const cy = height / 2;
+    this.cx = width / 2;
+    this.cy = height / 2;
+
+    const cx = this.cx;
+    const cy = this.cy;
 
     // Background panel — spans full width, 200px tall
     this.bg = scene.add
@@ -102,10 +111,6 @@ export class FeedbackOverlay {
     const cfg = KIND_CONFIG[kind];
     const reduceMotion = this.checkReduceMotion();
 
-    // Optional `text` override lets callers (e.g. LevelScene routing through
-    // the Quest microcopy catalog per ux-elevation §9 T28) supply the visible
-    // label while keeping the per-kind color + icon. Falls back to the
-    // baked-in label when omitted, so legacy two-arg callers are unchanged.
     const labelText = text && text.trim().length > 0 ? text : cfg.text;
 
     this.bg.setFillStyle(cfg.bg, 0.97);
@@ -115,15 +120,19 @@ export class FeedbackOverlay {
     this.iconGO.setAlpha(1);
     this.label.setAlpha(1);
 
+    // Reset scale/position in case a previous tween left them non-unit
+    this.bg.setScale(1);
+    this.iconGO.setScale(1);
+    this.label.setScale(1);
+    this.bg.setX(this.cx);
+    this.iconGO.setX(this.cx - 220);
+    this.label.setX(this.cx + 20);
+
     this.dismissTimer?.remove(false);
 
     // ── Test hooks ─────────────────────────────────────────────────────────
-    // Mirror the visible label text onto the sentinel so e2e specs can
-    // assert on the actual displayed copy (Quest line vs. baked default)
-    // per ux-elevation §9 T28 — feedback wiring smoke.
     TestHooks.mountSentinel('feedback-overlay');
     TestHooks.setText('feedback-overlay', labelText);
-    // feedback-next-btn: interactive button; clicking it immediately dismisses overlay
     TestHooks.mountInteractive(
       'feedback-next-btn',
       () => {
@@ -146,8 +155,19 @@ export class FeedbackOverlay {
       onDismiss?.();
     };
 
+    // ── Entry animations (skipped for prefers-reduced-motion) ────────────────
+    if (!reduceMotion) {
+      if (kind === 'correct') {
+        this.animateBounceIn();
+        this.burstStarParticles();
+      } else if (kind === 'incorrect') {
+        this.animateShake();
+      } else if (kind === 'close') {
+        this.animatePulse();
+      }
+    }
+
     if (reduceMotion) {
-      // per design-language.md §6.4 — instant state change
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, dismiss);
     } else {
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, () => {
@@ -162,10 +182,106 @@ export class FeedbackOverlay {
     }
   }
 
+  // ── Entry animations ────────────────────────────────────────────────────
+
+  /** Correct: panel scales in from 0.7 using Back.easeOut (~200ms). */
+  private animateBounceIn(): void {
+    this.bg.setScale(0.7);
+    this.iconGO.setScale(0.7);
+    this.label.setScale(0.7);
+
+    this.scene.tweens.add({
+      targets: [this.bg, this.iconGO, this.label],
+      scaleX: 1,
+      scaleY: 1,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
+  }
+
+  /**
+   * Incorrect: left-right shake ~4px, 3 cycles, ~250ms.
+   * Tweens .x of all three objects together using yoyo repeat.
+   */
+  private animateShake(): void {
+    const SHAKE_PX = 4;
+    const targets = [
+      { obj: this.bg, baseX: this.cx },
+      { obj: this.iconGO, baseX: this.cx - 220 },
+      { obj: this.label, baseX: this.cx + 20 },
+    ];
+
+    for (const { obj, baseX } of targets) {
+      obj.setX(baseX - SHAKE_PX);
+      this.scene.tweens.add({
+        targets: obj,
+        x: baseX + SHAKE_PX,
+        duration: 42,
+        ease: 'Linear',
+        yoyo: true,
+        repeat: 5,
+        onComplete: () => {
+          obj.setX(baseX);
+        },
+      });
+    }
+  }
+
+  /** Close: gentle pulse scale 1.0→1.05→1.0 (~250ms). */
+  private animatePulse(): void {
+    this.scene.tweens.add({
+      targets: [this.bg, this.iconGO, this.label],
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 125,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: 0,
+    });
+  }
+
+  /** Correct: short burst of yellow/gold star particles from icon position. */
+  private burstStarParticles(): void {
+    if (!this.scene.textures.exists('clr-accentA')) return;
+
+    const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
+    for (const tint of starColors) {
+      const emitter = this.scene.add.particles(this.iconGO.x, this.iconGO.y, 'clr-accentA', {
+        lifespan: 550,
+        speed: { min: 40, max: 160 },
+        scale: { start: 7, end: 0 },
+        alpha: { start: 1, end: 0 },
+        tint,
+        angle: { min: -160, max: -20 },
+        gravityY: 200,
+        quantity: 3,
+        emitting: false,
+      });
+      emitter.setDepth(this.bg.depth + 5);
+      emitter.explode(3);
+      this.activeParticleEmitters.push(emitter);
+      this.scene.time.delayedCall(700, () => {
+        const idx = this.activeParticleEmitters.indexOf(emitter);
+        if (idx !== -1) {
+          this.activeParticleEmitters.splice(idx, 1);
+          emitter.destroy();
+        }
+      });
+    }
+  }
+
+  // ── Internal ─────────────────────────────────────────────────────────────
+
   private hide(): void {
-    this.bg.setVisible(false).setAlpha(1);
-    this.iconGO.setVisible(false).setAlpha(1);
-    this.label.setVisible(false).setAlpha(1);
+    this.bg.setVisible(false).setAlpha(1).setScale(1);
+    this.iconGO.setVisible(false).setAlpha(1).setScale(1);
+    this.label.setVisible(false).setAlpha(1).setScale(1);
+    // Restore original x positions
+    this.bg.setX(this.cx);
+    this.iconGO.setX(this.cx - 220);
+    this.label.setX(this.cx + 20);
+    for (const e of this.activeParticleEmitters) e.destroy();
+    this.activeParticleEmitters = [];
   }
 
   private checkReduceMotion(): boolean {
@@ -182,6 +298,7 @@ export class FeedbackOverlay {
     this.bg.destroy();
     this.iconGO.destroy();
     this.label.destroy();
+    for (const e of this.activeParticleEmitters) e.destroy();
+    this.activeParticleEmitters = [];
   }
 }
-

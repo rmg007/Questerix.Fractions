@@ -22,6 +22,7 @@ import {
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
+import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
@@ -37,7 +38,6 @@ import { Mascot } from '../components/Mascot';
 // and session-complete copy through `getCopy('quest.…')` so Quest's voice
 // stays consistent and localizable without scene-side string literals.
 import { get as getCopy } from '../lib/i18n/catalog';
-import { resolveQuestName } from '../lib/persona/quest';
 import { fadeAndStart } from './utils/sceneTransition';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
@@ -61,15 +61,6 @@ export class LevelScene extends Phaser.Scene {
   protected levelNumber: number = 1;
   private studentId: string | null = null;
   private sessionId: string | null = null;
-  /**
-   * Cached Quest-facing display name for the active student. Resolved from
-   * Dexie inside `openSession()` and consumed once per session by
-   * `showSessionComplete()` (Quest names the player at most once per
-   * §4 of the persona bible). Reset to `null` in `init()` so a previous
-   * student's name cannot leak into a later anonymous session.
-   */
-  private studentDisplayName: string | null = null;
-
   // Session state
   private questionIndex: number = 0;
   private attemptCount: number = 0;
@@ -117,11 +108,6 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
-    // Reset the cached display name on every scene init so a previous
-    // student's name can't leak into a later anonymous session-complete
-    // line. `openSession()` re-resolves it from Dexie when a studentId
-    // is bound; otherwise `resolveQuestName(null)` falls back to "friend".
-    this.studentDisplayName = null;
     log.scene('init', {
       level: this.levelNumber,
       studentId: this.studentId,
@@ -824,18 +810,6 @@ export class LevelScene extends Phaser.Scene {
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
 
-      // Resolve the Quest-facing display name once, here, before any
-      // gameplay can fire `showSessionComplete()`. Failures are non-fatal —
-      // `resolveQuestName(null)` falls back to "friend" at render time.
-      try {
-        const { studentRepo } = await import('../persistence/repositories/student');
-        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
-        this.studentDisplayName = student?.displayName ?? null;
-      } catch (err) {
-        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
-        this.studentDisplayName = null;
-      }
-
       const { sessionRepo } = await import('../persistence/repositories/session');
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
       const id = nanoid() as import('@/types').SessionId;
@@ -1011,114 +985,29 @@ export class LevelScene extends Phaser.Scene {
       accuracy,
       avgResponseMs,
     });
-    TestHooks.mountSentinel('completion-screen');
-
-    this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
-
-    // Sky-blue card with navy border
-    const cardG = this.add.graphics().setDepth(51);
-    cardG.fillStyle(0xe0f2fe, 1);
-    cardG.fillRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-    cardG.lineStyle(5, 0x1e3a8a, 1);
-    cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-
-    // Quest closes the session per ux-elevation §4: she names the player
-    // *exactly once* per session, here. `resolveQuestName` falls back to
-    // "friend" when no display name is on file.
-    const completionLine = getCopy('quest.complete.named', {
-      name: resolveQuestName(this.studentDisplayName),
-    });
-
-    this.add
-      .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
-        fontSize: '36px',
-        fontFamily: TITLE_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
-
-    this.add
-      .text(CW / 2, CH / 2 - 60, completionLine, {
-        fontSize: '24px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
-
-    this.add
-      .text(CW / 2, CH / 2 - 20, `You finished ${this.attemptCount} problems!`, {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
 
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
-    // Amber "Keep going" action button
-    // G-C7/G-UX6: advance to the next level. If already on the last level (9), go to menu.
-    createActionButton(
-      this,
-      CW / 2,
-      CH / 2 + 60,
-      'Keep going ▶',
-      () => {
-        const nextLevel = this.levelNumber + 1;
-        if (nextLevel > 9) {
-          // All levels complete — congratulate and return to menu
-          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId, allComplete: true });
-        } else {
-          fadeAndStart(this, 'LevelScene', {
-            levelNumber: nextLevel,
-            studentId: this.studentId,
-          });
-        }
+    new SessionCompleteOverlay({
+      scene: this,
+      levelNumber: this.levelNumber,
+      correctCount: this.correctCount,
+      totalAttempts: this.responseTimes.length,
+      width: CW,
+      height: CH,
+      onPlayAgain: () => {
+        fadeAndStart(this, 'LevelScene', {
+          levelNumber: this.levelNumber,
+          studentId: this.studentId,
+        });
       },
-      52
-    );
-
-    // Secondary "Back to menu" button
-    this.makeModalBtn(CW / 2, CH / 2 + 160, 'Back to menu', () => {
-      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      onMenu: () => {
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      },
     });
 
-    // Lead the screen-reader announcement with Quest's voice (the named
-    // closing line) and append the factual problem count for context.
-    AccessibilityAnnouncer.announce(
-      `${completionLine} You finished ${this.attemptCount} problems.`
-    );
     void this.closeSession();
-  }
-
-  private makeModalBtn(x: number, y: number, label: string, onTap: () => void): void {
-    const W = 320,
-      H = 56,
-      R = 28;
-    const g = this.add.graphics().setDepth(52);
-    g.fillStyle(0xffffff, 1);
-    g.fillRoundedRect(x - W / 2, y - H / 2, W, H, R);
-    g.lineStyle(4, 0x1e3a8a, 1);
-    g.strokeRoundedRect(x - W / 2, y - H / 2, W, H, R);
-    this.add
-      .text(x, y, label, {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(53);
-    this.add
-      .rectangle(x, y, W, H, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(54)
-      .on('pointerup', onTap);
   }
 
   private async closeSession(): Promise<void> {
@@ -1127,7 +1016,7 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
+      const accuracy = this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1135,7 +1024,7 @@ export class LevelScene extends Phaser.Scene {
 
       const summary = {
         endedAt: Date.now(),
-        totalAttempts: this.attemptCount,
+        totalAttempts: this.responseTimes.length,
         correctAttempts: this.correctCount,
         accuracy,
         avgResponseMs,

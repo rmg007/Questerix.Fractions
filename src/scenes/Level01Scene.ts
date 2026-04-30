@@ -24,6 +24,7 @@ import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { DragHandle } from '../components/DragHandle';
 import { FeedbackOverlay } from '../components/FeedbackOverlay';
+import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
@@ -34,7 +35,6 @@ import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
 import { get as getCopy } from '../lib/i18n/catalog';
-import { resolveQuestName } from '../lib/persona/quest';
 import { Mascot } from '../components/Mascot';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
@@ -125,13 +125,6 @@ export class Level01Scene extends Phaser.Scene {
   // Session state
   private studentId: string | null = null;
   private sessionId: string | null = null;
-  /**
-   * Cached Quest-facing display name for the active student. Resolved from
-   * Dexie inside `openSession()` and consumed once per session by
-   * `showSessionComplete()`. Reset to `null` in `init()` so a previous
-   * student's name cannot leak into a later anonymous session.
-   */
-  private studentDisplayName: string | null = null;
   private questionIndex: number = 0;
   private attemptCount: number = 0; // total across session
   private wrongCount: number = 0; // wrong attempts on current question
@@ -186,9 +179,6 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
-    // Reset cached display name on every scene init so a previous student's
-    // name cannot leak into a later anonymous session-complete line.
-    this.studentDisplayName = null;
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -346,18 +336,6 @@ export class Level01Scene extends Phaser.Scene {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
-
-      // Resolve the Quest-facing display name once per session so
-      // `showSessionComplete()` can name the player. Failures are non-fatal —
-      // `resolveQuestName(null)` falls back to "friend" at render time.
-      try {
-        const { studentRepo } = await import('../persistence/repositories/student');
-        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
-        this.studentDisplayName = student?.displayName ?? null;
-      } catch (err) {
-        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
-        this.studentDisplayName = null;
-      }
 
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
@@ -1274,126 +1252,26 @@ export class Level01Scene extends Phaser.Scene {
           ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
           : null,
     });
-    TestHooks.mountSentinel('completion-screen');
-
-    // Dim background
-    void this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x1e3a8a, 0.45).setDepth(50);
-
-    // Card — white rounded card matching the adventure theme
-    const cardG = this.add.graphics().setDepth(51);
-    cardG.fillStyle(0xe0f2fe, 1);
-    cardG.fillRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-    cardG.lineStyle(5, 0x1e3a8a, 1);
-    cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
-
-    // Quest closes the session per ux-elevation §4: she names the player
-    // *exactly once* per session, here. `resolveQuestName` falls back to
-    // "friend" when no display name is on file.
-    const completionLine = getCopy('quest.complete.named', {
-      name: resolveQuestName(this.studentDisplayName),
-    });
-
-    this.add
-      .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
-        fontSize: '36px',
-        fontFamily: TITLE_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
-
-    this.add
-      .text(CW / 2, CH / 2 - 60, completionLine, {
-        fontSize: '24px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
-
-    this.add
-      .text(CW / 2, CH / 2 - 20, `You finished ${this.attemptCount} problems!`, {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(52);
 
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
 
-    // "Keep going" — amber action button
-    // G-C7/G-UX6: advance to Level 2 (LevelScene) rather than looping within Level 1.
-    void createActionButton(
-      this,
-      CW / 2,
-      CH / 2 + 60,
-      'Keep going ▶',
-      () => {
-        fadeAndStart(this, 'LevelScene', {
-          levelNumber: 2,
-          studentId: this.studentId,
-        });
+    new SessionCompleteOverlay({
+      scene: this,
+      levelNumber: 1,
+      correctCount: this.correctCount,
+      totalAttempts: this.totalQuestionsAttempted,
+      width: CW,
+      height: CH,
+      onPlayAgain: () => {
+        fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
       },
-      52
-    );
-
-    // "Back to menu" — secondary button
-    this.createModalButton(
-      CW / 2,
-      CH / 2 + 160,
-      'Back to menu',
-      0xffffff,
-      NAVY_HEX,
-      () => {
+      onMenu: () => {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
-      52
-    );
+    });
 
-    // Lead the screen-reader announcement with Quest's voice (the named
-    // closing line) and append the factual problem count for context.
-    AccessibilityAnnouncer.announce(
-      `${completionLine} You finished ${this.attemptCount} problems.`
-    );
-
-    // Close session in persistence
     await this.closeSession();
-  }
-
-  private createModalButton(
-    x: number,
-    y: number,
-    label: string,
-    bg: number,
-    textColor: string,
-    onTap: () => void,
-    depth: number
-  ): void {
-    const g = this.add.graphics().setDepth(depth);
-    g.fillStyle(bg, 1);
-    g.fillRoundedRect(x - 160, y - 28, 320, 56, 28);
-    g.lineStyle(4, 0x1e3a8a, 1);
-    g.strokeRoundedRect(x - 160, y - 28, 320, 56, 28);
-
-    this.add
-      .text(x, y, label, {
-        fontSize: '20px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: textColor,
-      })
-      .setOrigin(0.5)
-      .setDepth(depth + 1);
-
-    this.add
-      .rectangle(x, y, 320, 56, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(depth + 2)
-      .on('pointerup', onTap);
   }
 
   private async closeSession(): Promise<void> {
