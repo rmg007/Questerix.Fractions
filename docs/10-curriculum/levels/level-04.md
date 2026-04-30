@@ -105,6 +105,8 @@ The student sees a whole shape. They drag a single line across it to split into 
 
 ```jsonc
 // Easy — axis-aligned rectangle with soft snap to vertical or horizontal centerline
+// MC-EOL-01 tag: student with "any two pieces = halves" misconception may accept a
+// clearly off-center snap position without noticing the areas are unequal.
 {
   "id": "q:mh:L4:0001",
   "type": "partition",
@@ -118,7 +120,7 @@ The student sees a whole shape. They drag a single line across it to split into 
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
   "skillIds": ["KC-PRODUCTION-1"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-EOL-01"],
   "difficultyTier": "easy"
 }
 
@@ -194,6 +196,8 @@ This activity targets a different mental model than region halving. From the Lea
 
 ```jsonc
 // Easy — short ribbon with tick marks and snap
+// MC-EOL-01 tag: student who thinks "any mark divides it" may snap to a
+// non-midpoint tick and accept it as "the middle" without checking equality.
 {
   "id": "q:htl:L4:0001",
   "type": "placement",
@@ -207,7 +211,7 @@ This activity targets a different mental model than region halving. From the Lea
   "correctAnswer": 0.5,
   "validatorId": "validator.placement.midpoint",
   "skillIds": ["KC-PRODUCTION-1"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-EOL-01"],
   "difficultyTier": "easy"
 }
 
@@ -277,13 +281,14 @@ This is consistent with Pedagogical Philosophy §IV (Universal Design for Learni
 
 | MC ID               | Name                                                                                                                              | Detection signal                                                                                                      |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `MC-EOL-01`         | "Any two pieces = halves" (carried from L1) — student accepts any partition into two parts as equal halves without checking areas | Wrong or no-retry on `make_halves` / `halve_the_length` Easy templates; `KC-PRODUCTION-1` not advancing despite many attempts |
 | `MC-L4-CENTER-01`   | "Off-center halves are halves" — student drops the partition line within 5–15% of center and accepts it without retry             | `outcome === "WRONG"` on `make_halves` Medium with `errorMagnitude` between 0.05 and 0.15, and student does not retry |
 | `MC-L4-SYMMETRY-01` | "Visual symmetry alone = equal halves" — for irregular blobs, student picks the visually obvious axis even when areas are unequal | Wrong on `make_halves` Hard with irregular blob and partition along visual axis-of-symmetry                           |
 | `MC-L4-LEFTBIAS-01` | "Left-of-center bias" — student systematically places midpoint marker leftward (cultural/reading-direction artifact)              | Average `errorMagnitude` on `halve_the_length` is consistently negative (leftward) across 5+ attempts                 |
 | `MC-L4-NORETRY-01`  | "First answer = final answer" — failure to self-check (M3 generalized)                                                            | Low retry rate on `make_halves` after WRONG outcome; `KC-PRODUCTION-1` not advancing                                  |
 | `MC-L4-AXIS-01`     | "Halving means vertical-line-down-middle only" (M2 generalized) — student always drags vertical lines even on rotated shapes      | Wrong on `make_halves` Hard with rotated rectangles when student draws the world-vertical (not shape-vertical) axis   |
 
-These map to misconceptions **M3, M7, M8** in `MISCONCEPTIONS_FRAMEWORK.md`, plus two new L4-specific ones (CENTER-01, LEFTBIAS-01).
+These map to misconceptions **M3, M7** in `MISCONCEPTIONS_FRAMEWORK.md`, plus the carried `MC-EOL-01` (M3 base form) and three new L4-specific ones (CENTER-01, LEFTBIAS-01, NORETRY-01).
 
 ---
 
