@@ -1,0 +1,121 @@
+name: Validation Cycle Ingestion (L2)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # daily at 02:00 UTC
+  push:
+    paths:
+      - 'validation-data/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: validation-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Kill switch — check AGENT_AUTONOMY_ENABLED
+        run: |
+          if [ "${{ vars.AGENT_AUTONOMY_ENABLED }}" != "true" ]; then
+            echo "::notice::AGENT_AUTONOMY_ENABLED is not 'true'. Skipping validation ingestion."
+            exit 0
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Find unprocessed validation cycles
+        id: find-cycles
+        run: |
+          UNPROCESSED=()
+          for dir in validation-data/cycle-*/; do
+            if [ ! -f "$dir.ingested" ]; then
+              UNPROCESSED+=("$dir")
+            fi
+          done
+          if [ ${#UNPROCESSED[@]} -eq 0 ]; then
+            echo "::notice::No unprocessed validation cycles found."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          NOTES_DIR="${UNPROCESSED[0]}"
+          CYCLE_ID=$(basename "$NOTES_DIR")
+          echo "NOTES_DIR=$NOTES_DIR" >> "$GITHUB_ENV"
+          echo "CYCLE_ID=$CYCLE_ID" >> "$GITHUB_ENV"
+          echo "notes_dir=$NOTES_DIR" >> "$GITHUB_OUTPUT"
+          echo "cycle_id=$CYCLE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node 24
+        if: steps.find-cycles.outputs.found == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.find-cycles.outputs.found == 'true'
+        run: npm ci
+
+      - name: Create ingestion branch
+        if: steps.find-cycles.outputs.found == 'true'
+        run: |
+          INGEST_BRANCH="feat/$(date +%Y-%m-%d)-ingest-${CYCLE_ID}"
+          echo "INGEST_BRANCH=$INGEST_BRANCH" >> "$GITHUB_ENV"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$INGEST_BRANCH"
+          git push -u origin "$INGEST_BRANCH"
+
+      - name: Dispatch agent
+        if: steps.find-cycles.outputs.found == 'true'
+        id: agent
+        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        with:
+          prompt_template: validation-ingestion
+          context_json: >-
+            {"NOTES_DIR": "${{ steps.find-cycles.outputs.notes_dir }}", "CYCLE_ID": "${{ steps.find-cycles.outputs.cycle_id }}"}
+          working_branch: ${{ env.INGEST_BRANCH }}
+          timeout_minutes: 30
+        secrets:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Open pull request
+        if: >-
+          steps.find-cycles.outputs.found == 'true' &&
+          (steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial')
+        run: |
+          gh pr create \
+            --title "feat(validation): ingest ${CYCLE_ID} session notes" \
+            --body "$(printf 'Automated ingestion of %s validation cycle.\n\nExtracts: new bugs → CLAUDE.md, misconception drafts → docs/10-curriculum/misconceptions.md, calibration notes → src/engine/calibration.ts\n\nAgent summary:\n%s' "$CYCLE_ID" "${{ steps.agent.outputs.summary }}")" \
+            --head "$INGEST_BRANCH" \
+            --base main
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Append telemetry
+        if: steps.find-cycles.outputs.found == 'true'
+        run: |
+          mkdir -p .github/telemetry
+          echo '{"workflow":"validation-ingest","run_id":"${{ github.run_id }}","cycle_id":"${{ steps.find-cycles.outputs.cycle_id }}","outcome":"${{ steps.agent.outputs.outcome }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' \
+            >> .github/telemetry/agent-runs.jsonl
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/telemetry/agent-runs.jsonl
+          git diff --cached --quiet || git commit -m "chore(telemetry): log validation-ingest run ${{ github.run_id }}"
+          git push origin HEAD:main || true
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
