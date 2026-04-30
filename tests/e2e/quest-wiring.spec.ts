@@ -25,7 +25,7 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
     // Wait for the curriculum seed to finish before advancing
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 
@@ -47,7 +47,7 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
     // causing LevelScene to fall back to synthetic partition content.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 

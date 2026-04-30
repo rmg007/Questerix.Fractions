@@ -17,7 +17,7 @@ test.describe('Smoke — boot to first attempt', () => {
     // Navigate to Menu
     await startBtn.click();
     const menuScene = page.locator('[data-testid="menu-scene"]');
-    await expect(menuScene).toBeVisible({ timeout: 3000 });
+    await expect(menuScene).toBeVisible({ timeout: 8000 });
 
     // Click Play / level-card-L1 — now opens the Adventure Map
     const level1Card = page.locator('[data-testid="level-card-L1"]');

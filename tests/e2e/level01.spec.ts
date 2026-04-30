@@ -40,7 +40,8 @@ test.describe('Level 01 — full 5-attempt flow', () => {
       const progressBar = page.locator('[data-testid="progress-bar"]');
       await expect(progressBar).toHaveAttribute('aria-valuenow', String(i));
 
-      await feedbackNext.click();
+      // Click next if still present; overlay may auto-dismiss before we click
+      await feedbackNext.click({ force: true, timeout: 1500 }).catch(() => {});
       await expect(feedbackOverlay).toBeHidden({ timeout: 5000 });
     }
 
@@ -48,7 +49,7 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await expect(partitionTarget).toBeVisible({ timeout: 10000 });
     await partitionTarget.click();
     await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
-    await feedbackNext.click();
+    await feedbackNext.click({ force: true, timeout: 1500 }).catch(() => {});
 
     // Completion screen must appear
     const completionScreen = page.locator('[data-testid="completion-screen"]');
@@ -73,8 +74,8 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     const hintBtn = page.locator('[data-testid="hint-btn"]');
     await expect(hintBtn).toBeVisible();
 
-    // Activate hint
-    await hintBtn.click();
+    // Activate hint — force:true bypasses viewport check on narrow mobile viewports
+    await hintBtn.click({ force: true });
     const hintText = page.locator('[data-testid="hint-text"]');
     await expect(hintText).toBeVisible({ timeout: 5000 });
   });

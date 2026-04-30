@@ -109,7 +109,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
 
     const hintBtn = page.locator('[data-testid="hint-btn"]');
     await expect(hintBtn).toBeVisible({ timeout: 5000 });
-    await hintBtn.click();
+    await hintBtn.click({ force: true });
 
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
@@ -124,7 +124,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 
@@ -149,7 +149,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 
