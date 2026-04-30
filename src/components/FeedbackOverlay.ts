@@ -258,7 +258,6 @@ export class FeedbackOverlay {
 
     // S3-T2: 12-14 particles in warm palette, drifting upward with alpha fade
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
-    let particleCount = 0;
     const maxParticles = 14;
     for (const tint of starColors) {
       // Emit ~3 per color to reach ~14-15 total
@@ -276,7 +275,6 @@ export class FeedbackOverlay {
       });
       emitter.setDepth(this.bg.depth + 5);
       emitter.explode(perColor);
-      particleCount += perColor;
       this.activeParticleEmitters.push(emitter);
       this.scene.time.delayedCall(800, () => {
         const idx = this.activeParticleEmitters.indexOf(emitter);
@@ -302,7 +300,6 @@ export class FeedbackOverlay {
     this.activeParticleEmitters = [];
     TestHooks.unmount('sparkle-burst');
   }
-
 
   destroy(): void {
     this.dismissTimer?.remove(false);

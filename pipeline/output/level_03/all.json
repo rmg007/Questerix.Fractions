@@ -2,7 +2,7 @@
   {
     "id": "q:eo:L3:0001",
     "archetype": "equal_or_not",
-    "prompt": { "text": "Are these parts equal?", "ttsKey": "q_eo_l3_0001" },
+    "prompt": { "text": "Are these two parts equal?", "ttsKey": "q_eo_l3_0001" },
     "payload": {
       "partitionLines": [[[0.5, 0], [0.5, 1]]],
       "correctAnswer": true

@@ -143,11 +143,15 @@ def check_numeric_sanity(templates: list[dict]) -> CheckResult:
 
         elif arch == "compare":
             ca = t.get("correctAnswer")
-            if ca in ("A", "B", "equal"):
+            # Accept legacy A/B/equal format OR newer {trueRelation: '>/<=/='} format
+            valid = ca in ("A", "B", "equal") or (
+                isinstance(ca, dict) and ca.get("trueRelation") in (">", "<", "=")
+            )
+            if valid:
                 result.passed += 1
             else:
                 result.failed += 1
-                result.errors.append(f"{tid}: compare correctAnswer {ca!r} not in A/B/equal")
+                result.errors.append(f"{tid}: compare correctAnswer {ca!r} not in A/B/equal or {{trueRelation}}")
 
         else:
             # No numeric check defined yet for this archetype — count as pass
@@ -283,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify a Questerix curriculum seed file")
     parser.add_argument("--in", dest="infile", required=True, help="Path to JSON seed or templates file")
     parser.add_argument("--templates-only", action="store_true", help="Input is a bare array of templates")
+    parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
     parser.add_argument("--out", help="Write report JSON to this path (default: stdout)")
     args = parser.parse_args(argv)
 
@@ -305,6 +310,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if report.failed > 0:
         print(f"\nFAILED: {report.failed} checks failed", file=sys.stderr)
+        return 1
+    if args.strict and report.warnings > 0:
+        print(f"\nFAILED (strict): {report.warnings} warnings", file=sys.stderr)
         return 1
     print(f"\nPASSED: {report.passed} checks, {report.warnings} warnings")
     return 0

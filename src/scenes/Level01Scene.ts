@@ -609,9 +609,9 @@ export class Level01Scene extends Phaser.Scene {
    * tightens as the student approaches mastery.
    */
   private snapPctForMastery(estimate: number): number {
-    if (estimate < 0.3) return 0.20; // very forgiving
+    if (estimate < 0.3) return 0.2; // very forgiving
     if (estimate < 0.65) return 0.15; // standard
-    return 0.10; // precise — student is near mastery
+    return 0.1; // precise — student is near mastery
   }
 
   /**

@@ -95,7 +95,9 @@ export class OnboardingScene extends Phaser.Scene {
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         this.cameras.main.fadeIn(400, 0, 0, 0);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // ── Title ─────────────────────────────────────────────────────────────────
     this.add
@@ -177,16 +179,18 @@ export class OnboardingScene extends Phaser.Scene {
     });
 
     // ── Test hooks ────────────────────────────────────────────────────────────
-    TestHooks.mountInteractive(
-      'onboarding-skip-btn',
-      () => this.completeOnboarding(),
-      { width: '200px', height: '44px', top: '93%', left: '50%' }
-    );
-    TestHooks.mountInteractive(
-      'onboarding-action-btn',
-      () => this.onActionTap(),
-      { width: '320px', height: '64px', top: '82%', left: '50%' }
-    );
+    TestHooks.mountInteractive('onboarding-skip-btn', () => this.completeOnboarding(), {
+      width: '200px',
+      height: '44px',
+      top: '93%',
+      left: '50%',
+    });
+    TestHooks.mountInteractive('onboarding-action-btn', () => this.onActionTap(), {
+      width: '320px',
+      height: '64px',
+      top: '82%',
+      left: '50%',
+    });
 
     // Draw shape and start tutorial
     this.drawShape();
@@ -409,7 +413,9 @@ export class OnboardingScene extends Phaser.Scene {
   private completeOnboarding(): void {
     try {
       localStorage.setItem(ONBOARDING_SEEN_KEY, '1');
-    } catch { /* ignore storage errors */ }
+    } catch {
+      /* ignore storage errors */
+    }
 
     tts.stop();
     A11yLayer.unmountAll();

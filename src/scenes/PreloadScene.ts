@@ -164,5 +164,4 @@ export class PreloadScene extends Phaser.Scene {
       fadeAndStart(this, 'MenuScene', { lastStudentId: this.lastStudentId });
     });
   }
-
 }

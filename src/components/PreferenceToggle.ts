@@ -25,7 +25,8 @@ const CONTAINER_ID = 'qf-pref-toggles';
 
 function getOrCreateContainer(): HTMLElement {
   // C5.8: guard against SSR/SSG environments where document is not available
-  if (typeof document === 'undefined') throw new Error('PreferenceToggle requires a browser environment');
+  if (typeof document === 'undefined')
+    throw new Error('PreferenceToggle requires a browser environment');
   let el = document.getElementById(CONTAINER_ID);
   if (!el) {
     el = document.createElement('div');

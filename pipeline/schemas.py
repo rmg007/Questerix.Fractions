@@ -151,8 +151,8 @@ class QuestionTemplate(BaseModel, extra="forbid"):
     @classmethod
     def skill_ids_format(cls, v: list[str]) -> list[str]:
         for sid in v:
-            if not sid.startswith("SK-"):
-                raise ValueError(f"skillId must start with 'SK-': {sid}")
+            if not (sid.startswith("SK-") or sid.startswith("skill:")):
+                raise ValueError(f"skillId must start with 'SK-' or 'skill:': {sid}")
         return v
 
     @field_validator("misconceptionTraps")

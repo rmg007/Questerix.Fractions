@@ -202,10 +202,17 @@ export class CompareInteraction implements Interaction {
 
     this._overlayGfx.push(overlay);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+      this._scene.time.delayedCall(3000, () => {
+        overlay.destroy();
+      });
     } else {
       this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+        this._scene.tweens.add({
+          targets: overlay,
+          alpha: 0,
+          duration: 400,
+          onComplete: () => overlay.destroy(),
+        });
       });
     }
   }

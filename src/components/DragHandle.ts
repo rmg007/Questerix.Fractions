@@ -213,5 +213,4 @@ export class DragHandle {
       this.scene.input.keyboard?.off('keydown', this.keyHandler);
     }
   }
-
 }

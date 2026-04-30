@@ -253,6 +253,24 @@ compare_greater_than = ValidatorRegistration(
 )
 
 
+def _compare_relation(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    expected: { "trueRelation": ">"|"<"|"=" }
+    input:    { "studentRelation": ">"|"<"|"=" }
+    """
+    if input_.get("studentRelation") == expected.get("trueRelation"):
+        return ValidatorResult("correct", 1.0)
+    return ValidatorResult("incorrect", 0.0)
+
+
+compare_relation = ValidatorRegistration(
+    id="validator.compare.relation",
+    archetype="compare",
+    variant="relation",
+    fn=_compare_relation,
+)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. benchmark
 # ─────────────────────────────────────────────────────────────────────────────
@@ -273,6 +291,29 @@ benchmark_closest = ValidatorRegistration(
     archetype="benchmark",
     variant="closestBenchmark",
     fn=_benchmark_closest,
+)
+
+
+def _benchmark_sort_to_zone(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    expected: { "correctPlacements": { fracId: zone } }
+    input:    { "studentPlacements": { fracId: zone } }
+    """
+    correct: dict = expected.get("correctPlacements", {})
+    student: dict = input_.get("studentPlacements", {})
+    if not correct:
+        return ValidatorResult("correct", 1.0)
+    wrong = sum(1 for fid, zone in correct.items() if student.get(fid) != zone)
+    if wrong == 0:
+        return ValidatorResult("correct", 1.0)
+    return ValidatorResult("incorrect", 0.0)
+
+
+benchmark_sort_to_zone = ValidatorRegistration(
+    id="validator.benchmark.sortToZone",
+    archetype="benchmark",
+    variant="sortToZone",
+    fn=_benchmark_sort_to_zone,
 )
 
 
@@ -326,6 +367,26 @@ snap_match_equivalence = ValidatorRegistration(
     archetype="snap_match",
     variant="equivalence",
     fn=_snap_match_equivalence,
+)
+
+
+def _snap_match_all_pairs(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    expected: { "expectedPairs": [[leftId, rightId], ...] }
+    input:    { "studentPairs": [[leftId, rightId], ...] }
+    """
+    expected_pairs = {tuple(p) for p in expected.get("expectedPairs", [])}
+    student_pairs = {tuple(p) for p in input_.get("studentPairs", [])}
+    if expected_pairs == student_pairs:
+        return ValidatorResult("correct", 1.0)
+    return ValidatorResult("incorrect", 0.0)
+
+
+snap_match_all_pairs = ValidatorRegistration(
+    id="validator.snap_match.allPairs",
+    archetype="snap_match",
+    variant="allPairs",
+    fn=_snap_match_all_pairs,
 )
 
 
@@ -395,9 +456,12 @@ VALIDATOR_REGISTRY: dict[str, ValidatorRegistration] = {
         make_fold_and_shade,
         make_halving_by_line,
         compare_greater_than,
+        compare_relation,
         benchmark_closest,
+        benchmark_sort_to_zone,
         order_sequence,
         snap_match_equivalence,
+        snap_match_all_pairs,
         equal_or_not_area_tolerance,
         placement_snap8,
     ]

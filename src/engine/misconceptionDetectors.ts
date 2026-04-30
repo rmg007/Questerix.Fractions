@@ -642,7 +642,10 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
  * Level 7 is `compare` archetype — do NOT activate this detector before L9.
  * Future: detect sequential-guessing patterns in fraction ordering tasks.
  */
-export async function detectORD01(attempts: Attempt[], level: number): Promise<MisconceptionFlag | null> {
+export async function detectORD01(
+  attempts: Attempt[],
+  level: number
+): Promise<MisconceptionFlag | null> {
   if (level < 9 || attempts.length < 5) return null;
 
   // Filter to ordering attempts only (archetype 'order' at L9+)
@@ -660,9 +663,9 @@ export async function detectORD01(attempts: Attempt[], level: number): Promise<M
   for (const attempt of orderingAttempts) {
     // Pattern A: Sequential tray picking (indices 0, 1, 2... in order)
     if (attempt.roundEvents && attempt.roundEvents.length > 0) {
-      const pickUpEvents = attempt.roundEvents.filter((e) => (e as any).type === 'pickUp');
+      const pickUpEvents = attempt.roundEvents.filter((e) => e.type === 'pickUp');
       if (pickUpEvents.length >= 3) {
-        const pickedIndices = pickUpEvents.slice(0, 3).map((e) => (e as any).trayIndex);
+        const pickedIndices = pickUpEvents.slice(0, 3).map((e) => e.trayIndex);
         const isSequential =
           pickedIndices.length === 3 &&
           pickedIndices[0] === 0 &&
@@ -676,8 +679,12 @@ export async function detectORD01(attempts: Attempt[], level: number): Promise<M
     }
 
     // Pattern B: High swap count (≥ 2 swaps) on wrong/close outcomes
-    if (attempt.roundEvents && attempt.roundEvents.length > 0 && !evidenceIds.includes(attempt.id)) {
-      const swapEvents = attempt.roundEvents.filter((e) => (e as any).type === 'swap');
+    if (
+      attempt.roundEvents &&
+      attempt.roundEvents.length > 0 &&
+      !evidenceIds.includes(attempt.id)
+    ) {
+      const swapEvents = attempt.roundEvents.filter((e) => e.type === 'swap');
       const swapCount = swapEvents.length;
       if ((attempt.outcome === 'WRONG' || attempt.outcome === 'CLOSE') && swapCount >= 2) {
         evidenceIds.push(attempt.id);
@@ -709,7 +716,7 @@ export async function detectORD01(attempts: Attempt[], level: number): Promise<M
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds.slice(0, 5) as any,
+      evidenceAttemptIds: evidenceIds.slice(0, 5) as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }

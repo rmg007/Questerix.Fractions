@@ -195,14 +195,26 @@ export class OrderInteraction implements Interaction {
     overlay.lineStyle(3, 0xfbbf24, 1);
     for (let i = 0; i < this._n; i++) {
       const sx = this._startX + i * (this._cardW + gap) + this._cardW / 2;
-      overlay.strokeRect(sx - this._cardW / 2, this._slotY - (cardH + 8) / 2, this._cardW, cardH + 8);
+      overlay.strokeRect(
+        sx - this._cardW / 2,
+        this._slotY - (cardH + 8) / 2,
+        this._cardW,
+        cardH + 8
+      );
     }
     this._overlayGfx.push(overlay);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+      this._scene.time.delayedCall(3000, () => {
+        overlay.destroy();
+      });
     } else {
       this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+        this._scene.tweens.add({
+          targets: overlay,
+          alpha: 0,
+          duration: 400,
+          onComplete: () => overlay.destroy(),
+        });
       });
     }
   }

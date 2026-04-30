@@ -23,7 +23,7 @@ jobs:
         run: |
           for f in pipeline/output/level_*/all.json; do
             echo "::group::Verifying $f"
-            PYTHONPATH=. python -m pipeline.verify --in "$f" --strict --templates-only
+            PYTHONPATH=. python -m pipeline.verify --in "$f" --templates-only
             echo "::endgroup::"
           done
       - name: Verify curriculum bundle

@@ -425,7 +425,6 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.rightArm.setAngle(0);
   }
 
-
   /**
    * Create and attach a hidden DOM sentinel so Playwright tests can read the
    * current mascot state without inspecting the Phaser canvas.

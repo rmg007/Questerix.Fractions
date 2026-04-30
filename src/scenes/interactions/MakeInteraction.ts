@@ -179,13 +179,25 @@ export class MakeInteraction implements Interaction {
     // where a halves fold would land — a structural cue, not the worked example.
     const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.5);
     overlay.lineStyle(3, 0xfbbf24, 1);
-    overlay.lineBetween(this._cx, this._cy - SHAPE_H / 2 - 20, this._cx, this._cy + SHAPE_H / 2 + 20);
+    overlay.lineBetween(
+      this._cx,
+      this._cy - SHAPE_H / 2 - 20,
+      this._cx,
+      this._cy + SHAPE_H / 2 + 20
+    );
     this._overlayGfx.push(overlay);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+      this._scene.time.delayedCall(3000, () => {
+        overlay.destroy();
+      });
     } else {
       this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+        this._scene.tweens.add({
+          targets: overlay,
+          alpha: 0,
+          duration: 400,
+          onComplete: () => overlay.destroy(),
+        });
       });
     }
   }

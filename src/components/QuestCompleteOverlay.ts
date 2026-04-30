@@ -37,22 +37,13 @@ export class QuestCompleteOverlay {
   private glowTween: Phaser.Tweens.Tween | null = null;
 
   constructor(config: QuestCompleteConfig) {
-    const {
-      scene,
-      width = 800,
-      height = 1280,
-      depth = 50,
-      onPlayAgainFromStart,
-      onMenu,
-    } = config;
+    const { scene, width = 800, height = 1280, depth = 50, onPlayAgainFromStart, onMenu } = config;
 
     const cx = width / 2;
     const reduceMotion = checkReduceMotion();
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
-    this.container = scene.add
-      .container(0, reduceMotion ? 0 : height)
-      .setDepth(depth);
+    this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
 
     // Full-screen sky-blue card
     const cardBg = scene.add.graphics();
@@ -153,7 +144,10 @@ export class QuestCompleteOverlay {
   }
 
   private addPlayAgainButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 320, H = 64, R = 32, SHADOW = 7;
+    const W = 320,
+      H = 64,
+      R = 32,
+      SHADOW = 7;
 
     const shadow = scene.add.graphics();
     shadow.fillStyle(ACTION_BORDER, 1);
@@ -183,7 +177,9 @@ export class QuestCompleteOverlay {
   }
 
   private addMenuButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 320, H = 54, R = 27;
+    const W = 320,
+      H = 54,
+      R = 27;
 
     const bg = scene.add.graphics();
     bg.fillStyle(0xffffff, 1);
