@@ -33,6 +33,8 @@ import { tts } from '../audio/TTSService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
+import { get as getCopy } from '../lib/i18n/catalog';
+import { resolveQuestName } from '../lib/persona/quest';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -122,6 +124,13 @@ export class Level01Scene extends Phaser.Scene {
   // Session state
   private studentId: string | null = null;
   private sessionId: string | null = null;
+  /**
+   * Cached Quest-facing display name for the active student. Resolved from
+   * Dexie inside `openSession()` and consumed once per session by
+   * `showSessionComplete()`. Reset to `null` in `init()` so a previous
+   * student's name cannot leak into a later anonymous session.
+   */
+  private studentDisplayName: string | null = null;
   private questionIndex: number = 0;
   private attemptCount: number = 0; // total across session
   private wrongCount: number = 0; // wrong attempts on current question
@@ -175,6 +184,9 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
+    // Reset cached display name on every scene init so a previous student's
+    // name cannot leak into a later anonymous session-complete line.
+    this.studentDisplayName = null;
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -326,6 +338,18 @@ export class Level01Scene extends Phaser.Scene {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
+
+      // Resolve the Quest-facing display name once per session so
+      // `showSessionComplete()` can name the player. Failures are non-fatal —
+      // `resolveQuestName(null)` falls back to "friend" at render time.
+      try {
+        const { studentRepo } = await import('../persistence/repositories/student');
+        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+        this.studentDisplayName = student?.displayName ?? null;
+      } catch (err) {
+        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
+        this.studentDisplayName = null;
+      }
 
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
@@ -795,6 +819,59 @@ export class Level01Scene extends Phaser.Scene {
     await this.recordAttempt(result, responseMs, input);
   }
 
+  /**
+   * Level 1 is always partition_halves (targetPartitions = 2).
+   * Matching the LevelScene helper pattern for symmetry.
+   */
+  private payloadDenominator(): number {
+    return 2;
+  }
+
+  /**
+   * Quest-voiced feedback for the outcome. Mirrors LevelScene.questFeedbackText().
+   * Correct picks the denominator-named line; Level 1 is always halves (2)
+   * so it always resolves to `quest.feedback.correct.half`. Incorrect returns
+   * the generic unequal line. null for partial/close outcomes.
+   */
+  private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
+    if (kind === 'correct') {
+      const d = this.payloadDenominator();
+      switch (d) {
+        case 2:
+          return getCopy('quest.feedback.correct.half');
+        case 3:
+          return getCopy('quest.feedback.correct.third');
+        case 4:
+          return getCopy('quest.feedback.correct.fourth');
+        default:
+          return getCopy('quest.feedback.correct.equal');
+      }
+    }
+    if (kind === 'incorrect') {
+      return getCopy('quest.feedback.wrong.unequal');
+    }
+    return null;
+  }
+
+  /**
+   * Quest-voiced hint for the partition archetype at any tier.
+   * Level 1 is always halves (denominator 2), so this always returns
+   * the split-in-two line from the catalog.
+   */
+  private questHintText(): string {
+    const d = this.payloadDenominator();
+    switch (d) {
+      case 2:
+        return getCopy('quest.hint.split2');
+      case 3:
+        return getCopy('quest.hint.split3');
+      case 4:
+        return getCopy('quest.hint.split4');
+      default:
+        return getCopy('quest.hint.fallback.verbal');
+    }
+  }
+
   private showOutcome(result: ValidatorResult): void {
     const kind =
       result.outcome === 'correct'
@@ -809,25 +886,35 @@ export class Level01Scene extends Phaser.Scene {
       this.progressBar.setProgress(this.attemptCount + 1);
     }
 
-    // FeedbackOverlay — per interaction-model.md §2 (<800ms)
-    this.feedbackOverlay.show(kind, () => {
-      this.inputLocked = false;
-      this.submitButtonContainer?.setAlpha(1);
-      if (kind === 'correct') {
-        this.onCorrectAnswer();
-      } else {
-        this.onWrongAnswer();
-      }
-    });
+    // Quest-voiced feedback per ux-elevation §9 T28. Pass the Quest line
+    // through to FeedbackOverlay so the overlay reads from Quest's voice
+    // catalog instead of its baked-in English defaults. close/partial has
+    // no Quest line yet, so FeedbackOverlay falls back to its own default.
+    const questText = this.questFeedbackText(kind);
 
-    // ARIA live announcement — per interaction-model.md §9
-    // per interaction-model.md §5.1 — never say "wrong"
+    this.feedbackOverlay.show(
+      kind,
+      () => {
+        this.inputLocked = false;
+        this.submitButtonContainer?.setAlpha(1);
+        if (kind === 'correct') {
+          this.onCorrectAnswer();
+        } else {
+          this.onWrongAnswer();
+        }
+      },
+      questText ?? undefined
+    );
+
+    // Mirror the visible feedback to the screen-reader announcer so the
+    // assistive-tech experience stays in Quest's voice when one is set.
     const announcement =
-      kind === 'correct'
+      questText ??
+      (kind === 'correct'
         ? 'Correct! Great work.'
         : kind === 'close'
           ? 'Almost! Try a tiny adjustment.'
-          : 'Not quite — try again.';
+          : 'Not quite — try again.');
     AccessibilityAnnouncer.announce(announcement);
   }
 
@@ -891,26 +978,25 @@ export class Level01Scene extends Phaser.Scene {
   private async showHintForTierAndRecord(tier: import('@/types').HintTier): Promise<void> {
     this.hintText.setVisible(true);
 
-    let hintMessage = '';
+    // Quest-voiced hint per ux-elevation §9 T28. Level 1 is always halves
+    // (denominator 2), so every tier shows the same split-in-two line from
+    // the catalog. Visual escalation (overlay, animation) still happens.
+    const hintMessage = this.questHintText();
+    this.hintText.setText(hintMessage);
+
     switch (tier) {
       case 'verbal':
         // Tier 1 — verbal prompt per interaction-model.md §4
-        hintMessage = 'Tip: Equal parts means each piece is the same size. Try the middle!';
-        this.hintText.setText(hintMessage);
         break;
 
       case 'visual_overlay':
         // Tier 2 — faint center line overlay per interaction-model.md §4
-        hintMessage = 'Look for the center of the shape.';
-        this.hintText.setText(hintMessage);
         this.drawCenterOverlay();
         break;
 
       case 'worked_example':
         // Tier 3 — animated demo per interaction-model.md §4
         // per interaction-model.md §4.1 — Tier 3 never auto-completes; canvas resets after demo
-        hintMessage = 'Watch where to place the line, then try yourself.';
-        this.hintText.setText(hintMessage);
         this.animateWorkedExample();
         break;
     }
@@ -1185,6 +1271,13 @@ export class Level01Scene extends Phaser.Scene {
     cardG.lineStyle(5, 0x1e3a8a, 1);
     cardG.strokeRoundedRect(CW / 2 - 280, CH / 2 - 220, 560, 440, 24);
 
+    // Quest closes the session per ux-elevation §4: she names the player
+    // *exactly once* per session, here. `resolveQuestName` falls back to
+    // "friend" when no display name is on file.
+    const completionLine = getCopy('quest.complete.named', {
+      name: resolveQuestName(this.studentDisplayName),
+    });
+
     this.add
       .text(CW / 2, CH / 2 - 150, '🎉 Session complete!', {
         fontSize: '36px',
@@ -1196,8 +1289,18 @@ export class Level01Scene extends Phaser.Scene {
       .setDepth(52);
 
     this.add
-      .text(CW / 2, CH / 2 - 60, `You finished ${this.attemptCount} problems!`, {
-        fontSize: '22px',
+      .text(CW / 2, CH / 2 - 60, completionLine, {
+        fontSize: '24px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(52);
+
+    this.add
+      .text(CW / 2, CH / 2 - 20, `You finished ${this.attemptCount} problems!`, {
+        fontSize: '20px',
         fontFamily: BODY_FONT,
         color: NAVY_HEX,
       })
@@ -1236,9 +1339,10 @@ export class Level01Scene extends Phaser.Scene {
       52
     );
 
-    // ARIA announcement
+    // Lead the screen-reader announcement with Quest's voice (the named
+    // closing line) and append the factual problem count for context.
     AccessibilityAnnouncer.announce(
-      `Session complete! You finished ${this.attemptCount} problems.`
+      `${completionLine} You finished ${this.attemptCount} problems.`
     );
 
     // Close session in persistence
