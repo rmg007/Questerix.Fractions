@@ -164,7 +164,7 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.stopCurrent();
 
     if (this.reduceMotion) {
-      this.idle();
+      this.setState('idle');
       return;
     }
 
@@ -180,7 +180,7 @@ export class Mascot extends Phaser.GameObjects.Container {
           duration: 100,
           ease: 'Linear',
           onComplete: () => {
-            this.idle();
+            this.setState('idle');
           },
         },
       ],
