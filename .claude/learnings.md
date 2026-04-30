@@ -18,6 +18,8 @@ YYYY-MM-DD <area>: <gotcha or shortcut> [#commit-or-branch]
 
 <!-- Append new lines below this marker. /learn handles the date prefix. -->
 
+2026-04-30 git: Branch names MUST include a date — format `<type>/YYYY-MM-DD-<slug>`. Branches without dates accumulate silently and become stale/conflicted. Full rules in `docs/00-foundation/git-workflow.md` and the Git workflow section of CLAUDE.md.
+
 2026-04-30 setup: Curriculum lives in TWO files (`public/curriculum/v1.json` and `src/curriculum/bundle.json`). They MUST be byte-identical — only `npm run build:curriculum` writes them.
 2026-04-30 mascot: Use `mascot.setState('idle')`, never `mascot.idle()` — ESLint blocks the latter because the DOM sentinel mirror won't update.
 2026-04-30 c5: `unlockedLevels:<studentId>` and `completedLevels:<studentId>` localStorage keys are a **known C5 deviation** in `MenuScene` and `LevelMapScene`. Don't extend; the proper home is a Dexie `progressionStat` row.
