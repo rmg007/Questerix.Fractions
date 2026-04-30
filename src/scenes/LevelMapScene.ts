@@ -46,10 +46,6 @@ const WHITE_HEX = '#FFFFFF';
 // ── Card scale — shrink LevelCard to fit the winding-path layout ──────────────
 const CARD_SCALE = 0.65;
 
-// ── Mastery ribbon palette ────────────────────────────────────────────────────
-const RIBBON_GOLD = 0xfbbf24; // amber-400
-const RIBBON_BORDER = 0xb45309; // amber-700
-
 // ── Mastery threshold ─────────────────────────────────────────────────────────
 const MASTERY_THRESHOLD = 0.85;
 
@@ -81,7 +77,6 @@ interface LevelMapData {
 export class LevelMapScene extends Phaser.Scene {
   private studentId: string | null = null;
   private reduceMotion = false;
-  private ribbonMaskGraphics: Phaser.GameObjects.Graphics[] = [];
 
   constructor() {
     super({ key: 'LevelMapScene' });
@@ -89,7 +84,6 @@ export class LevelMapScene extends Phaser.Scene {
 
   init(data: LevelMapData): void {
     this.studentId = data?.studentId ?? null;
-    this.ribbonMaskGraphics = [];
   }
 
   async create(): Promise<void> {
@@ -116,15 +110,6 @@ export class LevelMapScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-    // ── Cleanup on shutdown ────────────────────────────────────────────────
-    // Registered early — before the async await — so it fires even if the scene
-    // is stopped while the IndexedDB query is still in flight.
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      for (const g of this.ribbonMaskGraphics) {
-        if (g && g.scene) g.destroy();
-      }
-      this.ribbonMaskGraphics = [];
-    });
 
     // ── Unlock data ────────────────────────────────────────────────────────
     const unlocked = this._getUnlockedLevels();
@@ -155,14 +140,10 @@ export class LevelMapScene extends Phaser.Scene {
         meta,
         unlocked: isUnlocked,
         suggested: isSuggested,
+        mastered: isCompleted && masteredLevels.has(meta.number),
         onTap: (levelNumber) => this._startLevel(levelNumber),
       });
       card.setScale(CARD_SCALE).setDepth(10);
-
-      // Gold mastery ribbon drawn on top of completed+mastered cards.
-      if (isCompleted && masteredLevels.has(meta.number)) {
-        this._drawMasteryRibbon(nx, ny, 11);
-      }
     }
 
     // ── Back to menu button ────────────────────────────────────────────────
@@ -278,48 +259,6 @@ export class LevelMapScene extends Phaser.Scene {
         this.events.off('update', tick);
       });
     }
-  }
-
-  // ── Mastery ribbon ────────────────────────────────────────────────────────────
-
-  /**
-   * Draw a gold ribbon arc across the top of a LevelCard.
-   * Uses a rounded-rect GeometryMask matching the scaled card boundary to clip
-   * the ribbon. The mask graphics object is tracked in ribbonMaskGraphics for
-   * proper cleanup on scene shutdown.
-   *
-   * All coordinates are in scene space; the card is CARD_W×CARD_H at CARD_SCALE.
-   */
-  private _drawMasteryRibbon(x: number, y: number, depth: number): void {
-    const CARD_W = 220;
-    const CARD_H = 160;
-    const CARD_RADIUS = 16;
-    const RIBBON_H = 20;
-
-    const scaledW = CARD_W * CARD_SCALE;
-    const scaledH = CARD_H * CARD_SCALE;
-    const scaledR = CARD_RADIUS * CARD_SCALE;
-    const left = x - scaledW / 2;
-    const top = y - scaledH / 2;
-
-    // Invisible rounded-rect mask matching the scaled card boundary.
-    const maskG = this.add.graphics().setVisible(false);
-    maskG.fillStyle(0xffffff, 1);
-    maskG.fillRoundedRect(left, top, scaledW, scaledH, scaledR);
-    this.ribbonMaskGraphics.push(maskG);
-
-    const mask = maskG.createGeometryMask();
-
-    // Gold ribbon fill across the top of the card.
-    const ribbonG = this.add.graphics().setDepth(depth);
-    ribbonG.fillStyle(RIBBON_GOLD, 1);
-    ribbonG.fillRect(left, top, scaledW, RIBBON_H);
-
-    // Thin border along the bottom edge of the ribbon for visual separation.
-    ribbonG.lineStyle(2, RIBBON_BORDER, 1);
-    ribbonG.strokeRect(left, top, scaledW, RIBBON_H);
-
-    ribbonG.setMask(mask);
   }
 
   // ── Back button ───────────────────────────────────────────────────────────────

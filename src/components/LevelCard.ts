@@ -24,6 +24,11 @@ import type { LevelMeta } from '../scenes/utils/levelMeta';
 
 const BODY_FONT = '"Lexend", "Nunito", system-ui, sans-serif';
 
+// ── Mastery ribbon palette (matches LevelMapScene) ────────────────────────────
+const RIBBON_GOLD = 0xfbbf24; // amber-400
+const RIBBON_BORDER = 0xb45309; // amber-700
+const RIBBON_H = 20;
+
 // ── Adventure theme colours ───────────────────────────────────────────────────
 
 const UNLOCKED_BG = SKY_BG; // #E0F2FE — pale sky
@@ -44,12 +49,14 @@ export interface LevelCardOptions {
   meta: LevelMeta;
   unlocked: boolean;
   suggested: boolean;
+  mastered?: boolean;
   onTap: (levelNumber: number) => void;
 }
 
 export class LevelCard extends Phaser.GameObjects.Container {
   private readonly meta: LevelMeta;
   private readonly unlocked: boolean;
+  private readonly mastered: boolean;
   private readonly onTap: (n: number) => void;
   private bg!: Phaser.GameObjects.Graphics;
   private readonly reducedMotion: boolean;
@@ -60,6 +67,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     super(opts.scene, opts.x, opts.y);
     this.meta = opts.meta;
     this.unlocked = opts.unlocked;
+    this.mastered = opts.mastered ?? false;
     this.onTap = opts.onTap;
     this.bgFill = opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
     this.bgBorder = opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
@@ -83,6 +91,22 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.bg = s.add.graphics();
     this.drawCard(this.bgFill, this.bgBorder);
     this.add(this.bg);
+
+    // Gold mastery ribbon — top strip across the card, clipped to rounded corners.
+    if (this.mastered) {
+      const ribbonG = s.add.graphics();
+      ribbonG.fillStyle(RIBBON_GOLD, 1);
+      ribbonG.fillRoundedRect(
+        -CARD_W / 2, -CARD_H / 2, CARD_W, RIBBON_H,
+        { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
+      );
+      ribbonG.lineStyle(1, RIBBON_BORDER, 1);
+      ribbonG.strokeRoundedRect(
+        -CARD_W / 2, -CARD_H / 2, CARD_W, RIBBON_H,
+        { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
+      );
+      this.add(ribbonG);
+    }
 
     // Level number chip — top-left
     this.add(
