@@ -8,7 +8,7 @@
  * previewing the game as a journey from 0 to 1.
  *
  * per runtime-architecture.md §2 (MVP scene inventory)
- * per design-language.md §3 (Nunito body / Fredoka One display), §6.4 (motion)
+ * per design-language.md §3 (Lexend body / Fredoka One display), §6.4 (motion)
  *
  * Note: ambient motion (marching dashes, settings-gear spin) is disabled
  * when prefers-reduced-motion is set, satisfying §6.4.
@@ -24,6 +24,7 @@ import { LevelCard } from '../components/LevelCard';
 import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { StudentId } from '../types/branded';
+import { BODY_FONT } from './utils/levelTheme';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -64,7 +65,6 @@ const GLOW_EMERALD = 0x6ee7b7; // emerald-300
 const GLOW_BLUE = 0x93c5fd; // blue-300
 
 const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
-const BODY_FONT = '"Nunito", system-ui, sans-serif';
 
 // ── Choose-level overlay ───────────────────────────────────────────────────
 const OVERLAY_CARD_SCALE = 0.8;
