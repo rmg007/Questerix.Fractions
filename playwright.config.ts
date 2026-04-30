@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: 'tests/e2e',
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5000?testHooks=1',
+    baseURL: 'http://localhost:5000',
   },
   webServer: {
     command: 'npm run dev',

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Settings scene', () => {
   test('navigates Boot → Menu → Settings, renders settings-scene sentinel', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?testHooks=1');
 
     // Boot
     const startBtn = page.locator('[data-testid="boot-start-btn"]');
@@ -27,7 +27,7 @@ test.describe('Settings scene', () => {
   });
 
   test('Settings scene exposes Export and Reset interactive buttons', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?testHooks=1');
 
     const startBtn = page.locator('[data-testid="boot-start-btn"]');
     await expect(startBtn).toBeVisible({ timeout: 8000 });

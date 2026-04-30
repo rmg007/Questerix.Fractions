@@ -8,7 +8,7 @@ test.describe('Smoke — boot to first attempt', () => {
   }) => {
     // SKIP: data-testid attributes (boot-start-btn, menu-scene, level-card-L1, level01-scene,
     // partition-target, feedback-overlay) are not yet implemented in scenes.
-    await page.goto('/');
+    await page.goto('/?testHooks=1');
 
     // Boot scene renders a Start button
     const startBtn = page.locator('[data-testid="boot-start-btn"]');

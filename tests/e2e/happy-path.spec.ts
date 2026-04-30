@@ -14,7 +14,7 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     const startTime = Date.now();
 
     // Step 1: Boot → Menu
-    await page.goto('/');
+    await page.goto('/?testHooks=1');
     const startBtn = page.locator('[data-testid="boot-start-btn"]');
     await expect(startBtn).toBeVisible({ timeout: 15000 });
     await startBtn.click();
