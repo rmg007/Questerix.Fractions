@@ -10,7 +10,7 @@ import { CLR, HEX } from './utils/colors';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
-import { backupToFile } from '../persistence/backup';
+import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
 
@@ -58,7 +58,7 @@ export class SettingsScene extends Phaser.Scene {
     // ── Section labels ─────────────────────────────────────────────────────
     this.sectionLabel(cx, 190, 'Preferences');
     this.sectionLabel(cx, 560, 'Data');
-    this.sectionLabel(cx, 820, 'Privacy');
+    this.sectionLabel(cx, 920, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     // Canvas top ~100px; section label at 190 canvas px.
@@ -101,17 +101,34 @@ export class SettingsScene extends Phaser.Scene {
       () => void this.doExport()
     );
 
-    // ── Reset button ───────────────────────────────────────────────────────
-    TestHooks.mountInteractive('settings-reset-btn', () => this.handleReset(), {
+    // ── Restore button ─────────────────────────────────────────────────────
+    this.setupFileInput();
+    TestHooks.mountInteractive('settings-restore-btn', () => this.triggerFilePicker(), {
       top: toViewport(720),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createResetButton(cx, 720);
+    this.createButton(
+      cx,
+      720,
+      'Restore from Backup',
+      CLR.primary,
+      HEX.neutral0,
+      () => this.triggerFilePicker()
+    );
+
+    // ── Reset button ───────────────────────────────────────────────────────
+    TestHooks.mountInteractive('settings-reset-btn', () => this.handleReset(), {
+      top: toViewport(820),
+      left: halfCanvas,
+      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+      height: `${BTN_H * scaleY}px`,
+    });
+    this.createResetButton(cx, 820);
 
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 870);
+    this.createPrivacyLink(cx, 970);
 
     // ── Back button ────────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
@@ -304,6 +321,64 @@ export class SettingsScene extends Phaser.Scene {
     });
   }
 
+  // ── Restore ────────────────────────────────────────────────────────────────
+  private fileInput: HTMLInputElement | null = null;
+  private restoreStatusText: Phaser.GameObjects.Text | null = null;
+
+  private setupFileInput(): void {
+    if (typeof document === 'undefined') return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.style.display = 'none';
+    input.setAttribute('aria-hidden', 'true');
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (file) void this.doRestore(file);
+      input.value = '';
+    });
+    document.body.appendChild(input);
+    this.fileInput = input;
+  }
+
+  private triggerFilePicker(): void {
+    this.fileInput?.click();
+  }
+
+  private async doRestore(file?: File): Promise<void> {
+    if (!file) return;
+    try {
+      const result = await restoreFromFile(file);
+      this.showRestoreStatus(`Restored ${result.added} records`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      if (msg.includes('unsupported schema version')) {
+        this.showRestoreStatus('Error: incompatible backup file', true);
+      } else if (msg.includes('invalid JSON')) {
+        this.showRestoreStatus('Error: not a valid backup file', true);
+      } else {
+        this.showRestoreStatus('Restore failed — please try again', true);
+      }
+    }
+  }
+
+  private showRestoreStatus(msg: string, isError = false): void {
+    this.restoreStatusText?.destroy();
+    this.restoreStatusText = this.add
+      .text(CW / 2, 770, msg, {
+        fontSize: '16px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: isError ? '#DC2626' : '#059669',
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
+
+    this.time.delayedCall(3000, () => {
+      this.restoreStatusText?.destroy();
+      this.restoreStatusText = null;
+    });
+  }
+
   // ── Privacy link ───────────────────────────────────────────────────────────
   private createPrivacyLink(cx: number, y: number): void {
     const text = this.add
@@ -392,6 +467,10 @@ export class SettingsScene extends Phaser.Scene {
     this.toggles = [];
     PreferenceToggle.destroyAll();
     TestHooks.unmountAll();
+    if (this.fileInput) {
+      this.fileInput.remove();
+      this.fileInput = null;
+    }
   }
 
   shutdown(): void {
