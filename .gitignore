@@ -52,4 +52,7 @@ validation-data/cycle-*/raw/
 
 # Internal builder artifacts
 .builder/
+
+# Replit/roadie runtime state — transient, never commit
 .roadie/
+install/
