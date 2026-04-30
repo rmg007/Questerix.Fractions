@@ -55,9 +55,6 @@ const SHAPE_H = 260;
 // Session goal per C9
 const SESSION_GOAL = 5;
 
-// Snap threshold widened from 0.05 → 0.15 (Fix 2: BUG-02 — was too tight for students to land)
-const SNAP_PCT = 0.15;
-
 // Handle starts off-centre so the student must drag — otherwise the initial
 // centre position is already the correct partition for halves and pressing
 // Check passes without any interaction.
@@ -147,6 +144,13 @@ export class Level01Scene extends Phaser.Scene {
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
 
+  // BKT adaptation: loaded from DB on create(), updated after every attempt
+  private currentMasteryEstimate: number = 0.1;
+  // Dynamic snap tolerance — widens for low mastery (K-2 kids need forgiveness)
+  private currentSnapPct: number = 0.15;
+  // Prevent repeat questions within a session
+  private usedQuestionIds = new Set<string>();
+
   // Current question — may come from DB pool or synthetic fallback
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
@@ -189,6 +193,9 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
+    this.currentMasteryEstimate = 0.1;
+    this.currentSnapPct = 0.15;
+    this.usedQuestionIds = new Set<string>();
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -239,6 +246,27 @@ export class Level01Scene extends Phaser.Scene {
     // ── Open session in persistence ────────────────────────────────────────
     // per runtime-architecture.md §8 step 4 — new Session row on scene load
     await this.openSession();
+
+    // ── Load current BKT mastery for adaptive question selection ───────────
+    // Mastery estimate drives difficulty tier and snap tolerance for this session.
+    if (this.studentId) {
+      try {
+        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+        const mastery = await skillMasteryRepo.get(
+          this.studentId as import('@/types').StudentId,
+          'skill.partition_halves' as import('@/types').SkillId
+        );
+        if (mastery) {
+          this.currentMasteryEstimate = mastery.masteryEstimate;
+          log.bkt('session_start_mastery', {
+            estimate: +mastery.masteryEstimate.toFixed(4),
+            state: mastery.state,
+          });
+        }
+      } catch (err) {
+        log.warn('BKT', 'initial_mastery_load_error', { error: String(err) });
+      }
+    }
 
     // ── UI chrome ──────────────────────────────────────────────────────────
     this.createHeader();
@@ -545,38 +573,80 @@ export class Level01Scene extends Phaser.Scene {
     );
   }
 
+  // ── BKT-adaptive question selection ──────────────────────────────────────
+
+  /** Map mastery estimate to a target difficulty tier. */
+  private difficultyTierForMastery(estimate: number): 'easy' | 'medium' | 'hard' {
+    if (estimate < 0.3) return 'easy';
+    if (estimate < 0.65) return 'medium';
+    return 'hard';
+  }
+
+  /**
+   * Snap tolerance widens for low mastery so K-2 beginners experience success;
+   * tightens as the student approaches mastery.
+   */
+  private snapPctForMastery(estimate: number): number {
+    if (estimate < 0.3) return 0.20; // very forgiving
+    if (estimate < 0.65) return 0.15; // standard
+    return 0.10; // precise — student is near mastery
+  }
+
+  /**
+   * Pick the next question using BKT mastery to target the right difficulty tier.
+   * Prefers unused questions of the target tier; falls back to any unused question;
+   * resets the used-set if all questions have been shown already.
+   * Sets currentSnapPct and currentArchetype as side-effects.
+   */
+  private selectNextQuestion(): L01Question {
+    this.currentSnapPct = this.snapPctForMastery(this.currentMasteryEstimate);
+    const targetTier = this.difficultyTierForMastery(this.currentMasteryEstimate);
+
+    if (this.templatePool.length === 0) {
+      // Synthetic path — same fallback as before, but difficulty-aware
+      const unused = QUESTIONS.filter((q) => !this.usedQuestionIds.has(q.id));
+      const tiered = unused.filter((q) => q.difficultyTier === targetTier);
+      const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : QUESTIONS;
+      const q = pool[Math.floor(Math.random() * pool.length)]!;
+      this.usedQuestionIds.add(q.id);
+      this.currentArchetype = 'partition';
+      return q;
+    }
+
+    // Real template path — difficulty-tier selection from Dexie pool
+    const unused = this.templatePool.filter((t) => !this.usedQuestionIds.has(t.id));
+    const tiered = unused.filter((t) => t.difficultyTier === targetTier);
+    const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : this.templatePool;
+    const tmpl = pool[Math.floor(Math.random() * pool.length)]!;
+    this.usedQuestionIds.add(tmpl.id);
+    this.currentArchetype = tmpl.archetype;
+
+    const payload = tmpl.payload as Partial<PartitionPayload> & {
+      shapeType?: 'rectangle' | 'circle';
+    };
+    const tolerance =
+      tmpl.difficultyTier === 'easy'
+        ? Math.max(payload.areaTolerance ?? 0, 0.1)
+        : (payload.areaTolerance ?? 0.05);
+
+    return {
+      id: tmpl.id,
+      shapeType: payload.shapeType ?? 'rectangle',
+      difficultyTier: tmpl.difficultyTier,
+      areaTolerance: tolerance,
+      snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
+      promptText: tmpl.prompt.text,
+    };
+  }
+
   // ── Question loading ──────────────────────────────────────────────────────
 
   private loadQuestion(index: number): void {
-    this.questionIndex = index % Math.max(this.templatePool.length || QUESTIONS.length);
+    this.questionIndex = index;
 
-    if (this.templatePool.length > 0) {
-      // Use real template from Dexie pool — map to L01Question shape for this scene
-      const tmpl = this.templatePool[this.questionIndex % this.templatePool.length]!;
-      const payload = tmpl.payload as Partial<PartitionPayload> & {
-        shapeType?: 'rectangle' | 'circle';
-      };
-      // K-2 forgiveness: easy tier gets a generous 10% tolerance so children
-      // aren't penalised for fine-motor imprecision. Medium/hard use the
-      // template's authored value (default 5%).
-      const tolerance =
-        tmpl.difficultyTier === 'easy'
-          ? Math.max(payload.areaTolerance ?? 0, 0.1)
-          : (payload.areaTolerance ?? 0.05);
-      this.currentQuestion = {
-        id: tmpl.id,
-        shapeType: payload.shapeType ?? 'rectangle',
-        difficultyTier: tmpl.difficultyTier,
-        areaTolerance: tolerance,
-        snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
-        promptText: tmpl.prompt.text,
-      };
-      this.currentArchetype = tmpl.archetype;
-    } else {
-      // Synthetic fallback — keeps game playable with no curriculum bundle
-      this.currentQuestion = QUESTIONS[this.questionIndex % QUESTIONS.length]!;
-      this.currentArchetype = 'partition';
-    }
+    // BKT-adaptive selection: picks difficulty tier based on current mastery estimate.
+    // selectNextQuestion() also updates currentSnapPct for this question.
+    this.currentQuestion = this.selectNextQuestion();
 
     this.wrongCount = 0;
     this.inputLocked = false;
@@ -727,7 +797,7 @@ export class Level01Scene extends Phaser.Scene {
 
     const minX = SHAPE_CX - SHAPE_W / 2;
     const maxX = SHAPE_CX + SHAPE_W / 2;
-    const snapThreshold = SHAPE_W * SNAP_PCT; // per level-01.md §4.3 ±5%
+    const snapThreshold = SHAPE_W * this.currentSnapPct; // BKT-adaptive per session mastery
 
     // Only snap in axis mode per level-01.md §4.3
     const snapTargets = this.currentQuestion.snapMode === 'axis' ? [SHAPE_CX] : [];
@@ -785,7 +855,7 @@ export class Level01Scene extends Phaser.Scene {
     // question, magnetize to center before validating. Recovers from input methods
     // that don't fire Phaser dragend events (some touch/test harnesses).
     if (this.currentQuestion.snapMode === 'axis') {
-      const snapThreshold = SHAPE_W * SNAP_PCT;
+      const snapThreshold = SHAPE_W * this.currentSnapPct; // BKT-adaptive
       if (Math.abs(this.handlePos - SHAPE_CX) <= snapThreshold) {
         this.handlePos = SHAPE_CX;
         this.updatePartitionLine(SHAPE_CX);
@@ -1271,6 +1341,9 @@ export class Level01Scene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
+        // Keep live estimate in sync so the next question in this session
+        // uses the updated mastery for difficulty and snap tolerance selection.
+        this.currentMasteryEstimate = withMeta.masteryEstimate;
       } catch (err) {
         log.warn('BKT', 'mastery_update_error', { error: String(err) });
       }
@@ -1369,6 +1442,10 @@ export class Level01Scene extends Phaser.Scene {
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
           : null;
 
+      // BKT-derived scaffold recommendation: tells the router what to do next session.
+      const scaffoldRecommendation: 'advance' | 'stay' =
+        this.currentMasteryEstimate >= 0.85 ? 'advance' : 'stay';
+
       const summary = {
         endedAt: Date.now(),
         totalAttempts: this.totalQuestionsAttempted,
@@ -1376,7 +1453,7 @@ export class Level01Scene extends Phaser.Scene {
         accuracy,
         avgResponseMs,
         xpEarned: this.correctCount * 10,
-        scaffoldRecommendation: 'stay' as const,
+        scaffoldRecommendation,
         endLevel: 1,
       };
       log.sess('close', { sessionId: this.sessionId, ...summary });

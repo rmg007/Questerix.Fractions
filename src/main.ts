@@ -62,9 +62,9 @@ async function boot(): Promise<void> {
   let scenes: import('phaser').Types.Scenes.SceneType[] = [];
 
   try {
-    const { BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene } =
+    const { BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene, OnboardingScene } =
       await import('./scenes');
-    scenes = [BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene];
+    scenes = [BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene, OnboardingScene];
   } catch (err) {
     errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
       context: 'boot_scenes',

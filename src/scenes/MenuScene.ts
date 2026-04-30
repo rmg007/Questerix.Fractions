@@ -591,7 +591,18 @@ export class MenuScene extends Phaser.Scene {
   private _startLevel(levelNumber: number, resume = false): void {
     const data = { levelNumber, studentId: this.lastStudentId, resume };
     if (levelNumber === 1) {
-      fadeAndStart(this, 'Level01Scene', data);
+      // First-time players see the drag tutorial before Level 1 (per open-questions Q4).
+      // Returning players (onboardingSeen flag set) go straight to the level.
+      let onboardingSeen = false;
+      try {
+        onboardingSeen = !!localStorage.getItem('questerix.onboardingSeen');
+      } catch { /* ignore */ }
+
+      if (!onboardingSeen) {
+        fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
+      } else {
+        fadeAndStart(this, 'Level01Scene', data);
+      }
     } else {
       fadeAndStart(this, 'LevelScene', data);
     }
