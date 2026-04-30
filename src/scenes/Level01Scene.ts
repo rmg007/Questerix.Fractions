@@ -65,6 +65,7 @@ const INITIAL_HANDLE_OFFSET_PCT = 0.3;
 
 interface L01Question {
   id: string;
+  validatorId?: string;
   shapeType: 'rectangle' | 'circle';
   difficultyTier: 'easy' | 'medium' | 'hard';
   areaTolerance: number;
@@ -668,6 +669,7 @@ export class Level01Scene extends Phaser.Scene {
 
     return {
       id: tmpl.id,
+      validatorId: tmpl.validatorId,
       shapeType: payload.shapeType ?? 'rectangle',
       difficultyTier: tmpl.difficultyTier,
       areaTolerance: tolerance,
@@ -927,7 +929,9 @@ export class Level01Scene extends Phaser.Scene {
         // Use validator registry with the template's validatorId
         // per runtime-architecture.md §4.2 (ValidatorRegistry)
         const { validatorRegistry } = await import('../validators/registry');
-        const reg = validatorRegistry.get(this.currentQuestion.id as never);
+        const reg = this.currentQuestion.validatorId
+          ? validatorRegistry.get(this.currentQuestion.validatorId)
+          : undefined;
         // Fall back to direct partition validator if ID not found in registry
         if (reg) {
           result = (reg as { fn: (i: unknown, p: unknown) => ValidatorResult }).fn(input, payload);
