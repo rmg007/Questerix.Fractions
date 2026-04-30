@@ -142,15 +142,23 @@ export class LevelMapScene extends Phaser.Scene {
     A11yLayer.announce('Adventure Map. Select a level to play, or press Back to return to the menu.');
 
     // ── Test hooks — DOM selectors for E2E tests ────────────────────────────
+    // Every node gets a non-interactive sentinel (map-node-<N>) so Playwright
+    // can assert that all 9 nodes are present in the DOM regardless of lock
+    // state.  Unlocked nodes additionally get a transparent interactive button
+    // (map-level-<N>) that forwards clicks into the scene without relying on
+    // canvas coordinates.  The hook id matches the MenuScene convention to
+    // avoid collisions with the existing level-card-L* ids.
     TestHooks.unmountAll();
     TestHooks.mountSentinel('level-map-scene');
     for (let i = 0; i < LEVEL_META.length; i++) {
       const meta = LEVEL_META[i];
+      const lvl = meta.number;
+      // Sentinel for every node — allows E2E tests to count all 9 nodes.
+      TestHooks.mountSentinel(`map-node-${lvl}`);
       if (!unlocked.has(meta.number)) continue;
       const [nx, ny] = NODE_POSITIONS[i];
       const topPct = `${((ny / CH) * 100).toFixed(1)}%`;
       const leftPct = `${((nx / CW) * 100).toFixed(1)}%`;
-      const lvl = meta.number;
       TestHooks.mountInteractive(
         `map-level-${lvl}`,
         () => this._startLevel(lvl),

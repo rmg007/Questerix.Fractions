@@ -151,7 +151,7 @@ export class MenuScene extends Phaser.Scene {
     );
 
     // ── Test hooks ─────────────────────────────────────────────────────────
-    // level-card-L1 mirrors the Play! button which now opens the Adventure Map.
+    // level-card-L1 mirrors the Play! button which opens the Adventure Map.
     // Tests that need to start a specific level directly can use LevelMapScene's
     // own test hooks or the off-canvas L6/L7 shortcuts below.
     TestHooks.unmountAll();
@@ -160,7 +160,7 @@ export class MenuScene extends Phaser.Scene {
     TestHooks.mountInteractive(
       'level-card-L1',
       () => {
-        fadeAndStart(this, 'Level01Scene', { studentId: this.lastStudentId });
+        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
       },
       { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
