@@ -233,3 +233,152 @@ describe('deriveState', () => {
     expect(deriveState(0.9, 2)).toBe('APPROACHING');
   });
 });
+
+// ── Edge Cases: Slip Events (student knows but answers wrong) ──────────────
+
+describe('Slip Events — known student gives wrong answer', () => {
+  it('slip event decreases P_known but not below posterior from incorrect answer', () => {
+    // Student with high mastery (0.95) gets the answer wrong (slip)
+    const pKnown = 0.95;
+    const params = DEFAULT_PRIORS;
+
+    const result = updatePKnown(pKnown, false, params);
+
+    // Result must be in valid range
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThanOrEqual(1);
+
+    // Slip should decrease confidence but not collapse it entirely
+    expect(result).toBeLessThan(pKnown);
+    expect(result).toBeGreaterThan(0.5);
+  });
+
+  it('multiple slip events eventually reduce P_known substantially', () => {
+    let p = 0.95;
+    const params = DEFAULT_PRIORS;
+
+    // Three consecutive slip events
+    for (let i = 0; i < 3; i++) {
+      p = updatePKnown(p, false, params);
+    }
+
+    // Multiple slips should significantly reduce confidence
+    expect(p).toBeLessThan(0.7);
+  });
+
+  it('recovery from slip: correct answer after slip increases P_known', () => {
+    let p = 0.9;
+    const params = DEFAULT_PRIORS;
+
+    // Slip event
+    p = updatePKnown(p, false, params);
+    const afterSlip = p;
+
+    // Recovery attempt (correct)
+    p = updatePKnown(p, true, params);
+    const afterRecovery = p;
+
+    // Recovery should increase P_known back toward original
+    expect(afterRecovery).toBeGreaterThan(afterSlip);
+    expect(afterRecovery).toBeGreaterThan(0.7);
+  });
+});
+
+// ── Edge Cases: Guess Events (student doesn't know but answers correctly) ──
+
+describe('Guess Events — unknown student gets correct answer (lucky guess)', () => {
+  it('guess event increases P_known but less than from skill', () => {
+    // Student with low mastery (0.1) gets the answer correct (lucky guess)
+    const pKnown = 0.1;
+    const params = DEFAULT_PRIORS;
+
+    const result = updatePKnown(pKnown, true, params);
+
+    // Result must be in valid range
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThanOrEqual(1);
+
+    // Guess should increase, but modestly
+    expect(result).toBeGreaterThan(pKnown);
+  });
+
+  it('guess followed by incorrect answer resets P_known', () => {
+    let p = 0.1;
+    const params = DEFAULT_PRIORS;
+
+    // Lucky guess
+    p = updatePKnown(p, true, params);
+    const afterGuess = p;
+
+    // Student gets it wrong
+    p = updatePKnown(p, false, params);
+    const afterWrong = p;
+
+    // Incorrect should drop it back down
+    expect(afterWrong).toBeLessThan(afterGuess);
+  });
+
+  it('high slip rate delays reaching mastery threshold', () => {
+    let pHigh = 0.1;
+    let pLow = 0.1;
+    const paramsHighSlip = { ...DEFAULT_PRIORS, pSlip: 0.4 };
+    const paramsLowSlip = { ...DEFAULT_PRIORS, pSlip: 0.1 };
+
+    // Run 10 correct answers for both
+    for (let i = 0; i < 10; i++) {
+      pHigh = updatePKnown(pHigh, true, paramsHighSlip);
+      pLow = updatePKnown(pLow, true, paramsLowSlip);
+    }
+
+    // Low slip should be higher after same number of correct attempts
+    expect(pLow).toBeGreaterThan(pHigh);
+  });
+});
+
+// ── Edge Cases: Transition and Mastery ─────────────────────────────────────
+
+describe('Transition Logic and Mastery Thresholds', () => {
+  it('pTransit allows P_known to increase even with high slip', () => {
+    let pHigh = 0.3;
+    let pLow = 0.3;
+    const paramsHigh = { ...DEFAULT_PRIORS, pTransit: 0.3 };
+    const paramsLow = { ...DEFAULT_PRIORS, pTransit: 0.05 };
+
+    // Both students get one correct answer
+    pHigh = updatePKnown(pHigh, true, paramsHigh);
+    pLow = updatePKnown(pLow, true, paramsLow);
+
+    // Higher transit should yield higher estimate
+    expect(pHigh).toBeGreaterThan(pLow);
+  });
+
+  it('correctness streak reaches MASTERED state only with sufficient consecutive correct', () => {
+    let m = makeSkillMastery(0.85);
+    const params = DEFAULT_PRIORS;
+
+    // Even at 0.85 estimate, need 3 consecutive correct to reach MASTERED
+    m = updateMastery(m, true, params);
+    expect(m.state).not.toBe('MASTERED');
+
+    m = updateMastery(m, true, params);
+    expect(m.state).not.toBe('MASTERED');
+
+    m = updateMastery(m, true, params);
+    expect(m.state).toBe('MASTERED');
+  });
+
+  it('one incorrect breaks the consecutive streak and resets mastery', () => {
+    let m = makeSkillMastery(0.9);
+
+    // Build up consecutive correct
+    m = updateMastery(m, true);
+    m = updateMastery(m, true);
+    m = updateMastery(m, true);
+    expect(m.consecutiveCorrectUnassisted).toBe(3);
+
+    // One incorrect resets the streak
+    m = updateMastery(m, false);
+    expect(m.consecutiveCorrectUnassisted).toBe(0);
+    expect(m.state).not.toBe('MASTERED');
+  });
+});
