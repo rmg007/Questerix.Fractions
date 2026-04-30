@@ -158,8 +158,8 @@ export class MenuScene extends Phaser.Scene {
     A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
       fadeAndStart(this, 'SettingsScene');
     });
-    A11yLayer.mountAction('a11y-choose-level', 'Open Adventure Map', () => {
-      fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+    A11yLayer.mountAction('a11y-choose-level', 'Choose a level to play', () => {
+      void this._openChooseLevelOverlay();
     });
     A11yLayer.announce(
       'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to open the Adventure Map.'
