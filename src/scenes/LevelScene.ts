@@ -81,6 +81,9 @@ export class LevelScene extends Phaser.Scene {
   // Template pool
   private templatePool: QuestionTemplate[] = [];
   private currentTemplate!: QuestionTemplate;
+  private recentTemplateIds = new Set<string>();
+  private recentQueue: string[] = [];
+  private studentMastery: Map<string, import('@/types').SkillMastery> = new Map();
 
   // Current interaction
   private activeInteraction: Interaction | null = null;
@@ -112,6 +115,9 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
+    this.recentTemplateIds = new Set();
+    this.recentQueue = [];
+    this.studentMastery = new Map();
     // Reset the cached display name on every scene init so a previous
     // student's name can't leak into a later anonymous session-complete
     // line. `openSession()` re-resolves it from Dexie when a studentId
@@ -138,6 +144,7 @@ export class LevelScene extends Phaser.Scene {
 
     // Load templates
     await this.loadTemplates();
+    await this._loadStudentMastery();
 
     // Open session record
     await this.openSession();
@@ -211,7 +218,7 @@ export class LevelScene extends Phaser.Scene {
       // Graceful fallback — leave TTS and SFX in their default state
     }
 
-    this.loadQuestion(0);
+    void this.loadQuestion(0);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────
@@ -258,9 +265,22 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
+  private async _loadStudentMastery(): Promise<void> {
+    if (!this.studentId) return;
+    try {
+      const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+      const records = await skillMasteryRepo.getAllForStudent(
+        this.studentId as import('@/types').StudentId
+      );
+      this.studentMastery = new Map(records.map((r) => [r.skillId, r]));
+    } catch {
+      // Silent fallback — selection degrades to random
+    }
+  }
+
   // ── Question loading ─────────────────────────────────────────────────────────
 
-  private loadQuestion(index: number): void {
+  private async loadQuestion(index: number): Promise<void> {
     this.questionIndex = index;
     this.wrongCount = 0;
     this.inputLocked = false;
@@ -273,7 +293,23 @@ export class LevelScene extends Phaser.Scene {
 
     // Pick template
     if (this.templatePool.length > 0) {
-      this.currentTemplate = this.templatePool[index % this.templatePool.length]!;
+      const { selectNextQuestion } = await import('../engine/selection');
+      const selected = selectNextQuestion({
+        candidates: this.templatePool,
+        studentMastery: this.studentMastery as Map<import('@/types').SkillId, import('@/types').SkillMastery>,
+        recentTemplateIds: this.recentTemplateIds as Set<import('@/types').QuestionTemplateId>,
+        preferUnmastered: true,
+      });
+      this.currentTemplate = selected ?? this.templatePool[0]!;
+      if (selected) {
+        this.recentQueue.push(selected.id);
+        this.recentTemplateIds.add(selected.id);
+        const { RECENCY_WINDOW } = await import('../engine/selection');
+        if (this.recentQueue.length > RECENCY_WINDOW) {
+          const removed = this.recentQueue.shift()!;
+          this.recentTemplateIds.delete(removed);
+        }
+      }
     } else {
       // Synthetic fallback for partition archetype (keeps game playable)
       this.currentTemplate = this.makeFallbackTemplate();
@@ -692,6 +728,14 @@ export class LevelScene extends Phaser.Scene {
         } catch {
           return null;
         }
+      case 'identify':
+      case 'placement':
+      case 'explain_your_order':
+        try {
+          return getCopy(`quest.hint.${archetype}.${suffix}`);
+        } catch {
+          return null;
+        }
       default:
         return null;
     }
@@ -729,9 +773,9 @@ export class LevelScene extends Phaser.Scene {
     });
 
     if (this.attemptCount >= SESSION_GOAL) {
-      this.showSessionComplete();
+      void this.showSessionComplete();
     } else {
-      this.loadQuestion(this.questionIndex + 1);
+      void this.loadQuestion(this.questionIndex + 1);
     }
   }
 
@@ -1033,7 +1077,7 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Session complete ─────────────────────────────────────────────────────────
 
-  private showSessionComplete(): void {
+  private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
     const accuracy =
       this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
@@ -1051,6 +1095,30 @@ export class LevelScene extends Phaser.Scene {
 
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
+
+    // Check if all 9 levels are now complete — show Quest Complete overlay
+    const allDone = this._allLevelsComplete();
+    if (allDone) {
+      const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
+      new QuestCompleteOverlay({
+        scene: this,
+        width: CW,
+        height: CH,
+        onPlayAgainFromStart: () => {
+          fadeAndStart(this, 'LevelScene', { levelNumber: 1, studentId: this.studentId });
+        },
+        onMenu: () => {
+          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+        },
+      });
+      if (this.mascot) {
+        this.mascot.setDepth(60);
+        this.mascot.reposition(CW - 120, 400);
+        this.mascot.setState('celebrate');
+      }
+      void this.closeSession();
+      return;
+    }
 
     new SessionCompleteOverlay({
       scene: this,
@@ -1087,6 +1155,12 @@ export class LevelScene extends Phaser.Scene {
   private async closeSession(): Promise<void> {
     if (!this.sessionId) return;
     try {
+      const { updateStreak } = await import('../lib/streak');
+      updateStreak(this.studentId);
+    } catch {
+      // Non-critical
+    }
+    try {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
@@ -1110,6 +1184,18 @@ export class LevelScene extends Phaser.Scene {
       await sessionRepo.close(this.sessionId as import('@/types').SessionId, summary);
     } catch (err) {
       log.warn('SESS', 'close_error', { level: this.levelNumber, error: String(err) });
+    }
+  }
+
+  private _allLevelsComplete(): boolean {
+    try {
+      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
+      const raw = localStorage.getItem(key);
+      if (!raw) return false;
+      const arr = JSON.parse(raw) as number[];
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+    } catch {
+      return false;
     }
   }
 

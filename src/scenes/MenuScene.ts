@@ -333,6 +333,9 @@ export class MenuScene extends Phaser.Scene {
       });
     }
 
+    // ── Returning-player welcome nudge ────────────────────────────────────────
+    void this._showWelcomeBackNudge();
+
     // Stop tweens / handlers on shutdown so we don't leak
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       for (const t of this.ambientTweens) t.stop();
@@ -885,6 +888,90 @@ export class MenuScene extends Phaser.Scene {
       update();
       opts.onTap();
     });
+  }
+
+  private async _showWelcomeBackNudge(): Promise<void> {
+    try {
+      // Only show if the student has completed at least one level before
+      const compKey = this.lastStudentId
+        ? `completedLevels:${this.lastStudentId}`
+        : 'completedLevels';
+      const raw = localStorage.getItem(compKey);
+      const completed: number[] = raw ? (JSON.parse(raw) as number[]) : [];
+      if (completed.length === 0) return; // first-time player — no nudge
+
+      const unlockKey = this.lastStudentId
+        ? `unlockedLevels:${this.lastStudentId}`
+        : 'unlockedLevels';
+      const rawU = localStorage.getItem(unlockKey);
+      const unlocked: number[] = rawU ? (JSON.parse(rawU) as number[]) : [1];
+
+      // Suggested next = lowest unlocked level not yet completed
+      const suggested = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(
+        (n) => unlocked.includes(n) && !completed.includes(n)
+      );
+      const allDone = completed.length >= 9 && [1,2,3,4,5,6,7,8,9].every(n => completed.includes(n));
+
+      // Streak
+      const { getStreak } = await import('../lib/streak');
+      const streakCount = getStreak(this.lastStudentId ?? null);
+
+      // Speech bubble above mascot (680, 980) → bubble at ~(680, 850)
+      const bx = 680;
+      const by = 850;
+      const msg = allDone
+        ? 'You mastered all\n9 levels! 🎉'
+        : suggested
+          ? `Welcome back!\nTry Level ${suggested} next!`
+          : 'Welcome back!';
+
+      const bubbleW = 210;
+      const bubbleH = 76;
+      const bg = this.add.graphics().setDepth(16);
+      bg.fillStyle(0xffffff, 0.95);
+      bg.fillRoundedRect(bx - bubbleW / 2, by - bubbleH / 2, bubbleW, bubbleH, 14);
+      bg.lineStyle(3, NAVY, 1);
+      bg.strokeRoundedRect(bx - bubbleW / 2, by - bubbleH / 2, bubbleW, bubbleH, 14);
+      // Tail pointing downward
+      bg.fillStyle(0xffffff, 0.95);
+      bg.fillTriangle(bx - 10, by + bubbleH / 2, bx + 10, by + bubbleH / 2, bx, by + bubbleH / 2 + 12);
+      bg.lineStyle(3, NAVY, 1);
+      bg.lineBetween(bx - 10, by + bubbleH / 2, bx, by + bubbleH / 2 + 12);
+      bg.lineBetween(bx, by + bubbleH / 2 + 12, bx + 10, by + bubbleH / 2);
+
+      this.add
+        .text(bx, by, msg, {
+          fontFamily: BODY_FONT,
+          fontSize: '15px',
+          color: NAVY_HEX,
+          align: 'center',
+          wordWrap: { width: bubbleW - 16 },
+        })
+        .setOrigin(0.5)
+        .setDepth(17);
+
+      // Streak badge if ≥ 2 consecutive days
+      if (streakCount >= 2) {
+        const sx = bx;
+        const sy = by - bubbleH / 2 - 26;
+        const sbg = this.add.graphics().setDepth(16);
+        sbg.fillStyle(0xfcd34d, 1); // amber
+        sbg.fillRoundedRect(sx - 60, sy - 14, 120, 28, 14);
+        sbg.lineStyle(2, 0xb45309, 1);
+        sbg.strokeRoundedRect(sx - 60, sy - 14, 120, 28, 14);
+        this.add
+          .text(sx, sy, `🔥 ${streakCount} day streak!`, {
+            fontFamily: BODY_FONT,
+            fontSize: '13px',
+            color: '#78350F',
+            fontStyle: 'bold',
+          })
+          .setOrigin(0.5)
+          .setDepth(17);
+      }
+    } catch {
+      // Non-critical — fail silently
+    }
   }
 
   // ── Reduced motion + font ready helpers ───────────────────────────────────

@@ -29,6 +29,8 @@ export default defineConfig(async () => {
         injectRegister: 'script',
         includeAssets: ['manifest.json', 'icons/*.png'],
         workbox: {
+          navigateFallback: '/index.html',
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           runtimeCaching: [
             {
               urlPattern: /\/curriculum\/v\d+\.json/,
