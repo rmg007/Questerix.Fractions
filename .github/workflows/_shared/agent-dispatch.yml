@@ -1,0 +1,121 @@
+name: Agent Dispatch (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      prompt_template:
+        description: "Name of the prompt template under .github/agent-prompts/ (without .md)"
+        required: true
+        type: string
+      context_json:
+        description: "JSON string with placeholder values for the prompt template"
+        required: true
+        type: string
+      working_branch:
+        description: "Branch the agent should check out and work on"
+        required: true
+        type: string
+      pr_number:
+        description: "PR number for context (optional)"
+        required: false
+        type: string
+        default: ""
+      timeout_minutes:
+        description: "Max minutes the agent is allowed to run"
+        required: false
+        type: number
+        default: 20
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+      GH_TOKEN:
+        required: true
+    outputs:
+      outcome:
+        description: "success | partial | failed"
+        value: ${{ jobs.dispatch.outputs.outcome }}
+      summary:
+        description: "One-paragraph human-readable summary of what the agent did"
+        value: ${{ jobs.dispatch.outputs.summary }}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    outputs:
+      outcome: ${{ steps.run-agent.outputs.outcome }}
+      summary: ${{ steps.run-agent.outputs.summary }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.working_branch }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Render prompt from template
+        id: render-prompt
+        uses: actions/github-script@v7
+        env:
+          CONTEXT_JSON: ${{ inputs.context_json }}
+          PROMPT_TEMPLATE: ${{ inputs.prompt_template }}
+        with:
+          script: |
+            const fs = require('fs');
+            const templatePath = `.github/agent-prompts/${process.env.PROMPT_TEMPLATE}.md`;
+            let prompt = fs.readFileSync(templatePath, 'utf8');
+            const ctx = JSON.parse(process.env.CONTEXT_JSON);
+            for (const [key, value] of Object.entries(ctx)) {
+              prompt = prompt.replaceAll(`\${{${key}}}`, value);
+            }
+            fs.writeFileSync('/tmp/agent-prompt.md', prompt);
+            core.setOutput('prompt_path', '/tmp/agent-prompt.md');
+
+      - name: Run Claude Code agent
+        id: run-agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          set +e
+          claude --print --output-format json \
+            --allowedTools "Bash,Read,Edit,Write" \
+            "$(cat /tmp/agent-prompt.md)" \
+            > /tmp/agent-output.json 2>/tmp/agent-stderr.txt
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            OUTCOME="success"
+          else
+            OUTCOME="failed"
+          fi
+
+          SUMMARY=$(python3 -c "
+          import json, sys
+          try:
+              data = json.load(open('/tmp/agent-output.json'))
+              result = data.get('result', data.get('content', ''))
+              if isinstance(result, list):
+                  result = ' '.join(b.get('text','') for b in result if b.get('type')=='text')
+              print(str(result)[:1000])
+          except Exception as e:
+              print('Agent output parsing failed: ' + str(e))
+          " 2>/dev/null || cat /tmp/agent-stderr.txt | tail -20)
+
+          echo "outcome=$OUTCOME" >> "$GITHUB_OUTPUT"
+          {
+            echo 'summary<<AGENT_SUMMARY_EOF'
+            echo "$SUMMARY"
+            echo 'AGENT_SUMMARY_EOF'
+          } >> "$GITHUB_OUTPUT"
