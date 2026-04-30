@@ -67,6 +67,46 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
 
+  // ── Per-archetype wrong-answer lines (verbal, observational) ──────────
+  // One line per archetype so Quest speaks to what the question actually
+  // asked rather than defaulting to "parts are not equal" on every type.
+  // All entries: FK ≤ 2.0, ≤ 7 words/sentence, never "The answer is…".
+  'quest.feedback.wrong.equal_or_not': {
+    text: 'Try again. The parts are not equal.',
+    notes: 'Wrong answer for equal_or_not. Observational: names what Quest sees.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.compare': {
+    text: 'Try again. Look at both again.',
+    notes: 'Wrong answer for compare. Invites re-examination of both fractions.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.order': {
+    text: 'Try again. Check the sizes.',
+    notes: 'Wrong answer for order. Nudges checking magnitude without giving order away.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.benchmark': {
+    text: 'Try again. Think near the half.',
+    notes: 'Wrong answer for benchmark. Points to the half benchmark; all 1-syllable words keep FK low.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.label': {
+    text: 'Try again. Count the parts again.',
+    notes: 'Wrong answer for label. Observational: re-count shaded and total.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.make': {
+    text: 'Try again. Count the shaded parts.',
+    notes: 'Wrong answer for make. Names what Quest sees in the construction.',
+    tone: 'persona-quest',
+  },
+  'quest.feedback.wrong.snap_match': {
+    text: 'Try again. Those do not match.',
+    notes: 'Wrong answer for snap_match. Short observational note on the mismatch.',
+    tone: 'persona-quest',
+  },
+
   // ── Hint (models thinking, never gives the answer) ────────────────────
   'quest.hint.split2': {
     text: 'Hmm. I can split this in two.',

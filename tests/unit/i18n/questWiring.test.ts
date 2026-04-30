@@ -30,6 +30,21 @@ describe('LevelScene Quest wiring (T28)', () => {
       );
       expect(getCopy('quest.feedback.wrong.parts', { count: 3 })).toBe('Try again. I see 3 parts.');
     });
+
+    it('registers per-archetype wrong-answer lines for all 7 archetypes', () => {
+      const cases: Array<[string, string]> = [
+        ['equal_or_not', 'Try again. The parts are not equal.'],
+        ['compare', 'Try again. Look at both again.'],
+        ['order', 'Try again. Check the sizes.'],
+        ['benchmark', 'Try again. Think near the half.'],
+        ['label', 'Try again. Count the parts again.'],
+        ['make', 'Try again. Count the shaded parts.'],
+        ['snap_match', 'Try again. Those do not match.'],
+      ];
+      for (const [archetype, expected] of cases) {
+        expect(getCopy(`quest.feedback.wrong.${archetype}`)).toBe(expected);
+      }
+    });
   });
 
   describe('correct-answer feedback', () => {

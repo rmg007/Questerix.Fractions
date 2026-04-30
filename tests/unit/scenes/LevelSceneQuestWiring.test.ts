@@ -52,16 +52,32 @@ function makeScene(archetype: string, payload: Record<string, unknown> = {}): An
 
 describe('LevelScene Quest wiring (behavior)', () => {
   describe('questFeedbackText — wrong answer', () => {
-    it('returns the partition-shaped Quest line for any archetype on incorrect', () => {
-      const scene = makeScene('partition', { targetPartitions: 2 });
-      expect(scene.questFeedbackText('incorrect')).toBe('Try again. The parts are not equal.');
+    it('returns the unequal fallback for partition and unknown archetypes', () => {
+      expect(makeScene('partition', { targetPartitions: 2 }).questFeedbackText('incorrect')).toBe(
+        'Try again. The parts are not equal.'
+      );
+      expect(makeScene('unknown_archetype').questFeedbackText('incorrect')).toBe(
+        'Try again. The parts are not equal.'
+      );
     });
 
-    it('returns the same wrong line regardless of archetype (single fallback today)', () => {
-      for (const a of ['compare', 'order', 'benchmark', 'label', 'make', 'snap_match']) {
-        expect(makeScene(a).questFeedbackText('incorrect')).toBe(
-          'Try again. The parts are not equal.'
-        );
+    it('returns the equal_or_not line for equal_or_not archetype', () => {
+      expect(makeScene('equal_or_not').questFeedbackText('incorrect')).toBe(
+        'Try again. The parts are not equal.'
+      );
+    });
+
+    it('returns per-archetype wrong-answer lines for all 6 non-partition archetypes', () => {
+      const cases: Array<[string, string]> = [
+        ['compare', 'Try again. Look at both again.'],
+        ['order', 'Try again. Check the sizes.'],
+        ['benchmark', 'Try again. Think near the half.'],
+        ['label', 'Try again. Count the parts again.'],
+        ['make', 'Try again. Count the shaded parts.'],
+        ['snap_match', 'Try again. Those do not match.'],
+      ];
+      for (const [archetype, expected] of cases) {
+        expect(makeScene(archetype).questFeedbackText('incorrect')).toBe(expected);
       }
     });
   });

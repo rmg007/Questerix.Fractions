@@ -579,8 +579,9 @@ export class LevelScene extends Phaser.Scene {
 
   /**
    * Quest-voiced feedback for the outcome. correct picks the denominator-
-   * named line (halves/thirds/fourths, else equal); incorrect returns
-   * the generic wrong line. null for partial/close outcomes.
+   * named line (halves/thirds/fourths, else equal); incorrect switches on
+   * archetype (like questHintText) so Quest speaks to what the question
+   * actually asked. null for partial/close outcomes.
    */
   private questFeedbackText(kind: FeedbackKind): string | null {
     if (kind === 'correct') {
@@ -597,7 +598,23 @@ export class LevelScene extends Phaser.Scene {
       }
     }
     if (kind === 'incorrect') {
-      return getCopy('quest.feedback.wrong.unequal');
+      const archetype = this.currentTemplate?.archetype as string | undefined;
+      switch (archetype) {
+        case 'equal_or_not':
+        case 'compare':
+        case 'order':
+        case 'benchmark':
+        case 'label':
+        case 'make':
+        case 'snap_match':
+          try {
+            return getCopy(`quest.feedback.wrong.${archetype}`);
+          } catch {
+            return getCopy('quest.feedback.wrong.unequal');
+          }
+        default:
+          return getCopy('quest.feedback.wrong.unequal');
+      }
     }
     return null;
   }
