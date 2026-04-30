@@ -33,7 +33,9 @@ import { TestHooks } from './utils/TestHooks';
 import { LEVEL_META } from './utils/levelMeta';
 import { LevelCard } from '../components/LevelCard';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import type { StudentId } from '../types';
+import { StudentId as StudentIdConstructor } from '../types/branded';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -112,8 +114,8 @@ export class LevelMapScene extends Phaser.Scene {
 
 
     // ── Unlock data ────────────────────────────────────────────────────────
-    const unlocked = this._getUnlockedLevels();
-    const completedLevels = this._getCompletedLevels();
+    const unlocked = await this._getUnlockedLevels();
+    const completedLevels = await this._getCompletedLevels();
 
     // "Suggested next" = the lowest unlocked level that has not been completed.
     const suggestedLevel = LEVEL_META.find(
@@ -325,36 +327,28 @@ export class LevelMapScene extends Phaser.Scene {
     return mastered;
   }
 
-  private _getUnlockedLevels(): Set<number> {
-    const unlocked = new Set<number>([1]);
+  private async _getUnlockedLevels(): Promise<Set<number>> {
+    if (!this.studentId) {
+      return new Set([1]); // Level 1 always unlocked
+    }
     try {
-      const key = this.studentId ? `unlockedLevels:${this.studentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => unlocked.add(n));
-      }
+      return await levelProgressionRepo.getUnlockedLevels(StudentIdConstructor(this.studentId));
     } catch {
       // Fall back to level 1 only on storage error
+      return new Set([1]);
     }
-    return unlocked;
   }
 
-  private _getCompletedLevels(): Set<number> {
-    const completed = new Set<number>();
+  private async _getCompletedLevels(): Promise<Set<number>> {
+    if (!this.studentId) {
+      return new Set();
+    }
     try {
-      // Read from the explicit completedLevels key written by MenuScene.markLevelComplete.
-      // This correctly covers Level 9 which has no successor level to unlock.
-      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => completed.add(n));
-      }
+      return await levelProgressionRepo.getCompletedLevels(StudentIdConstructor(this.studentId));
     } catch {
       // Ignore storage errors — map renders without star badges on failure
+      return new Set();
     }
-    return completed;
   }
 
   private _startLevel(levelNumber: number): void {

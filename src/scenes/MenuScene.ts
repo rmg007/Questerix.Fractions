@@ -23,6 +23,7 @@ import { Mascot } from '../components/Mascot';
 import { LevelCard } from '../components/LevelCard';
 import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 
@@ -125,7 +126,7 @@ export class MenuScene extends Phaser.Scene {
     this.dashTickHandler = null;
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.reduceMotion = this.checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
@@ -143,7 +144,7 @@ export class MenuScene extends Phaser.Scene {
     injectSkipLink();
 
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
-    const unlocked = this._getUnlockedLevels();
+    const unlocked = await this._getUnlockedLevels();
     const currentLevel = Math.max(...Array.from(unlocked));
 
     A11yLayer.unmountAll();
@@ -388,8 +389,8 @@ export class MenuScene extends Phaser.Scene {
     // Close any existing overlay first.
     this._closeChooseLevelOverlay();
 
-    const unlocked = this._getUnlockedLevels();
-    const completedLevels = this._getCompletedLevels();
+    const unlocked = await this._getUnlockedLevels();
+    const completedLevels = await this._getCompletedLevels();
 
     // Query mastery estimates from IndexedDB.
     const masteredLevels = new Set<number>();
@@ -554,36 +555,28 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  /** Read completed levels from localStorage (with optional studentId prefix). */
-  private _getCompletedLevels(): Set<number> {
-    const completed = new Set<number>();
+  /** Read completed levels from IndexedDB. */
+  private async _getCompletedLevels(): Promise<Set<number>> {
+    if (!this.lastStudentId) return new Set();
     try {
-      const key = this.lastStudentId ? `completedLevels:${this.lastStudentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => completed.add(n));
-      }
+      return await levelProgressionRepo.getCompletedLevels(StudentId(this.lastStudentId));
     } catch {
-      // Ignore storage errors
+      // Ignore storage errors — default to empty set
+      return new Set();
     }
-    return completed;
   }
 
-  /** Read unlocked levels from localStorage (with optional studentId prefix). */
-  private _getUnlockedLevels(): Set<number> {
-    const unlocked = new Set<number>([1]); // Level 1 always unlocked
-    try {
-      const key = this.lastStudentId ? `unlockedLevels:${this.lastStudentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => unlocked.add(n));
-      }
-    } catch (err) {
-      // Ignore storage errors — default to level 1 only
+  /** Read unlocked levels from IndexedDB. */
+  private async _getUnlockedLevels(): Promise<Set<number>> {
+    if (!this.lastStudentId) {
+      return new Set([1]); // Level 1 always unlocked
     }
-    return unlocked;
+    try {
+      return await levelProgressionRepo.getUnlockedLevels(StudentId(this.lastStudentId));
+    } catch {
+      // Ignore storage errors — default to level 1 only
+      return new Set([1]);
+    }
   }
 
   /** Persist that a level was completed so the next one unlocks. */
@@ -597,28 +590,12 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  static markLevelComplete(levelNumber: number, studentId: string | null): void {
+  static async markLevelComplete(levelNumber: number, studentId: string | null): Promise<void> {
+    if (!studentId) return; // No-op for non-logged-in students
     try {
-      // Unlock the next level (levels 1–8 only — no level 10 exists)
-      const unlockKey = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(unlockKey);
-      const arr: number[] = raw ? (JSON.parse(raw) as number[]) : [];
-      const next = levelNumber + 1;
-      if (next <= 9 && !arr.includes(next)) {
-        arr.push(next);
-        localStorage.setItem(unlockKey, JSON.stringify(arr));
-      }
-
-      // Record this level as explicitly completed (covers Level 9 which has no successor)
-      const compKey = studentId ? `completedLevels:${studentId}` : 'completedLevels';
-      const rawComp = localStorage.getItem(compKey);
-      const compArr: number[] = rawComp ? (JSON.parse(rawComp) as number[]) : [];
-      if (!compArr.includes(levelNumber)) {
-        compArr.push(levelNumber);
-        localStorage.setItem(compKey, JSON.stringify(compArr));
-      }
+      await levelProgressionRepo.complete(StudentId(studentId), levelNumber);
     } catch (err) {
-      // Ignore storage errors
+      // Ignore storage errors — caller will retry on next session
     }
   }
 

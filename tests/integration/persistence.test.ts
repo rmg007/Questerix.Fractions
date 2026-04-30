@@ -13,6 +13,7 @@ import { attemptRepo } from '../../src/persistence/repositories/attempt';
 import { skillMasteryRepo } from '../../src/persistence/repositories/skillMastery';
 import { deviceMetaRepo } from '../../src/persistence/repositories/deviceMeta';
 import { bookmarkRepo } from '../../src/persistence/repositories/bookmark';
+import { levelProgressionRepo } from '../../src/persistence/repositories/levelProgression';
 import { backupToFile, restoreFromFile } from '../../src/persistence/backup';
 import type { Student, Session, Attempt, SkillMastery } from '../../src/types';
 import {
@@ -317,6 +318,127 @@ describe('bookmarkRepo', () => {
     });
     const latest = await bookmarkRepo.getLatestForStudent(studentId);
     expect(latest?.id).toBe('bm-b');
+  });
+});
+
+// ── Level progression repository (C5 Dexie migration) ──────────────────────
+
+describe('levelProgressionRepo', () => {
+  it('getOrCreate initializes with level 1 unlocked', async () => {
+    const studentId = StudentId('student-new');
+    const prog = await levelProgressionRepo.getOrCreate(studentId);
+    expect(prog.studentId).toBe(studentId);
+    expect(prog.unlockedLevels).toEqual([1]);
+    expect(prog.completedLevels).toEqual([]);
+    expect(prog.syncState).toBe('local');
+  });
+
+  it('get returns undefined for non-existent student', async () => {
+    const studentId = StudentId('student-nonexistent');
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog).toBeUndefined();
+  });
+
+  it('unlock adds a level idempotently', async () => {
+    const studentId = StudentId('student-unlock-test');
+    await levelProgressionRepo.unlock(studentId, 2);
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog?.unlockedLevels).toContain(2);
+
+    // Second unlock should be idempotent
+    await levelProgressionRepo.unlock(studentId, 2);
+    const prog2 = await levelProgressionRepo.get(studentId);
+    expect(prog2?.unlockedLevels.filter((n) => n === 2)).toHaveLength(1);
+  });
+
+  it('complete marks a level as completed and unlocks next', async () => {
+    const studentId = StudentId('student-complete-test');
+    await levelProgressionRepo.complete(studentId, 1);
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog?.completedLevels).toContain(1);
+    expect(prog?.unlockedLevels).toContain(2);
+  });
+
+  it('complete is idempotent', async () => {
+    const studentId = StudentId('student-complete-idempotent');
+    await levelProgressionRepo.complete(studentId, 3);
+    await levelProgressionRepo.complete(studentId, 3);
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog?.completedLevels.filter((n) => n === 3)).toHaveLength(1);
+  });
+
+  it('complete unlocks level 9 but does not try to unlock level 10', async () => {
+    const studentId = StudentId('student-complete-9');
+    await levelProgressionRepo.complete(studentId, 9);
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog?.completedLevels).toContain(9);
+    // Should not attempt to add level 10 (which doesn't exist)
+    expect(prog?.unlockedLevels).not.toContain(10);
+  });
+
+  it('getUnlockedLevels returns a Set', async () => {
+    const studentId = StudentId('student-unlocked-set');
+    await levelProgressionRepo.unlock(studentId, 1);
+    await levelProgressionRepo.unlock(studentId, 2);
+    await levelProgressionRepo.unlock(studentId, 3);
+    const unlocked = await levelProgressionRepo.getUnlockedLevels(studentId);
+    expect(unlocked).toBeInstanceOf(Set);
+    expect(unlocked.has(1)).toBe(true);
+    expect(unlocked.has(2)).toBe(true);
+    expect(unlocked.has(3)).toBe(true);
+    expect(unlocked.has(4)).toBe(false);
+  });
+
+  it('getCompletedLevels returns a Set', async () => {
+    const studentId = StudentId('student-completed-set');
+    await levelProgressionRepo.complete(studentId, 1);
+    await levelProgressionRepo.complete(studentId, 2);
+    const completed = await levelProgressionRepo.getCompletedLevels(studentId);
+    expect(completed).toBeInstanceOf(Set);
+    expect(completed.has(1)).toBe(true);
+    expect(completed.has(2)).toBe(true);
+    expect(completed.has(3)).toBe(false);
+  });
+
+  it('upsert persists a full progression record', async () => {
+    const studentId = StudentId('student-upsert');
+    const now = Date.now();
+    const record = {
+      studentId,
+      unlockedLevels: [1, 2, 3, 4],
+      completedLevels: [1, 2],
+      lastUpdatedAt: now,
+      syncState: 'local' as const,
+    };
+    await levelProgressionRepo.upsert(record);
+    const fetched = await levelProgressionRepo.get(studentId);
+    expect(fetched?.unlockedLevels).toEqual([1, 2, 3, 4]);
+    expect(fetched?.completedLevels).toEqual([1, 2]);
+  });
+
+  it('delete removes a progression record idempotently', async () => {
+    const studentId = StudentId('student-delete');
+    await levelProgressionRepo.complete(studentId, 1);
+    let prog = await levelProgressionRepo.get(studentId);
+    expect(prog).toBeDefined();
+
+    await levelProgressionRepo.delete(studentId);
+    prog = await levelProgressionRepo.get(studentId);
+    expect(prog).toBeUndefined();
+
+    // Second delete should not throw
+    await levelProgressionRepo.delete(studentId);
+    expect(true); // No exception
+  });
+
+  it('maintains sorted order on unlock and complete', async () => {
+    const studentId = StudentId('student-sorted');
+    // Unlock in non-sequential order
+    await levelProgressionRepo.unlock(studentId, 5);
+    await levelProgressionRepo.unlock(studentId, 2);
+    await levelProgressionRepo.unlock(studentId, 8);
+    const prog = await levelProgressionRepo.get(studentId);
+    expect(prog?.unlockedLevels).toEqual([1, 2, 5, 8]);
   });
 });
 

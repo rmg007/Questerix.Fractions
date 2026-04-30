@@ -239,6 +239,23 @@ export interface ProgressionStat {
   syncState: SyncState;
 }
 
+// ── §3.7a LevelProgression ────────────────────────────────────────────────
+/**
+ * Per-student level unlock/completion tracking (replaces localStorage).
+ * Single row per student tracking which levels are unlocked and completed.
+ * per C5 and P4 Dexie migration.
+ */
+export interface LevelProgression {
+  studentId: StudentId;
+  /** Array of unlocked level numbers (1–9). */
+  unlockedLevels: number[];
+  /** Array of completed level numbers (1–9). */
+  completedLevels: number[];
+  /** Epoch ms; updated whenever unlocked/completed changes. */
+  lastUpdatedAt: number;
+  syncState: SyncState;
+}
+
 // ── §3.8 DeviceMeta ────────────────────────────────────────────────────────
 
 /** per data-schema.md §3.8 (audit §5 fix) */
