@@ -31,7 +31,7 @@ export interface SessionCompleteConfig {
   onMenu: () => void;
 }
 
-function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
+export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
   if (total === 0) return 1;
   const acc = correct / total;
   if (acc >= 0.9) return 3;

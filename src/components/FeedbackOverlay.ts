@@ -243,6 +243,7 @@ export class FeedbackOverlay {
   /** Correct: short burst of yellow/gold star particles from icon position. */
   private burstStarParticles(): void {
     if (!this.scene.textures.exists('clr-accentA')) return;
+    TestHooks.mountSentinel('sparkle-burst');
 
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
     for (const tint of starColors) {
