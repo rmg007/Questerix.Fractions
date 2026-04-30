@@ -12,6 +12,16 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 - `/sync-curriculum` — rebuild + validate curriculum bundles after pipeline output changes
 - `/diag` — one-screen repo state (branch, dirty files, recent commits, bundle size, test count)
 
+## Autonomous mode
+
+`.claude/settings.json` (committed, repo-wide) pre-approves the safe surface so agents work without permission prompts:
+- **allow** — all `npm run` scripts, `npx tsc`/`eslint`/`prettier`/`vitest`/`playwright`, read-only `git`, project `node scripts/*`, pipeline Python, plus `git add`/`commit`/`mv`/`rm` for normal flow.
+- **ask** — `git push`, `git reset --hard`, `npm run deploy`, `npx wrangler`, `npm publish` (always confirm).
+- **deny** — `.env*` reads, `git push --force`, `curl`/`wget`, `rm -rf /`/`~`.
+- **SessionStart hook** — prints branch, dirty count, doc pointers, and slash commands when a session starts so the agent orients in one screen.
+
+Personal overrides go in `.claude/settings.local.json` (gitignored — your local file persists; not committed).
+
 ---
 
 ## Commands
