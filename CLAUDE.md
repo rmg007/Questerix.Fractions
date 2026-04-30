@@ -117,8 +117,13 @@ src/curriculum/bundle.json       # static import fallback ┘ always run build:c
 
 ### Persistence
 - All progression data → IndexedDB via Dexie (`src/persistence/`).
-- localStorage: `lastUsedStudentId` only — no progress data, no PII.
+- localStorage: `lastUsedStudentId` only per C5. **Known deviation:** `MenuScene.ts` and `LevelMapScene.ts` also read/write `unlockedLevels:<studentId>` and `completedLevels:<studentId>`. Don't extend further; pending move to a Dexie `progressionStat` row.
 - No external HTTP calls except static asset CDN.
+
+### Observability (env-gated, off by default)
+- `src/lib/observability/tracer.ts` ships OpenTelemetry. **Only fires when `VITE_OTLP_URL` is set at build time.** Default builds: no egress.
+- `src/lib/observability/errorReporter.ts` ships Sentry. **Only fires when a `dsn` is passed to `init()`.** Default builds: no egress.
+- Both are still in the bundle and count against the 1 MB budget. If they stay dormant for the MVP, consider lazy-importing them so unused builds don't pay the cost.
 
 ### Accessibility
 - All new interactive elements need ARIA labels or accessible names.

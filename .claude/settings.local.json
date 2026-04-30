@@ -16,7 +16,9 @@
       "Read(//c/Users/mhali/.claude/plans/**)",
       "Bash(npm install *)",
       "Bash(mkdir -p .claude/_archive .claude/commands PLANS/_archive)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(mkdir -p .vscode .claude/_archive/scripts)",
+      "Bash(rm .claude/scheduled_tasks.lock)"
     ]
   }
 }
