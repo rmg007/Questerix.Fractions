@@ -194,6 +194,57 @@ export class MenuScene extends Phaser.Scene {
       },
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
+    // R30/R31: Add missing testids for L2–L5, L8, L9 (off-canvas for e2e bypass tests)
+    TestHooks.mountInteractive(
+      'level-card-L2',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L3',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 3, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L4',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 4, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L5',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 5, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L8',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 8, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L9',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 9, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    // R30: Add settings-btn testid
+    TestHooks.mountInteractive(
+      'settings-btn',
+      () => {
+        fadeAndStart(this, 'SettingsScene');
+      },
+      { width: '100px', height: '100px', top: '8.3%', left: '50%' }
+    );
 
     // ── Background: pale sky + soft glow circles ──────────────────────────
     this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);

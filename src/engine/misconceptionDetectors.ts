@@ -556,16 +556,15 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
 }
 
 /**
- * ORD-01 — Ordering confusion (placeholder for expansion)
-
-/**
- * ORD-01 — Ordering confusion (placeholder for expansion)
- * Future: detect pattern errors in sequencing fractions.
+ * ORD-01 — Ordering confusion (placeholder for Level 9+ expansion).
+ * The `order` archetype first appears at level 09 in curriculum/v1.json.
+ * Level 7 is `compare` archetype — do NOT activate this detector before L9.
+ * Future: detect sequential-guessing patterns in fraction ordering tasks.
  */
 export function detectORD01(attempts: Attempt[], level: number): MisconceptionFlag | null {
-  if (level < 7 || attempts.length < 5) return null;
+  if (level < 9 || attempts.length < 5) return null;
 
-  // Placeholder: future expansion from order archetype
+  // Placeholder: implement when L9 ordering telemetry data is available.
   return null;
 }
 
