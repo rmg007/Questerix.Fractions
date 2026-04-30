@@ -48,6 +48,30 @@ test.describe('Mascot on MenuScene', () => {
       { timeout: 3000 }
     );
   });
+
+  test('mascot sentinel returns to idle after greeting wave completes', async ({ page }) => {
+    await page.goto('/?testHooks=1');
+    await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
+      timeout: 8000,
+    });
+    await page.locator('[data-testid="boot-start-btn"]').click();
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
+
+    // First confirm the wave fires
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'wave',
+      { timeout: 3000 }
+    );
+
+    // After ~850ms of tweens the onComplete callback calls setState('idle');
+    // allow 4 seconds total to give CI headroom.
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'idle',
+      { timeout: 4000 }
+    );
+  });
 });
 
 test.describe('Mascot reactions (T27) — e2e smoke', () => {

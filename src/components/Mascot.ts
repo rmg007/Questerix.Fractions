@@ -3,7 +3,7 @@
  *
  * A small amber/navy wizard drawn entirely from Phaser Graphics primitives
  * (no image files). Provides idle bob, celebrate jump, encourage wobble, and
- * wave animations. Returns to idle automatically after celebrate / encourage.
+ * wave animations. Returns to idle automatically after celebrate / encourage / wave.
  *
  * per design-language.md §7.3 (procedural shapes only)
  */
@@ -229,9 +229,12 @@ export class Mascot extends Phaser.GameObjects.Container {
     });
   }
 
-  /** Arm-raise wave. */
+  /** Arm-raise wave (~850ms), then returns to idle. */
   wave(): void {
-    if (this.reduceMotion) return;
+    if (this.reduceMotion) {
+      this.setState('idle');
+      return;
+    }
 
     this.scene.tweens.chain({
       targets: this.rightArm,
@@ -240,7 +243,14 @@ export class Mascot extends Phaser.GameObjects.Container {
         { angle: -30, duration: 150, ease: 'Sine.easeInOut' },
         { angle: -60, duration: 150, ease: 'Sine.easeInOut' },
         { angle: -30, duration: 150, ease: 'Sine.easeInOut' },
-        { angle: 0, duration: 200, ease: 'Back.easeIn' },
+        {
+          angle: 0,
+          duration: 200,
+          ease: 'Back.easeIn',
+          onComplete: () => {
+            this.setState('idle');
+          },
+        },
       ],
     });
   }
