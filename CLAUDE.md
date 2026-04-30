@@ -13,6 +13,10 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 - `/diag` — one-screen repo state (branch, dirty files, recent commits, bundle size, test count)
 - `/learn <text>` — append a one-line gotcha to `.claude/learnings.md`
 - `/retro` — end-of-session retro; proposes CLAUDE.md / learnings / PLANS / CHANGELOG updates
+- `/sprint-status` — compact table of active blockers vs. codebase reality
+- `/c5-check` — grep localStorage for constraint drift outside documented exceptions
+- `/test-changed` — run Vitest only on tests for files changed since main (faster inner loop)
+- `/decision <title>` — append a new D-NN entry to `docs/00-foundation/decision-log.md`
 
 ## Continuous self-improvement
 
@@ -26,6 +30,8 @@ Delegate to these via the Agent tool when scope warrants:
 
 - `c1-c10-auditor` — audits a diff/branch for constraint violations. Use after dependency changes, persistence edits, or new UI surfaces.
 - `bundle-watcher` — audits gzipped JS against the 1 MB budget. Use after dep changes or large feature merges.
+- `validator-parity-checker` — confirms a changed TS validator has a matching Python clone and parity fixtures pass. Use after any change to `src/validators/*.ts`.
+- `a11y-auditor` — checks new interactions/components for ARIA labels, touch targets, reduced-motion gating, keyboard parity.
 
 ## Autonomous mode
 

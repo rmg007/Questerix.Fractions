@@ -2,6 +2,7 @@
 # (settings.json, commands/, and CLAUDE.md files at any level remain tracked.)
 
 settings.local.json
+_session-log.md
 *.lock
 *REPORT*.md
 *SUMMARY*.md
