@@ -152,6 +152,12 @@ export class LevelScene extends Phaser.Scene {
     this.createHintButton();
     this.createSubmitButton();
 
+    const progressCardG = this.add.graphics().setDepth(3);
+    progressCardG.fillStyle(OPTION_BG, 1);
+    progressCardG.fillRoundedRect(60, CH - 115, CW - 120, 80, 18);
+    progressCardG.lineStyle(3, PATH_BLUE, 1);
+    progressCardG.strokeRoundedRect(60, CH - 115, CW - 120, 80, 18);
+
     this.progressBar = new ProgressBar({
       scene: this,
       x: CW / 2 - 200,
@@ -179,13 +185,13 @@ export class LevelScene extends Phaser.Scene {
     const levelId = `level${String(this.levelNumber).padStart(2, '0')}-scene`;
     TestHooks.mountSentinel(levelId);
 
-    // hint-btn interactive overlay (upper-right ~y=240)
+    // hint-btn interactive overlay (upper-right ~y=270)
     TestHooks.mountInteractive(
       'hint-btn',
       () => {
         this.onHintRequest();
       },
-      { width: '80px', height: '80px', top: '18.75%', left: 'calc(50% + 280px)' }
+      { width: '80px', height: '80px', top: '21.09%', left: 'calc(50% + 280px)' }
     );
 
     // hint-text sentinel (hidden until text set)
@@ -417,7 +423,7 @@ export class LevelScene extends Phaser.Scene {
     this.hintButton = createHintCircleButton(
       this,
       CW - 60,
-      240,
+      270,
       () => {
         log.input('hint_button_tap', {
           level: this.levelNumber,
