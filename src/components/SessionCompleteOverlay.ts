@@ -29,6 +29,7 @@ export interface SessionCompleteConfig {
   height?: number;
   depth?: number;
   onPlayAgain: () => void;
+  onNextLevel?: () => void;
   onMenu: () => void;
 }
 
@@ -54,6 +55,7 @@ export class SessionCompleteOverlay {
       height = 1280,
       depth = 50,
       onPlayAgain,
+      onNextLevel,
       onMenu,
     } = config;
 
@@ -76,11 +78,14 @@ export class SessionCompleteOverlay {
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
-    // Trophy
-    const trophyT = scene.add
+    // S3-T3: Trophy — procedural graphics (gold cup with base)
+    this.drawProceduralTrophy(scene, cx, 320, depth);
+    // Fallback emoji for accessibility
+    const trophyA11y = scene.add
       .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
-      .setOrigin(0.5);
-    this.container.add(trophyT);
+      .setOrigin(0.5)
+      .setAlpha(0); // hide but keep for screen reader
+    this.container.add(trophyA11y);
 
     // Heading
     const headingT = scene.add
@@ -131,9 +136,17 @@ export class SessionCompleteOverlay {
       .setOrigin(0.5);
     this.container.add(accT);
 
-    // Buttons
-    this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
-    this.addMenuButton(scene, cx, 880, onMenu);
+    // S3-T3: Buttons — Play Again + Next Level (if available) + Menu
+    const buttonSpacing = onNextLevel ? 60 : 80; // tighter if 3 buttons
+    const playAgainY = onNextLevel ? 800 : 820;
+    const nextLevelY = onNextLevel ? 870 : null;
+    const menuY = onNextLevel ? 940 : 900;
+
+    this.addPlayAgainButton(scene, cx, playAgainY, onPlayAgain);
+    if (onNextLevel && nextLevelY) {
+      this.addNextLevelButton(scene, cx, nextLevelY, onNextLevel);
+    }
+    this.addMenuButton(scene, cx, menuY, onMenu);
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
@@ -143,14 +156,20 @@ export class SessionCompleteOverlay {
       return;
     }
 
+    // S3-T3: Animate card with scale-in (400ms Back.easeOut) + confetti (60 particles)
+    this.container.setScale(0.8).setAlpha(0);
     scene.tweens.add({
       targets: this.container,
       y: 0,
-      duration: 420,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 400,
       ease: 'Back.easeOut',
       delay: 60,
       onComplete: () => {
         sfx.playComplete();
+        this.burstConfetti(scene, cx, 530, depth); // launch confetti early
         this.animateStars(scene, cx, 530, depth, () => {
           this.announce(levelNumber, starCount);
           TestHooks.mountSentinel('completion-screen');

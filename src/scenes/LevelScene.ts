@@ -304,8 +304,11 @@ export class LevelScene extends Phaser.Scene {
       source: this.templatePool.length > 0 ? 'dexie' : 'synthetic',
     });
 
-    // G-UX3: speak prompt aloud via TTS (preference already loaded in create())
-    tts.speak(this.currentTemplate.prompt.text);
+    // S3-T1: speak prompt aloud via TTS (preference already loaded in create())
+    // Gate by prefers-reduced-motion for users who don't want auto-speech
+    if (!this.checkReduceMotion()) {
+      tts.speak(this.currentTemplate.prompt.text);
+    }
 
     // Announce question to assistive tech (separate from audio TTS)
     A11yLayer.announce(

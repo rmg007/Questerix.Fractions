@@ -190,47 +190,51 @@ export class FeedbackOverlay {
 
   // ── Entry animations ────────────────────────────────────────────────────
 
-  /** Correct: panel scales in from 0.7 using Back.easeOut (~200ms). */
+  /** Correct: panel scales in with pop (0.7 → 1.05 → 1.0, ~280ms, Back.easeOut). */
   private animateBounceIn(): void {
     this.bg.setScale(0.7);
     this.iconGO.setScale(0.7);
     this.label.setScale(0.7);
 
+    // First pop: scale up to 1.05 with Back.easeOut (~160ms)
     this.scene.tweens.add({
       targets: [this.bg, this.iconGO, this.label],
-      scaleX: 1,
-      scaleY: 1,
-      duration: 200,
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 160,
       ease: 'Back.easeOut',
+      onComplete: () => {
+        // Second settle: scale down to 1.0 with Quad.easeOut (~120ms)
+        this.scene.tweens.add({
+          targets: [this.bg, this.iconGO, this.label],
+          scaleX: 1.0,
+          scaleY: 1.0,
+          duration: 120,
+          ease: 'Quad.easeOut',
+        });
+      },
     });
   }
 
   /**
-   * Incorrect: left-right shake ~4px, 3 cycles, ~250ms.
-   * Tweens .x of all three objects together using yoyo repeat.
+   * Incorrect: softer opacity + subtle scale pulse (200ms, Quad.easeOut).
+   * Respects prefers-reduced-motion: only panel + color flash, no scale.
    */
   private animateShake(): void {
-    const SHAKE_PX = 4;
-    const targets = [
-      { obj: this.bg, baseX: this.cx },
-      { obj: this.iconGO, baseX: this.cx - 220 },
-      { obj: this.label, baseX: this.cx + 20 },
-    ];
-
-    for (const { obj, baseX } of targets) {
-      obj.setX(baseX - SHAKE_PX);
-      this.scene.tweens.add({
-        targets: obj,
-        x: baseX + SHAKE_PX,
-        duration: 42,
-        ease: 'Linear',
-        yoyo: true,
-        repeat: 5,
-        onComplete: () => {
-          obj.setX(baseX);
-        },
-      });
-    }
+    // S3-T2: Softer feedback — opacity pulse + slight scale (no harsh shake)
+    this.scene.tweens.add({
+      targets: [this.bg, this.iconGO, this.label],
+      alpha: 0.8,
+      duration: 100,
+      ease: 'Quad.easeOut',
+      yoyo: true,
+      repeat: 0,
+      onComplete: () => {
+        this.bg.setAlpha(1);
+        this.iconGO.setAlpha(1);
+        this.label.setAlpha(1);
+      },
+    });
   }
 
   /** Close: gentle pulse scale 1.0→1.05→1.0 (~250ms). */
@@ -246,28 +250,34 @@ export class FeedbackOverlay {
     });
   }
 
-  /** Correct: short burst of yellow/gold star particles from icon position. */
+  /** Correct: burst of 12-14 small stars drifting upward with alpha fade. */
   private burstStarParticles(): void {
     if (!this.scene.textures.exists('clr-accentA')) return;
     TestHooks.mountSentinel('sparkle-burst');
 
+    // S3-T2: 12-14 particles in warm palette, drifting upward with alpha fade
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
+    let particleCount = 0;
+    const maxParticles = 14;
     for (const tint of starColors) {
+      // Emit ~3 per color to reach ~14-15 total
+      const perColor = Math.ceil(maxParticles / starColors.length);
       const emitter = this.scene.add.particles(this.iconGO.x, this.iconGO.y, 'clr-accentA', {
-        lifespan: 550,
-        speed: { min: 40, max: 160 },
-        scale: { start: 7, end: 0 },
-        alpha: { start: 1, end: 0 },
+        lifespan: 650, // extended fade time for upward drift
+        speed: { min: 30, max: 140 },
+        scale: { start: 5, end: 1 }, // smaller particles
+        alpha: { start: 1, end: 0 }, // alpha fade (no gravity pulldown)
         tint,
-        angle: { min: -160, max: -20 },
-        gravityY: 200,
-        quantity: 3,
+        angle: { min: -180, max: 0 }, // upward range
+        gravityY: 0, // no gravity — let them float up
+        quantity: perColor,
         emitting: false,
       });
       emitter.setDepth(this.bg.depth + 5);
-      emitter.explode(3);
+      emitter.explode(perColor);
+      particleCount += perColor;
       this.activeParticleEmitters.push(emitter);
-      this.scene.time.delayedCall(700, () => {
+      this.scene.time.delayedCall(800, () => {
         const idx = this.activeParticleEmitters.indexOf(emitter);
         if (idx !== -1) {
           this.activeParticleEmitters.splice(idx, 1);
