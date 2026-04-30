@@ -59,6 +59,26 @@ and a fraction badge above it. Pale sky background with two soft glow circles.
   Playwright selectors keep working. The `level-card-L1` overlay was moved
   to `top: 86%` to track the new Play! button position.
 
+## GitHub Push Procedure
+
+All pushes use the SSH deploy key (HTTPS is blocked by the Replit GITHUB_TOKEN scopes).
+
+**Setup** (required once per fresh environment session — `~/.ssh/` does not persist):
+```sh
+bash scripts/setup-github-ssh.sh
+```
+This reads `GITHUB_DEPLOY_KEY_B64` (shared env var, already set) and writes
+`~/.ssh/github_deploy` + `~/.ssh/config` automatically.
+
+**Push command:**
+```sh
+git push git@github.com:rmg007/Questerix.Fractions.git main
+```
+
+Deploy key public fingerprint:
+`ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM1obQlGnhFsAfid6l4Co4FLuBHP5Yqecwccl7RzaJ0B replit-deploy-key`
+Registered at: github.com/rmg007/Questerix.Fractions → Settings → Deploy keys → **Replit** (write access ✓)
+
 ## Adventure Map — LevelMapScene
 
 `LevelMapScene.ts` sits between `MenuScene` and the level scenes. The Play! and
