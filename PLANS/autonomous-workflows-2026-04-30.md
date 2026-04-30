@@ -202,3 +202,86 @@ Roughly 1.5–2× the v1 estimate, in exchange for ~5× the autonomy ceiling and
 - `content-validation.yml` — unchanged; consumes R4 / L3 output
 - `deploy.yml`, `lighthouse.yml`, `synthetic-playtest.yml` — unchanged
 - Pre-existing inconsistency: `synthetic-playtest.yml` uses Node 20 vs Node 24 elsewhere. Trivial; fix opportunistically, not part of this plan.
+
+---
+
+## Agent Work Queue
+
+Everything remaining for this agent to execute, in priority order. Updated 2026-04-30 based on full repo audit.
+
+### Priority 0 — Broken environment (blocks everything else)
+
+| ID | Item | Root cause | Effort |
+|---|---|---|---|
+| E-1 | `npm install` not run — `vitest` not found, phaser types missing | Node modules absent in this shell session | 2 min |
+| E-2 | Typecheck fails: `Cannot find module 'phaser'` across all interaction files | Flows from E-1 | Resolves with E-1 |
+| E-3 | Kill switch variable inconsistency — P3 workflows use `vars.AUTONOMY_DISABLED`, all others use `vars.AGENT_AUTONOMY_ENABLED` | Three agents independently implemented the check | 10 min |
+
+### Priority 1 — Autonomous workflows system (PR #9)
+
+| ID | Item | Effort |
+|---|---|---|
+| A-1 | Fix E-3 kill switch inconsistency across `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` | 10 min |
+| A-2 | Audit `_shared/agent-dispatch.yml` end-to-end — multiple agents each produced a version; `--ours` kept S1's. Verify it handles all callers correctly. | 20 min |
+| A-3 | Document exact one-time repo setup steps as a runbook in `.github/workflows/_shared/README.md` (secrets, variables, token permissions, labels) | 15 min |
+| A-4 | Merge PR #9 once user confirms pre-flight setup complete | user action |
+| A-5 | After merge: manually trigger `bug-burndown` and `curriculum-loop` with `AGENT_AUTONOMY_ENABLED=false` to verify kill switch works end-to-end | 15 min |
+| A-6 | Flip `AGENT_AUTONOMY_ENABLED=true` after 1 week of kill-switch-off observation | deferred |
+
+### Priority 2 — Sprint completion (game must work)
+
+These are open items from `PLANS/master-plan-2026-04-26.md`. Code is reportedly done; verification is pending.
+
+| ID | Sprint item | What to do | Needs browser? |
+|---|---|---|---|
+| G-1 | S0-T5 — round-trip screenshot: Menu → L1 → 5-correct → session-complete | Run Playwright or manual Chrome test; commit screenshot to `PLANS/screenshots/` | Playwright |
+| G-2 | S1-T5 — IndexedDB state transitions: `NOT_STARTED → LEARNING → APPROACHING → MASTERED` | Add Playwright assertion checking IndexedDB after 5 correct answers | Playwright |
+| G-3 | S2-T1 — choose unlock model (D-1: BKT mastery vs. session completion vs. free play) | Write decision to `docs/00-foundation/decision-log.md`, implement chosen model | Code |
+| G-4 | S4-T3 — per-level browser smoke test (L1–L9 all load, questions render) | Playwright parameterized smoke spec | Playwright |
+| G-5 | S4-T4 — mastery-gated unlock wired into menu state | Implement once D-1 is decided | Code |
+| G-6 | S5-T4 — Playwright happy-path E2E for L1 | TestHooks already in place; write the spec | Code |
+| G-7 | S5-T7 — deploy to Cloudflare Pages | CI deploy workflow already exists; verify secrets, trigger | Infra |
+
+### Priority 3 — CLAUDE.md reconciliation
+
+The master plan marks S0-T1 (BUG-01), S0-T2 (BUG-02), S0-T3 (BUG-04), S1-T1 (G-E1), S2-T3 (G-C7) as done. CLAUDE.md "Active bugs" table still lists them as open. Either the master plan is wrong (code exists but browser-unverified) or CLAUDE.md is stale.
+
+| ID | Item | Effort |
+|---|---|---|
+| C-1 | After G-1 (browser verification): remove confirmed-fixed bugs from CLAUDE.md active bugs table | 5 min |
+| C-2 | Add decision D-1 outcome to CLAUDE.md once chosen | 5 min |
+| C-3 | Append session learnings to `.claude/learnings.md` (kill switch naming, worktree conflict pattern) | 5 min |
+
+### Priority 4 — Infrastructure hygiene
+
+| ID | Item | File | Effort |
+|---|---|---|---|
+| I-1 | Fix `synthetic-playtest.yml` Node 20 → 24 | `.github/workflows/synthetic-playtest.yml` | 2 min |
+| I-2 | Add decision log entry for autonomy operating principle | `docs/00-foundation/decision-log.md` | 10 min |
+| I-3 | Lighthouse assertions — add `.lighthouserc.json` with `a11y >= 90`, `performance >= 80` thresholds | `.lighthouserc.json` | 15 min |
+
+### Priority 5 — Open decisions (user input needed)
+
+| ID | Decision | Blocks |
+|---|---|---|
+| D-1 | Level unlock model: BKT mastery threshold vs. session completion vs. always unlocked | G-3, G-5 |
+| D-2 | Should `bug-burndown` attempt Sprint-1-scale bugs (≤2 hr) after the first wave (≤30 min) proves out? | L1 tuning |
+| D-3 | Sunset `Level01Scene.ts` once `LevelScene.ts` reaches parity, or keep both? | Refactor scope |
+
+### Execution order (what I'll tackle next, in order)
+
+1. **E-1** — `npm install`
+2. **E-2** — verify typecheck green
+3. **A-1** — fix kill switch variable name in P3 workflows
+4. **A-2** — audit `agent-dispatch.yml`
+5. **A-3** — pre-flight runbook in README
+6. **I-1** — Node 20 → 24 in synthetic-playtest
+7. **I-2** — decision log entry for autonomy
+8. **G-6** — Playwright happy-path E2E for L1 (can write without browser)
+9. **G-1/G-2/G-4** — Playwright verification specs (run CI to execute)
+10. **G-3** — D-1 decision + unlock implementation
+11. **C-1/C-2/C-3** — CLAUDE.md reconciliation
+12. **G-5** — mastery-gated unlock
+13. **G-7** — deploy to Cloudflare Pages
+14. **I-3** — Lighthouse assertions
+15. **A-4 onwards** — depends on user merging PR #9 and completing pre-flight
