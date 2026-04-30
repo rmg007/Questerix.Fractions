@@ -35,6 +35,7 @@ import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { resolveQuestName } from '../lib/persona/quest';
+import { Mascot } from '../components/Mascot';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -156,6 +157,7 @@ export class Level01Scene extends Phaser.Scene {
   private progressBar!: ProgressBar;
   private hintLadder!: HintLadder;
   private dragHandle!: DragHandle;
+  private mascot!: Mascot;
 
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
@@ -203,7 +205,9 @@ export class Level01Scene extends Phaser.Scene {
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // ── Load real templates from Dexie (partition + identify pool for L1) ──
     // per runtime-architecture.md §4.1 — ActivityScene loads QuestionTemplates via repo
@@ -254,6 +258,10 @@ export class Level01Scene extends Phaser.Scene {
 
     // Feedback overlay — per interaction-model.md §2 (<800ms)
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
+
+    // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
+    this.mascot = new Mascot(this, 720, 160, 0.75);
+    this.mascot.idle();
 
     // Shape graphics placeholder
     this.shapeGraphics = this.add.graphics().setDepth(5);
@@ -906,6 +914,13 @@ export class Level01Scene extends Phaser.Scene {
       questText ?? undefined
     );
 
+    // Mascot reacts after the overlay is visible
+    if (kind === 'correct') {
+      this.mascot?.celebrate();
+    } else if (kind === 'incorrect') {
+      this.mascot?.encourage();
+    }
+
     // Mirror the visible feedback to the screen-reader announcer so the
     // assistive-tech experience stays in Quest's voice when one is set.
     const announcement =
@@ -1447,4 +1462,3 @@ export class Level01Scene extends Phaser.Scene {
     this.tapZone = null;
   }
 }
-

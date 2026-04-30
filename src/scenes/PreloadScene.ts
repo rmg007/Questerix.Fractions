@@ -17,6 +17,7 @@ import {
 } from './utils/levelTheme';
 import { CLR } from './utils/colors';
 import { fadeAndStart } from './utils/sceneTransition';
+import { Mascot } from '../components/Mascot';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -90,10 +91,7 @@ export class PreloadScene extends Phaser.Scene {
 
     // Progress bar track — neutral-100
     const trackW = CW * 0.6;
-    this.add
-      .rectangle(cx, cy, trackW, 18, CLR.neutral100)
-      .setOrigin(0.5)
-      .setDepth(5);
+    this.add.rectangle(cx, cy, trackW, 18, CLR.neutral100).setOrigin(0.5).setDepth(5);
 
     // Progress bar fill — amber (ACTION_FILL) to match adventure theme
     this.progressBar = this.add
@@ -116,6 +114,9 @@ export class PreloadScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(5);
+
+    // Static mascot — shown while loading, no tweens
+    new Mascot(this, cx + 220, cy - 160, 0.75);
   }
 
   /** Create 1×1 Phaser textures for each palette token (used by shapes later). */

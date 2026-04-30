@@ -31,6 +31,7 @@ import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
 import { tts } from '../audio/TTSService';
 import { log } from '../lib/log';
+import { Mascot } from '../components/Mascot';
 // Quest microcopy catalog (registered at boot via src/main.ts).
 // Per ux-elevation §9 T28 — the level screen routes its hint, feedback,
 // and session-complete copy through `getCopy('quest.…')` so Quest's voice
@@ -99,6 +100,7 @@ export class LevelScene extends Phaser.Scene {
   private hintTextGO!: Phaser.GameObjects.Text;
   private hintButton!: Phaser.GameObjects.Container;
   private submitButtonContainer!: Phaser.GameObjects.Container;
+  private mascot!: Mascot;
 
   constructor(key = 'LevelScene') {
     super({ key });
@@ -167,6 +169,10 @@ export class LevelScene extends Phaser.Scene {
     });
 
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
+
+    // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
+    this.mascot = new Mascot(this, 720, 160, 0.75);
+    this.mascot.idle();
 
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
     A11yLayer.unmountAll();
@@ -564,6 +570,13 @@ export class LevelScene extends Phaser.Scene {
       },
       questText ?? undefined
     );
+
+    // Mascot reacts after the overlay is visible
+    if (kind === 'correct') {
+      this.mascot?.celebrate();
+    } else if (kind === 'incorrect') {
+      this.mascot?.encourage();
+    }
 
     // Mirror the visible feedback to the screen-reader announcer so the
     // assistive-tech experience stays in Quest's voice when one is set.

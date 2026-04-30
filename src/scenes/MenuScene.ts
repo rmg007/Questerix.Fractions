@@ -19,6 +19,11 @@ import { injectSkipLink, labelCanvas } from '../components/SkipLink';
 import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
+import { Mascot } from '../components/Mascot';
+
+// Tracks whether the greeting wave has already fired this browser session.
+// Module-level so it persists across _closeLevelGrid re-renders and scene returns.
+let mascotGreeted = false;
 
 interface MenuData {
   lastStudentId: string | null;
@@ -93,6 +98,7 @@ export class MenuScene extends Phaser.Scene {
   private reduceMotion = false;
   private ambientTweens: Phaser.Tweens.Tween[] = [];
   private dashTickHandler: (() => void) | null = null;
+  private mascot: Mascot | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -300,6 +306,19 @@ export class MenuScene extends Phaser.Scene {
     // key 'unlockedLevels' (JSON number[]) includes N.  When a studentId is present
     // the key is prefixed with the studentId for isolation.
     this.createChooseLevelButton();
+
+    // ── Mascot — friendly guide character ────────────────────────────────────
+    // Destroy previous mascot instance (create() is re-called by _closeLevelGrid)
+    this.mascot?.destroy();
+    this.mascot = new Mascot(this, 680, 980);
+    this.mascot.idle();
+    // Wave only on the first menu load; skip on _closeLevelGrid re-renders
+    if (!mascotGreeted) {
+      mascotGreeted = true;
+      this.time.delayedCall(400, () => {
+        this.mascot?.wave();
+      });
+    }
 
     // Stop tweens / handlers on shutdown so we don't leak
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -815,4 +834,3 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 }
-
