@@ -13,6 +13,9 @@ import { PreferenceToggle } from '../components/PreferenceToggle';
 import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
+import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
+import { sfx } from '../audio/SFXService';
+import { tts } from '../audio/TTSService';
 
 const CW = 800;
 const CH = 1280;
@@ -24,6 +27,7 @@ type ResetStep = 'idle' | 'confirm';
 
 export class SettingsScene extends Phaser.Scene {
   private toggles: PreferenceToggle[] = [];
+  private volumeSliderWrapper: HTMLElement | null = null;
 
   constructor() {
     super({ key: 'SettingsScene' });
@@ -76,14 +80,28 @@ export class SettingsScene extends Phaser.Scene {
         { top: toViewport(250), left: halfCanvas }
       ),
       new PreferenceToggle(
-        { key: 'audio', label: 'Audio Enabled' },
+        {
+          key: 'audio',
+          label: 'Audio Enabled',
+          onChange: (val) => {
+            const audioOn = val as boolean;
+            if (this.volumeSliderWrapper) {
+              const slider = this.volumeSliderWrapper.querySelector('input') as HTMLInputElement | null;
+              if (slider) slider.disabled = !audioOn;
+              this.volumeSliderWrapper.style.opacity = audioOn ? '1' : '0.4';
+            }
+          },
+        },
         { top: toViewport(330), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
-        { top: toViewport(410), left: halfCanvas }
+        { top: toViewport(490), left: halfCanvas }
       )
     );
+
+    // ── Volume slider (DOM overlay) ────────────────────────────────────────
+    void this.createVolumeSlider(toViewport(410), halfCanvas);
 
     // ── Export button ──────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-export-btn', () => void this.doExport(), {
@@ -149,6 +167,88 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private _keyHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  // ── Volume slider ─────────────────────────────────────────────────────────
+
+  private async createVolumeSlider(top: string, left: string): Promise<void> {
+    if (typeof document === 'undefined') return;
+
+    const meta = await deviceMetaRepo.get();
+    const currentVolume = meta.preferences.volume ?? 0.8;
+    const audioEnabled = meta.preferences.audio;
+
+    // Reuse the same container as PreferenceToggle
+    let container = document.getElementById('qf-pref-toggles');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'qf-pref-toggles';
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: '10000',
+      });
+      document.body.appendChild(container);
+    }
+
+    // Wrapper row — mirrors PreferenceToggle layout
+    const wrapper = document.createElement('div');
+    Object.assign(wrapper.style, {
+      position: 'absolute',
+      top,
+      left,
+      transform: 'translateX(-50%)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      pointerEvents: 'auto',
+      opacity: audioEnabled ? '1' : '0.4',
+    });
+
+    // Label
+    const labelEl = document.createElement('label');
+    labelEl.setAttribute('for', 'qf-volume-slider');
+    labelEl.textContent = 'Volume';
+    Object.assign(labelEl.style, {
+      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+      fontSize: '18px',
+      color: '#374151',
+      minWidth: '180px',
+    });
+
+    // Range input
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.id = 'qf-volume-slider';
+    slider.min = '0';
+    slider.max = '1';
+    slider.step = '0.05';
+    slider.value = String(currentVolume);
+    slider.disabled = !audioEnabled;
+    slider.setAttribute('aria-label', 'Volume');
+    slider.setAttribute('data-testid', 'volume-slider');
+    Object.assign(slider.style, {
+      width: '160px',
+      accentColor: '#6C63FF',
+      cursor: 'pointer',
+    });
+
+    slider.addEventListener('input', () => {
+      const vol = parseFloat(slider.value);
+      void deviceMetaRepo.updatePreferences({ volume: vol });
+      sfx.setVolume(vol);
+      tts.setVolume(vol);
+    });
+
+    wrapper.appendChild(labelEl);
+    wrapper.appendChild(slider);
+    container.appendChild(wrapper);
+
+    this.volumeSliderWrapper = wrapper;
+  }
 
   // ── Reset state ───────────────────────────────────────────────────────────
   private resetStep: ResetStep = 'idle';
@@ -562,6 +662,10 @@ export class SettingsScene extends Phaser.Scene {
     this._clearRestoreCountdown();
     this.toggles.forEach((t) => t.destroy());
     this.toggles = [];
+    if (this.volumeSliderWrapper) {
+      this.volumeSliderWrapper.remove();
+      this.volumeSliderWrapper = null;
+    }
     PreferenceToggle.destroyAll();
     TestHooks.unmountAll();
     if (this.fileInput) {

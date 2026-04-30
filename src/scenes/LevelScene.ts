@@ -28,6 +28,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import { getInteractionForArchetype } from './utils/levelRouter';
 import type { Interaction } from './interactions/types';
+import { PartitionInteraction } from './interactions/PartitionInteraction';
 import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
 import { tts } from '../audio/TTSService';
@@ -800,6 +801,20 @@ export class LevelScene extends Phaser.Scene {
     TestHooks.setText('hint-text', msg);
     log.hint('show', { tier, message: msg, level: this.levelNumber, archetype });
 
+    // Visual cut-line overlay for partition questions (thirds / quarters).
+    // Draws dashed lines showing where the shape should be divided.
+    if (tier === 'visual_overlay' && archetype === 'partition') {
+      const payload = this.currentTemplate?.payload as { targetPartitions?: number } | undefined;
+      const targetPartitions = payload?.targetPartitions;
+      if (
+        this.activeInteraction instanceof PartitionInteraction &&
+        typeof targetPartitions === 'number' &&
+        (targetPartitions === 3 || targetPartitions === 4)
+      ) {
+        this.activeInteraction.showCutLineHint(targetPartitions);
+      }
+    }
+
     // C7.8: Record hint event with score penalty per interaction-model.md §4.1
     // Penalty: 5 pts (T1), 15 pts (T2), 30 pts (T3)
     if (this.sessionId) {
@@ -1059,7 +1074,8 @@ export class LevelScene extends Phaser.Scene {
     if (this.mascot) {
       this.mascot.setDepth(60);
       this.mascot.reposition(CW - 120, 400);
-      this.mascot.setState('cheer-big');
+      // Issue #82 sub-item: trigger celebrate hop when session completes.
+      this.mascot.setState('celebrate');
     }
 
     void this.closeSession();

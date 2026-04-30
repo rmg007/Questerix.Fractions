@@ -43,6 +43,7 @@ export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
 export class SessionCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
+  private glowTween: Phaser.Tweens.Tween | null = null;
 
   constructor(config: SessionCompleteConfig) {
     const {
@@ -76,10 +77,11 @@ export class SessionCompleteOverlay {
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
-    // Trophy
+    // Trophy — starts at scale 0.5 so the wave tween can spring it in
     const trophyT = scene.add
       .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setScale(reduceMotion ? 1 : 0.5);
     this.container.add(trophyT);
 
     // Heading
@@ -143,17 +145,25 @@ export class SessionCompleteOverlay {
       return;
     }
 
+    // Issue #96: overlay entrance — panel slides in from below the viewport.
+    // The container starts at y = height (below the canvas) and tweens to y = 0.
     scene.tweens.add({
       targets: this.container,
       y: 0,
       duration: 420,
-      ease: 'Back.easeOut',
+      ease: 'Back.Out',
       delay: 60,
       onComplete: () => {
         sfx.playComplete();
-        this.animateStars(scene, cx, 530, depth, () => {
-          this.announce(levelNumber, starCount);
-          TestHooks.mountSentinel('completion-screen');
+        // Issue #70: Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
+        this.animateTrophyWave(scene, trophyT, () => {
+          // Issue #82: Glow sync — start repeating alpha pulse on heading after wave.
+          this.startGlowSync(scene, headingT);
+          // Animate stars after trophy wave lands.
+          this.animateStars(scene, cx, 530, depth, () => {
+            this.announce(levelNumber, starCount);
+            TestHooks.mountSentinel('completion-screen');
+          });
         });
       },
     });
@@ -213,6 +223,50 @@ export class SessionCompleteOverlay {
       .on('pointerup', onTap);
 
     this.container.add([bg, txt, hit]);
+  }
+
+  /**
+   * Issue #70: Trophy wave — elastic spring scale 0.5 → 1.2 → 1.0 over 600ms.
+   * Already guarded: only called when reduceMotion is false.
+   */
+  private animateTrophyWave(
+    scene: Phaser.Scene,
+    trophy: Phaser.GameObjects.Text,
+    onComplete: () => void
+  ): void {
+    scene.tweens.add({
+      targets: trophy,
+      scaleX: 1.2,
+      scaleY: 1.2,
+      duration: 400,
+      ease: Phaser.Math.Easing.Elastic.Out,
+      onComplete: () => {
+        scene.tweens.add({
+          targets: trophy,
+          scaleX: 1.0,
+          scaleY: 1.0,
+          duration: 200,
+          ease: 'Cubic.easeOut',
+          onComplete,
+        });
+      },
+    });
+  }
+
+  /**
+   * Issue #82: Glow sync — repeating alpha yoyo 1.0 ↔ 0.7 every 800ms on the
+   * "Level N Complete!" heading. Stored so destroy() can stop it cleanly.
+   * Already guarded: only called when reduceMotion is false.
+   */
+  private startGlowSync(scene: Phaser.Scene, target: Phaser.GameObjects.Text): void {
+    this.glowTween = scene.tweens.add({
+      targets: target,
+      alpha: 0.7,
+      duration: 800,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1,
+    });
   }
 
   private animateStars(
@@ -285,6 +339,10 @@ export class SessionCompleteOverlay {
   }
 
   destroy(): void {
+    if (this.glowTween) {
+      this.glowTween.stop();
+      this.glowTween = null;
+    }
     this.container.destroy(true);
     this.starTexts.length = 0;
   }

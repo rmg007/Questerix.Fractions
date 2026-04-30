@@ -152,4 +152,89 @@ export class PartitionInteraction implements Interaction {
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
   }
+
+  /**
+   * Draws dashed "cut line" hints at the correct division positions for
+   * thirds (N=3) or quarters (N=4). Called by LevelScene when the
+   * visual_overlay hint tier is reached on a partition question.
+   * Layered at depth 7 — above the shape (5) and partition line (6)
+   * but below drag handles (20+).
+   */
+  showCutLineHint(targetPartitions: number): void {
+    // Clear any previously drawn hint so re-triggering is idempotent
+    this.cutLineHint?.destroy();
+    this.cutLineHint = this.scene.add.graphics().setDepth(7).setAlpha(0.85);
+
+    const CUT_COLOR = 0xffaa00; // orange/gold
+    const LINE_WIDTH = 3;
+    const DASH_LEN = 12;
+    const GAP_LEN = 7;
+
+    this.cutLineHint.lineStyle(LINE_WIDTH, CUT_COLOR, 1);
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+
+    if (this.shapeType === 'rectangle') {
+      const left = cx - SHAPE_W / 2;
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      // Draw N-1 vertical cut lines evenly spaced across the width
+      for (let i = 1; i < targetPartitions; i++) {
+        const x = left + (SHAPE_W * i) / targetPartitions;
+        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
+      }
+    } else {
+      // Circle: draw N lines through the centre at equal angle intervals.
+      // For N partitions we need N/2 lines (each line covers two sectors),
+      // but drawing N-1 distinct radial cuts makes the divisions clearest.
+      const radius = SHAPE_W / 2;
+      const angleStep = Math.PI / targetPartitions; // step in radians
+      for (let i = 0; i < targetPartitions; i++) {
+        const angle = angleStep * i;
+        const x1 = cx + radius * Math.cos(angle);
+        const y1 = cy + radius * Math.sin(angle);
+        const x2 = cx - radius * Math.cos(angle);
+        const y2 = cy - radius * Math.sin(angle);
+        this.drawDashedLine(this.cutLineHint, x1, y1, x2, y2, DASH_LEN, GAP_LEN);
+      }
+    }
+
+    log.scene('cut_line_hint_shown', {
+      shapeType: this.shapeType,
+      targetPartitions,
+    });
+  }
+
+  /** Draws a dashed line between two points onto the given Graphics object. */
+  private drawDashedLine(
+    g: Phaser.GameObjects.Graphics,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    dashLen: number,
+    gapLen: number
+  ): void {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const totalLen = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / totalLen; // unit vector x
+    const uy = dy / totalLen; // unit vector y
+    let traveled = 0;
+    let drawing = true;
+
+    while (traveled < totalLen) {
+      const segLen = Math.min(drawing ? dashLen : gapLen, totalLen - traveled);
+      if (drawing) {
+        const sx = x1 + ux * traveled;
+        const sy = y1 + uy * traveled;
+        const ex = x1 + ux * (traveled + segLen);
+        const ey = y1 + uy * (traveled + segLen);
+        g.lineBetween(sx, sy, ex, ey);
+      }
+      traveled += segLen;
+      drawing = !drawing;
+    }
+  }
 }
