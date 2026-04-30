@@ -817,6 +817,10 @@ export class LevelScene extends Phaser.Scene {
     TestHooks.setText('hint-text', msg);
     log.hint('show', { tier, message: msg, level: this.levelNumber, archetype });
 
+    if (tier === 'visual_overlay') {
+      this.activeInteraction?.showVisualOverlay?.();
+    }
+
     // C7.8: Record hint event with score penalty per interaction-model.md §4.1
     // Penalty: 5 pts (T1), 15 pts (T2), 30 pts (T3)
     if (this.sessionId) {

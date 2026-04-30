@@ -28,10 +28,15 @@ export class PartitionInteraction implements Interaction {
   private partitionLine!: Phaser.GameObjects.Graphics;
   private dragHandle!: DragHandle;
   private handlePos!: number;
+  private _cx = 0;
+  private _cy = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
     const { centerX, centerY } = ctx;
+    this._cx = centerX;
+    this._cy = centerY;
 
     this.shapeGraphics = this.scene.add.graphics().setDepth(5);
     this.partitionLine = this.scene.add.graphics().setDepth(6);
@@ -117,6 +122,22 @@ export class PartitionInteraction implements Interaction {
     this.partitionLine?.destroy();
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    const overlay = this.scene.add.graphics().setDepth(12).setAlpha(0.5);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    overlay.lineBetween(this._cx, this._cy - SHAPE_H / 2 - 20, this._cx, this._cy + SHAPE_H / 2 + 20);
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this.scene.time.delayedCall(3000, () => {
+        this.scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 
   private drawShape(shapeType: 'rectangle' | 'circle', cx: number, cy: number): void {

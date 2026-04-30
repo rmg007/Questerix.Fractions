@@ -42,6 +42,13 @@ export class SnapMatchInteraction implements Interaction {
   private lines: Phaser.GameObjects.Graphics[] = [];
   private pairs: Array<[string, string]> = [];
   private rightPositions: Map<string, { x: number; y: number }> = new Map();
+  private _scene!: Phaser.Scene;
+  private _colLeft = 0;
+  private _colRight = 0;
+  private _rows = 0;
+  private _startY = 0;
+  private _rowH = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -56,6 +63,13 @@ export class SnapMatchInteraction implements Interaction {
     const colRight = centerX + 130;
     const barW = 140;
     const barH = 36;
+
+    this._scene = scene;
+    this._colLeft = colLeft;
+    this._colRight = colRight;
+    this._rows = rows;
+    this._startY = startY;
+    this._rowH = rowH;
 
     // Right column — BarModels
     right.forEach((item, i) => {
@@ -170,5 +184,30 @@ export class SnapMatchInteraction implements Interaction {
     this.lines = [];
     this.pairs = [];
     this.rightPositions.clear();
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    // Draw a faint amber arrow from the left card column toward the right bar
+    // column at the vertical midpoint, showing students the matching direction.
+    const midY = this._startY + ((this._rows - 1) / 2) * this._rowH;
+    const arrowStart = this._colLeft + 65;
+    const arrowEnd = this._colRight - 15;
+
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.65);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    overlay.lineBetween(arrowStart, midY, arrowEnd, midY);
+    overlay.lineBetween(arrowEnd, midY, arrowEnd - 10, midY - 7);
+    overlay.lineBetween(arrowEnd, midY, arrowEnd - 10, midY + 7);
+
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }

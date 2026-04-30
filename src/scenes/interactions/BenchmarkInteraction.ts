@@ -31,6 +31,10 @@ export class BenchmarkInteraction implements Interaction {
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private bar: BarModel | undefined = undefined;
   private line: NumberLine | undefined = undefined;
+  private _scene!: Phaser.Scene;
+  private _cx = 0;
+  private _lineY = 0;
+  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
@@ -53,6 +57,10 @@ export class BenchmarkInteraction implements Interaction {
       label,
       fillColor: NAVY,
     });
+
+    this._scene = scene;
+    this._cx = centerX;
+    this._lineY = centerY - 40;
 
     // Number line 0..1 with ½ tick
     const lineW = Math.min(560, width - 80);
@@ -105,5 +113,26 @@ export class BenchmarkInteraction implements Interaction {
     this.line?.destroy();
     this.bar = undefined;
     this.line = undefined;
+    this._overlayGfx.forEach((g) => g.destroy());
+    this._overlayGfx = [];
+  }
+
+  showVisualOverlay(): void {
+    // The ½ benchmark is always at the midpoint of the number line (centerX).
+    // Highlight it with an amber ring so students can use it as a reference.
+    const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.75);
+    overlay.fillStyle(0xfbbf24, 0.25);
+    overlay.fillCircle(this._cx, this._lineY, 22);
+    overlay.lineStyle(3, 0xfbbf24, 1);
+    overlay.strokeCircle(this._cx, this._lineY, 22);
+
+    this._overlayGfx.push(overlay);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    } else {
+      this._scene.time.delayedCall(3000, () => {
+        this._scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
+      });
+    }
   }
 }
