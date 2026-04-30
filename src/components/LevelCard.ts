@@ -68,7 +68,9 @@ export class LevelCard extends Phaser.GameObjects.Container {
     opts.scene.add.existing(this);
     TestHooks.mountInteractive(
       `level-card-L${opts.meta.number}`,
-      () => opts.onTap(opts.meta.number),
+      () => {
+        if (opts.unlocked) opts.onTap(opts.meta.number);
+      },
       { width: `${CARD_W}px`, height: `${CARD_H}px` }
     );
   }
