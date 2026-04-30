@@ -1,0 +1,316 @@
+name: CI Auto-Fix (R1)
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+concurrency:
+  group: ci-fix-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  ci-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── Guard 1: only on CI failure ──────────────────────────────────────
+      - name: Guard — only on failure
+        if: github.event.workflow_run.conclusion != 'failure'
+        run: |
+          echo "::notice::CI did not fail (conclusion=${{ github.event.workflow_run.conclusion }}). Nothing to do."
+          exit 0
+
+      # ── Guard 2: kill switch ─────────────────────────────────────────────
+      - name: Guard — kill switch
+        if: vars.AGENT_AUTONOMY_ENABLED != 'true'
+        run: |
+          echo "::notice::AGENT_AUTONOMY_ENABLED is not 'true'. Skipping CI auto-fix."
+          exit 0
+
+      # ── Guard 3: PR-only (not pushes to main) ────────────────────────────
+      - name: Guard — PR-only
+        id: pr-check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            const prs = run.data.pull_requests;
+            if (!prs || prs.length === 0) {
+              core.notice('Workflow run has no associated PRs (push to main?). Skipping.');
+              core.setOutput('skip', 'true');
+            } else {
+              const pr = prs[0];
+              core.setOutput('skip', 'false');
+              core.setOutput('pr_number', String(pr.number));
+              core.setOutput('pr_head_ref', pr.head.ref);
+              core.setOutput('pr_author', pr.head.repo?.owner?.login ?? '');
+            }
+
+      - name: Exit if no PR
+        if: steps.pr-check.outputs.skip == 'true'
+        run: exit 0
+
+      # ── Guard 4: skip bot PRs ────────────────────────────────────────────
+      - name: Guard — skip bot PRs
+        id: bot-check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = ${{ steps.pr-check.outputs.pr_number }};
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const author = pr.data.user.login;
+            if (author === 'github-actions[bot]') {
+              core.notice(`PR #${prNumber} was opened by github-actions[bot]. Skipping to avoid loop.`);
+              core.setOutput('skip', 'true');
+            } else {
+              core.setOutput('skip', 'false');
+            }
+
+      - name: Exit if bot PR
+        if: steps.bot-check.outputs.skip == 'true'
+        run: exit 0
+
+      # ── Checkout to read agent-runs tracking file ────────────────────────
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      # ── Guard 5: per-SHA limit ───────────────────────────────────────────
+      - name: Guard — per-SHA dedup
+        id: sha-check
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          TRACK_FILE=".claude/agent-runs/ci-fix-attempted.txt"
+          if [ -f "$TRACK_FILE" ] && grep -qF "$SHA" "$TRACK_FILE"; then
+            echo "::notice::Already attempted fix for SHA $SHA. Human takeover required."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Exit if already attempted
+        if: steps.sha-check.outputs.skip == 'true'
+        run: exit 0
+
+      # ── Fetch failing step info ──────────────────────────────────────────
+      - name: Fetch failing step info
+        id: failing-step
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runId = ${{ github.event.workflow_run.id }};
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId
+            });
+
+            // Find first failed job
+            const failedJob = jobs.jobs.find(j => j.conclusion === 'failure');
+            if (!failedJob) {
+              core.setFailed('No failed job found in the workflow run.');
+              return;
+            }
+
+            // Find first failed step
+            const failedStep = failedJob.steps?.find(s => s.conclusion === 'failure');
+            const stepName = failedStep?.name ?? 'Unknown';
+
+            // Map step name to npm command
+            const stepToCommand = {
+              'Typecheck':          'typecheck',
+              'Lint':               'lint',
+              'Unit tests':         'test:unit',
+              'Integration tests':  'test:integration',
+              'E2E tests':          'test:e2e',
+              'A11y tests':         'test:a11y',
+              'Production build':   'build',
+              'Bundle size guard':  'measure-bundle'
+            };
+            const command = stepToCommand[stepName] ?? stepName.toLowerCase().replace(/\s+/g, '-');
+
+            // Download job log and extract last 100 lines
+            let logExcerpt = '(log unavailable)';
+            try {
+              const { data: logText } = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                job_id: failedJob.id
+              });
+              const lines = String(logText).split('\n');
+              logExcerpt = lines.slice(-100).join('\n');
+            } catch (e) {
+              core.warning(`Could not download job log: ${e.message}`);
+            }
+
+            // Slug for branch name
+            const stepSlug = stepName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+            core.setOutput('step_name', stepName);
+            core.setOutput('step_slug', stepSlug);
+            core.setOutput('command', command);
+            core.setOutput('job_id', String(failedJob.id));
+            core.exportVariable('LOG_EXCERPT', logExcerpt);
+
+      # ── Create fix branch ────────────────────────────────────────────────
+      - name: Create fix branch
+        id: create-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT_SHA="${{ github.event.workflow_run.head_sha }}"
+          SHORT_SHA="${SHORT_SHA:0:8}"
+          STEP_SLUG="${{ steps.failing-step.outputs.step_slug }}"
+          FIX_BRANCH="claude-fix/${SHORT_SHA}-${STEP_SLUG}"
+          echo "fix_branch=$FIX_BRANCH" >> "$GITHUB_OUTPUT"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$FIX_BRANCH"
+          git push origin "$FIX_BRANCH"
+
+      # ── Dispatch agent ───────────────────────────────────────────────────
+      - name: Dispatch agent
+        id: agent
+        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        with:
+          prompt_template: ci-fix
+          context_json: >-
+            {
+              "PR_NUMBER": "${{ steps.pr-check.outputs.pr_number }}",
+              "FAILING_STEP": "${{ steps.failing-step.outputs.step_name }}",
+              "FAILING_COMMAND": "${{ steps.failing-step.outputs.command }}",
+              "LOG_EXCERPT": "${{ env.LOG_EXCERPT }}"
+            }
+          working_branch: ${{ steps.create-branch.outputs.fix_branch }}
+          pr_number: ${{ steps.pr-check.outputs.pr_number }}
+          timeout_minutes: 20
+        secrets:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Handle outcome: success/partial → open fix PR ────────────────────
+      - name: Open fix PR on success or partial
+        if: steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_HEAD_REF="${{ steps.pr-check.outputs.pr_head_ref }}"
+          FIX_BRANCH="${{ steps.create-branch.outputs.fix_branch }}"
+          STEP_NAME="${{ steps.failing-step.outputs.step_name }}"
+          PR_NUMBER="${{ steps.pr-check.outputs.pr_number }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+          SUMMARY="${{ steps.agent.outputs.summary }}"
+
+          gh pr create \
+            --title "fix(ci): resolve ${STEP_NAME} failure [auto]" \
+            --base "$PR_HEAD_REF" \
+            --head "$FIX_BRANCH" \
+            --body "## Automated CI Fix
+
+          This PR was opened automatically by the CI auto-fix agent (R1) in response to a
+          \`${{ steps.failing-step.outputs.step_name }}\` failure on PR #${PR_NUMBER}.
+
+          **Failing workflow run:** ${RUN_URL}
+
+          ## Agent summary
+
+          ${SUMMARY}
+
+          ---
+          *Review and merge if the fix looks correct. The original PR (#${PR_NUMBER}) should be
+          rebased onto this fix branch or vice-versa once CI is green.*"
+
+      # ── Handle outcome: failed → post comment ────────────────────────────
+      - name: Post failure comment
+        if: steps.agent.outputs.outcome == 'failed'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr-check.outputs.pr_number }}');
+            const stepName = '${{ steps.failing-step.outputs.step_name }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## CI Auto-Fix — Unsuccessful
+
+            The CI auto-fix agent (R1) attempted to resolve the \`${stepName}\` failure but did not succeed. Manual intervention is required.
+
+            **Failing step:** \`${stepName}\`
+            **Workflow run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
+
+            ${{ steps.agent.outputs.summary }}`
+            });
+
+      # ── Record SHA to prevent re-runs ────────────────────────────────────
+      - name: Record attempted SHA
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          TRACK_FILE=".claude/agent-runs/ci-fix-attempted.txt"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Switch to fix branch to commit the tracking file
+          git checkout "${{ steps.create-branch.outputs.fix_branch }}"
+          mkdir -p .claude/agent-runs
+          echo "$SHA" >> "$TRACK_FILE"
+          git add "$TRACK_FILE"
+          git commit -m "chore(agent): record ci-fix attempt for ${SHA:0:8}"
+          git push origin "${{ steps.create-branch.outputs.fix_branch }}"
+
+      # ── Telemetry ─────────────────────────────────────────────────────────
+      - name: Telemetry
+        if: always()
+        run: |
+          MONTH=$(date +%Y-%m)
+          TELEMETRY_FILE=".claude/agent-runs/${MONTH}.jsonl"
+          mkdir -p .claude/agent-runs
+
+          # Build JSON entry (avoid jq dependency)
+          python3 -c "
+          import json, datetime
+          entry = {
+              'ts': datetime.datetime.utcnow().isoformat() + 'Z',
+              'workflow': 'ci-fix',
+              'sha': '${{ github.event.workflow_run.head_sha }}',
+              'pr_number': '${{ steps.pr-check.outputs.pr_number }}',
+              'failing_step': '${{ steps.failing-step.outputs.step_name }}',
+              'outcome': '${{ steps.agent.outputs.outcome }}',
+              'fix_branch': '${{ steps.create-branch.outputs.fix_branch }}'
+          }
+          print(json.dumps(entry))
+          " >> "$TELEMETRY_FILE" 2>/dev/null || true
+
+          # Commit telemetry (best-effort, non-blocking)
+          git config user.name  "github-actions[bot]" 2>/dev/null || true
+          git config user.email "github-actions[bot]@users.noreply.github.com" 2>/dev/null || true
+          git add "$TELEMETRY_FILE" 2>/dev/null || true
+          git commit -m "chore(agent-telemetry): ci-fix run $(date +%Y-%m-%dT%H:%M:%SZ)" 2>/dev/null || true
+          git push origin "${{ steps.create-branch.outputs.fix_branch }}" 2>/dev/null || true
