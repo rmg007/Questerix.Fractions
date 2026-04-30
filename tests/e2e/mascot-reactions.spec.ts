@@ -65,6 +65,31 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     );
   });
 
+  test('wrong answer sets mascot sentinel to think', async ({ page }) => {
+    await page.goto('/?testHooks=1');
+    await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({ timeout: 5000 });
+    // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
+    await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
+    await page.locator('[data-testid="boot-start-btn"]').click();
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await page.locator('[data-testid="level-card-L6"]').click();
+    await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
+
+    // q:cmp:L6:0001: fractionA=1/3, fractionB=2/3 → correct is '<'.
+    // Clicking '>' (compare-relation-gt) is the deterministic wrong choice.
+    await expect(page.locator('[data-testid="compare-relation-gt"]').first()).toBeVisible({
+      timeout: 8000,
+    });
+    await page.locator('[data-testid="compare-relation-gt"]').click();
+
+    // LevelScene.showOutcome calls mascot.setState('think') for kind === 'incorrect'.
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'think',
+      { timeout: 3000 }
+    );
+  });
+
   test('session complete sets mascot sentinel to cheer-big', async ({ page }) => {
     await navigateToLevel01(page);
 
