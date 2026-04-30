@@ -67,7 +67,7 @@ export class PlacementInteraction implements Interaction {
     const tickFractions: number[] =
       tickDenominator > 1
         ? Array.from({ length: tickDenominator + 1 }, (_, i) => i / tickDenominator)
-        : [0.5];
+        : [0, 1];
 
     // Number line with snap positions
     const lineW = Math.min(560, width - 80);

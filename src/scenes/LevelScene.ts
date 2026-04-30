@@ -204,6 +204,9 @@ export class LevelScene extends Phaser.Scene {
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
       sfx.setEnabled(meta.preferences.audio ?? true);
+      const vol = meta.preferences.volume ?? 0.8;
+      tts.setVolume(vol);
+      sfx.setVolume(vol);
     } catch (err) {
       // Graceful fallback — leave TTS and SFX in their default state
     }

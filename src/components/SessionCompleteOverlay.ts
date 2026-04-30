@@ -19,6 +19,7 @@ import {
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
+import { checkReduceMotion } from '../lib/preferences';
 
 export interface SessionCompleteConfig {
   scene: Phaser.Scene;
@@ -59,7 +60,7 @@ export class SessionCompleteOverlay {
     } = config;
 
     const cx = width / 2;
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     const starCount = starsFromAccuracy(correctCount, totalAttempts);
     const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
@@ -328,14 +329,6 @@ export class SessionCompleteOverlay {
     if (stars === 3) return 'Amazing! Perfect score!';
     if (stars === 2) return 'Great work! Keep it up!';
     return 'Nice try! Practice makes perfect!';
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
   }
 
   destroy(): void {
