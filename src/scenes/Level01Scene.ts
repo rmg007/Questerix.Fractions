@@ -37,6 +37,7 @@ import { sfx } from '../audio/SFXService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
@@ -1129,7 +1130,7 @@ export class Level01Scene extends Phaser.Scene {
    * per design-language.md §6.1 (partition demonstration 400–600ms)
    */
   private animateWorkedExample(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (reduceMotion) {
       // per design-language.md §6.4 — static overlay
@@ -1161,7 +1162,7 @@ export class Level01Scene extends Phaser.Scene {
 
   /** One-time pulse on the hint button per interaction-model.md §5.4 */
   private pulseHintButton(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     if (reduceMotion) return;
 
     this.tweens.add({
@@ -1311,6 +1312,18 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
+  private _allLevelsComplete(): boolean {
+    try {
+      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
+      const raw = localStorage.getItem(key);
+      if (!raw) return false;
+      const arr = JSON.parse(raw) as number[];
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+    } catch {
+      return false;
+    }
+  }
+
   /** Show "Session complete" card after SESSION_GOAL correct answers. per C9, interaction-model.md §6.2 */
   private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
@@ -1330,6 +1343,30 @@ export class Level01Scene extends Phaser.Scene {
 
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
+
+    // Quest-complete check: if all 9 levels are now done, show grand overlay
+    const allDone = this._allLevelsComplete();
+    if (allDone) {
+      const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
+      new QuestCompleteOverlay({
+        scene: this,
+        width: CW,
+        height: CH,
+        onPlayAgainFromStart: () => {
+          fadeAndStart(this, 'LevelScene', { levelNumber: 1, studentId: this.studentId });
+        },
+        onMenu: () => {
+          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+        },
+      });
+      if (this.mascot) {
+        this.mascot.setDepth(60);
+        this.mascot.reposition(CW - 120, 400);
+        this.mascot.setState('celebrate');
+      }
+      await this.closeSession();
+      return;
+    }
 
     new SessionCompleteOverlay({
       scene: this,
@@ -1361,6 +1398,12 @@ export class Level01Scene extends Phaser.Scene {
 
   private async closeSession(): Promise<void> {
     if (!this.sessionId) return;
+    try {
+      const { updateStreak } = await import('../lib/streak');
+      updateStreak(this.studentId);
+    } catch {
+      // Non-critical
+    }
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
@@ -1405,14 +1448,6 @@ export class Level01Scene extends Phaser.Scene {
     (this.dragHandle as DragHandle | undefined)?.moveTo(next, false);
     const pct = Math.round(((next - minX) / SHAPE_W) * 100);
     A11yLayer.announce(`Partition at ${pct} percent across.`);
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 
   // Called by Phaser when scene is shut down

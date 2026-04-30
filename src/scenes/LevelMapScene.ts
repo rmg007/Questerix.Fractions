@@ -28,6 +28,7 @@ import {
   drawAdventureBackground,
 } from './utils/levelTheme';
 import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
 import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { LEVEL_META } from './utils/levelMeta';
@@ -87,7 +88,7 @@ export class LevelMapScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    this.reduceMotion = this._checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     // Fade in from black
     if (!this.reduceMotion) {
@@ -366,11 +367,4 @@ export class LevelMapScene extends Phaser.Scene {
     }
   }
 
-  private _checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
 }
