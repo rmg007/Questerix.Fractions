@@ -283,6 +283,7 @@ export class FeedbackOverlay {
     this.label.setX(this.cx + 20);
     for (const e of this.activeParticleEmitters) e.destroy();
     this.activeParticleEmitters = [];
+    TestHooks.unmount('sparkle-burst');
   }
 
   private checkReduceMotion(): boolean {
