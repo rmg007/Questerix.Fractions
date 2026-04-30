@@ -1,0 +1,118 @@
+name: Curriculum Generation Loop (L3)
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # Sunday 02:00 UTC
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Specific level to regenerate (1-9). Leave empty for all.'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: curriculum-loop
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+
+    steps:
+      - name: Kill switch — check AGENT_AUTONOMY_ENABLED
+        run: |
+          if [ "${{ vars.AGENT_AUTONOMY_ENABLED }}" != "true" ]; then
+            echo "::notice::AGENT_AUTONOMY_ENABLED is not 'true'. Skipping curriculum loop."
+            exit 0
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd pipeline && pip install -r requirements.txt -q
+
+      - name: Create refresh branch
+        run: |
+          REFRESH_BRANCH="chore/$(date +%Y-%m-%d)-curriculum-refresh"
+          echo "REFRESH_BRANCH=$REFRESH_BRANCH" >> "$GITHUB_ENV"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$REFRESH_BRANCH"
+          git push -u origin "$REFRESH_BRANCH"
+
+      - name: Dispatch agent
+        id: agent
+        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        with:
+          prompt_template: curriculum-refresh
+          context_json: >-
+            {"DATE": "$(date +%Y-%m-%d)"}
+          working_branch: ${{ env.REFRESH_BRANCH }}
+          timeout_minutes: 45
+        secrets:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Open pull request on success
+        if: >-
+          steps.agent.outputs.outcome == 'success' ||
+          steps.agent.outputs.outcome == 'partial'
+        run: |
+          gh pr create \
+            --title "chore(curriculum): weekly refresh $(date +%Y-%m-%d)" \
+            --body "$(printf 'Automated weekly curriculum regeneration.\n\nPipeline: Haiku 4.5 generates, Sonnet 4.6 polishes.\n\nAgent summary:\n%s' "${{ steps.agent.outputs.summary }}")" \
+            --head "$REFRESH_BRANCH" \
+            --base main
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Open failure issue
+        if: steps.agent.outputs.outcome == 'failure'
+        run: |
+          gh issue create \
+            --title "[Curriculum] Weekly refresh failed $(date +%Y-%m-%d)" \
+            --body "$(printf 'The curriculum generation loop failed.\n\nOutcome: %s\nSummary: %s\n\nWorkflow run: %s/%s/actions/runs/%s' \
+              "${{ steps.agent.outputs.outcome }}" \
+              "${{ steps.agent.outputs.summary }}" \
+              "${{ github.server_url }}" \
+              "${{ github.repository }}" \
+              "${{ github.run_id }}")" \
+            --label "curriculum,needs-attention"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Append telemetry
+        if: always()
+        run: |
+          mkdir -p .github/telemetry
+          echo '{"workflow":"curriculum-loop","run_id":"${{ github.run_id }}","outcome":"${{ steps.agent.outputs.outcome }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' \
+            >> .github/telemetry/agent-runs.jsonl
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/telemetry/agent-runs.jsonl
+          git diff --cached --quiet || git commit -m "chore(telemetry): log curriculum-loop run ${{ github.run_id }}"
+          git push origin HEAD:main || true
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
