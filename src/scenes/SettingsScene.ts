@@ -325,13 +325,6 @@ export class SettingsScene extends Phaser.Scene {
   private fileInput: HTMLInputElement | null = null;
   private restoreStatusText: Phaser.GameObjects.Text | null = null;
 
-  private _restoreCountdownText: Phaser.GameObjects.Text | null = null;
-  private _restoreCancelGraphic: Phaser.GameObjects.Graphics | null = null;
-  private _restoreCancelBtnText: Phaser.GameObjects.Text | null = null;
-  private _restoreCancelHit: Phaser.GameObjects.Rectangle | null = null;
-  private _restoreTimerId: number | null = null;
-  private _restoreIntervalId: number | null = null;
-
   private setupFileInput(): void {
     if (typeof document === 'undefined') return;
     const input = document.createElement('input');
@@ -356,7 +349,10 @@ export class SettingsScene extends Phaser.Scene {
     if (!file) return;
     try {
       const result = await restoreFromFile(file);
-      this.startRestoreCountdown(result.added);
+      this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      this.time.delayedCall(3000, () => {
+        if (typeof location !== 'undefined') location.reload();
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
@@ -369,94 +365,6 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
-  private startRestoreCountdown(recordsAdded: number): void {
-    this._clearRestoreCountdown();
-    this.restoreStatusText?.destroy();
-    this.restoreStatusText = null;
-
-    const cx = CW / 2;
-    const statusY = 760;
-    const cancelY = 810;
-
-    let remaining = 3;
-
-    const countdownText = this.add
-      .text(cx, statusY, this._countdownLabel(recordsAdded, remaining), {
-        fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-        color: '#059669',
-        align: 'center',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this._restoreCountdownText = countdownText;
-
-    const cancelBtnW = 120;
-    const cancelBtnH = 36;
-
-    const cancelG = this.add.graphics();
-    cancelG.fillStyle(0xe5e7eb, 1);
-    cancelG.fillRoundedRect(cx - cancelBtnW / 2, cancelY - cancelBtnH / 2, cancelBtnW, cancelBtnH, 8);
-    cancelG.setDepth(4);
-    this._restoreCancelGraphic = cancelG;
-
-    const cancelText = this.add
-      .text(cx, cancelY, 'Cancel', {
-        fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: '#374151',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this._restoreCancelBtnText = cancelText;
-
-    const cancelHit = this.add
-      .rectangle(cx, cancelY, cancelBtnW, cancelBtnH, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(6);
-    this._restoreCancelHit = cancelHit;
-
-    cancelHit.on('pointerup', () => {
-      this._clearRestoreCountdown();
-      this.showRestoreStatus('Reload cancelled');
-    });
-
-    this._restoreIntervalId = window.setInterval(() => {
-      remaining -= 1;
-      if (remaining > 0) {
-        countdownText.setText(this._countdownLabel(recordsAdded, remaining));
-      }
-    }, 1000);
-
-    this._restoreTimerId = window.setTimeout(() => {
-      this._clearRestoreCountdown();
-      if (typeof location !== 'undefined') location.reload();
-    }, 3000);
-  }
-
-  private _countdownLabel(recordsAdded: number, seconds: number): string {
-    return `Restored ${recordsAdded} records — reloading in ${seconds}…`;
-  }
-
-  private _clearRestoreCountdown(): void {
-    if (this._restoreTimerId !== null) {
-      window.clearTimeout(this._restoreTimerId);
-      this._restoreTimerId = null;
-    }
-    if (this._restoreIntervalId !== null) {
-      window.clearInterval(this._restoreIntervalId);
-      this._restoreIntervalId = null;
-    }
-    this._restoreCountdownText?.destroy();
-    this._restoreCountdownText = null;
-    this._restoreCancelGraphic?.destroy();
-    this._restoreCancelGraphic = null;
-    this._restoreCancelBtnText?.destroy();
-    this._restoreCancelBtnText = null;
-    this._restoreCancelHit?.destroy();
-    this._restoreCancelHit = null;
-  }
 
   private showRestoreStatus(msg: string, isError = false): void {
     this.restoreStatusText?.destroy();
@@ -559,7 +467,6 @@ export class SettingsScene extends Phaser.Scene {
       document.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
     }
-    this._clearRestoreCountdown();
     this.toggles.forEach((t) => t.destroy());
     this.toggles = [];
     PreferenceToggle.destroyAll();
