@@ -1,254 +1,204 @@
-# Autonomous Workflows — 2026-04-30
+# Autonomous Workflows v2 — 2026-04-30
 
 ## Operating principle
 
-**Always optimize for maximum autonomy.** Detection-only is not enough; resolution-only is not enough — the goal is *human-out-of-the-loop* until human judgment is genuinely needed.
+**Always optimize for maximum autonomy.** Detection-only is not enough; resolution-only is not enough. The goal is *human-out-of-the-loop until human judgment is genuinely needed* — and the system must run continuously, not only on human-triggered events.
 
-This plan is sequenced by autonomy ceiling, highest first. Risk is managed through scoped permissions and per-SHA limits, not by deferring the most autonomous workflows.
+## What this plan replaces
+
+The earlier v1 of this doc listed five parallel workflows. That was a list, not a system. v2 is structured as four composable phases that share substrate, lean on existing primitives, and target this project's unique autonomy surface (LLM curriculum, validation cycles, CLAUDE.md active-bug queue) — not generic CI hygiene.
 
 ## Goal
 
-Add five GitHub Actions workflows that turn this repo into a self-maintaining system: agents fix CI, agents audit every PR, agents implement issues described in English, agents heal recurring footguns. The solo developer becomes a reviewer of agent work, not a doer of mechanical work.
+Turn this repo into a self-maintaining system with three autonomy modes:
+- **Continuous** — a scheduled loop that picks work and ships PRs while no one is online
+- **Reactive** — event-triggered workflows that respond to PRs, CI failures, and pipeline changes
+- **Project-specific** — autonomy on the surfaces unique to this repo: curriculum, validation cycles, misconception detectors
 
-Aligned with the project's reality: solo developer, agent-driven workflow, locked C1–C10 constraints, LLM-generated curriculum, four specialist subagents already defined and underused.
-
-## Out of scope
-
-- Copilot Code Review action — advisory only, not autonomous
-- Lighthouse assertions, npm audit, branch-name linting — detection only, not aligned with the operating principle
-- Visual regression, CodeQL, stale-PR bots — don't fit C10
-- Implementation in this plan (plan only; build in subsequent sessions)
-
-## Sequence — by autonomy ceiling, highest first
-
-| Order | Workflow | Tier | Autonomy ceiling |
-|---|---|---|---|
-| 1 | **G — Issue-to-PR agent** | 4 | Human writes English in an issue. Agent implements, tests, opens PR. Highest possible autonomy short of unsupervised commits to main. |
-| 2 | **F — CI-failure-to-agent dispatch** | 4 | Failing CI triggers an agent that diagnoses the log, attempts the fix, opens a fix PR back into the failing branch. Self-healing CI. |
-| 3 | **E — Subagent-on-PR** | 4 | Every PR is audited by the matching specialist subagent (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`) with no human invocation. |
-| 4 | **A — Auto-rebuild curriculum bundles** | 3 | Pipeline output changes → bundles auto-sync and auto-commit back. Mechanical self-heal of a documented footgun. |
-| 5 | **D — Dependabot auto-merge (patch + minor)** | 3 | Dependency updates merge themselves when CI is green. |
-
-The sequencing logic: build the highest-ceiling workflows first. They define the contract. The mechanical self-heals (A, D) drop in trivially once the agent dispatch infrastructure exists.
+The solo developer becomes a reviewer of agent work. The agent infrastructure (existing subagents, slash commands, learnings.md) becomes the worker.
 
 ---
 
-## Workflow G — Issue-to-PR agent (highest autonomy)
+## Phase 0 — Shared substrate (build once, used by everything)
 
-### Problem
-Today, the human writes English describing a change, then opens the editor and implements it. The agent infrastructure can absorb the implementation step.
+Every agent-dispatching workflow needs the same five things. Build them as reusable workflows / composite actions in `.github/workflows/_shared/` and consume them from Phases 1–3.
 
-### Trigger
-`issues` event with label `claude:implement`. Also `issue_comment` with `/claude implement` from the repo owner.
+### S1. Agent dispatch (reusable workflow)
+Single entry point: takes a prompt template name + context (PR number, log excerpt, issue body, etc.) → returns a structured result (success / partial / failed, plus output artifacts). All Claude Code invocations go through this. One place to update model, timeout, retry policy, prompt registry.
 
-### Action
-1. Read the issue body
-2. Dispatch a Claude Code agent with: the issue text, the repo at `main`, full tool access (Read, Edit, Bash for tests/lint)
-3. Agent creates a branch `feat/<YYYY-MM-DD>-<slug>` per the CLAUDE.md branch convention
-4. Agent implements, runs `npm run preflight` until green, commits
-5. Agent opens a PR linked to the issue, with description summarizing the changes and listing tests run
-6. Agent posts a comment on the issue with the PR link
+### S2. PR-comment update (composite action)
+Idempotent comment management keyed by `<workflow-name>:<role>`. Subsequent runs update the existing comment in place. No spam.
 
-### Scope
-- Issue must be labeled `claude:implement` by the repo owner (don't trigger on arbitrary contributor labels)
-- Hard timeout: 30 min agent runtime
-- One agent run per issue; subsequent attempts require explicit re-trigger via comment
+### S3. Budget guard
+Two layers:
+- Per-workflow token cap (declared in the calling workflow)
+- Global daily cap stored in repo variable; once tripped, all agent dispatch short-circuits and posts "budget exhausted, retry tomorrow"
 
-### Acceptance criteria
-- Issue: "Fix BUG-04 — hint tiers never advance past Tier 1" → agent opens a PR with the fix and `preflight` green
-- Issue with vague description triggers a comment from the agent asking for clarification before attempting work
-- Agent run that fails to reach green CI opens a draft PR with notes on what it tried and where it got stuck (so the human inherits the partial work)
+### S4. Kill switch
+A repo variable `AGENT_AUTONOMY_ENABLED`. Set to `false` and every agent-dispatching workflow no-ops. Single off switch, no need to disable workflows individually.
 
-### Risks
-- Agent implements the wrong thing → mitigated by PR-not-direct-commit; human reviews before merging
-- Agent thrashes for 30 min on an impossible task → mitigated by hard timeout and draft-PR fallback
-- Cost: API tokens per issue → bounded by timeout; expected $1–5 per issue
-- Permissions: agent needs branch-create + PR-create + write to non-protected branches → standard `GITHUB_TOKEN` is sufficient
+### S5. Telemetry + learning loop
+- Every agent run appends a JSONL line to `.claude/agent-runs/<YYYY-MM>.jsonl` (workflow, prompt, outcome, tokens, duration)
+- A weekly scheduled workflow analyzes the log: agents whose PRs were rejected at high rates → propose `.claude/learnings.md` entries for the operator to accept or reject
+- Closes the loop: rejected work makes future runs smarter without hand-curation
 
-### Pre-flight requirements
-- `ANTHROPIC_API_KEY` secret set
-- Claude Code CLI installable in CI runner
-- Active bug list in CLAUDE.md becomes the de facto issue tracker for this workflow
+**Effort: ~6–10 hr.** Everything in Phases 1–3 depends on this.
 
 ---
 
-## Workflow F — CI-failure-to-agent dispatch
+## Phase 1 — Continuous agent loop (the main engine)
 
-### Problem
-When `ci.yml` fails on a PR, the human reads the log, diagnoses, fixes, pushes. All of that is dispatch-able.
+This is the *most* autonomous pattern in the plan. Event-triggered workflows still wait for the human to do something. A scheduled loop ships work while no one is online.
 
-### Trigger
-`workflow_run` event for `ci.yml`, `conclusion == 'failure'`, only on `pull_request` runs (not `push` to main).
+### L1. Active-bug burndown loop
+- **Trigger:** schedule, every 4 hours; also `workflow_dispatch`
+- **Action:**
+  1. Parse the "Active bugs" table in CLAUDE.md
+  2. Filter to entries that:
+     - Are not already attached to an open PR
+     - Have not failed an autonomy attempt in the last 7 days (per S5 telemetry)
+     - Are below an effort threshold (e.g. ≤30 min stated effort) for the first wave
+  3. Pick the highest-leverage entry
+  4. Dispatch via S1 with a `bug-fix` prompt: read the bug description, locate the code, propose a fix on `feat/<date>-bug-<id>`, run `npm run preflight`, commit
+  5. Open a PR via the GitHub Copilot Coding Agent primitive (`create_pull_request_with_copilot`) where possible; fall back to custom dispatch when Copilot can't handle the file types
+  6. Log to S5
+- **Halt conditions:** budget guard tripped, kill switch off, two consecutive failures on the same bug
 
-### Action
-1. Fetch failing job log via GitHub API
-2. Identify failing step (typecheck, lint, unit, e2e, a11y, build, bundle)
-3. Dispatch a Claude Code agent with: failing log + PR diff + repo at PR head
-4. Agent attempts fix on `claude-fix/<pr-number>-<short-sha>`
-5. Agent opens a PR *into the original PR's head branch* with the proposed fix
-6. Agent comments on the original PR linking the fix PR
+### L2. Validation-cycle ingestion loop
+- **Trigger:** schedule, daily; also when `validation-data/cycle-*/` is touched
+- **Action:**
+  1. Scan validation-cycle directories for unprocessed session notes (markdown + screenshots)
+  2. For each unprocessed note: dispatch agent to extract structured bug reports, misconception observations, and skill calibration deltas
+  3. Output: a single PR adding new bug entries to CLAUDE.md, new MC-* draft entries to `docs/10-curriculum/misconceptions.md`, and skill calibration adjustments to the engine config
+  4. The L1 loop will then pick up the new bugs on its next run — autonomy composes
+- This converts the project's *purpose* (validation) into a continuous process
 
-### Scope
-- Only triggers on `ci.yml` failures, not other workflows
-- Hard limit: 1 auto-fix attempt per PR head SHA — if it fails again, the human takes over
-- Skips if the failing PR is already authored by the bot (prevents recursive thrash)
+### L3. Curriculum generation loop
+- **Trigger:** schedule, weekly (Sunday 02:00 UTC); also `workflow_dispatch`
+- **Action:**
+  1. Run `pipeline.generate --all` (or rotating per-level) using existing pipeline
+  2. Run validators
+  3. If output passes: commit to `chore/<date>-curriculum-refresh`, run `npm run build:curriculum` (Workflow A from v1, now subsumed), open PR
+  4. If validators fail: post a diff summary as an issue, dispatch L1 candidate fix
+- The pipeline already exists. This converts content production from a human-prompted action to a continuous background process.
 
-### Acceptance criteria
-- Lint failure on a missing semicolon → auto-fix PR with the fix, green CI
-- Real logic-bug test failure → auto-fix PR that *attempts* a fix; the attempt is visible regardless of correctness
-- Same SHA fails CI twice → no second auto-fix attempt
-- Auto-fix PR clearly identifies as bot-authored
-
-### Risks
-- Agent commits wrong fix that masks a real bug → mitigated by separate PR (not direct push); human reviews
-- Cost: every CI failure spawns an agent run → mitigated by per-SHA limit and PR-only trigger
-- Agent obscures the real bug by overfitting to the test → mitigated by reviewer scrutiny + the per-SHA limit forcing the human to engage if the first attempt is bad
+**Effort: ~8–14 hr** (L1: 4–6, L2: 3–5, L3: 1–3). Phase 0 substrate must be live first.
 
 ---
 
-## Workflow E — Subagent-on-PR
+## Phase 2 — Reactive event-triggered augmentations
 
-### Problem
-Four specialist subagents (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`) are defined in `.claude/agents/`. They were designed for audit-on-change. They only fire when a human invokes them. They are sitting idle on every PR.
+These augment the continuous loop with fast feedback on human-driven events. They consume Phase 0 substrate.
 
-### Trigger
-`pull_request` (opened, synchronize, reopened) — single workflow, multiple jobs gated by changed-paths filters.
+### R1. CI-failure-to-agent dispatch (was F)
+`workflow_run` on `ci.yml` failure → S1 dispatch → fix PR into the failing PR's head branch. Per-SHA limit prevents thrash. Skips PRs already authored by bots.
 
-### Action — path-routed dispatch
+### R2. Subagent-on-PR (was E)
+`pull_request` events route by changed paths to the matching specialist subagent (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`). Findings post via S2. The subagents already exist in `.claude/agents/` — this just wires them to the PR event.
 
-| Changed paths | Subagent invoked |
+### R3. Issue-assign-to-coding-agent
+**Use the existing primitive, don't reinvent.** Issue gets label `claude:implement` → workflow calls `mcp__github__assign_copilot_to_issue` (or equivalent for Claude Code coding agent). Custom dispatch only for issues Copilot rejects (e.g. multi-repo work). v1's "Workflow G" was a worse reinvention of this.
+
+### R4. Auto-rebuild curriculum bundles (was A)
+Mechanical, no agent needed. Pipeline output changes → run `build:curriculum`, commit back. Subsumed into L3 when curriculum changes are agent-authored; remains as standalone for human-authored pipeline edits.
+
+### R5. Dependabot auto-merge (was D)
+Mechanical, no agent needed. Patch + minor + green CI → auto-merge.
+
+**Effort: ~4–6 hr total** (R1: 1–2, R2: 1–2, R3: 0.5, R4: 0.5, R5: 0.5).
+
+---
+
+## Phase 3 — Project-specific autonomy (highest unique leverage)
+
+These are the workflows nobody else's repo would have. They target this project's specific surface.
+
+### P1. Misconception detector synthesis
+When L3 (curriculum loop) generates new wrong-answer patterns not covered by existing `MC-*` detectors, dispatch an agent to propose new detectors in `engine/misconceptionDetectors.ts` plus matching fixtures. Open as a PR. Catches the case where new content silently degrades misconception coverage.
+
+### P2. Archetype × Level coverage matrix maintenance
+Schedule reads `LEVEL_META` + Playwright test files, regenerates `docs/40-validation/coverage-matrix.md`, commits. When a level adds an archetype with no E2E test, agent dispatches a test-stub generator. The doc stays correct without human work; test gaps surface as PRs.
+
+### P3. CLAUDE.md self-maintenance
+Monthly schedule: dispatch agent to read `.claude/learnings.md`, the decision log, and recent commits → propose CLAUDE.md updates (new gotchas, retired ones, clarifications). Open as PR. Closes the loop on the "skim learnings.md at session start" instruction by making sure the canonical doc absorbs the learnings over time.
+
+**Effort: ~6–10 hr total.** Phase 1 must be live first.
+
+---
+
+## Sequencing
+
+```
+Phase 0 (substrate)
+    │
+    ├──► Phase 1 (continuous loops)         ◄── highest autonomy
+    │       L1 → L2 → L3
+    │
+    ├──► Phase 2 (reactive augmentations)
+    │       R1 → R2 → R3 → R4 → R5
+    │
+    └──► Phase 3 (project-specific)
+            P1 → P2 → P3
+```
+
+Strictly: Phase 0 first. Then any Phase 1 entry. Phase 2 and Phase 3 entries can land in any order once Phase 0 is live.
+
+Recommended landing order: **S1–S5 → L1 → R1 → R2 → R5 → R4 → R3 → L2 → L3 → P1 → P2 → P3**. This front-loads the highest-autonomy continuous loop (L1) immediately after substrate, then fills in the reactive layer, then unlocks the project-specific stuff that depends on L1/L3 having run.
+
+---
+
+## Decision points
+
+1. **Use Copilot Coding Agent or build custom dispatch?** Recommendation: Copilot first via the MCP primitives, custom Claude Code dispatch only where Copilot demonstrably fails. This is what v1 missed.
+2. **Continuous-loop frequency?** L1 every 4 hr (≈6 PRs/day cap), L2 daily, L3 weekly. Tune via S3 budget.
+3. **Kill-switch default?** Recommendation: ship with `AGENT_AUTONOMY_ENABLED=false`, flip to true after S1–S5 + L1 + R1 prove out for one week.
+4. **Telemetry retention?** Recommendation: 12 months of JSONL in-repo (small), gives the learning loop in S5 enough history.
+5. **Bug-table effort threshold for L1's first wave?** Recommendation: ≤15 min of stated effort. Raise to ≤2 hr after the first wave shows acceptable PR-acceptance rates.
+
+---
+
+## Pre-flight requirements (one-time, before Phase 0)
+
+- `ANTHROPIC_API_KEY` repo secret
+- Repo variable `AGENT_AUTONOMY_ENABLED` (default `false`)
+- Repo variable `AGENT_DAILY_TOKEN_BUDGET` (initial: 5M tokens/day)
+- `GITHUB_TOKEN` permissions: `contents: write`, `pull-requests: write`, `issues: write`
+- New directories committed: `.claude/agent-runs/`, `.github/workflows/_shared/`
+- Decision log entry (`/decision`) capturing the autonomy operating principle and kill-switch protocol
+
+## Success metrics — three months after Phase 1 lands
+
+- **Autonomy ratio:** ≥ 50% of merged PRs originate from agents (continuous loop + reactive)
+- **Bug burndown rate:** L1 resolves ≥ 1 bug/week from the CLAUDE.md table without human implementation
+- **Validation-cycle latency:** session notes turn into bug reports within 24 hr of being written (L2)
+- **Curriculum freshness:** L3 ships at least one curriculum-refresh PR per month
+- **Coverage matrix accuracy:** P2 keeps `docs/40-validation/coverage-matrix.md` < 7 days stale
+- **PR acceptance rate (signal-to-noise):** ≥ 60% of agent PRs merge without major rework — gate for tightening prompts via S5
+
+## Why this is meaningfully better than v1
+
+- **Substrate first**: Phase 0 is built once and consumed by every dispatch. v1 had each workflow re-implementing dispatch.
+- **Continuous loop, not just events**: Phase 1 ships work without human triggers. v1 was 100% event-triggered.
+- **Leverages existing primitives**: Copilot Coding Agent (R3) replaces v1's custom "Workflow G". Existing subagents (R2). Existing pipeline (L3). Existing CLAUDE.md bug table (L1).
+- **Targets project-unique surface**: Phase 3 is autonomy nobody else's repo would have — the validation cycles, the misconception catalog, the coverage matrix.
+- **Kill switch + budget + telemetry as core**: Not "documented later"; built into S3–S5 before any agent fires.
+- **Composes**: L2's output feeds L1's queue. L3's output feeds P1. Rejected PRs feed S5's learnings ingestion. v1's workflows didn't compose.
+
+## Estimated total effort
+
+| Phase | Effort |
 |---|---|
-| `src/validators/**` | `validator-parity-checker` |
-| `src/components/**`, `src/scenes/interactions/**`, `src/scenes/**Scene.ts` | `a11y-auditor` |
-| `package.json`, `package-lock.json` | `bundle-watcher` |
-| Any meaningful diff (excluding docs-only) | `c1-c10-auditor` |
+| 0 — Substrate | 6–10 hr |
+| 1 — Continuous loops | 8–14 hr |
+| 2 — Reactive augmentations | 4–6 hr |
+| 3 — Project-specific | 6–10 hr |
+| **Total** | **24–40 hr** |
 
-Each subagent runs in its own job. Findings post as a single PR review comment scoped to the agent's domain. Multiple agents can fire on a single PR. Subsequent pushes update the existing comment in place (no spam).
-
-### Execution model
-Local execution in CI: install Claude Code CLI in the runner, invoke the subagent there, requires `ANTHROPIC_API_KEY` secret. Self-contained; no external service.
-
-### Scope
-- Findings post as PR review comments, not failing checks (Tier 2 first)
-- Promote to blocking only after first 5 PRs of output validate signal-to-noise
-- Subagent failure (API outage) does NOT fail the PR — graceful degradation
-
-### Acceptance criteria
-- PR touching `src/validators/registry.ts` → `validator-parity-checker` fires, posts a comment
-- PR touching only `docs/**` → no subagent jobs fire
-- Re-pushing updates existing comment in place
-- Subagent crash → PR check is yellow, not red
-
-### Risks
-- Cost per PR → mitigated by path filtering and short prompts
-- Noise: low-value findings every PR → mitigated by SNR review of first 5 PRs, then prompt tightening, then promotion to blocking
-- Token leakage in logs → repo secret, never echoed
-
----
-
-## Workflow A — Auto-rebuild curriculum bundles
-
-### Problem
-CLAUDE.md hard rule: `public/curriculum/v1.json` and `src/curriculum/bundle.json` must always match. Only correct way to update them: `npm run build:curriculum`. Humans forget. Files drift. CI catches it after the fact.
-
-### Trigger
-`pull_request` paths matching:
-- `pipeline/output/**`
-- `pipeline/schemas.py`
-- `pipeline/validators_py.py`
-
-### Action
-1. Checkout PR branch with write access
-2. Install Node + Python deps
-3. Run `npm run build:curriculum`
-4. If `git diff --quiet` non-zero on the two bundle files, commit `chore(curriculum): auto-sync bundles [bot]` and push back to PR branch
-5. If no diff, exit success silently
-
-### Scope
-- Only the two bundle files. No other auto-edits.
-- Skip on PRs from forks (no write token)
-- Skip if latest commit on the PR is itself the bot commit (loop guard)
-
-### Acceptance criteria
-- PR editing `pipeline/output/level_03/all.json` → automatic follow-up commit syncing both bundle files
-- PR not touching curriculum files → no run
-- Re-running on a synced PR → no commit
-- Existing `content-validation.yml` still passes after auto-commit
-
-### Risks
-- Loop: bot commit triggers another bot run → mitigated by skip-if-bot-author guard
-- Race with human pushes → mitigated by `concurrency: pr-${PR_NUMBER}` with `cancel-in-progress: true`
-
----
-
-## Workflow D — Dependabot auto-merge (patch + minor)
-
-### Problem
-Solo dev. Patch and minor dependency updates pile up. Each requires a click. Hours/quarter lost to mechanical reviews.
-
-### Trigger
-`pull_request_target` for PRs authored by `dependabot[bot]`, after `ci.yml` reports success.
-
-### Action
-1. Verify PR author is `dependabot[bot]`
-2. Parse Dependabot metadata; extract semver bump type
-3. Patch or minor + green CI → enable auto-merge with squash
-4. Major → comment `Major bump — manual review required` and stop
-
-### Scope
-- Patch + minor only
-- Production deps and devDeps both eligible
-
-### Acceptance criteria
-- `vitest` patch bump → auto-merges within ~25 min of green CI
-- `phaser` major bump → does not auto-merge; manual-review comment posted
-- Patch bump that fails CI → does not auto-merge
-
-### Risks
-- Bad patch sneaks past tests → that's a test-coverage problem, not an auto-merge problem
-- Token scope → standard `GITHUB_TOKEN` is sufficient
-
----
-
-## Decision points before implementation
-
-1. **Workflow G** — confirm appetite for issue-driven autonomous implementation. Recommendation: yes; this is the highest-leverage workflow in the repo.
-2. **Workflow F** — confirm appetite for agent thrash on hard CI failures. Recommendation: yes, with the per-SHA limit.
-3. **Workflow E** — confirm willingness to spend API budget per PR (~$0.10–$0.50/PR depending on diff size). Recommendation: yes.
-4. **Workflow A** — confirm auto-commit pattern is acceptable on PR branches vs. blocking. Recommendation: auto-commit.
-5. **Workflow D** — confirm minor (not just patch) is auto-merge-eligible. Recommendation: minor + patch given solo dev and existing test coverage.
-
-## Pre-flight requirements (one-time setup)
-
-- Set `ANTHROPIC_API_KEY` repo secret (used by E, F, G)
-- Verify `GITHUB_TOKEN` default permissions are sufficient (or grant repo `contents: write`, `pull-requests: write`, `issues: write`)
-- Document agent budget cap and revoke-key procedure in `docs/00-foundation/`
-
-## Success metrics — one month after all five live
-
-- ≥ 1 issue per week resolved end-to-end via Workflow G with no human implementation work
-- ≥ 30% of CI-failure PRs get a viable auto-fix proposal (Workflow F)
-- Each subagent fires on every applicable PR; SNR judged useful (Workflow E)
-- Zero "forgot to run build:curriculum" CI failures (Workflow A)
-- ≥ 80% of Dependabot patch/minor PRs merge without human touch (Workflow D)
-
-## Estimated effort
-
-| Workflow | Effort |
-|---|---|
-| G | ~6–10 hr — agent invocation, PR-creation, branch-naming compliance, draft-PR fallback |
-| F | ~4–8 hr — workflow_run wiring, agent dispatch, PR-back logic, thrash guards |
-| E | ~3–5 hr — path routing, agent invocation, comment update logic |
-| A | ~1 hr — single workflow, well-known pattern |
-| D | ~30 min — standard recipe |
-
-Total: ~15–25 hr of build, sequenced as listed above.
+Roughly 1.5–2× the v1 estimate, in exchange for ~5× the autonomy ceiling and a system that composes instead of a list of disconnected workflows.
 
 ## Notes on existing workflows
 
-These plans don't replace any existing workflow:
-- `ci.yml` remains the hard gate (and the trigger for F)
-- `content-validation.yml` remains the curriculum schema check (consumes A's output)
-- `deploy.yml`, `lighthouse.yml`, `synthetic-playtest.yml` unchanged
-
-Pre-existing inconsistency to fix opportunistically: `synthetic-playtest.yml` uses Node 20 while the rest use Node 24. Trivial; not part of this plan.
+- `ci.yml` — unchanged; remains the hard gate and the trigger for R1
+- `content-validation.yml` — unchanged; consumes R4 / L3 output
+- `deploy.yml`, `lighthouse.yml`, `synthetic-playtest.yml` — unchanged
+- Pre-existing inconsistency: `synthetic-playtest.yml` uses Node 20 vs Node 24 elsewhere. Trivial; fix opportunistically, not part of this plan.
