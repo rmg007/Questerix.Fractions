@@ -5,13 +5,17 @@
  * Locked levels show the LevelCard lock icon and muted slate palette; unlocked
  * levels show the sky-blue adventure card with level name and concept; the
  * first unlocked-but-not-completed level receives the amber "Suggested next"
- * badge from LevelCard.
+ * badge from LevelCard. Mastered levels (BKT masteryEstimate >= 0.85)
+ * additionally display a gold ribbon arc clipped to the top of their card.
  *
  * Visual language follows design-language.md §2–§3 (palette, fonts) and the
  * sky-blue adventure theme established in MenuScene / levelTheme.ts.
  *
  * per runtime-architecture.md §2 (MVP scene inventory)
  * per design-language.md §6.4 (prefers-reduced-motion)
+ *
+ * NOTE: A smoke test for the mastery ribbon (data-testid="mastery-ribbon-L{N}")
+ * is Task #51 territory — not included here.
  */
 
 import * as Phaser from 'phaser';
@@ -28,6 +32,8 @@ import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { LEVEL_META } from './utils/levelMeta';
 import { LevelCard } from '../components/LevelCard';
+import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import type { StudentId } from '../types';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -39,6 +45,20 @@ const WHITE_HEX = '#FFFFFF';
 
 // ── Card scale — shrink LevelCard to fit the winding-path layout ──────────────
 const CARD_SCALE = 0.65;
+
+// ── Mastery ribbon palette ────────────────────────────────────────────────────
+const RIBBON_GOLD = 0xfbbf24; // amber-400
+const RIBBON_BORDER = 0xb45309; // amber-700
+
+// ── Mastery threshold ─────────────────────────────────────────────────────────
+const MASTERY_THRESHOLD = 0.85;
+
+// ── Skill ID mapping ──────────────────────────────────────────────────────────
+// Level 1 uses a dedicated skill; Levels 2–9 use the generic skill.level_N id.
+function skillIdForLevel(level: number): string {
+  if (level === 1) return 'skill.partition_halves';
+  return `skill.level_${level}`;
+}
 
 // ── Winding path node positions (x, y) — bottom (L1) to top (L9) ─────────────
 // Designed for 800×1280 portrait canvas; the path snakes left↔right.
@@ -61,6 +81,7 @@ interface LevelMapData {
 export class LevelMapScene extends Phaser.Scene {
   private studentId: string | null = null;
   private reduceMotion = false;
+  private ribbonMaskGraphics: Phaser.GameObjects.Graphics[] = [];
 
   constructor() {
     super({ key: 'LevelMapScene' });
@@ -68,9 +89,10 @@ export class LevelMapScene extends Phaser.Scene {
 
   init(data: LevelMapData): void {
     this.studentId = data?.studentId ?? null;
+    this.ribbonMaskGraphics = [];
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.reduceMotion = this._checkReduceMotion();
 
     // Fade in from black
@@ -94,6 +116,16 @@ export class LevelMapScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
+    // ── Cleanup on shutdown ────────────────────────────────────────────────
+    // Registered early — before the async await — so it fires even if the scene
+    // is stopped while the IndexedDB query is still in flight.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      for (const g of this.ribbonMaskGraphics) {
+        if (g && g.scene) g.destroy();
+      }
+      this.ribbonMaskGraphics = [];
+    });
+
     // ── Unlock data ────────────────────────────────────────────────────────
     const unlocked = this._getUnlockedLevels();
     const completedLevels = this._getCompletedLevels();
@@ -103,6 +135,9 @@ export class LevelMapScene extends Phaser.Scene {
       (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
     )?.number ?? null;
 
+    // ── Mastery data ───────────────────────────────────────────────────────
+    const masteredLevels = await this._getMasteredLevels();
+
     // ── Path line (drawn first so cards sit on top) ─────────────────────────
     this._drawConnectingPath();
 
@@ -111,6 +146,7 @@ export class LevelMapScene extends Phaser.Scene {
       const meta = LEVEL_META[i];
       const [nx, ny] = NODE_POSITIONS[i];
       const isUnlocked = unlocked.has(meta.number);
+      const isCompleted = completedLevels.has(meta.number);
       const isSuggested = meta.number === suggestedLevel;
       const card = new LevelCard({
         scene: this,
@@ -122,6 +158,11 @@ export class LevelMapScene extends Phaser.Scene {
         onTap: (levelNumber) => this._startLevel(levelNumber),
       });
       card.setScale(CARD_SCALE).setDepth(10);
+
+      // Gold mastery ribbon drawn on top of completed+mastered cards.
+      if (isCompleted && masteredLevels.has(meta.number)) {
+        this._drawMasteryRibbon(nx, ny, 11);
+      }
     }
 
     // ── Back to menu button ────────────────────────────────────────────────
@@ -148,6 +189,8 @@ export class LevelMapScene extends Phaser.Scene {
     // (map-level-<N>) that forwards clicks into the scene without relying on
     // canvas coordinates.  The hook id matches the MenuScene convention to
     // avoid collisions with the existing level-card-L* ids.
+    // Mastery ribbon sentinels are mounted here (after unmountAll) so they
+    // survive the lifecycle reset and are queryable by Playwright.
     TestHooks.unmountAll();
     TestHooks.mountSentinel('level-map-scene');
     for (let i = 0; i < LEVEL_META.length; i++) {
@@ -164,10 +207,11 @@ export class LevelMapScene extends Phaser.Scene {
         () => this._startLevel(lvl),
         { width: '110px', height: '110px', top: topPct, left: leftPct }
       );
+      // Mastery ribbon sentinel — only for completed + mastered nodes.
+      if (completedLevels.has(meta.number) && masteredLevels.has(meta.number)) {
+        TestHooks.mountSentinel(`mastery-ribbon-L${meta.number}`);
+      }
     }
-
-    // ── Cleanup on shutdown ────────────────────────────────────────────────
-    // (Path animation cleans up its own update listener on shutdown — see _drawConnectingPath)
   }
 
   // ── Path drawing ─────────────────────────────────────────────────────────────
@@ -236,6 +280,48 @@ export class LevelMapScene extends Phaser.Scene {
     }
   }
 
+  // ── Mastery ribbon ────────────────────────────────────────────────────────────
+
+  /**
+   * Draw a gold ribbon arc across the top of a LevelCard.
+   * Uses a rounded-rect GeometryMask matching the scaled card boundary to clip
+   * the ribbon. The mask graphics object is tracked in ribbonMaskGraphics for
+   * proper cleanup on scene shutdown.
+   *
+   * All coordinates are in scene space; the card is CARD_W×CARD_H at CARD_SCALE.
+   */
+  private _drawMasteryRibbon(x: number, y: number, depth: number): void {
+    const CARD_W = 220;
+    const CARD_H = 160;
+    const CARD_RADIUS = 16;
+    const RIBBON_H = 20;
+
+    const scaledW = CARD_W * CARD_SCALE;
+    const scaledH = CARD_H * CARD_SCALE;
+    const scaledR = CARD_RADIUS * CARD_SCALE;
+    const left = x - scaledW / 2;
+    const top = y - scaledH / 2;
+
+    // Invisible rounded-rect mask matching the scaled card boundary.
+    const maskG = this.add.graphics().setVisible(false);
+    maskG.fillStyle(0xffffff, 1);
+    maskG.fillRoundedRect(left, top, scaledW, scaledH, scaledR);
+    this.ribbonMaskGraphics.push(maskG);
+
+    const mask = maskG.createGeometryMask();
+
+    // Gold ribbon fill across the top of the card.
+    const ribbonG = this.add.graphics().setDepth(depth);
+    ribbonG.fillStyle(RIBBON_GOLD, 1);
+    ribbonG.fillRect(left, top, scaledW, RIBBON_H);
+
+    // Thin border along the bottom edge of the ribbon for visual separation.
+    ribbonG.lineStyle(2, RIBBON_BORDER, 1);
+    ribbonG.strokeRect(left, top, scaledW, RIBBON_H);
+
+    ribbonG.setMask(mask);
+  }
+
   // ── Back button ───────────────────────────────────────────────────────────────
 
   private _drawBackButton(): void {
@@ -272,6 +358,31 @@ export class LevelMapScene extends Phaser.Scene {
   // ── Legend ────────────────────────────────────────────────────────────────────
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  /**
+   * Load mastery records for this student and return the set of level numbers
+   * where masteryEstimate >= MASTERY_THRESHOLD. Returns an empty set silently
+   * on any repository error.
+   */
+  private async _getMasteredLevels(): Promise<Set<number>> {
+    const mastered = new Set<number>();
+    try {
+      if (!this.studentId) return mastered;
+      const records = await skillMasteryRepo.getAllForStudent(this.studentId as StudentId);
+      for (const record of records) {
+        if (record.masteryEstimate < MASTERY_THRESHOLD) continue;
+        for (const meta of LEVEL_META) {
+          if (record.skillId === skillIdForLevel(meta.number)) {
+            mastered.add(meta.number);
+            break;
+          }
+        }
+      }
+    } catch {
+      // Silent fallback — map renders without ribbons on error
+    }
+    return mastered;
+  }
 
   private _getUnlockedLevels(): Set<number> {
     const unlocked = new Set<number>([1]);
