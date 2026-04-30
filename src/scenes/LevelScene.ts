@@ -60,8 +60,8 @@ export class LevelScene extends Phaser.Scene {
   private responseTimes: number[] = [];
   private questionStartTime: number = 0;
 
-  // Fix G-E3: hint events linked to attempt records
-  private currentQuestionHintIds: string[] = [];
+  // Fix G-E3: hint events linked to attempt records (Dexie auto-increment numbers)
+  private currentQuestionHintIds: number[] = [];
 
   // Template pool
   private templatePool: QuestionTemplate[] = [];
@@ -677,7 +677,7 @@ export class LevelScene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
-        if (ev?.id) this.currentQuestionHintIds.push(ev.id as string);
+        if (ev?.id) this.currentQuestionHintIds.push(ev.id);
       } catch (err) {
         console.warn('[LevelScene] Could not record hint event:', err);
       }
