@@ -1,0 +1,247 @@
+name: Bug Burndown
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # every 4 hours
+  workflow_dispatch:
+    inputs:
+      bug_id:
+        description: 'Force a specific bug ID (e.g. BUG-01). Leave empty for auto-select.'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+concurrency:
+  group: bug-burndown
+  cancel-in-progress: false  # don't cancel in-progress fixes
+
+jobs:
+  select-and-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      # ── 1. Kill switch ─────────────────────────────────────────────────────
+      - name: Kill switch check
+        if: vars.AGENT_AUTONOMY_ENABLED != 'true'
+        run: |
+          echo "::notice::AGENT_AUTONOMY_ENABLED is not 'true' — skipping bug-burndown run."
+          exit 0
+
+      # ── 2. Checkout ────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 3. Setup Node ──────────────────────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # ── 4. Parse bug table & select target ────────────────────────────────
+      - name: Parse bug table and select target
+        id: select-bug
+        run: |
+          set -euo pipefail
+
+          FORCED_ID="${{ github.event.inputs.bug_id }}"
+          FAILED_BUGS_FILE=".claude/agent-runs/failed-bugs.txt"
+          CUTOFF=$(date -d '7 days ago' +%Y-%m-%d 2>/dev/null || date -v-7d +%Y-%m-%d)
+
+          # Extract the Active bugs table rows from CLAUDE.md
+          # Match lines like: | BUG-01 | description | effort |
+          # Exclude header and separator rows
+          mapfile -t BUG_LINES < <(
+            grep -E '^\| [A-Z]+-[0-9A-Z]+ +\|' CLAUDE.md || true
+          )
+
+          if [ "${#BUG_LINES[@]}" -eq 0 ]; then
+            echo "::notice::No bug rows found in CLAUDE.md Active bugs table."
+            echo "no_bugs=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Build list of open PR titles for dedup filtering
+          OPEN_PR_TITLES=$(gh pr list --state open --json title --jq '.[].title' 2>/dev/null || echo "")
+
+          # Build list of recently-failed bug IDs (failed within last 7 days)
+          RECENTLY_FAILED=""
+          if [ -f "$FAILED_BUGS_FILE" ]; then
+            while IFS= read -r line; do
+              BID=$(echo "$line" | awk '{print $1}')
+              FDATE=$(echo "$line" | awk '{print $2}')
+              if [ -n "$BID" ] && [ -n "$FDATE" ] && [[ "$FDATE" > "$CUTOFF" || "$FDATE" == "$CUTOFF" ]]; then
+                RECENTLY_FAILED="$RECENTLY_FAILED $BID"
+              fi
+            done < "$FAILED_BUGS_FILE"
+          fi
+
+          SELECTED_ID=""
+          SELECTED_DESC=""
+          SELECTED_EFFORT=""
+
+          for ROW in "${BUG_LINES[@]}"; do
+            # Parse columns: | ID | description | effort |
+            BUG_ID=$(echo "$ROW" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+            BUG_DESC=$(echo "$ROW" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}')
+            BUG_EFFORT=$(echo "$ROW" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $4); print $4}')
+
+            [ -z "$BUG_ID" ] && continue
+
+            # If a specific bug was forced, only consider that one
+            if [ -n "$FORCED_ID" ] && [ "$BUG_ID" != "$FORCED_ID" ]; then
+              continue
+            fi
+
+            # Skip Sprint-scale items (too large for autonomous fix)
+            if echo "$BUG_EFFORT" | grep -qiE 'sprint [12]'; then
+              echo "  Skipping $BUG_ID — effort '$BUG_EFFORT' is Sprint-scale."
+              continue
+            fi
+
+            # Skip if already has an open PR
+            if echo "$OPEN_PR_TITLES" | grep -qF "$BUG_ID"; then
+              echo "  Skipping $BUG_ID — open PR already exists."
+              continue
+            fi
+
+            # Skip if recently failed
+            if echo "$RECENTLY_FAILED" | grep -qw "$BUG_ID"; then
+              echo "  Skipping $BUG_ID — failed within the last 7 days."
+              continue
+            fi
+
+            SELECTED_ID="$BUG_ID"
+            SELECTED_DESC="$BUG_DESC"
+            SELECTED_EFFORT="$BUG_EFFORT"
+            break
+          done
+
+          if [ -z "$SELECTED_ID" ]; then
+            echo "::notice::No eligible bugs found. All done or all blocked."
+            echo "no_bugs=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Selected bug: $SELECTED_ID — $SELECTED_DESC (effort: $SELECTED_EFFORT)"
+          echo "BUG_ID=$SELECTED_ID"       >> "$GITHUB_ENV"
+          echo "BUG_DESCRIPTION=$SELECTED_DESC" >> "$GITHUB_ENV"
+          echo "BUG_EFFORT=$SELECTED_EFFORT"    >> "$GITHUB_ENV"
+          echo "no_bugs=false" >> "$GITHUB_OUTPUT"
+
+      # ── 5. Create fix branch ───────────────────────────────────────────────
+      - name: Create fix branch
+        if: steps.select-bug.outputs.no_bugs == 'false'
+        run: |
+          set -euo pipefail
+          SLUG=$(echo "$BUG_ID" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          TARGET_BRANCH="fix/$(date +%Y-%m-%d)-${SLUG}"
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> "$GITHUB_ENV"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$TARGET_BRANCH"
+          git push origin "$TARGET_BRANCH"
+
+      # ── 6. Dispatch agent ──────────────────────────────────────────────────
+      - name: Dispatch agent
+        id: agent
+        if: steps.select-bug.outputs.no_bugs == 'false'
+        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        with:
+          prompt_template: bug-fix
+          context_json: >-
+            {"BUG_ID":"${{ env.BUG_ID }}","BUG_DESCRIPTION":"${{ env.BUG_DESCRIPTION }}","TARGET_BRANCH":"${{ env.TARGET_BRANCH }}"}
+          working_branch: ${{ env.TARGET_BRANCH }}
+          timeout_minutes: 25
+        secrets:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 7. Handle outcome ──────────────────────────────────────────────────
+      - name: Handle outcome — open PR on success/partial
+        if: |
+          steps.select-bug.outputs.no_bugs == 'false' &&
+          (steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial')
+        env:
+          AGENT_SUMMARY: ${{ steps.agent.outputs.summary }}
+        run: |
+          set -euo pipefail
+          gh pr create \
+            --title "fix(${BUG_ID}): ${BUG_DESCRIPTION}" \
+            --body "$(printf 'Automated fix by bug-burndown loop.\n\nBug: %s\nDescription: %s\n\nAgent summary:\n%s' \
+              "$BUG_ID" "$BUG_DESCRIPTION" "$AGENT_SUMMARY")" \
+            --head "$TARGET_BRANCH" \
+            --base main
+
+      - name: Handle outcome — record failure
+        if: |
+          steps.select-bug.outputs.no_bugs == 'false' &&
+          (steps.agent.outputs.outcome == 'failed' || steps.agent.outputs.outcome == 'skipped')
+        run: |
+          set -euo pipefail
+          FAILED_BUGS_FILE=".claude/agent-runs/failed-bugs.txt"
+          mkdir -p "$(dirname "$FAILED_BUGS_FILE")"
+          echo "$BUG_ID $(date +%Y-%m-%d)" >> "$FAILED_BUGS_FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git pull origin main
+          # Re-append (the file may not exist on main yet)
+          mkdir -p "$(dirname "$FAILED_BUGS_FILE")"
+          echo "$BUG_ID $(date +%Y-%m-%d)" >> "$FAILED_BUGS_FILE"
+          git add "$FAILED_BUGS_FILE"
+          git diff --cached --quiet || git commit -m "chore(agent): record failed bug $BUG_ID $(date +%Y-%m-%d)"
+          git push origin main
+
+      # ── 8. Record telemetry ────────────────────────────────────────────────
+      - name: Record telemetry
+        if: steps.select-bug.outputs.no_bugs == 'false'
+        run: |
+          set -euo pipefail
+          OUTCOME="${{ steps.agent.outputs.outcome }}"
+          [ -z "$OUTCOME" ] && OUTCOME="unknown"
+
+          TELEMETRY_FILE=".claude/agent-runs/$(date +%Y-%m).jsonl"
+          mkdir -p "$(dirname "$TELEMETRY_FILE")"
+
+          printf '{"ts":"%s","workflow":"bug-burndown","trigger":"%s","prompt_template":"bug-fix","outcome":"%s","tokens_used":0,"duration_ms":0,"pr_number":0,"sha":"%s","bug_id":"%s"}\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            "${{ github.event_name }}" \
+            "$OUTCOME" \
+            "$(git rev-parse HEAD)" \
+            "$BUG_ID" \
+            >> "$TELEMETRY_FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit telemetry to the default branch (main), not the fix branch
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [ "$CURRENT_BRANCH" != "main" ]; then
+            git stash
+            git checkout main
+            git pull origin main
+            mkdir -p "$(dirname "$TELEMETRY_FILE")"
+            printf '{"ts":"%s","workflow":"bug-burndown","trigger":"%s","prompt_template":"bug-fix","outcome":"%s","tokens_used":0,"duration_ms":0,"pr_number":0,"sha":"%s","bug_id":"%s"}\n' \
+              "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              "${{ github.event_name }}" \
+              "$OUTCOME" \
+              "$(git rev-parse HEAD)" \
+              "$BUG_ID" \
+              >> "$TELEMETRY_FILE"
+          fi
+
+          git add .claude/agent-runs/
+          git diff --cached --quiet || \
+            git commit -m "chore(telemetry): bug-burndown run $(date +%Y-%m-%d)" && \
+            git push origin HEAD:${{ github.ref_name }}
