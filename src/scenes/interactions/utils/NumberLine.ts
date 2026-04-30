@@ -76,9 +76,12 @@ export class NumberLine {
     this.gfx.lineStyle(4, CLR.neutral600, 1);
     this.gfx.lineBetween(left, y, left + length, y);
 
-    // Always draw ticks at min, 0.5 (if in range), max
+    // Always draw ticks at endpoints; add 0.5 midpoint only when no custom
+    // denominator is set (otherwise 0.5 would be mislabelled, e.g. "2/3" for thirds).
     const baseTicks = [minValue, maxValue];
-    if (minValue <= 0.5 && 0.5 <= maxValue) baseTicks.splice(1, 0, 0.5);
+    if (!this.opts.denominator && minValue <= 0.5 && 0.5 <= maxValue) {
+      baseTicks.splice(1, 0, 0.5);
+    }
     const allTicks = Array.from(new Set([...baseTicks, ...tickFractions!])).sort((a, b) => a - b);
 
     allTicks.forEach((v) => {

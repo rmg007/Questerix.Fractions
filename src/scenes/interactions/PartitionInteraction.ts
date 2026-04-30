@@ -185,18 +185,15 @@ export class PartitionInteraction implements Interaction {
         this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
       }
     } else {
-      // Circle: draw N lines through the centre at equal angle intervals.
-      // For N partitions we need N/2 lines (each line covers two sectors),
-      // but drawing N-1 distinct radial cuts makes the divisions clearest.
+      // Circle: draw N radii from the centre at equal 2π/N intervals.
+      // Each radius goes from centre to circumference edge, creating N equal sectors.
       const radius = SHAPE_W / 2;
-      const angleStep = Math.PI / targetPartitions; // step in radians
+      const angleStep = (2 * Math.PI) / targetPartitions;
       for (let i = 0; i < targetPartitions; i++) {
         const angle = angleStep * i;
-        const x1 = cx + radius * Math.cos(angle);
-        const y1 = cy + radius * Math.sin(angle);
-        const x2 = cx - radius * Math.cos(angle);
-        const y2 = cy - radius * Math.sin(angle);
-        this.drawDashedLine(this.cutLineHint, x1, y1, x2, y2, DASH_LEN, GAP_LEN);
+        const ex = cx + radius * Math.cos(angle);
+        const ey = cy + radius * Math.sin(angle);
+        this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
       }
     }
 
