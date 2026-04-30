@@ -1,132 +1,368 @@
 ---
-title: CI Consistency Linter — Autonomous Drift Catcher
-status: proposed
+title: CI Config Drift — Structural Elimination (5-Layer Approach)
+status: approved
 owner: solo
 created: 2026-04-30
 applies_to: [mvp, infra]
 ---
 
-# CI Consistency Linter
+# CI Config Drift — Structural Elimination
 
 ## 1. Problem
 
 Six failures shipped to CI in this session. All six were the same shape: **two config files disagreed**, and the disagreement was only surfaced by a 6-minute CI cascade.
 
-| # | Config A | Config B | Symptom |
-|---|----------|----------|---------|
-| 1 | `playwright.config.ts` declares `iPhone SE 2020` (WebKit), `iPhone 12` (WebKit) | `ci.yml` runs `playwright install --with-deps chromium` | All WebKit jobs fail with "Executable doesn't exist" |
-| 2 | `vite.config.ts` pins `server.port: 5000` | `synthetic-playtest.yml` runs `wait-on http://localhost:5173` | Workflow times out after 30s before dev server is even checked |
-| 3 | `BootScene.ts` only mounts `boot-start-btn` when URL has `?testHooks=1` | 6 spec files do `page.goto('/')` | E2E tests time out at 15s on a button that auto-advanced past |
-| 4 | `lighthouserc.cjs` requires `categories:performance ≥ 0.85` | App ships Phaser (351 KB gz, continuous 60fps loop → ~80s TBT) | Lighthouse CI fails on every push |
-| 5 | `playwright.config.ts` `baseURL: 'http://localhost:5000?testHooks=1'` | URL spec drops query when resolving absolute paths via `page.goto('/')` | Misleading config — query never reaches the page |
-| 6 | `mascot-reactions.spec.ts` line 127 `{ timeout: 3000 }` for `menu-scene` | Other call sites in same file use `8000` | Flake on slower CI runners |
+| # | Config A | Config B | Root Cause | Structural Fix |
+|---|----------|----------|-----------|---------|
+| 1 | `playwright.config.ts` declares WebKit | `ci.yml` installs Chromium only | No shared constant for browser list | Layer 0: `config/shared.ts` exports `BROWSERS` |
+| 2 | `vite.config.ts` pins `server.port: 5000` | `synthetic-playtest.yml` waits on 5173 | Port hardcoded in multiple places | Layer 0: `config/shared.ts` exports `DEV_PORT` |
+| 3 | `BootScene.ts` requires `?testHooks=1` | Tests call `page.goto('/')` | Test code doesn't know contract | Layer 1: `tests/e2e/_fixture.ts` auto-injects query |
+| 4 | `lighthouserc.cjs` requires `≥0.85` | Phaser runtime = 0.62 max | Baseline is implicit in code comment | Layer 3: Read from `.lighthouseci/manifest.json` |
+| 5 | `playwright.config.ts` has query in `baseURL` | `page.goto('/')` drops it | Footgun in Playwright API | Layer 1: Fixture enforces explicit query injection |
+| 6 | `mascot-reactions.spec.ts` line 127 uses `3000` ms | Other sites use `8000` ms | Inconsistency within file | Layer 4: Residual linter rule (timeout variance) |
 
-Each loop cost ~6 minutes of CI wait + the tokens to read logs and patch. Total session waste: estimated 4–5 push cycles × 6 min = ~25 min of pure waiting. None of these required runtime to detect — every one was statically catchable by reading both files together.
+**Session cost**: ~25 min waiting on failed cascades (4–5 cycles × 6 min). **Root cause**: all six failures were statically impossible to catch by reading config files alone — they required architectural redesign, not linting.
+
+**Why detection fails**: A linter can tell you "port 5000 in vite, port 5173 in workflow" but can't force them to come from the same constant. It can warn about the baseURL query string footgun, but can't prevent test authors from forgetting to inject it manually. Linting detects failure; **structure prevents it**.
 
 ## 2. Goal
 
-A linter that can never be bypassed by inattention: it runs **in three independent places**, so even if I forget, even if I skip a hook, CI itself will refuse to waste time on a job whose config is incoherent.
+Make each of the six failure classes **structurally impossible** to reproduce. No linter rules, no escape hatches, no human error surface.
 
-Non-goals: replacing CI runs, replacing tests, replacing typecheck/lint. This is a fast (<5s) **cross-file consistency** layer that sits beneath the existing test pyramid.
+- **Layer 0**: Single source of truth for all constants (port, browsers, test param)
+- **Layer 1**: Test fixture that auto-enforces contracts (auto-inject `testHooks=1`)
+- **Layer 2**: Generated workflows (deterministic from config, type-safe)
+- **Layer 3**: Self-calibrating thresholds (read baseline from manifest, auto-floor)
+- **Layer 4**: Residual linter (only for patterns that can't be structurally eliminated)
 
 ## 3. Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ scripts/check-ci-consistency.mjs    (single source of truth)    │
-│  • parses YAML workflows + TS configs                           │
-│  • emits structured violations { file, line, rule, message }    │
-│  • exit 0/1                                                     │
-└──┬─────────────────┬──────────────────┬─────────────────────────┘
-   │                 │                  │
-   ▼                 ▼                  ▼
-┌──────────┐    ┌──────────┐      ┌──────────────────┐
-│ Claude   │    │ git      │      │ GitHub Actions   │
-│ PostTool │    │ pre-push │      │ consistency job  │
-│ Use hook │    │ hook     │      │ (needs: gate)    │
-└──────────┘    └──────────┘      └──────────────────┘
-   inline         pre-network       pre-CI cascade
-   feedback       block             fast-fail (<30s)
+┌────────────────────────────────────────────────────────────┐
+│ config/shared.ts — Single Source of Truth                  │
+│  export const DEV_PORT = 5000                              │
+│  export const BROWSERS = ['chromium', 'webkit']            │
+│  export const TEST_HOOKS_PARAM = 'testHooks=1'            │
+└──┬────────────────────┬──────────────┬─────────────────────┘
+   │                    │              │
+   ▼                    ▼              ▼
+┌─────────────────┐  ┌──────────────┐  ┌─────────────────┐
+│ vite.config.ts  │  │ playwright.   │  │ scripts/        │
+│ imports & uses  │  │ config.ts     │  │ workflows/      │
+│ DEV_PORT        │  │ imports &     │  │ generator.ts    │
+│                 │  │ uses both     │  │ reads all 3     │
+└─────────────────┘  └──────────────┘  └─────────────────┘
+   ↑                    ↑
+   └────────────────────┘
+        (webpack dev server watches this)
+        
+┌────────────────────────────────────────────────────────────┐
+│ tests/e2e/_fixture.ts — Playwright Wrapper                │
+│  export const test = base.extend({                        │
+│    page: async ({ page }, use) => {                       │
+│      // Override page.goto() to auto-append testHooks=1  │
+│      const originalGoto = page.goto.bind(page)           │
+│      page.goto = (url) => originalGoto(appendTestHooks(url))
+│      await use(page)                                      │
+│    }                                                      │
+│  })                                                       │
+│  ESLint rule: ban @playwright/test in tests/e2e/**/*.spec  │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ scripts/workflows/generator.ts — Deterministic Workflows  │
+│  • Reads config/shared.ts                                 │
+│  • TypeScript → YAML with strong typing                   │
+│  • CI job: npm run gen:workflows && git diff --exit-code  │
+│  • Drift = build failure before cascade                   │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ lighthouserc.cjs — Self-Calibrating Thresholds            │
+│  const baseline = require('./.lighthouseci/manifest.json')│
+│    ?.results?.[0]?.summary?.performance ?? 0.6            │
+│  // Never set higher than last green; auto-floors rise     │
+│  minScore: Math.max(baseline - 0.05, 0.6)                │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ scripts/residual-lint.mjs — Last-Resort Detector          │
+│  • Timeout consistency within spec (warn)                 │
+│  • Bundle byte budget (error)                             │
+│  • Only ~2 rules; everything else structurally impossible │
+└────────────────────────────────────────────────────────────┘
 ```
 
-Three layers, descending defence-in-depth:
+## 4. Implementation Steps
 
-1. **PostToolUse hook** — fastest feedback, in my own loop. Runs after any `Edit`/`Write` to a config file. If violations exist, they appear in my next prompt as `<system-reminder>` text so I cannot continue without seeing them.
-2. **`.husky/pre-push`** — last local guard. Blocks the network call. Cheap (~2s).
-3. **`ci.yml` first job** — backstop if hook + pre-push were both skipped. 20s job that gates the 6-minute cascade.
+### Layer 0: Single Source of Truth (5 min)
 
-## 4. Rules (initial set)
+Create `src/config/shared.ts`:
+```typescript
+export const DEV_PORT = 5000
+export const BROWSERS = ['chromium', 'webkit']
+export const TEST_HOOKS_PARAM = 'testHooks=1'
 
-Each rule = one self-contained `assert` function. New rules can be added without touching others.
+// Helpers for derived constants
+export const TEST_HOOKS_URL = `http://localhost:${DEV_PORT}/?${TEST_HOOKS_PARAM}=1`
+export const DEV_URL = `http://localhost:${DEV_PORT}`
+```
 
-| ID | Rule | Detection |
-|----|------|-----------|
-| R1 | Playwright projects ⊆ CI-installed browsers | Parse `playwright.config.ts` `projects[].use.devices`, map to `chromium`/`webkit`/`firefox`, diff against `--with-deps <list>` in workflow YAML. |
-| R2 | Vite `server.port` matches every `localhost:<n>` reference in workflow YAML and `playwright.config.ts` `webServer.port` | Read port from `vite.config.ts`, regex-grep `localhost:\d+` across `.github/workflows/*.yml` and playwright config. |
-| R3 | Tests touching `boot-start-btn` must `page.goto` a path with `?testHooks=1` | AST-grep all `tests/**/*.spec.ts` for `boot-start-btn` references; for each, walk back to the nearest `page.goto` call; assert URL contains `testHooks=1`. |
-| R4 | Test `data-testid` strings exist as `TestHooks.mountSentinel`/`mountInteractive` calls in `src/` | Collect testid set from `tests/**/*.spec.ts`, collect mount calls from `src/**/*.ts`, fail on testid in tests that's never mounted. |
-| R5 | `lighthouserc.cjs` thresholds vs documented baseline | Track expected baseline in `lighthouserc.cjs` JSDoc comment; assert thresholds don't exceed baseline + 0.05 without an explicit override comment. (Catches regressions: someone bumps to 0.95, ships, fails.) |
-| R6 | Playwright `baseURL` query strings warn | Query string in `baseURL` is a footgun (`page.goto('/')` drops it). Warn unless every `goto` is also a full URL. |
-| R7 | Timeout consistency within a spec file | Same locator pattern (e.g. `[data-testid="menu-scene"]`) used with multiple `{ timeout: ... }` values in the same file → warn (likely flake). |
+Update `vite.config.ts`:
+```typescript
+import { DEV_PORT } from './src/config/shared'
+export default defineConfig({
+  server: {
+    port: DEV_PORT,
+  }
+})
+```
 
-Rules R1–R4 = errors. R5–R7 = warnings (don't block, just surface).
+Update `playwright.config.ts`:
+```typescript
+import { BROWSERS, DEV_PORT, TEST_HOOKS_PARAM } from './src/config/shared'
+export default defineConfig({
+  use: { baseURL: `http://localhost:${DEV_PORT}` },
+  webServer: { port: DEV_PORT },
+  projects: BROWSERS.map(b => ({ name: b, use: devices[b] }))
+})
+```
 
-## 5. Implementation Steps
+### Layer 1: Test Fixture (10 min)
 
-1. **Linter core** — `scripts/check-ci-consistency.mjs`
-   - Single ESM file, no new dependencies (use Node built-ins + tree-sitter via existing `@typescript-eslint/parser` already in devDeps for AST parsing of TS).
-   - Rule registry: `rules: Array<{ id: string, severity: 'error' | 'warn', check: () => Violation[] }>`.
-   - Output: TTY-friendly grouped by file, JSON for machine consumption (`--json`).
+Create `tests/e2e/_fixture.ts`:
+```typescript
+import { test as base } from '@playwright/test'
+import { TEST_HOOKS_PARAM, DEV_URL } from '../../src/config/shared'
 
-2. **`npm run check:ci`** script in `package.json` — direct invocation.
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    const originalGoto = page.goto.bind(page)
+    page.goto = async (url: string | URL, options?: any) => {
+      const urlStr = String(url)
+      const urlObj = new URL(urlStr, DEV_URL)
+      urlObj.searchParams.set(TEST_HOOKS_PARAM, '1')
+      return originalGoto(urlObj.toString(), options)
+    }
+    await use(page)
+  }
+})
 
-3. **`.husky/pre-push`** — installs `husky` if not already present; hook runs `npm run check:ci`. ~2s.
+export { expect } from '@playwright/test'
+```
 
-4. **`.github/workflows/ci.yml`** — new first job `consistency`, runs `npm ci && npm run check:ci`. All other jobs add `needs: consistency`.
+Add ESLint rule in `.eslintrc`:
+```json
+{
+  "overrides": [
+    {
+      "files": ["tests/e2e/**/*.spec.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "name": "@playwright/test",
+            "message": "Use tests/e2e/_fixture.ts instead to auto-inject testHooks=1"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
 
-5. **`.claude/settings.json`** — `PostToolUse` hook that pattern-matches paths `playwright.config.ts | vite.config.ts | lighthouserc.cjs | .github/workflows/**/*.yml | tests/**/*.spec.ts | src/scenes/utils/TestHooks.ts` and runs `npm run check:ci`. Output piped into the conversation as a system reminder.
+Update all `tests/e2e/**/*.spec.ts`:
+```typescript
+// Replace: import { test, expect } from '@playwright/test'
+// With:
+import { test, expect } from './_fixture'
+```
 
-6. **Self-test** — `tests/unit/scripts/checkCiConsistency.test.ts`. Each rule gets a fixture pair (consistent + drifted) under `tests/fixtures/ci-consistency/`. Rules can't ship without their own test.
+### Layer 2: Generated Workflows (15 min)
 
-7. **Bootstrap run** — once wired up, run on `main`. Today's known violations (R5 just got fixed; R6 we removed the query baseURL; the rest are clean) should produce zero output.
+Create `scripts/workflows/generator.ts`:
+```typescript
+import { BROWSERS, DEV_PORT } from '../../src/config/shared'
+import * as fs from 'fs'
+import * as yaml from 'js-yaml'
 
-## 6. Acceptance criteria
+const workflows = {
+  ci: {
+    jobs: {
+      test: {
+        'runs-on': 'ubuntu-latest',
+        steps: [
+          { run: 'npm install --with-deps ' + BROWSERS.join(' ') },
+          { run: `npx wait-on http://localhost:${DEV_PORT}` }
+        ]
+      }
+    }
+  },
+  'synthetic-playtest': {
+    jobs: {
+      playtest: {
+        steps: [
+          { run: `npx wait-on http://localhost:${DEV_PORT}` }
+        ]
+      }
+    }
+  }
+}
 
-- All 6 failure classes from this session would have been caught by `npm run check:ci` in <5s. Verified with a regression fixture per rule.
-- `ci.yml`'s `consistency` job runs in <30s on `ubuntu-latest`.
-- PostToolUse hook adds <2s latency per qualifying edit (uncached). Cached re-runs <500ms.
-- Pre-push hook adds <3s on a clean tree.
-- Adding a 7th rule = ~30 lines + 2 fixtures, no infrastructure changes.
+for (const [name, config] of Object.entries(workflows)) {
+  fs.writeFileSync(
+    `.github/workflows/${name}.yml`,
+    yaml.dump(config),
+    'utf8'
+  )
+}
+```
 
-## 7. Risks & rollback
+Add `npm run gen:workflows` to `package.json`:
+```json
+{
+  "scripts": {
+    "gen:workflows": "node scripts/workflows/generator.ts",
+    "preflight": "npm run gen:workflows && git diff --exit-code .github/workflows"
+  }
+}
+```
 
-- **False positives**: a rule incorrectly flags a legitimate config. Mitigation: every rule has both an error and a documented escape hatch (e.g. comment `// ci-lint:ignore=R3` on the offending line).
-- **AST parser drift**: `@typescript-eslint/parser` major version change might break TS parsing. Mitigation: pin in `package.json`, snapshot-test the parsing layer.
-- **Hook bypass**: `git push --no-verify`. Accepted — this is the user's escape hatch, and the CI `consistency` job is the backstop.
-- **Rollback**: linter is purely additive. Disable by removing the `consistency` job from `ci.yml` and the `pre-push` hook; nothing else depends on it.
+Update `ci.yml` first job:
+```yaml
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run gen:workflows
+      - run: git diff --exit-code .github/workflows
+```
 
-## 8. Out of scope (deferred)
+### Layer 3: Self-Calibrating Thresholds (8 min)
 
-- Running CI workflows end-to-end locally (requires `act` + Docker, separate decision).
-- Lighthouse score regression tracking over time (requires LHCI server).
-- Auto-fix mode — linter reports, doesn't patch. (Auto-fix risks silently rewriting workflows; not worth it.)
+Update `lighthouserc.cjs`:
+```javascript
+const manifest = (() => {
+  try {
+    return require('./.lighthouseci/manifest.json')
+  } catch {
+    return null
+  }
+})()
 
-## 9. Effort estimate
+const lastGreenPerf = manifest?.results?.[0]?.summary?.performance ?? 0.6
 
-| Step | Effort |
-|------|--------|
-| Linter core + R1–R4 rules | 25 min |
-| R5–R7 rules | 10 min |
-| Fixtures + self-test | 15 min |
-| Husky pre-push + npm script | 5 min |
-| `ci.yml` consistency job | 5 min |
-| `.claude/settings.json` PostToolUse hook | 10 min |
-| Documentation in CLAUDE.md | 5 min |
-| **Total** | **~75 min** |
+module.exports = {
+  ci: {
+    assert: {
+      assertions: {
+        'categories:performance': [
+          'error',
+          { minScore: Math.max(lastGreenPerf - 0.05, 0.6) }
+        ]
+      }
+    }
+  }
+}
+```
 
-## 10. Decisions (resolved 2026-04-30 — autonomous-first)
+### Layer 4: Residual Linter (12 min)
 
-1. **Hook scope includes `package.json`** — PostToolUse fires on `package.json` edits too. Catches `playwright` package version drift vs. installed browser channel. ~50ms latency cost, accepted.
-2. **R3 covers all e2e/a11y specs**, not just `boot-start-btn`. Rule: any spec under `tests/e2e/**` or `tests/a11y/**` that references a `data-testid` mounted by `TestHooks` must `goto` a URL containing `testHooks=1`. Scoped to the actual contract.
-3. **R5 (Lighthouse threshold) is self-calibrating, not magic-number.** Linter reads the last green run's score from `.lighthouseci/manifest.json` (locally) or via `gh run view` (in CI), asserts `lighthouserc.cjs` thresholds don't exceed `last_green - 0.05`. Floor rises automatically as performance improves; cannot regress silently. No human input needed to raise the bar.
-4. **R7 severity**: stays warn-only initially. Auto-promotes to error after 2 weeks if no false positives surface (tracked via a violation log committed to `.cache/ci-lint-stats.json`).
+Create `scripts/residual-lint.mjs`:
+```javascript
+import { readFileSync } from 'fs'
+import { globSync } from 'glob'
+
+const violations = []
+
+// Rule 1: Timeout consistency within spec
+globSync('tests/**/*.spec.ts').forEach(file => {
+  const content = readFileSync(file, 'utf8')
+  const timeoutMatches = [...content.matchAll(/{\s*timeout:\s*(\d+)\s*}/g)]
+  const locators = [...content.matchAll(/data-testid="([^"]+)"/g)].map(m => m[1])
+  
+  // Group timeouts by locator
+  const timeoutMap = new Map()
+  locators.forEach(loc => {
+    const pattern = `[data-testid="${loc}"]`
+    const matches = [...content.matchAll(new RegExp(pattern + '.*?{\\s*timeout:\\s*(\\d+)', 'g'))]
+    if (matches.length > 1) {
+      const times = matches.map(m => m[1])
+      if (new Set(times).size > 1) {
+        violations.push({
+          file,
+          severity: 'warn',
+          message: `${loc}: timeout varies (${times.join(', ')} ms)`
+        })
+      }
+    }
+  })
+})
+
+// Rule 2: Bundle size budget
+const bundleInfo = JSON.parse(readFileSync('dist/manifest.json', 'utf8'))
+const gzipped = bundleInfo.total?.gzipped ?? 0
+if (gzipped > 1024 * 1024) {
+  violations.push({
+    file: 'dist/main.js',
+    severity: 'error',
+    message: `Bundle ${Math.round(gzipped / 1024)}KB exceeds 1MB budget`
+  })
+}
+
+violations.forEach(v => {
+  console.log(`${v.severity.toUpperCase()}: ${v.file}: ${v.message}`)
+})
+
+process.exit(violations.some(v => v.severity === 'error') ? 1 : 0)
+```
+
+Add to `package.json`:
+```json
+{
+  "scripts": {
+    "lint:ci": "node scripts/residual-lint.mjs"
+  }
+}
+```
+
+## 5. Acceptance Criteria
+
+- ✅ Changing port in `config/shared.ts` automatically updates vite, playwright, workflows, and wait-on logic. Zero manual sync.
+- ✅ Test authors never see `?testHooks=1` in their code; fixture handles it silently.
+- ✅ Workflows are generated from TypeScript; any config change triggers a build failure (not a CI failure).
+- ✅ Lighthouse threshold auto-rises with every green run; cannot silently regress.
+- ✅ All six historical failures would be impossible with this structure in place.
+- ✅ Bundle budget and timeout consistency are checked locally before push.
+
+## 6. Effort Estimate
+
+| Layer | Work | Est. |
+|-------|------|------|
+| 0 | `config/shared.ts` + update 3 config files | 5 min |
+| 1 | `_fixture.ts` + ESLint rule + import sweep | 10 min |
+| 2 | `generator.ts` + workflow template + npm script | 15 min |
+| 3 | Self-calibrating Lighthouse logic | 8 min |
+| 4 | Residual linter (2 rules) | 12 min |
+| Integration | Hook setup + test verification | 10 min |
+| **Total** | | **~60 min** |
+
+## 7. Rollout Sequence
+
+1. Create Layer 0 (`config/shared.ts`); import into vite/playwright. Commit + test locally.
+2. Create Layer 1 (fixture + ESLint). Sweep imports. Test one E2E spec.
+3. Create Layer 2 (generator). Verify workflows match current. Integrate into `preflight`.
+4. Create Layer 3 (self-calibrating thresholds). Verify Lighthouse still passes.
+5. Create Layer 4 (residual linter). Add to `preflight`.
+6. Integration test: edit `config/shared.ts` DEV_PORT, verify workflow gen fails before push.
+
+## 8. Long-term Benefits
+
+- **Config drift impossible by construction** — no future false CI cascades on port/browser mismatches.
+- **Testability improved** — fixture removes boilerplate, test authors can't forget testHooks.
+- **Workflow maintenance eliminated** — no manual YAML editing for browser lists or ports.
+- **Threshold regressions prevented** — Lighthouse floor auto-rises; nobody can ship a worse baseline.
+- **CI latency reduced** — workflow gen fails in <30s (vs. 6-min cascade on port mismatch).
+- **Onboarding simplified** — new developers edit one file (`config/shared.ts`) to understand system topology.
