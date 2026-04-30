@@ -11,6 +11,21 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 - `/preflight` — full pre-merge gate (typecheck, lint, unit, integration, build, bundle guard)
 - `/sync-curriculum` — rebuild + validate curriculum bundles after pipeline output changes
 - `/diag` — one-screen repo state (branch, dirty files, recent commits, bundle size, test count)
+- `/learn <text>` — append a one-line gotcha to `.claude/learnings.md`
+- `/retro` — end-of-session retro; proposes CLAUDE.md / learnings / PLANS / CHANGELOG updates
+
+## Continuous self-improvement
+
+- **Skim `.claude/learnings.md` at session start.** It captures non-obvious gotchas surfaced in prior sessions.
+- **Append to it whenever you discover something a future agent would benefit from.** Use `/learn <text>` — one line per entry, newest first. Bar for inclusion: cost you debugging time, contradicted apparent docs, or wasn't in CLAUDE.md.
+- **Run `/retro` before closing a substantive session.** It proposes targeted updates to CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, and the decision log based on the diff.
+
+## Specialist subagents (in `.claude/agents/`)
+
+Delegate to these via the Agent tool when scope warrants:
+
+- `c1-c10-auditor` — audits a diff/branch for constraint violations. Use after dependency changes, persistence edits, or new UI surfaces.
+- `bundle-watcher` — audits gzipped JS against the 1 MB budget. Use after dep changes or large feature merges.
 
 ## Autonomous mode
 

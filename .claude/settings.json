@@ -105,7 +105,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, pipeline\"; echo \"├─ Slash commands: /preflight  /sync-curriculum  /diag\"; echo \"├─ Ignore _archive/ paths during exploration\"; echo \"└─ Active sprint: PLANS/master-plan-2026-04-26.md\""
+            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, pipeline\"; echo \"├─ Slash commands: /preflight  /sync-curriculum  /diag  /learn  /retro\"; echo \"├─ Skim .claude/learnings.md for non-obvious gotchas\"; echo \"├─ Ignore _archive/ paths during exploration\"; echo \"└─ Active sprint: PLANS/master-plan-2026-04-26.md\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) STAGED=$(git log -1 --name-only --pretty=format: 2>/dev/null | grep -v '^$'); if echo \"$STAGED\" | grep -q '^src/' && ! echo \"$STAGED\" | grep -qE '(CHANGELOG|PLANS/|learnings\\.md)'; then echo '◇ Source changed but no CHANGELOG/PLANS/learnings update — consider /retro before pushing.' >&2; fi ;; esac; exit 0"
           }
         ]
       }
