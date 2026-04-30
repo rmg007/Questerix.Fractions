@@ -23,7 +23,8 @@ function makeMockSynth(speakingInitially = false) {
     speaking: speakingInitially,
     speak: vi.fn(),
     cancel: vi.fn(),
-    getVoices: vi.fn(() => []),
+    // Return a non-empty array so voicesReady resolves immediately in tests
+    getVoices: vi.fn(() => [{ name: 'Mock Voice' }]),
   };
 }
 
@@ -52,12 +53,12 @@ describe('TTSService', () => {
     expect(() => svc.speak('hello')).not.toThrow();
   });
 
-  it('speak() calls synth.speak when speechSynthesis is available', () => {
+  it('speak() calls synth.speak when speechSynthesis is available', async () => {
     const mockSynth = makeMockSynth();
     installMocks(mockSynth);
     const svc = new TTSService();
     expect(svc.isAvailable()).toBe(true);
-    svc.speak('What fraction is shown?');
+    await svc.speak('What fraction is shown?');
     expect(mockSynth.speak).toHaveBeenCalledOnce();
   });
 
@@ -72,11 +73,11 @@ describe('TTSService', () => {
     expect(mockSynth.cancel).toHaveBeenCalledOnce(); // called on setEnabled(false)
   });
 
-  it('cancels ongoing speech before speaking a new utterance', () => {
+  it('cancels ongoing speech before speaking a new utterance', async () => {
     const mockSynth = makeMockSynth(true); // speaking === true
     installMocks(mockSynth);
     const svc = new TTSService();
-    svc.speak('New question');
+    await svc.speak('New question');
     expect(mockSynth.cancel).toHaveBeenCalledOnce();
     expect(mockSynth.speak).toHaveBeenCalledOnce();
   });

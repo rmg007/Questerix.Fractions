@@ -634,7 +634,7 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
  * Level 7 is `compare` archetype — do NOT activate this detector before L9.
  * Future: detect sequential-guessing patterns in fraction ordering tasks.
  */
-export function detectORD01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export async function detectORD01(attempts: Attempt[], level: number): Promise<MisconceptionFlag | null> {
   if (level < 9 || attempts.length < 5) return null;
 
   // Filter to ordering attempts only (archetype 'order' at L9+)
@@ -827,7 +827,7 @@ export async function runAllDetectors(
   const flagL5DS = detectL5DenSwitch(attempts, level);
   if (flagL5DS) flags.push(flagL5DS);
 
-  const flag7 = detectORD01(attempts, level);
+  const flag7 = await detectORD01(attempts, level);
   if (flag7) flags.push(flag7);
 
   const flag8 = detectSTRAT01(attempts, level);
