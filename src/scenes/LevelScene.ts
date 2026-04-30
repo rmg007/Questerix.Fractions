@@ -92,6 +92,7 @@ export class LevelScene extends Phaser.Scene {
   private hintButton!: Phaser.GameObjects.Container;
   private submitButtonContainer!: Phaser.GameObjects.Container;
   private mascot!: Mascot;
+  private questionCounterText!: Phaser.GameObjects.Text;
 
   constructor(key = 'LevelScene') {
     super({ key });
@@ -274,6 +275,7 @@ export class LevelScene extends Phaser.Scene {
     this.hintLadder = new HintLadder(this.currentTemplate.difficultyTier);
     this.hintTextGO.setVisible(false);
     this.promptText.setText(this.currentTemplate.prompt.text);
+    this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
     log.q('load', {
       index,
       id: this.currentTemplate.id,
@@ -385,6 +387,27 @@ export class LevelScene extends Phaser.Scene {
       });
       fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
+
+    // Question counter pill — right side, mirrors the back button
+    const CTR_W = 118,
+      CTR_H = 52;
+    const ctrX = CW - 18 - CTR_W;
+    const ctrY = 27;
+    const ctrG = this.add.graphics().setDepth(5);
+    ctrG.fillStyle(SKY_BG, 1);
+    ctrG.fillRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+    ctrG.lineStyle(2, NAVY, 1);
+    ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+
+    this.questionCounterText = this.add
+      .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${SESSION_GOAL}`, {
+        fontSize: '17px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
   }
 
   private createPromptArea(): void {
