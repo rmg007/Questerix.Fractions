@@ -203,7 +203,7 @@ export class Level01Scene extends Phaser.Scene {
 
     // Fade in from black on arrival
     try {
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (!checkReduceMotion()) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
     } catch {

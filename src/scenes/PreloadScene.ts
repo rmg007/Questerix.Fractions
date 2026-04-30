@@ -18,6 +18,7 @@ import {
 import { CLR } from './utils/colors';
 import { fadeAndStart } from './utils/sceneTransition';
 import { Mascot } from '../components/Mascot';
+import { checkReduceMotion } from '../lib/preferences';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -148,7 +149,7 @@ export class PreloadScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300, 0, 0, 0);
 
     // Brief pause so "Ready!" is visible, then fade out and start MenuScene
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     const delay = reduceMotion ? 0 : 300;
 
     this.time.delayedCall(delay, () => {
@@ -156,12 +157,5 @@ export class PreloadScene extends Phaser.Scene {
     });
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
-  }
 }
 

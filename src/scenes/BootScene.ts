@@ -58,7 +58,17 @@ export class BootScene extends Phaser.Scene {
       console.warn('[BootScene] Persistence grant failed — running in volatile mode:', err);
     }
 
-    // ── Step 1b: Seed curriculum on first boot ─────────────────────────────
+    // ── Step 1b: Load accessibility preferences into the shared cache ─────────
+    // Must run after DB is open so deviceMeta is readable. The cache powers
+    // checkReduceMotion() and isHighContrastEnabled() across all scenes.
+    try {
+      const { initPreferences } = await import('../lib/preferences');
+      await initPreferences();
+    } catch (err) {
+      console.warn('[BootScene] Could not init preference cache — using defaults:', err);
+    }
+
+    // ── Step 1c: Seed curriculum on first boot ─────────────────────────────
     // per persistence-spec.md §5 step 4 — bulkPut static stores after DB open.
     try {
       const { seedIfEmpty } = await import('../curriculum/seed');

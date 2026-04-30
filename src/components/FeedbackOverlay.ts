@@ -14,6 +14,7 @@ import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
+import { checkReduceMotion } from '../lib/preferences';
 
 export type FeedbackKind = 'correct' | 'incorrect' | 'close';
 
@@ -110,7 +111,7 @@ export class FeedbackOverlay {
    */
   show(kind: FeedbackKind, onDismiss?: () => void, text?: string): void {
     const cfg = KIND_CONFIG[kind];
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     const labelText = text && text.trim().length > 0 ? text : cfg.text;
 
@@ -292,13 +293,6 @@ export class FeedbackOverlay {
     TestHooks.unmount('sparkle-burst');
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
-  }
 
   destroy(): void {
     this.dismissTimer?.remove(false);

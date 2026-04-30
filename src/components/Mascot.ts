@@ -10,6 +10,7 @@
 
 import * as Phaser from 'phaser';
 import { ACTION_FILL, ACTION_BORDER, NAVY } from '../scenes/utils/levelTheme';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Local palette tokens not exported from levelTheme ────────────────────────
 
@@ -45,7 +46,7 @@ export class Mascot extends Phaser.GameObjects.Container {
 
     this.baseY = y;
     this.baseScale = scale;
-    this.reduceMotion = Mascot.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     this.buildCharacter();
 
@@ -424,13 +425,6 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.rightArm.setAngle(0);
   }
 
-  private static checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
 
   /**
    * Create and attach a hidden DOM sentinel so Playwright tests can read the

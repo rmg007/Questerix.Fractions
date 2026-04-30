@@ -6,14 +6,7 @@
  */
 
 import * as Phaser from 'phaser';
-
-function checkReduceMotion(): boolean {
-  try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  } catch {
-    return false;
-  }
-}
+import { checkReduceMotion } from '../../lib/preferences';
 
 /**
  * Fade the current scene to black then start `key` with optional `data`.

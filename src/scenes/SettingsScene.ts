@@ -16,6 +16,7 @@ import { lastUsedStudent } from '../persistence/lastUsedStudent';
 import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { sfx } from '../audio/SFXService';
 import { tts } from '../audio/TTSService';
+import { checkReduceMotion } from '../lib/preferences';
 
 const CW = 800;
 const CH = 1280;
@@ -39,7 +40,7 @@ export class SettingsScene extends Phaser.Scene {
 
     // Fade in from black on arrival
     try {
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (!checkReduceMotion()) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
     } catch { /* ignore */ }

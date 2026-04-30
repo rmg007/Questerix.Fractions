@@ -79,12 +79,7 @@ export const REACTION_FADE_EASE = 'Quad.easeOut';
  * Detect the platform's reduced-motion preference once. Callers passing a
  * scene's preference cache (preferred) should override with that value.
  */
-export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
+export { checkReduceMotion as prefersReducedMotion } from '../../lib/preferences';
 
 /**
  * Resolve a motion spec against the current reduced-motion preference.

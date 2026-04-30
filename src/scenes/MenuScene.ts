@@ -25,6 +25,7 @@ import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
+import { checkReduceMotion } from '../lib/preferences';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -126,7 +127,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.reduceMotion = this.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
     if (!this.reduceMotion) {
@@ -974,16 +975,7 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  // ── Reduced motion + font ready helpers ───────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
-  }
+  // ── Font ready helper ─────────────────────────────────────────────────────
 
   /**
    * Phaser caches text glyph textures on first paint. If our custom display
