@@ -14,6 +14,7 @@ import orderValidators from './order';
 import snapMatchValidators from './snap_match';
 import equalOrNotValidators from './equal_or_not';
 import placementValidators from './placement';
+import explainYourOrderValidators from './explain_your_order';
 
 // Variance escape: registry values are heterogeneous; callers narrow at use site.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,6 +31,7 @@ const allValidators: AnyValidatorRegistration[] = [
   ...snapMatchValidators,
   ...equalOrNotValidators,
   ...placementValidators,
+  ...explainYourOrderValidators,
 ];
 
 export const validatorRegistry = new Map<string, AnyValidatorRegistration>(
