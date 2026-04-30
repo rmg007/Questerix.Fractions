@@ -324,12 +324,12 @@ export class MenuScene extends Phaser.Scene {
     // Destroy previous mascot instance (create() is re-called by _closeLevelGrid)
     this.mascot?.destroy();
     this.mascot = new Mascot(this, 680, 980);
-    this.mascot.idle();
+    this.mascot.setState('idle');
     // Wave only on the first menu load; skip on _closeLevelGrid re-renders
     if (!mascotGreeted) {
       mascotGreeted = true;
       this.time.delayedCall(400, () => {
-        this.mascot?.wave();
+        this.mascot?.setState('wave');
       });
     }
 

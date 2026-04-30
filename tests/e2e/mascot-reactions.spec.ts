@@ -33,6 +33,23 @@ async function navigateToLevel01(page: import('@playwright/test').Page): Promise
   });
 }
 
+test.describe('Mascot on MenuScene', () => {
+  test('mascot sentinel shows wave state after menu becomes visible', async ({ page }) => {
+    await page.goto('/?testHooks=1');
+    await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
+      timeout: 8000,
+    });
+    await page.locator('[data-testid="boot-start-btn"]').click();
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
+
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'wave',
+      { timeout: 3000 }
+    );
+  });
+});
+
 test.describe('Mascot reactions (T27) — e2e smoke', () => {
   test('correct answer sets mascot sentinel to cheer', async ({ page }) => {
     await navigateToLevel01(page);
