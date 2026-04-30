@@ -349,7 +349,10 @@ export class SettingsScene extends Phaser.Scene {
     if (!file) return;
     try {
       const result = await restoreFromFile(file);
-      this.showRestoreStatus(`Restored ${result.added} records`);
+      this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      window.setTimeout(() => {
+        if (typeof location !== 'undefined') location.reload();
+      }, 1500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
