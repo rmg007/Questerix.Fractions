@@ -296,10 +296,16 @@ export class Level01Scene extends Phaser.Scene {
     // ── Test hooks ─────────────────────────────────────────────────────────
     // NOTE: must run AFTER ProgressBar construction so progress-bar sentinel is not wiped
     TestHooks.mountSentinel('level01-scene');
-    // partition-target: transparent button over canvas centre — clicking it submits
+    // partition-target: transparent button over canvas centre — snaps handle to
+    // the correct halves position then submits. Snapping ensures a deterministic
+    // correct answer for e2e tests regardless of handle drag state.
     TestHooks.mountInteractive(
       'partition-target',
       () => {
+        if (!this.inputLocked) {
+          this.handlePos = SHAPE_CX;
+          this.updatePartitionLine(SHAPE_CX);
+        }
         void this.onSubmit();
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
@@ -315,6 +321,15 @@ export class Level01Scene extends Phaser.Scene {
     // hint-text: starts hidden (no text). showHintForTier makes it visible.
     // Sentinel is a span with role=status; visibility toggled by data-visible attr.
     this.mountHintTextSentinel();
+    // session-complete-btn: directly triggers showSessionComplete() so e2e tests
+    // can assert the cheer-big mascot state without completing 5 questions.
+    TestHooks.mountInteractive(
+      'session-complete-btn',
+      () => {
+        void this.showSessionComplete();
+      },
+      { width: '10px', height: '10px', top: '2%', left: '2%' }
+    );
 
     // Fix TTS: load persisted preference before first question fires
     try {
@@ -950,9 +965,9 @@ export class Level01Scene extends Phaser.Scene {
 
     // Mascot reacts after the overlay is visible
     if (kind === 'correct') {
-      this.mascot?.celebrate();
+      this.mascot?.setState('cheer');
     } else if (kind === 'incorrect') {
-      this.mascot?.encourage();
+      this.mascot?.setState('think');
     }
 
     // Mirror the visible feedback to the screen-reader announcer so the
@@ -1014,6 +1029,7 @@ export class Level01Scene extends Phaser.Scene {
     // The HintLadder class owns this logic; we just ensure we call next() once per press.
     const tier = this.hintLadder.next();
     log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+    this.mascot?.setState('think');
     void this.showHintForTierAndRecord(tier);
   }
 
@@ -1334,7 +1350,7 @@ export class Level01Scene extends Phaser.Scene {
     if (this.mascot) {
       this.mascot.setDepth(60);
       this.mascot.reposition(CW - 120, 400);
-      this.mascot.celebrate();
+      this.mascot.setState('cheer-big');
     }
 
     await this.closeSession();

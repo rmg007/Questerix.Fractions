@@ -591,9 +591,9 @@ export class LevelScene extends Phaser.Scene {
 
     // Mascot reacts after the overlay is visible
     if (kind === 'correct') {
-      this.mascot?.celebrate();
+      this.mascot?.setState('cheer');
     } else if (kind === 'incorrect') {
-      this.mascot?.encourage();
+      this.mascot?.setState('think');
     }
 
     // Mirror the visible feedback to the screen-reader announcer so the
@@ -761,6 +761,7 @@ export class LevelScene extends Phaser.Scene {
       questionIndex: this.questionIndex,
       wrongCount: this.wrongCount,
     });
+    this.mascot?.setState('think');
     void this.showHintForTier(tier);
   }
 
@@ -1058,7 +1059,7 @@ export class LevelScene extends Phaser.Scene {
     if (this.mascot) {
       this.mascot.setDepth(60);
       this.mascot.reposition(CW - 120, 400);
-      this.mascot.celebrate();
+      this.mascot.setState('cheer-big');
     }
 
     void this.closeSession();

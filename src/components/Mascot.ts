@@ -24,6 +24,8 @@ const BODY_R = 40;
 const HAT_BASE = 50;
 const HAT_H = 55;
 
+export type MascotState = 'idle' | 'cheer' | 'think' | 'cheer-big' | 'wave';
+
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
   private baseY: number;
@@ -35,6 +37,8 @@ export class Mascot extends Phaser.GameObjects.Container {
   private hat!: Phaser.GameObjects.Graphics;
   private leftArm!: Phaser.GameObjects.Graphics;
   private rightArm!: Phaser.GameObjects.Graphics;
+
+  private stateSentinel: HTMLElement | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, scale = 1) {
     super(scene, x, y);
@@ -51,9 +55,45 @@ export class Mascot extends Phaser.GameObjects.Container {
 
     scene.add.existing(this as Phaser.GameObjects.GameObject);
     this.setDepth(5);
+
+    this.stateSentinel = Mascot.mountStateSentinel();
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
+
+  /**
+   * Set the mascot's named state, update the DOM sentinel, and trigger the
+   * corresponding animation. This is the preferred entry-point for scene code
+   * so that Playwright tests can observe the current state via
+   * [data-testid="mascot-state"][data-state="cheer|think|cheer-big|..."].
+   */
+  override setState(state: MascotState): this {
+    // Keep Phaser's internal .state property in sync so any future code that
+    // reads GameObject.state still sees the current mascot state.
+    super.setState(state);
+    if (this.stateSentinel) {
+      this.stateSentinel.setAttribute('data-state', state);
+    }
+    switch (state) {
+      case 'cheer':
+        this.celebrate();
+        break;
+      case 'think':
+        this.encourage();
+        break;
+      case 'cheer-big':
+        this.cheerBig();
+        break;
+      case 'wave':
+        this.wave();
+        break;
+      case 'idle':
+      default:
+        this.idle();
+        break;
+    }
+    return this;
+  }
 
   /**
    * Reposition the mascot to a new base location.
@@ -140,6 +180,48 @@ export class Mascot extends Phaser.GameObjects.Container {
           duration: 100,
           ease: 'Linear',
           onComplete: () => {
+            this.idle();
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * Larger celebration for session-complete: 1.4× scale, full body bounce +
+   * spin (360°), ~800ms, then returns to idle. Designed as the `cheer-big`
+   * state counterpart to the standard `cheer` (celebrate).
+   */
+  cheerBig(): void {
+    this.stopCurrent();
+
+    if (this.reduceMotion) {
+      this.idle();
+      return;
+    }
+
+    const bs = this.baseScale;
+
+    this.scene.tweens.chain({
+      targets: this,
+      tweens: [
+        {
+          y: this.baseY - 60,
+          scaleX: bs * 1.4,
+          scaleY: bs * 1.4,
+          angle: 180,
+          duration: 400,
+          ease: 'Back.easeOut',
+        },
+        {
+          y: this.baseY,
+          scaleX: bs,
+          scaleY: bs,
+          angle: 360,
+          duration: 400,
+          ease: 'Bounce.easeOut',
+          onComplete: () => {
+            this.setAngle(0);
             this.idle();
           },
         },
@@ -273,6 +355,10 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.scene.tweens.killTweensOf(this);
     if (this.face) this.scene.tweens.killTweensOf(this.face);
     if (this.rightArm) this.scene.tweens.killTweensOf(this.rightArm);
+    if (this.stateSentinel) {
+      this.stateSentinel.remove();
+      this.stateSentinel = null;
+    }
     super.destroy(fromScene);
   }
 
@@ -301,5 +387,26 @@ export class Mascot extends Phaser.GameObjects.Container {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Create and attach a hidden DOM sentinel so Playwright tests can read the
+   * current mascot state without inspecting the Phaser canvas.
+   * Returns null in SSR / non-browser environments.
+   */
+  private static mountStateSentinel(): HTMLElement | null {
+    if (typeof document === 'undefined') return null;
+    const existing = document.querySelector('[data-testid="mascot-state"]');
+    if (existing instanceof HTMLElement) {
+      return existing;
+    }
+    const el = document.createElement('div');
+    el.setAttribute('data-testid', 'mascot-state');
+    el.setAttribute('data-state', 'idle');
+    el.setAttribute('aria-hidden', 'true');
+    el.style.cssText =
+      'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;overflow:hidden;z-index:-1;';
+    document.body.appendChild(el);
+    return el;
   }
 }
