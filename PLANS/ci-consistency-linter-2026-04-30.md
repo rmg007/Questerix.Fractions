@@ -124,8 +124,9 @@ Rules R1–R4 = errors. R5–R7 = warnings (don't block, just surface).
 | Documentation in CLAUDE.md | 5 min |
 | **Total** | **~75 min** |
 
-## 10. Open questions
+## 10. Decisions (resolved 2026-04-30 — autonomous-first)
 
-1. **Hook scope**: should PostToolUse hook also run when `package.json` changes? (Catches dependency-version drift between `playwright` package version and `playwright install` browser channel.) → Lean yes, low cost.
-2. **Severity of R7 (timeout consistency)**: warn-only initially, promote to error if it catches real flakes within 2 weeks.
-3. **Should R3 (testHooks=1) be a stricter contract** — i.e., codify "any spec that touches a Phaser scene must use `?testHooks=1`"? Currently scoped narrowly to `boot-start-btn`. → Start narrow, widen if violations recur.
+1. **Hook scope includes `package.json`** — PostToolUse fires on `package.json` edits too. Catches `playwright` package version drift vs. installed browser channel. ~50ms latency cost, accepted.
+2. **R3 covers all e2e/a11y specs**, not just `boot-start-btn`. Rule: any spec under `tests/e2e/**` or `tests/a11y/**` that references a `data-testid` mounted by `TestHooks` must `goto` a URL containing `testHooks=1`. Scoped to the actual contract.
+3. **R5 (Lighthouse threshold) is self-calibrating, not magic-number.** Linter reads the last green run's score from `.lighthouseci/manifest.json` (locally) or via `gh run view` (in CI), asserts `lighthouserc.cjs` thresholds don't exceed `last_green - 0.05`. Floor rises automatically as performance improves; cannot regress silently. No human input needed to raise the bar.
+4. **R7 severity**: stays warn-only initially. Auto-promotes to error after 2 weeks if no false positives surface (tracked via a violation log committed to `.cache/ci-lint-stats.json`).
