@@ -59,6 +59,25 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 
 ---
 
+### [curriculum-update.md](curriculum-update.md) — MASTER CURRICULUM PLAN (v2)
+
+The authoritative pedagogical and structural roadmap for the Questerix curriculum.
+
+**Covers:**
+- Theory of Action (CPA + Equal-Sharing + Number-Line)
+- Learning Architecture (KCs, Prereqs, Misconceptions)
+- Item Design Science (8 principles, 6 lenses of quality)
+- 8-phase delivery roadmap (A–H)
+- Decision log harness (D-NNN)
+
+**When to use:**
+- Making any curriculum or content choice
+- Reviewing level specifications
+- Understanding the BKT/Mastery model requirements
+- Validating new item templates
+
+---
+
 ## 🔴 Critical Blockers (Fix In This Order)
 
 | #   | Blocker                                                                       | File              | Effort   |

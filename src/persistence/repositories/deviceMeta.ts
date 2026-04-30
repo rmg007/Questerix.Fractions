@@ -19,6 +19,7 @@ const DEFAULT_META: DeviceMeta = {
     highContrast: false,
     ttsLocale: 'en-US',
     largeTouchTargets: false,
+    telemetryConsent: false,
     persistGranted: false,
   },
   lastBackupAt: null,
@@ -38,7 +39,7 @@ export const deviceMetaRepo = {
       if (existing) return existing;
       await db.deviceMeta.add(DEFAULT_META);
       return { ...DEFAULT_META };
-    } catch {
+    } catch (err) {
       return { ...DEFAULT_META };
     }
   },
@@ -52,7 +53,7 @@ export const deviceMetaRepo = {
       await deviceMetaRepo.get();
       const updated = await db.deviceMeta.update(DEVICE_ID, patch);
       return updated > 0;
-    } catch {
+    } catch (err) {
       return false;
     }
   },
@@ -80,3 +81,4 @@ export const deviceMetaRepo = {
     }
   },
 };
+

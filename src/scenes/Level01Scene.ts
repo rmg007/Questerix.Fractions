@@ -293,7 +293,7 @@ export class Level01Scene extends Phaser.Scene {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
-    } catch {
+    } catch (err) {
       // Graceful fallback — leave TTS in its default state
     }
 
@@ -1322,7 +1322,7 @@ export class Level01Scene extends Phaser.Scene {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
@@ -1337,3 +1337,4 @@ export class Level01Scene extends Phaser.Scene {
     this.tapZone = null;
   }
 }
+

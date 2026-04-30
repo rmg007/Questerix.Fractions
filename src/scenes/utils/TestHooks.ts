@@ -17,13 +17,13 @@ export function testHooksEnabled(): boolean {
   try {
     const sp = new URLSearchParams(window.location.search);
     if (sp.get('testHooks') === '1') return true;
-  } catch {
+  } catch (err) {
     /* ignore */
   }
   // Vite injects import.meta.env.DEV at build time
   try {
     return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
-  } catch {
+  } catch (err) {
     return false;
   }
 }
@@ -148,3 +148,4 @@ export const TestHooks = {
     return registry.get(testid);
   },
 };
+

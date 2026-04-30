@@ -101,6 +101,13 @@ export class OrderInteraction implements Interaction {
       handle.setData('fracId', frac.id);
       handle.setData('barIdx', i);
 
+      handle.on('dragstart', () => {
+        ctx.pushEvent({
+          type: 'pickUp',
+          elementId: frac.id,
+          timestamp: Date.now(),
+        });
+      });
       handle.on('drag', (_p: unknown, dx: number, dy: number) => {
         handle.setPosition(dx, dy);
       });
@@ -119,6 +126,13 @@ export class OrderInteraction implements Interaction {
         this.sequence[best] = frac.id;
         handle.setPosition(startX + best * (cardW + gap) + cardW / 2, slotY);
         slotRects[best].setFillStyle(CLR.primarySoft);
+
+        ctx.pushEvent({
+          type: 'place',
+          elementId: frac.id,
+          slotId: `slot_${best}`,
+          timestamp: Date.now(),
+        });
       });
 
       this.gameObjects.push(handle);

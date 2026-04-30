@@ -24,6 +24,41 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-23 — 2026-04-30 — Ratification of 9-KC Consolidation Taxonomy
+
+**Decision:** The curriculum's Knowledge Component (KC) taxonomy is consolidated from 33 skills (`SK-NN`) to 9 high-level KCs: `KC-HALVES-VIS`, `KC-UNITS-VIS`, `KC-SET-MODEL`, `KC-PRODUCTION-1`, `KC-PRODUCTION-2`, `KC-SYMBOL-BASIC`, `KC-SYMBOL-ADV`, `KC-MAGNITUDE`, and `KC-ORDERING`.
+
+**Why:** 33 KCs were too granular for effective BKT convergence during short student pilots. Consolidation provides ~31 templates per KC, ensuring stable mastery estimates faster.
+
+**Alternatives:** 12-KC model. Rejected as still too fragmented for 15-minute sessions.
+
+**Source:** `AUDIT_REPORT_A5.md`, `PLANS/curriculum-update.md`
+
+---
+
+## D-22 — 2026-04-30 — Parity Contract: Items, Misconceptions, and Hints
+
+**Decision:** A strict "Parity Contract" is enforced. Every Item Template must target a specific KC and optionally "bait" a specific Misconception. Every detected Misconception must have a corresponding Hint ladder.
+
+**Why:** Prevents "diagnostic black holes" where students fail but the system doesn't know why, or knows why but has no specific remediation.
+
+**Alternatives:** Ad-hoc authoring. Rejected as non-scalable for educational validation.
+
+**Source:** `PLANS/curriculum-update.md §2.2`
+
+---
+
+## D-21 — 2026-04-30 — Adoption of Multi-Phase Curriculum Update Plan
+
+**Decision:** The project officially adopts the 8-phase curriculum update plan (`PLANS/curriculum-update.md`) as the master roadmap for Phase 1 completion.
+
+**Why:** Solidifies the pedagogical foundation (CPA, Equal-Sharing) and aligns the content pipeline with research-grounded standards.
+
+**Alternatives:** Iterative "next-bug" approach. Rejected for lack of systemic rigor.
+
+**Source:** `PLANS/curriculum-update.md`
+
+
 ## D-20 — 2026-04-24 — Content-pipeline retry budget standardized to 3 retries
 
 **Decision:** The content-pipeline generation loop retries failed LLM calls up to **3 times** before aborting and surfacing an error. No other retry count is valid.

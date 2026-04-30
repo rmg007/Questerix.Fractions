@@ -128,8 +128,9 @@ export class PreloadScene extends Phaser.Scene {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
 }
+

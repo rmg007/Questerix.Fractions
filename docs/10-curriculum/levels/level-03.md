@@ -1,8 +1,8 @@
 ---
 title: Level 3 — Identify Thirds and Fourths
-status: draft
+status: active
 owner: solo
-last_reviewed: 2026-04-25
+last_reviewed: 2026-04-30
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
 related:
@@ -21,9 +21,22 @@ We honor this by presenting fourths as a continuation of the halving schema (com
 
 Per the Learning Trajectory, **symbolic notation is still not introduced**. Students hear and see the words "one third", "thirds", "one fourth", "fourths", and "one quarter" (synonym).
 
+## 1. Specification
+
+| Field | Value |
+|---|---|
+| **Mastery objective** | Identifies thirds and fourths in equal-vs-unequal divisions; recognizes that "equal parts" is the necessary condition. |
+| **Prerequisite skills** | `KC-HALVES-VIS` (Core Halving Recognition) |
+| **Skills introduced** | `KC-UNITS-VIS` (Unit Fraction Recognition: 1/3, 1/4) |
+| **Skills reinforced** | `KC-HALVES-VIS`, `KC-SET-MODEL` |
+| **Misconceptions targeted** | `MC-EOL-01` (Equal-parts blindness), `MC-EOL-02` (Count-only fraction) |
+| **Representations used** | Area, Set |
+| **Out-of-scope at this level** | Symbolic notation (1/3, 1/4), partition production (L5) |
+| **Evidence-of-mastery threshold** | BKT estimate ≥ 0.85 AND first-try accuracy ≥ 70% on last 8 attempts |
+
 ---
 
-## 1. Learning Goals
+## 2. Learning Goals (Detailed)
 
 By the end of Level 3, the student can:
 
@@ -42,21 +55,16 @@ Per C8 the level **does NOT mix denominators within a single question's correct 
 
 ## 2. Skills Tracked
 
-Skill IDs continue from Level 2. See `../skills.md` for canonical definitions.
+Skill IDs are consolidated per D-023. See `../skills.md` for canonical definitions.
 
-| Skill ID | Name                                                  | BKT priors                                           |
-| -------- | ----------------------------------------------------- | ---------------------------------------------------- |
-| `SK-07`  | Identify thirds (recognize 3 equal parts)             | `pInit=0.10, pTransit=0.18, pSlip=0.10, pGuess=0.25` |
-| `SK-08`  | Identify fourths / quarters (recognize 4 equal parts) | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.25` |
-| `SK-09`  | Use the words "third" and "fourth/quarter" correctly  | `pInit=0.08, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
-| `SK-10`  | Discriminate thirds from fourths visually             | `pInit=0.05, pTransit=0.18, pSlip=0.12, pGuess=0.25` |
+| Skill ID | Name | BKT priors |
+| -------- | ---- | ---------- |
+| `KC-UNITS-VIS` | Unit Fraction Recognition (1/3, 1/4) | `pInit=0.10, pTransit=0.18, pSlip=0.10, pGuess=0.25` |
 
-Existing skills `SK-01` through `SK-06` remain tracked but are not the focus of this level. The pedagogical priors for thirds (`SK-07`) are notably lower than for fourths (`SK-08`) because:
+> [!NOTE]
+> `KC-UNITS-VIS` consolidates legacy skills SK-07, SK-08, SK-09, and SK-10. This ensures higher data density for BKT convergence while maintaining focus on the transition from halves to other unit fractions.
 
-- Fourths inherit affordance from halves ("half of a half")
-- Thirds require a genuinely new mental model (no compositional shortcut from halves)
-
-Mastery of **all four** new skills is required to unlock Level 4.
+Mastery of `KC-UNITS-VIS` is required to unlock Level 4.
 
 ---
 
@@ -122,7 +130,7 @@ The student sees 3 or 4 shapes. Exactly one is correctly partitioned into 3 equa
   },
   "correctAnswer": 2,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-07", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -143,7 +151,7 @@ The student sees 3 or 4 shapes. Exactly one is correctly partitioned into 3 equa
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-07"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-EOL-01"],
   "difficultyTier": "medium"
 }
@@ -164,7 +172,7 @@ The student sees 3 or 4 shapes. Exactly one is correctly partitioned into 3 equa
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-07", "SK-10"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-L3-PARTCOUNT-01"],
   "difficultyTier": "hard"
 }
@@ -218,7 +226,7 @@ Mirrors `identify_thirds` but for fourths. Distractors include halves, thirds, a
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-08", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -240,7 +248,7 @@ Mirrors `identify_thirds` but for fourths. Distractors include halves, thirds, a
   },
   "correctAnswer": 0,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-08", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-L3-QTR-01"],
   "difficultyTier": "medium"
 }
@@ -262,7 +270,7 @@ Mirrors `identify_thirds` but for fourths. Distractors include halves, thirds, a
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-08", "SK-10"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-L3-PARTCOUNT-01"],
   "difficultyTier": "hard"
 }
@@ -316,7 +324,7 @@ This is the **vocabulary commitment** activity — it forces the student to pair
   },
   "correctAnswer": 1,
   "validatorId": "validator.snap_match.labelMatch",
-  "skillIds": ["SK-08", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -336,7 +344,7 @@ This is the **vocabulary commitment** activity — it forces the student to pair
   },
   "correctAnswer": 2,
   "validatorId": "validator.snap_match.labelMatch",
-  "skillIds": ["SK-07", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -356,7 +364,7 @@ This is the **vocabulary commitment** activity — it forces the student to pair
   },
   "correctAnswer": 2,
   "validatorId": "validator.snap_match.labelMatch",
-  "skillIds": ["SK-07", "SK-09", "SK-10"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-L3-PARTCOUNT-01"],
   "difficultyTier": "medium"
 }
@@ -376,7 +384,7 @@ This is the **vocabulary commitment** activity — it forces the student to pair
   },
   "correctAnswer": 1,
   "validatorId": "validator.snap_match.labelMatch",
-  "skillIds": ["SK-08", "SK-09"],
+  "skillIds": ["KC-UNITS-VIS"],
   "misconceptionTraps": ["MC-L3-QTR-01"],
   "difficultyTier": "hard"
 }
@@ -483,8 +491,8 @@ Sixths and eighths do **not** appear at this level (per C8). They arrive in Leve
 
 A student unlocks Level 4 when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-07`, `SK-08`, `SK-09`, **and** `SK-10` (see `../skills.md`)
-- `SK-04`, `SK-05`, `SK-06` from Level 2 remain at `"MASTERED"` or `"APPROACHING"`
+- `SkillMastery.state === "MASTERED"` for `KC-UNITS-VIS` (see `../skills.md`)
+- `KC-HALVES-VIS` and `KC-SET-MODEL` remain at `"MASTERED"` or `"APPROACHING"`
 - At least 24 attempts across all 3 activities at Level 3 (8 minimum per activity)
 - Tier 3 (Hard) accuracy ≥ 65% across the last 6 hard attempts (slightly looser than L1/L2 because thirds are genuinely harder)
 - No active `MisconceptionFlag` for `MC-L3-PARTCOUNT-01` (the M5 trap is the load-bearing diagnostic for this level)

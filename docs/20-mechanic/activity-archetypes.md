@@ -356,6 +356,20 @@ validator.equal_or_not.areaTolerance(payload, studentAnswer):
   if studentAnswer == payload.correctAnswer:
     return { outcome: "EXACT" }
   return { outcome: "WRONG" }
+
+validator.equal_or_not.bothShowSameFraction(payload, studentAnswer):
+  // payload: { shapeType, partitionLines, rotation, highlightedRegions, comparisonShape }, correctAnswer: boolean
+  // studentAnswer is boolean (tap check or X)
+  if studentAnswer == payload.correctAnswer:
+    return { outcome: "EXACT" }
+  return { outcome: "WRONG" }
+
+validator.equal_or_not.setHalf(payload, studentAnswer):
+  // payload: { setSize, highlightedCount }, correctAnswer: boolean
+  // studentAnswer is boolean (tap check or X)
+  if studentAnswer == payload.correctAnswer:
+    return { outcome: "EXACT" }
+  return { outcome: "WRONG" }
 ```
 
 (The tolerance lives upstream: `correctAnswer` is precomputed at content-authoring time using the ±2% area rule from `level-01.md §4.1`. The runtime validator just compares booleans.)
@@ -427,6 +441,8 @@ Every `QuestionTemplate.validatorId` must appear in this table. The content pipe
 | `validator.order.sequence`             | `(payload: OrderPayload, studentSequence: string[]) => Outcome`                                 | Returns `EXACT` if sequence matches sorted order; `CLOSE` if 1 swap off (Kendall tau distance = 1); else `WRONG`.                                      | `order`             |
 | `validator.snap_match.allPairs`        | `(payload: SnapMatchPayload, studentPairs: Array<[string,string]>) => Outcome`                  | Returns `EXACT` if all pairs match `payload.expectedPairs`; else `WRONG`.                                                                              | `snap_match`        |
 | `validator.equal_or_not.areaTolerance` | `(payload: EqualOrNotPayload, studentAnswer: boolean) => Outcome`                               | Returns `EXACT` if `studentAnswer === payload.correctAnswer`; else `WRONG`. (`correctAnswer` is pre-computed at authoring time using a ±2% area rule.) | `equal_or_not`      |
+| `validator.equal_or_not.bothShowSameFraction` | `(payload: RotatedPayload, studentAnswer: boolean) => Outcome`                                  | Returns `EXACT` if `studentAnswer === payload.correctAnswer`. Used for rotation invariance.                                                            | `equal_or_not`      |
+| `validator.equal_or_not.setHalf`              | `(payload: SetModelPayload, studentAnswer: boolean) => Outcome`                                 | Returns `EXACT` if `studentAnswer === (payload.highlightedCount === payload.setSize / 2)`.                                                             | `equal_or_not`      |
 | `validator.placement.snapTolerance`    | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome`                          | Returns `EXACT` if `errorMagnitude ≤ payload.exactTolerance` (typically 0.05); `CLOSE` if ≤ `payload.closeTolerance` (typically 0.15); else `WRONG`.   | `placement`         |
 | `validator.placement.snap8`            | `(payload: PlacementPayload, studentPlacedDecimal: number) => Outcome`                          | Variant of `snapTolerance` calibrated for eighths-denominator pools (exactTolerance = 0.0625).                                                         | `placement`         |
 

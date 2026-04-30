@@ -84,6 +84,8 @@ export default defineConfig(async () => {
     define: {
       __BUILD_SHA__: JSON.stringify(buildSha),
       __BUILD_TIME__: JSON.stringify(buildTime),
+      'import.meta.env.VITE_GIT_SHA': JSON.stringify(buildSha),
+      'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
     },
     resolve: {
       alias: {
@@ -111,6 +113,7 @@ export default defineConfig(async () => {
     build: {
       target: 'es2022',
       outDir: 'dist',
+      sourcemap: 'hidden',
       assetsInlineLimit: 0,
       chunkSizeWarningLimit: 1400,
       rollupOptions: {

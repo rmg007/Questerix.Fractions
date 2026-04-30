@@ -1,8 +1,8 @@
 ---
 title: Level 5 — Make Thirds and Fourths
-status: draft
+status: active
 owner: solo
-last_reviewed: 2026-04-25
+last_reviewed: 2026-04-30
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
 related:
@@ -41,16 +41,11 @@ Per Learning Trajectory Levels 5 and 7 (Fourthing as Half-of-a-Half, Composition
 
 Skill IDs continue from Level 4. See `../skills.md` for canonical definitions. (audit §1.1 fix — SK-IDs renumbered to avoid collisions with former L8 definitions)
 
-| Skill ID | Name                                                                       | BKT priors                                           |
-| -------- | -------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `SK-15`  | Produce equal thirds of a region                                           | `pInit=0.08, pTransit=0.18, pSlip=0.12, pGuess=0.10` |
-| `SK-16`  | Produce equal fourths of a region                                          | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.10` |
-| `SK-17`  | Compositional production: fourths as half-of-a-half                        | `pInit=0.05, pTransit=0.20, pSlip=0.10, pGuess=0.05` |
-| `SK-18`  | Produce equal thirds/fourths of a length                                   | `pInit=0.10, pTransit=0.20, pSlip=0.12, pGuess=0.10` |
-| `SK-19`  | Split a set into 3 or 4 equal groups                                       | `pInit=0.15, pTransit=0.22, pSlip=0.10, pGuess=0.15` |
-| `SK-20`  | Denominator-switching fluency (halves ↔ thirds ↔ fourths within a session) | `pInit=0.05, pTransit=0.18, pSlip=0.15, pGuess=0.08` |
+| Skill ID | Name | BKT priors |
+| -------- | ---- | ---------- |
+| `KC-PRODUCTION-2` | Complex Partitioning | `pInit=0.08, pTransit=0.18, pSlip=0.12, pGuess=0.10` |
 
-> **MC-MAG-02 detection note:** Misconception MC-MAG-02 ("Whole Disappears When Divided") is detected via `SK-17` attempt logs. The two-step `compositional_fourths` activity requires the student to recognize that the original whole persists after partition, operationalizing "two halves make one whole" reasoning. See `../misconceptions.md` §3.3 MC-MAG-02. (audit §1.6 fix)
+> **MC-MAG-02 detection note:** Misconception MC-MAG-02 ("Whole Disappears When Divided") is detected via `KC-PRODUCTION-2` attempt logs. The two-step `compositional_fourths` activity requires the student to recognize that the original whole persists after partition, operationalizing "two halves make one whole" reasoning. See `../misconceptions.md` §3.3 MC-MAG-02. (audit §1.6 fix)
 
 Production thirds (`SK-15`) is the lowest-prior skill in the entire MVP — there is no compositional shortcut for thirds the way there is for fourths (`SK-16` and `SK-17`). Expect this to be the slowest-mastering skill at this level.
 
@@ -121,7 +116,7 @@ This is the hardest production activity in the MVP through Level 5. There is no 
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-15"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -140,7 +135,7 @@ This is the hardest production activity in the MVP through Level 5. There is no 
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-15"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": ["MC-L5-THIRDS-HALF-01"],
   "difficultyTier": "medium"
 }
@@ -159,7 +154,7 @@ This is the hardest production activity in the MVP through Level 5. There is no 
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-15"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": ["MC-L5-THIRDS-HALF-01"],
   "difficultyTier": "hard"
 }
@@ -217,7 +212,7 @@ The validator checks: are all 4 resulting areas within tolerance? If yes, the an
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-16"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -236,7 +231,7 @@ The validator checks: are all 4 resulting areas within tolerance? If yes, the an
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-16"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": [],
   "difficultyTier": "medium"
 }
@@ -255,7 +250,7 @@ The validator checks: are all 4 resulting areas within tolerance? If yes, the an
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-16"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": ["MC-L5-FOURTHS-3CUTS-01"],
   "difficultyTier": "hard"
 }
@@ -314,7 +309,7 @@ This activity is pedagogically critical. It is the only place in the MVP where t
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.compositionalFourths",
-  "skillIds": ["SK-17", "SK-16"],
+  "skillIds": ["KC-PRODUCTION-2"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -334,7 +329,7 @@ This activity is pedagogically critical. It is the only place in the MVP where t
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.compositionalFourths",
-  "skillIds": ["SK-17", "SK-16", "SK-14"],
+  "skillIds": ["KC-PRODUCTION-2", "KC-PRODUCTION-1"],
   "misconceptionTraps": ["MC-L5-COMP-NOREL-01"],
   "difficultyTier": "hard"
 }
@@ -355,7 +350,7 @@ A Level-5 session presents questions in this default sequence:
 5. One Easy attempt of the strongest skill (cool-down)
 6. Optional: maintenance interleave from Level 4 (`make_halves`) every 4 sessions
 
-The progression engine should observe `SK-20` (denominator-switching fluency) by checking that consecutive different-denominator attempts both succeed. Repeated success with one denominator and failure on the other suggests `SK-20` is not yet developed even if the underlying production skills are.
+The progression engine should observe `KC-PRODUCTION-2` (specifically the denominator-switching facet) by checking that consecutive different-denominator attempts both succeed. Repeated success with one denominator and failure on the other suggests switching fluency is not yet developed even if the underlying production skills are.
 
 This mixing is the only place in the MVP through Level 5 where multiple denominators appear in a single session. Per C8 this is allowed because the questions remain single-denominator; we are mixing **across** questions, not **within** a question.
 
@@ -464,14 +459,14 @@ The full Level 5 pool. Sixths and eighths still do not appear (per C8) — those
 
 A student unlocks Level 6 (the comparison band) when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-15`, `SK-16`, `SK-17`, `SK-18`, `SK-19`, **and** `SK-20` (see `../skills.md`)
-- All Level 1–4 skills (`SK-01` through `SK-14`) remain at `"MASTERED"` or `"APPROACHING"`
+- `SkillMastery.state === "MASTERED"` for `KC-PRODUCTION-2` (see `../skills.md`)
+- All Level 1–4 skills (`KC-HALVES-VIS`, `KC-SET-MODEL`, `KC-UNITS-VIS`, `KC-PRODUCTION-1`) remain at `"MASTERED"` or `"APPROACHING"`
 - At least 36 attempts across all 3 production activities (12 minimum each)
 - Tier 3 (Hard) accuracy ≥ 60% across the last 8 hard attempts (looser than earlier levels because production thirds is genuinely hard)
 - **Denominator-switching success rate** ≥ 70%: of the consecutive-different-denominator attempt pairs in the last 3 sessions, at least 70% had both attempts correct
 - No active `MisconceptionFlag` for `MC-L5-DENSWITCH-01` or `MC-L5-COMP-NOREL-01`
 
-**Note:** `SK-20` (denominator-switching fluency) is the former `SK-21`; `SK-17` (compositional fourths) is the former `SK-18`. See `../skills.md` for the complete renumbering table. (audit §1.1 fix)
+**Note:** `KC-PRODUCTION-2` consolidates the former production and switching skills. See `../skills.md` for the complete mapping. (audit §1.1 fix)
 
 The denominator-switching criterion is unique to Level 5 and gates the transition to Level 6, where the student must reason about fractions across denominators (comparison). A student who cannot fluently switch within Level 5 will struggle catastrophically at Level 6.
 
@@ -505,9 +500,9 @@ This is the longest level in the MVP through Level 5. Compositional fourths atte
 ## 10. Open Questions for Level 5
 
 1. **Thirds without a snap = frustration?** Production thirds is genuinely hard for 6–7-year-olds. The Tier 1 snap to a thirds-grid is essential. But should we provide a **persistent ghost guide** (faint vertical lines at 0.333 and 0.667) that fades as accuracy improves? Recommended: yes, for Tier 2 only; remove at Tier 3.
-2. **Compositional vs. atomic fourths.** Some students will produce fourths via two perpendicular cuts (atomic) without engaging the half-of-a-half framing. Both are correct visually, but only the compositional version develops `SK-18`. Should `make_fourths` and `compositional_fourths` be entirely separate question pools, or should `make_fourths` accept compositional answers and credit both skills? Recommended: separate pools; `compositional_fourths` is the only place `SK-18` is credited.
+2. **Compositional vs. atomic fourths.** Some students will produce fourths via two perpendicular cuts (atomic) without engaging the half-of-a-half framing. Both are correct visually, but only the compositional version explicitly targets the compositional facet of `KC-PRODUCTION-2`. Should `make_fourths` and `compositional_fourths` be entirely separate question pools, or should `make_fourths` accept compositional answers and credit both? Recommended: separate pools.
 3. **Set thirds and set fourths.** Unlike Level 4's even-only set halving, set-thirds requires multiples of 3 and set-fourths requires multiples of 4. Should we add a third activity `share_in_thirds_or_fourths` to `level-05.md`? Recommended: yes for content completeness, but it can be deferred past the MVP. The current 3-activity scope is sufficient for validation. **Open for review.**
 4. **Hint design for compositional_fourths step 2.** When step 2 fails, should the hint show the correct second-cut location, or should it animate the half-of-a-half move? Recommended: the animated demonstration; static visual hints often fail to convey the procedural insight.
 5. **Validator complexity for `equalAreas` with multi-config.** The validator currently described as "checks N equal areas regardless of N" must handle: parallel cuts, perpendicular cuts, diagonal cuts, radial cuts, and arbitrary irregular cuts. Each shape type has different valid configurations. Should the validator be shape-aware (one validator per shape) or shape-agnostic (compute polygon areas from cut lines, check tolerance)? Recommended: shape-agnostic for cleaner code; document the polygon-area algorithm in `../../20-mechanic/activity-archetypes.md`.
 6. **Is Level 5 too long?** Per C9 (10–15 minute sessions), 6–10 sessions to mastery is on the high end of the MVP envelope. The session structure is heavily packed. Should we split Level 5 into Level 5a (thirds) and Level 5b (fourths)? **Implication:** this would push the MVP from 9 levels to 10. Recommended: keep as one level for MVP scope (C3), but flag as a candidate split for post-validation refinement.
-7. **Conflict with constraints.md C8.** The constraints document says: _"Level 4: fourths" / "Level 5: review halves/thirds/fourths"_. The scope-and-sequence (and this spec) instead says: _L4 = make halves, L5 = make thirds and fourths_. The scope-and-sequence framing was used here because it produces a cleaner identification-then-production progression. This needs to be reconciled in `constraints.md` C8 — recommended update: _"Level 4: make halves; Level 5: make thirds and fourths"_. Tracked as authoring follow-up.
+

@@ -10,7 +10,7 @@ export const activityLevelRepo = {
   async get(id: string): Promise<ActivityLevel | undefined> {
     try {
       return await db.activityLevels.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -22,7 +22,7 @@ export const activityLevelRepo = {
         .where('[activityId+levelNumber]')
         .between([activityId, 1], [activityId, 9], true, true)
         .sortBy('levelNumber');
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -34,7 +34,7 @@ export const activityLevelRepo = {
         .equals([activityId, levelNumber])
         .toArray();
       return rows[0];
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -47,3 +47,4 @@ export const activityLevelRepo = {
     await db.activityLevels.clear();
   },
 };
+

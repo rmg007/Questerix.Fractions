@@ -254,7 +254,7 @@ export class SettingsScene extends Phaser.Scene {
   private async executeReset(): Promise<void> {
     try {
       await db.delete();
-    } catch {
+    } catch (err) {
       // ignore — DB may already be gone
     }
     lastUsedStudent.clear();
@@ -274,7 +274,7 @@ export class SettingsScene extends Phaser.Scene {
     try {
       await backupToFile();
       this.showExportStatus('Saved! Check your downloads.');
-    } catch {
+    } catch (err) {
       this.showExportStatus('Export failed — please try again.');
     }
   }
@@ -390,3 +390,4 @@ export class SettingsScene extends Phaser.Scene {
     this.cleanup();
   }
 }
+

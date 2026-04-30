@@ -10,7 +10,7 @@ export const misconceptionRepo = {
   async get(id: MisconceptionId): Promise<Misconception | undefined> {
     try {
       return await db.misconceptions.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -18,7 +18,7 @@ export const misconceptionRepo = {
   async getAll(): Promise<Misconception[]> {
     try {
       return await db.misconceptions.toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -31,3 +31,4 @@ export const misconceptionRepo = {
     await db.misconceptions.clear();
   },
 };
+

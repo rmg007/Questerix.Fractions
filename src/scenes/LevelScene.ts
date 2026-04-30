@@ -74,6 +74,7 @@ export class LevelScene extends Phaser.Scene {
   private correctCount: number = 0;
   private responseTimes: number[] = [];
   private questionStartTime: number = 0;
+  private currentRoundEvents: import('@/types').ProgressionEvent[] = [];
 
   // Fix G-E3: hint events linked to attempt records
   private currentQuestionHintIds: string[] = [];
@@ -185,7 +186,7 @@ export class LevelScene extends Phaser.Scene {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
-    } catch {
+    } catch (err) {
       // Graceful fallback — leave TTS in its default state
     }
 
@@ -243,6 +244,7 @@ export class LevelScene extends Phaser.Scene {
     this.wrongCount = 0;
     this.inputLocked = false;
     this.currentQuestionHintIds = [];
+    this.currentRoundEvents = [];
 
     // Unmount previous interaction
     this.activeInteraction?.unmount();
@@ -281,7 +283,7 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = Date.now();
 
     // Instantiate and mount interaction
-    const interaction = getInteractionForArchetype(this.currentTemplate.archetype);
+    const interaction = getInteractionForArchetype(this.currentTemplate.archetype, this.currentTemplate.validatorId);
     this.activeInteraction = interaction;
     interaction.mount({
       scene: this,
@@ -291,6 +293,7 @@ export class LevelScene extends Phaser.Scene {
       width: CW,
       height: CH,
       onCommit: (payload) => void this.onCommit(payload),
+      pushEvent: (event) => this.currentRoundEvents.push(event),
     });
   }
 
@@ -835,6 +838,7 @@ export class LevelScene extends Phaser.Scene {
         pointsEarned: result.score,
         hintsUsedIds: [...this.currentQuestionHintIds],
         hintsUsed: [],
+        roundEvents: [...this.currentRoundEvents],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
         syncState: 'local',
@@ -1085,7 +1089,7 @@ export class LevelScene extends Phaser.Scene {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
@@ -1098,3 +1102,4 @@ export class LevelScene extends Phaser.Scene {
     A11yLayer.unmountAll();
   }
 }
+

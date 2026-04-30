@@ -14,6 +14,7 @@ export interface InteractionContext {
   width: number;
   height: number;
   onCommit: (payload: unknown) => void;
+  pushEvent: (event: import('@/types').ProgressionEvent) => void;
 }
 
 export interface Interaction {

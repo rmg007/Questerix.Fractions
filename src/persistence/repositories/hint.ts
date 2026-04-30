@@ -11,7 +11,7 @@ export const hintRepo = {
   async get(id: string): Promise<HintTemplate | undefined> {
     try {
       return await db.hints.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -22,7 +22,7 @@ export const hintRepo = {
         .where('[questionTemplateId+order]')
         .between([questionTemplateId, 1], [questionTemplateId, 3], true, true)
         .sortBy('order');
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -35,3 +35,4 @@ export const hintRepo = {
     await db.hints.clear();
   },
 };
+

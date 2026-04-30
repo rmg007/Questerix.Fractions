@@ -56,7 +56,10 @@ These are explicit detection targets in the L6–L9 comparison activities (the l
 
 The single most-cited fraction misconception in research literature. Children apply whole-number reasoning to fraction symbols and quantities.
 
-#### MC-WHB-01 — Whole-Number Bias (Numerator)
+## MC-WHB-01 — Whole-Number Bias (Numerator)
+
+**Detector:** detectWHB01
+**Templates baiting:** 75
 
 | Field                | Value                                                                                                                                                                      |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -67,7 +70,10 @@ The single most-cited fraction misconception in research literature. Children ap
 | **Related skills**   | `SK-22`, `SK-23`, `SK-24`, `SK-25`                                                                                                                                         |
 | **Source**           | M5 (More Pieces = Bigger Fraction); per-level trap in `level-01.md`                                                                                                        |
 
-#### MC-WHB-02 — Whole-Number Bias (Denominator)
+## MC-WHB-02 — Whole-Number Bias (Denominator)
+
+**Detector:** detectWHB02
+**Templates baiting:** 7
 
 | Field                | Value                                                                                                                        |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -78,24 +84,44 @@ The single most-cited fraction misconception in research literature. Children ap
 | **Related skills**   | `SK-23`, `SK-24`                                                                                                             |
 | **Source**           | M5 (More Pieces = Bigger Fraction)                                                                                           |
 
+## MC-NOM-01 — Numerator Over Magnitude
+
+**Detector:** detectNOM01
+**Templates baiting:** 5
+
+| Field                | Value                                                                                                                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | General reliance on numerator as the sole indicator of fraction value. "If the number on top is big, the fraction is big."                                            |
+| **Detection signal** | Across any activity type (identify, compare, order), student consistently chooses options with higher numerators even when magnitude is small.                        |
+| **Intervention**     | Visual "numerator-stripping": show the fraction with the numerator removed to highlight that the unit (denominator) defines the scale.                                |
+| **Grade level**      | Grade 2                                                                                                                                                               |
+| **Related skills**   | `SK-22`, `SK-23`                                                                                                                                                      |
+| **Source**           | Observed pattern in student telemetry                                                                                                                                 |
+
 ---
 
 ### 3.2 Equal-Parts Family (MC-EOL-\*)
 
 Misinterpretations of what "equal parts" means.
 
-#### MC-EOL-01 — Equal-Parts Loose Interpretation ("Any Two Pieces = Halves")
+## MC-EOL-01 — Equal-Parts Loose Interpretation ("Any Two Pieces = Halves")
+
+**Detector:** detectEOL01
+**Templates baiting:** 54
 
 | Field                | Value                                                                                                                                                     |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Description**      | "If I cut something into two pieces, those are halves" — student does not check for equality. Visible on `equal_or_not` Tier 1.                           |
 | **Detection signal** | On `equal_or_not` Easy templates with clearly unequal partitions (e.g., 30/70 split), student answers "yes (equal)" ≥ 50% of the time across 4+ attempts. |
 | **Intervention**     | Replay `partition_halves` Easy with axis-snap on. Surface visual feedback that highlights the area difference.                                            |
 | **Grade level**      | Grade K, Grade 1 (primary)                                                                                                                                |
 | **Related skills**   | `SK-01`, `SK-02`                                                                                                                                          |
-| **Source**           | M3 (Any Two Pieces = Halves); `level-01.md` trap MC-EOL-01                                                                                                | <!-- SK IDs unchanged — L1 skills not affected by renumbering --> |
+| **Source**           | M3 (Any Two Pieces = Halves); `level-01.md` trap MC-EOL-01                                                                                                |
 
-#### MC-EOL-02 — Rotated-Halves Confusion
+## MC-EOL-02 — Rotated-Halves Confusion
+
+**Detector:** detectEOL02
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -106,7 +132,10 @@ Misinterpretations of what "equal parts" means.
 | **Related skills**   | `SK-01`, `SK-02`                                                                                                              |
 | **Source**           | M7 (Position Matters for Fraction Identity); `level-01.md` trap MC-EOL-02                                                     |
 
-#### MC-EOL-03 — Visual-Symmetry-Equals-Equality
+## MC-EOL-03 — Visual-Symmetry-Equals-Equality
+
+**Detector:** detectEOL03
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                                        |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -117,7 +146,10 @@ Misinterpretations of what "equal parts" means.
 | **Related skills**   | `SK-01`                                                                                                                                      |
 | **Source**           | `level-01.md` trap MC-EOL-03                                                                                                                 |
 
-#### MC-EOL-04 — Equal Means Identical
+## MC-EOL-04 — Equal Means Identical
+
+**Detector:** detectEOL04
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                                     |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -134,7 +166,10 @@ Misinterpretations of what "equal parts" means.
 
 The hardest misconceptions and the ones MVP exists to detect (per C10).
 
-#### MC-MAG-01 — Magnitude Blindness
+## MC-MAG-01 — Magnitude Blindness
+
+**Detector:** detectMAG01
+**Templates baiting:** 65
 
 | Field                | Value                                                                                                                                                      |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -145,7 +180,10 @@ The hardest misconceptions and the ones MVP exists to detect (per C10).
 | **Related skills**   | `SK-24`, `SK-25`, `SK-26`                                                                                                                                  |
 | **Source**           | Synthesized from M5, M6 and the validation goal in C10                                                                                                     |
 
-#### MC-MAG-02 — Whole Disappears When Divided
+## MC-MAG-02 — Whole Disappears When Divided
+
+**Detector:** detectMAG02
+**Templates baiting:** 3
 
 | Field                | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -162,7 +200,10 @@ The hardest misconceptions and the ones MVP exists to detect (per C10).
 
 Misconceptions about where fractions sit relative to landmark values.
 
-#### MC-PRX-01 — Proximity-to-1 Confusion
+## MC-PRX-01 — Proximity-to-1 Confusion
+
+**Detector:** detectPRX01
+**Templates baiting:** 18
 
 | Field                | Value                                                                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -173,7 +214,10 @@ Misconceptions about where fractions sit relative to landmark values.
 | **Related skills**   | `SK-25`                                                                                                                                                                         |
 | **Source**           | Synthesized from M5 + magnitude-family research; explicit MVP target                                                                                                            |
 
-#### MC-PRX-02 — All Fractions Are Less Than One-Half
+## MC-PRX-02 — All Fractions Are Less Than One-Half
+
+**Detector:** detectPRX02
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                                 |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -188,7 +232,10 @@ Misconceptions about where fractions sit relative to landmark values.
 
 ### 3.5 Shape and Vocabulary Family (MC-SHP-_, MC-VOC-_)
 
-#### MC-SHP-01 — Whole = Circle
+## MC-SHP-01 — Whole = Circle
+
+**Detector:** detectSHP01
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -199,7 +246,10 @@ Misconceptions about where fractions sit relative to landmark values.
 | **Related skills**   | `SK-11`                                                                                                                         |
 | **Source**           | M2 (Whole = Circle)                                                                                                             |
 
-#### MC-SHP-02 — Size = Wholeness
+## MC-SHP-02 — Size = Wholeness
+
+**Detector:** detectSHP02
+**Templates baiting:** 0
 
 | Field                | Value                                                                                           |
 | -------------------- | ----------------------------------------------------------------------------------------------- |
@@ -210,16 +260,67 @@ Misconceptions about where fractions sit relative to landmark values.
 | **Related skills**   | `SK-01`                                                                                         |
 | **Source**           | M1 (Size ≠ Wholeness)                                                                           |
 
-#### MC-VOC-01 — Fourth ≠ Quarter
+## MC-VOC-01 — Fourth ≠ Quarter
+
+**Detector:** detectVOC01
+**Templates baiting:** 0
 
 | Field                | Value                                                                                                                                                       |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Description**      | Student treats "one-fourth" and "one-quarter" as different fractions.                                                                                       |
 | **Detection signal** | On L3–L5 `label` / `name_the_fraction` attempts that ask for "quarter," student selects a different fraction than they would for "fourth" on parallel item. |
 | **Intervention**     | Audio hint: "fourth and quarter mean the same thing." Explicit synonymy.                                                                                    |
 | **Grade level**      | Grade 1                                                                                                                                                     |
 | **Related skills**   | `SK-09`                                                                                                                                                     |
-| **Source**           | M10 (Fourth and Quarter are Different)                                                                                                                      | <!-- SK-09 unchanged — L3 skill not affected by renumbering --> |
+| **Source**           | M10 (Fourth and Quarter are Different)                                                                                                                      |
+
+---
+
+### 3.6 Level 5 Partitioning Traps (MC-L5-*)
+
+Specific traps observed in the complex partitioning tasks of Level 5.
+
+## MC-L5-THIRDS-HALF-01 — Thirds vs Half Confusion
+
+**Detector:** detectL5ThirdsHalf
+**Templates baiting:** 4
+
+| Field                | Value                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | Student partitions into 2 pieces when asked for 3, or vice versa, due to visual confusion with the "half" landmark.                         |
+| **Detection signal** | On L5 `partition` tasks for 3 parts, student creates 2 parts (or vice-versa) on ≥ 50% of attempts.                                           |
+| **Intervention**     | Explicit count-back: "Count the pieces! You have 2, but we need 3."                                                                         |
+| **Grade level**      | Grade 2                                                                                                                                     |
+| **Related skills**   | `SK-15`                                                                                                                                     |
+| **Source**           | Level 5 activity telemetry                                                                                                                  |
+
+## MC-L5-FOURTHS-3CUTS-01 — Fourths by 3 Cuts
+
+**Detector:** detectL5Fourths3Cuts
+**Templates baiting:** 1
+
+| Field                | Value                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | "3 cuts = 3 pieces" — student makes 3 cuts to get 4 pieces but forgets that the number of pieces is cuts+1 for linear partitions.           |
+| **Detection signal** | On L5 `partition` tasks for 4 parts, student makes exactly 3 cuts and stops, even if areas are unequal or count is wrong.                   |
+| **Intervention**     | Highlight the "cut" vs "piece" distinction. "3 cuts made 4 pieces! Count them."                                                            |
+| **Grade level**      | Grade 2                                                                                                                                     |
+| **Related skills**   | `SK-16`                                                                                                                                     |
+| **Source**           | Level 5 activity telemetry                                                                                                                  |
+
+## MC-L5-DENSWITCH-01 — Denominator Switch Confusion
+
+**Detector:** detectL5DenSwitch
+**Templates baiting:** 3
+
+| Field                | Value                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | Student switches to a different denominator midway through a multi-step task.                                                               |
+| **Detection signal** | On L5 multi-step `partition` tasks, student successfully completes step 1 (e.g., halves) but fails step 2 by partitioning into wrong count. |
+| **Intervention**     | Prompt: "Wait, we were making fourths! Why did we switch to thirds?"                                                                        |
+| **Grade level**      | Grade 2                                                                                                                                     |
+| **Related skills**   | `SK-17`                                                                                                                                     |
+| **Source**           | Level 5 activity telemetry                                                                                                                  |
 
 ---
 
