@@ -26,6 +26,20 @@
   font-display: swap;
   src: url('/fonts/fredoka-one-400.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lexend-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/lexend-600.woff2') format('woff2');
+}
 
 /* Design-language §2 — CSS custom properties */
 :root {

@@ -55,7 +55,7 @@ export function injectSkipLink(): void {
       padding: '8px 16px',
       background: '#ffffff',
       color: '#1a1a2e',
-      fontFamily: '"Nunito", system-ui, sans-serif',
+      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
       fontSize: '16px',
       fontWeight: 'bold',
       borderRadius: '4px',

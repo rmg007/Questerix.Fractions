@@ -14,13 +14,15 @@ import {
   ACTION_BORDER,
   ACTION_TEXT,
   TITLE_FONT,
-  BODY_FONT,
   TEXT_BODY,
   TEXT_MUTED,
   TEXT_DIM,
 } from '../scenes/utils/levelTheme';
+
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
+
+const BODY_FONT = '"Lexend", "Nunito", system-ui, sans-serif';
 
 // ── Adventure theme colours ───────────────────────────────────────────────────
 

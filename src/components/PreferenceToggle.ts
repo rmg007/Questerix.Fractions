@@ -80,7 +80,7 @@ export class PreferenceToggle {
     this.labelEl.id = labelId;
     this.labelEl.textContent = opts.label;
     Object.assign(this.labelEl.style, {
-      fontFamily: '"Nunito", system-ui, sans-serif',
+      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
       fontSize: '18px',
       color: '#374151',
       minWidth: '180px',
@@ -138,7 +138,7 @@ export class PreferenceToggle {
     // Value display (for read-only or status)
     this.valueEl = document.createElement('span');
     Object.assign(this.valueEl.style, {
-      fontFamily: '"Nunito", system-ui, sans-serif',
+      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
       fontSize: '14px',
       color: '#6B7280',
     });

@@ -51,7 +51,7 @@ const STYLE = `
   color: #ffffff;
   border: 3px solid #1E3A8A;
   border-radius: 8px;
-  font-family: "Nunito", system-ui, sans-serif;
+  font-family: "Lexend", "Nunito", system-ui, sans-serif;
   font-size: 18px;
   font-weight: bold;
   outline: none;
