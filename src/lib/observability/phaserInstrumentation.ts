@@ -1,6 +1,5 @@
 import type { Scene } from 'phaser';
 import { logger } from './logger';
-import { meterService } from './meter';
 
 /**
  * Hook to instrument a Phaser scene with observability.

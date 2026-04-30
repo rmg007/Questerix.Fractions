@@ -23,7 +23,7 @@ export function initObservability(config: ObservabilityConfig = {}) {
 
   // 2. Init Error Reporting (Sentry)
   errorReporter.init({
-    dsn: config.sentryDsn,
+    ...(config.sentryDsn !== undefined ? { dsn: config.sentryDsn } : {}),
     environment: env,
     release,
   });

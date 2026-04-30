@@ -75,17 +75,20 @@ class Logger {
 
   private async bufferEvent(severity: TelemetrySeverity, event: string, options?: LogOptions) {
     try {
+      const studentId = options?.studentId ?? this.studentId;
+      const sessionId = options?.sessionId ?? this.sessionId;
+      const stack = options?.error?.stack;
       const telemetryEvent: TelemetryEvent = {
         timestamp: new Date().toISOString(),
         event,
         severity,
         properties: {
-          category: options?.category,
+          ...(options?.category !== undefined ? { category: options.category } : {}),
           ...options?.data,
         },
-        studentId: options?.studentId || this.studentId,
-        sessionId: options?.sessionId || this.sessionId,
-        stack: options?.error?.stack,
+        ...(studentId !== undefined ? { studentId } : {}),
+        ...(sessionId !== undefined ? { sessionId } : {}),
+        ...(stack !== undefined ? { stack } : {}),
         version: BUILD_INFO.version,
         syncState: 'local',
       };
@@ -109,11 +112,11 @@ class Logger {
     try {
       const count = await db.telemetryEvents.count();
       if (count > 1000) {
-        const oldestToKeep = await db.telemetryEvents
+        const [oldestToKeep] = await db.telemetryEvents
           .orderBy('id')
           .offset(count - 1000)
           .limit(1)
-          .primaryKey();
+          .primaryKeys();
         
         if (oldestToKeep !== undefined) {
           await db.telemetryEvents.where('id').below(oldestToKeep).delete();

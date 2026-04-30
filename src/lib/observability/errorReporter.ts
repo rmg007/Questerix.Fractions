@@ -47,7 +47,7 @@ class ErrorReporter {
     // Always log to our local store
     logger.error(error.message, {
       error,
-      data: context,
+      ...(context !== undefined ? { data: context } : {}),
     });
 
     // Send to Sentry if initialized
@@ -68,13 +68,16 @@ class ErrorReporter {
     if (this.initialized) {
       Sentry.addBreadcrumb({
         message,
-        category,
-        data,
+        ...(category !== undefined ? { category } : {}),
+        ...(data !== undefined ? { data } : {}),
         level: 'info',
       });
     }
     // Also log to local store as info
-    logger.info(message, { category, data });
+    logger.info(message, {
+      ...(category !== undefined ? { category } : {}),
+      ...(data !== undefined ? { data } : {}),
+    });
   }
 }
 

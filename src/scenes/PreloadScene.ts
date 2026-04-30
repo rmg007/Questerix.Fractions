@@ -9,7 +9,6 @@ import * as Phaser from 'phaser';
 import {
   drawAdventureBackground,
   drawSoftGlow,
-  SKY_BG,
   ACTION_FILL,
   ACTION_BORDER,
   TITLE_FONT,

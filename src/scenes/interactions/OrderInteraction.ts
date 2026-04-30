@@ -104,7 +104,7 @@ export class OrderInteraction implements Interaction {
       handle.on('dragstart', () => {
         ctx.pushEvent({
           type: 'pickUp',
-          elementId: frac.id,
+          targetId: frac.id,
           timestamp: Date.now(),
         });
       });
@@ -129,8 +129,8 @@ export class OrderInteraction implements Interaction {
 
         ctx.pushEvent({
           type: 'place',
-          elementId: frac.id,
-          slotId: `slot_${best}`,
+          targetId: frac.id,
+          trayIndex: best,
           timestamp: Date.now(),
         });
       });

@@ -1,5 +1,4 @@
 import { db } from '../../persistence/db';
-import type { TelemetryEvent } from '../../types';
 
 /**
  * Service for periodically flushing buffered telemetry events to the server.

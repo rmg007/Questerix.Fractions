@@ -1,5 +1,6 @@
 import { WebTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
 import { SimpleSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
+import type { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
@@ -15,27 +16,28 @@ class TracerService {
   init() {
     if (this.provider) return;
 
+    const spanProcessors: SpanProcessor[] = [];
+
+    if (import.meta.env.DEV) {
+      spanProcessors.push(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    }
+
+    const otlpUrl = import.meta.env.VITE_OTLP_URL;
+    if (otlpUrl) {
+      const exporter = new OTLPTraceExporter({
+        url: otlpUrl as string,
+        headers: {},
+      });
+      spanProcessors.push(new BatchSpanProcessor(exporter));
+    }
+
     this.provider = new WebTracerProvider({
       resource: resourceFromAttributes({
         [SEMRESATTRS_SERVICE_NAME]: 'questerix-fractions',
         [SEMRESATTRS_SERVICE_VERSION]: import.meta.env.VITE_GIT_SHA || 'dev',
       }),
+      spanProcessors,
     });
-
-    // 1. Console export for DX
-    if (import.meta.env.DEV) {
-      this.provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-    }
-
-    // 2. OTLP Export for production/telemetry
-    const otlpUrl = import.meta.env.VITE_OTLP_URL;
-    if (otlpUrl) {
-      const exporter = new OTLPTraceExporter({
-        url: otlpUrl,
-        headers: {}, // Add auth headers if needed
-      });
-      this.provider.addSpanProcessor(new BatchSpanProcessor(exporter));
-    }
 
     this.provider.register({
       contextManager: new ZoneContextManager(),
@@ -44,7 +46,7 @@ class TracerService {
     registerInstrumentations({
       instrumentations: [
         new FetchInstrumentation({
-          ignoreUrls: [/localhost/], // Don't instrument local dev server calls
+          ignoreUrls: [/localhost/],
         }),
       ],
     });
@@ -59,11 +61,8 @@ class TracerService {
     return this.tracer;
   }
 
-  /**
-   * Start a manual span.
-   */
   startSpan(name: string, attributes?: Record<string, any>) {
-    return this.getTracer().startSpan(name, { attributes });
+    return this.getTracer().startSpan(name, attributes ? { attributes } : {});
   }
 }
 

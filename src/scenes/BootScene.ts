@@ -8,6 +8,7 @@
 
 import * as Phaser from 'phaser';
 import { TestHooks } from './utils/TestHooks';
+import { fadeAndStart } from './utils/sceneTransition';
 
 const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId'; // per lastUsedStudent.ts + C5
 
@@ -141,6 +142,6 @@ export class BootScene extends Phaser.Scene {
     this._advanced = true;
     TestHooks.unmount('boot-start-btn');
     TestHooks.unmount('boot-scene');
-    this.scene.start('PreloadScene', { lastStudentId: this.lastStudentId });
+    fadeAndStart(this, 'PreloadScene', { lastStudentId: this.lastStudentId });
   }
 }

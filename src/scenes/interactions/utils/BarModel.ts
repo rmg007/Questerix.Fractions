@@ -21,6 +21,10 @@ export interface BarModelOpts {
 export class BarModel {
   private gfx: Phaser.GameObjects.Graphics;
   private labelText?: Phaser.GameObjects.Text;
+  private originX: number;
+  private originY: number;
+  private _height: number;
+
   constructor(scene: Phaser.Scene, opts: BarModelOpts) {
     const {
       x,
@@ -33,6 +37,10 @@ export class BarModel {
       fillColor = CLR.primary,
       showDividers = true,
     } = opts;
+
+    this.originX = x;
+    this.originY = y;
+    this._height = height;
 
     const denom = Math.max(1, denominator);
     const numer = Phaser.Math.Clamp(numerator, 0, denom);
@@ -78,6 +86,14 @@ export class BarModel {
         })
         .setOrigin(0.5, 1)
         .setDepth(6);
+    }
+  }
+
+  /** Reposition the bar to a new center (x, y). */
+  setPosition(x: number, y: number): void {
+    this.gfx.setPosition(x - this.originX, y - this.originY);
+    if (this.labelText) {
+      this.labelText.setPosition(x, y - this._height / 2 - 10);
     }
   }
 
