@@ -2,6 +2,16 @@
 
 Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concepts via magnetic-drag mechanics. Solo validation project. No backend, no accounts, no external data egress.
 
+> **Search hygiene:** ignore any `_archive/` path during exploration unless the user explicitly asks. Those folders are completed-work debriefs kept for history; their content does not reflect the current code.
+
+---
+
+## Slash commands (in `.claude/commands/`)
+
+- `/preflight` — full pre-merge gate (typecheck, lint, unit, integration, build, bundle guard)
+- `/sync-curriculum` — rebuild + validate curriculum bundles after pipeline output changes
+- `/diag` — one-screen repo state (branch, dirty files, recent commits, bundle size, test count)
+
 ---
 
 ## Commands
