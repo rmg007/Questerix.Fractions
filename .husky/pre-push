@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# Pre-push guard: regenerate workflows from config and fail if they drift.
+# Catches port/browser mismatches before they hit the CI cascade.
+# Bypass with: git push --no-verify (CI consistency gate is backstop)
+
+echo "▶ pre-push: checking workflow consistency..."
+npm run gen:workflows
+if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then
+  echo ""
+  echo "ERROR: Workflow drift detected — run 'npm run gen:workflows' and commit the updated YAML."
+  exit 1
+fi
+
+echo "▶ pre-push: residual lint..."
+npm run lint:ci
+
+echo "✓ pre-push checks passed"
