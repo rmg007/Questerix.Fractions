@@ -11,7 +11,7 @@
 
 Agent harness is complete (CLAUDE.md, 9 slash commands, 4 subagents, 8 nested CLAUDE.mds, hooks, learnings, doctor). The game does not yet complete a 5-question session end-to-end. Sprint 0 exit criteria unmet. This plan covers all remaining actionable work, ordered by impact on validation.
 
-Cross-reference: `harden-and-polish.md` covers 48 deeper bugs found in the full audit. This plan covers the subset that must ship before Cycle A playtesting.
+Cross-reference: `harden-and-polish-2026-04-30.md` covers 48 deeper bugs found in the full audit. This plan covers the subset that must ship before Cycle A playtesting.
 
 ---
 
@@ -136,7 +136,7 @@ Exit criteria: student completes a 5-question session at `localhost:5000` in a r
 
 ## Priority 4 — C5 Violation Fix (Dexie migration)
 
-**Also tracked in:** `harden-and-polish.md` R13  
+**Also tracked in:** `harden-and-polish-2026-04-30.md` R13  
 **Files:** `src/scenes/MenuScene.ts:348–384`, `src/scenes/LevelMapScene.ts:331–349`  
 **Symptom:** `unlockedLevels:<studentId>` and `completedLevels:<studentId>` written to localStorage; violates C5 (localStorage = `lastUsedStudentId` only).  
 **Fix:**
@@ -174,4 +174,4 @@ P4 is last — it touches persistence and needs integration tests to be solid fi
 - [ ] CHANGELOG updated
 - [ ] `npm run agent-doctor` in CI green
 
-**Once gate passes:** proceed to G-E1 + G-C7 (Sprint 1 entry), then `harden-and-polish.md` backlog.
+**Once gate passes:** proceed to G-E1 + G-C7 (Sprint 1 entry), then `harden-and-polish-2026-04-30.md` backlog.

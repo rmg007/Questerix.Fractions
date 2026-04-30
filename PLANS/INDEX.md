@@ -1,7 +1,9 @@
 # Questerix Fractions — Planning Documents Index
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-04-30
 **Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
+
+> **Naming convention:** all plan files must be named `<slug>-YYYY-MM-DD.md` where the date is the day the file was created. Files without a date are non-compliant and must be renamed. Full rules: `docs/00-foundation/git-workflow.md`.
 
 ---
 
@@ -59,7 +61,7 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 
 ---
 
-### [curriculum-update.md](curriculum-update.md) — MASTER CURRICULUM PLAN (v2)
+### [curriculum-update-2026-04-30.md](curriculum-update-2026-04-30.md) — MASTER CURRICULUM PLAN (v2)
 
 The authoritative pedagogical and structural roadmap for the Questerix curriculum.
 

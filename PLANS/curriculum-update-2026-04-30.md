@@ -2,7 +2,7 @@
 
 **Status:** ACTIVE — Adopted 2026-04-30 per Decision D-017.
 **Last updated:** 2026-04-29
-**Sibling plans:** [curriculum-completion-phase-3.plan.md](./curriculum-completion-phase-3.plan.md), [harden-and-polish.md](./harden-and-polish.md), [ux-elevation.md](./ux-elevation.md), [audio.md](./audio.md), [master_audit_roadmap.md](./master_audit_roadmap.md)
+**Sibling plans:** [curriculum-completion-phase-3.plan.md](./curriculum-completion-phase-3.plan.md), [harden-and-polish-2026-04-30.md](./harden-and-polish-2026-04-30.md), [ux-elevation-2026-04-30.md](./ux-elevation-2026-04-30.md), [audio-2026-04-30.md](./audio-2026-04-30.md), [master_audit_roadmap.md](./master_audit_roadmap.md)
 **This plan:** the curriculum is the product. Engine, persistence, UX, and audio are delivery layers. This document defines the curriculum's theory of action, learning architecture, item-design science, authoring system, validation, equity, operations, and roadmap.
 
 > **Stale-number caveat.** Several quantitative claims in this document (§1.4, §5.2, §7.3, §8.2 audit notes) reflect the v1 audit conducted before the 2026-04-26 Phase 0b-1 hand-author work and the 2026-04-28 Phase 7 hint completion. The bundle today contains **255 templates** (not the ~150 the v1 audit assumed); L8/L9 added 54 hand-authored templates tagged SK-27..SK-33; some misconception-template counts have shifted. **Phase A.5 must re-run the density audit against the live bundle** before any consolidation/expansion decision is final. The structure of this plan and its decisions are unaffected; the specific numbers cited are.
@@ -24,9 +24,9 @@ This plan answers: **"What does it take to call the curriculum a real curriculum
 **Eight-phase delivery (§28):** A → B → C → D → E → F → [LAUNCH] → G → H
 
 **Five things that do *not* happen in this plan** (delegated to sibling plans):
-- Engine wiring, BKT call-sites, persistence → [harden-and-polish.md](./harden-and-polish.md)
-- TTS pipeline (pre-rendered build-time) → [audio.md](./audio.md)
-- UI delight, FractionDisplay, mascot → [ux-elevation.md](./ux-elevation.md)
+- Engine wiring, BKT call-sites, persistence → [harden-and-polish-2026-04-30.md](./harden-and-polish-2026-04-30.md)
+- TTS pipeline (pre-rendered build-time) → [audio-2026-04-30.md](./audio-2026-04-30.md)
+- UI delight, FractionDisplay, mascot → [ux-elevation-2026-04-30.md](./ux-elevation-2026-04-30.md)
 - Bundle correctness, hint generation, regeneration execution → [curriculum-completion-phase-3.plan.md](./curriculum-completion-phase-3.plan.md)
 - App-layer architecture, domain purity → [master_audit_roadmap.md](./master_audit_roadmap.md)
 
@@ -37,9 +37,9 @@ This plan answers: **"What does it take to call the curriculum a real curriculum
 | Plan | Owns | This plan delegates to it |
 |---|---|---|
 | [curriculum-completion-phase-3.plan.md](./curriculum-completion-phase-3.plan.md) | Bundle correctness, regeneration, hint generation (864-hint catalog), L5/L6/L7/L9 variety work | §27 tactical fixes; the execution of Phase B; the slice fix; §13.3 hint-cost wiring (its task C7.8) |
-| [harden-and-polish.md](./harden-and-polish.md) | Engine wiring, persistence, logging substrate (R49–R56), a11y bugs | Phase G analytics substrate (Dexie schema v5 telemetryEvents from R49); Level01Scene validator-lookup fix (master-audit) feeding §8 BKT signal |
-| [audio.md](./audio.md) | TTS pipeline (pre-rendered, OpenAI gpt-4o-mini-tts), audio manifest | §13 hint delivery; §16.4 audio-manifest-keyed rule; §25 multilingual cost-per-locale (~$5–15) |
-| [ux-elevation.md](./ux-elevation.md) | Visual delight, FractionDisplay component (T1) | §16.1 Unicode-fraction rule rendering implementation |
+| [harden-and-polish-2026-04-30.md](./harden-and-polish-2026-04-30.md) | Engine wiring, persistence, logging substrate (R49–R56), a11y bugs | Phase G analytics substrate (Dexie schema v5 telemetryEvents from R49); Level01Scene validator-lookup fix (master-audit) feeding §8 BKT signal |
+| [audio-2026-04-30.md](./audio-2026-04-30.md) | TTS pipeline (pre-rendered, OpenAI gpt-4o-mini-tts), audio manifest | §13 hint delivery; §16.4 audio-manifest-keyed rule; §25 multilingual cost-per-locale (~$5–15) |
+| [ux-elevation-2026-04-30.md](./ux-elevation-2026-04-30.md) | Visual delight, FractionDisplay component (T1) | §16.1 Unicode-fraction rule rendering implementation |
 | [master_audit_roadmap.md](./master_audit_roadmap.md) | Application-layer architecture, domain purity, portability | Engine architectural assumptions in §8; engine-museum (selection/router/calibration uncalled from L1) caveats in §8.1 |
 
 ---
@@ -348,7 +348,7 @@ The system uses Bayesian Knowledge Tracing (BKT). BKT estimates per-KC mastery f
 
 ### §8.1 BKT requires
 
-> **Critical dependency on harden-and-polish.** Per `master_audit_roadmap.md` v3 findings, the engine modules `selection.ts`, `router.ts`, `calibration.ts` are not currently called from production scenes ("engine museum"). `updateMastery` runs only inside `LevelScene.recordAttempt`, **not `Level01Scene.recordAttempt`** — meaning L1 attempts produce zero BKT signal today. Additionally, `Level01Scene.ts:752` has a validator-lookup bug that scores every L1 answer with `partition.equalAreas` regardless of declared `validatorId`, corrupting the signal that *would* be sent if mastery updates fired. Until those two engine bugs are fixed in `harden-and-polish.md`, every claim in §8 about "BKT signal," "data convergence," and "post-launch calibration from real data" applies *only to L2–L9*. L1 is uninstrumented and unreliable. Phase G analytics work depends on these engine fixes shipping first.
+> **Critical dependency on harden-and-polish.** Per `master_audit_roadmap.md` v3 findings, the engine modules `selection.ts`, `router.ts`, `calibration.ts` are not currently called from production scenes ("engine museum"). `updateMastery` runs only inside `LevelScene.recordAttempt`, **not `Level01Scene.recordAttempt`** — meaning L1 attempts produce zero BKT signal today. Additionally, `Level01Scene.ts:752` has a validator-lookup bug that scores every L1 answer with `partition.equalAreas` regardless of declared `validatorId`, corrupting the signal that *would* be sent if mastery updates fired. Until those two engine bugs are fixed in `harden-and-polish-2026-04-30.md`, every claim in §8 about "BKT signal," "data convergence," and "post-launch calibration from real data" applies *only to L2–L9*. L1 is uninstrumented and unreliable. Phase G analytics work depends on these engine fixes shipping first.
 
 - **Right KC granularity** (covered in §5)
 - **Sufficient attempts per KC** for posteriors to converge (≥ ~8 attempts in literature; we should target ≥ 12)
@@ -593,10 +593,10 @@ hints:
     misconception: MC-WHB-02   # optional; null = generic Tier-1 fallback
     tier: 1
     text: "More pieces means each piece is smaller."
-    audio_key: "hint.l7.compare.whb02.t1"   # consumed by audio.md pipeline
+    audio_key: "hint.l7.compare.whb02.t1"   # consumed by audio-2026-04-30.md pipeline
 ```
 
-The audio pipeline (`audio.md`) reads `audio_key` to render TTS at build time; runtime never synthesizes.
+The audio pipeline (`audio-2026-04-30.md`) reads `audio_key` to render TTS at build time; runtime never synthesizes.
 
 **2. Build-pipeline integration.** `pipeline/hints.py` (the 864-hint generator from `curriculum-completion-phase-3.plan.md` task C4.1) currently produces *generic* tier-1 hints by template. It must learn to produce a *misconception-specific* hint per `(level, archetype, MC-id)` triple. This is a pipeline change, not just a content addition: the prompt to the LLM gains a "for this misconception, the child needs to hear about X" instruction.
 
@@ -605,7 +605,7 @@ The audio pipeline (`audio.md`) reads `audio_key` to render TTS at build time; r
 - A lookup against the registry for the most specific match: `(L, archetype, MC-id)` → `(L, archetype, null)` → `(L, null, null)` → generic fallback
 - A graceful fallback when no detector has tripped (the common case)
 
-**Why this lives in §13.2 not in `harden-and-polish.md`:** the *content* (the hints themselves and their pedagogical mapping) is curriculum work. The *plumbing* (HintLadder reading misconceptionFlags, registry lookup) is engineering. Phase B.5 splits accordingly: registry authoring + pipeline integration here; HintLadder rewrite tracked in `harden-and-polish.md` (open task to add).
+**Why this lives in §13.2 not in `harden-and-polish-2026-04-30.md`:** the *content* (the hints themselves and their pedagogical mapping) is curriculum work. The *plumbing* (HintLadder reading misconceptionFlags, registry lookup) is engineering. Phase B.5 splits accordingly: registry authoring + pipeline integration here; HintLadder rewrite tracked in `harden-and-polish-2026-04-30.md` (open task to add).
 
 ### §13.3 Hint cost and reward implications
 
@@ -656,7 +656,7 @@ scripts/build-curriculum.mjs
 public/curriculum/v1.json
 src/curriculum/bundle.json
         ↓
-[Audio rendering: see audio.md — pre-renders prompt TTS]
+[Audio rendering: see audio-2026-04-30.md — pre-renders prompt TTS]
 public/audio/{hash}.mp3
 ```
 
@@ -778,10 +778,10 @@ Beyond FK and word count:
 
 ### §16.4 Accessibility quality details
 
-- **Audio-manifest-keyed rule:** every prompt and hint string resolves to an entry in `public/audio/manifest.json` (the build artifact from `audio.md`'s pre-rendered TTS pipeline). CI gate: `scripts/check-audio.mjs` fails if any in-game string lacks a corresponding clip. **No runtime synth fallback exists** — Web Speech API is not used at runtime per `audio.md`. This eliminates the iOS `voiceschanged` race and removes a source of construct-irrelevant variance from §9.1 #6.
+- **Audio-manifest-keyed rule:** every prompt and hint string resolves to an entry in `public/audio/manifest.json` (the build artifact from `audio-2026-04-30.md`'s pre-rendered TTS pipeline). CI gate: `scripts/check-audio.mjs` fails if any in-game string lacks a corresponding clip. **No runtime synth fallback exists** — Web Speech API is not used at runtime per `audio-2026-04-30.md`. This eliminates the iOS `voiceschanged` race and removes a source of construct-irrelevant variance from §9.1 #6.
 - No item depends on color alone for correctness
 - Keyboard-navigation path declared for every interactive element (currently aspirational; see §3 caveat)
-- Alt-text-equivalent narrative provided for visual representations (consumed by audio.md TTS rendering for blind users)
+- Alt-text-equivalent narrative provided for visual representations (consumed by audio-2026-04-30.md TTS rendering for blind users)
 
 ---
 
@@ -1088,13 +1088,13 @@ Every 6 months: re-walk the bundle for cultural inclusion. New items entering th
 
 ## §24 — Accessibility through curriculum (not just UI)
 
-UI accessibility (focus rings, contrast, reduced motion) is in harden-and-polish.md. Curriculum accessibility is different: it's about whether *the items themselves* work for children with disabilities.
+UI accessibility (focus rings, contrast, reduced motion) is in harden-and-polish-2026-04-30.md. Curriculum accessibility is different: it's about whether *the items themselves* work for children with disabilities.
 
 ### §24.1 Visual disabilities
 
 - **Color-independent meaning:** every item's correctness must not require distinguishing colors. The "amber-shaded slice" pattern fails for color-blind children if amber is the only signal. Pattern fill or position is required as a redundant channel.
 - **Low vision:** items must be intelligible at 200% magnification without horizontal scrolling.
-- **Total blindness:** every item has a textual description sufficient to solve via TTS alone. (The audio.md plan pre-renders these descriptions; the curriculum field provides the source.)
+- **Total blindness:** every item has a textual description sufficient to solve via TTS alone. (The audio-2026-04-30.md plan pre-renders these descriptions; the curriculum field provides the source.)
 
 ### §24.2 Motor disabilities
 
@@ -1111,7 +1111,7 @@ UI accessibility (focus rings, contrast, reduced motion) is in harden-and-polish
 ### §24.4 Hearing disabilities
 
 - TTS is supplementary, never required for understanding (visual primacy, §9.1).
-- Audio cues (when audio.md ships) have visual equivalents.
+- Audio cues (when audio-2026-04-30.md ships) have visual equivalents.
 
 ### §24.5 Audit needed
 
@@ -1243,7 +1243,7 @@ B.1 — Slice fix (§27.1) — engineering [tracked in curriculum-completion-pha
 B.2 — Detector implementations for MC-NOM-01 and MC-ORD-01 (§27.2) — engineering
 B.3 — Template regeneration to bait misconceptions confirmed-missing by Phase A.5 audit — pipeline [tracked in curriculum-completion-phase-3 Phase 1/2]
 B.4 — Variety regeneration for thin/repetitive levels per Phase A.5 audit (likely L5, L6, L7, L9 but TBD) — pipeline [curriculum-completion-phase-3 Phases 2/3]
-B.5 — Per-misconception hint differentiation (§13.2) — registry authoring, pipeline integration in this plan; HintLadder runtime rewrite tracked in `harden-and-polish.md` (open item)
+B.5 — Per-misconception hint differentiation (§13.2) — registry authoring, pipeline integration in this plan; HintLadder runtime rewrite tracked in `harden-and-polish-2026-04-30.md` (open item)
 B.6 — **Bundle-wide representation distribution rebalancing** (§32 decision #8) — re-author L3–L7 templates to introduce number-line representation in supporting roles per §10.1 distribution table — content + pipeline
 B.7 — **Cultural context seeding at scale** (§32 decision #11) — re-author existing bare-imperative prompts to draw from approved-context registry — content + pipeline
 
@@ -1280,7 +1280,7 @@ F.4 — Lock content for v1.0.0 launch
 
 ### Phase G — Post-launch continuous improvement
 
-> **Hard prerequisites.** Phase G analytics presuppose (a) the Dexie schema v5 `telemetryEvents` table from `harden-and-polish.md` R49 (logging substrate), (b) the Level01Scene validator-lookup fix (`master_audit_roadmap.md`) so L1 attempt signal isn't corrupted, (c) the Level01Scene `updateMastery` wiring fix (engine-museum, see §8.1) so L1 BKT signal exists at all, and (d) the localStorage `unlockedLevels:*` C5 breach mitigation (`master_audit_roadmap.md`) so progression state isn't silently destroyed by quota eviction. **Phase G cannot start until those four engine items ship.**
+> **Hard prerequisites.** Phase G analytics presuppose (a) the Dexie schema v5 `telemetryEvents` table from `harden-and-polish-2026-04-30.md` R49 (logging substrate), (b) the Level01Scene validator-lookup fix (`master_audit_roadmap.md`) so L1 attempt signal isn't corrupted, (c) the Level01Scene `updateMastery` wiring fix (engine-museum, see §8.1) so L1 BKT signal exists at all, and (d) the localStorage `unlockedLevels:*` C5 breach mitigation (`master_audit_roadmap.md`) so progression state isn't silently destroyed by quota eviction. **Phase G cannot start until those four engine items ship.**
 
 G.1 — Per-template analytics script (§12.1 stage 2) — engineering; consumes telemetryEvents from harden-and-polish R49
 G.2 — Difficulty re-tiering after 4 weeks — LX + engineering
@@ -1480,7 +1480,7 @@ What we *do* claim:
 ## §35 — v2 (1-year horizon)
 
 - **Multilingual content** (Spanish, then expand)
-- **Audio narration in all locales** (per audio.md pipeline)
+- **Audio narration in all locales** (per audio-2026-04-30.md pipeline)
 - **Pilot v1 study** results published / informing changes
 - ~~Caregiver-facing curriculum reports~~ — **cut.** Violates locked constraint C2 (no teacher/parent UI). Reintroducing requires a product-level constraint relaxation logged in `docs/00-foundation/decision-log.md`, not in this plan.
 - ~~Optional L10–L11 content expansion~~ — **cut.** Violates locked constraint C3 (L1–L9 only). Same constraint-relaxation gate applies.

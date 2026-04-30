@@ -2,7 +2,7 @@
 
 **Status:** Draft — awaiting per-task approval
 **Last updated:** 2026-04-28
-**Sibling plan:** [harden-and-polish.md](./harden-and-polish.md) (correctness, a11y, ops, logging)
+**Sibling plan:** [harden-and-polish-2026-04-30.md](./harden-and-polish-2026-04-30.md) (correctness, a11y, ops, logging)
 **This plan:** *delight, character, celebration, world-building* — no curriculum, engine, or persistence changes
 
 ---
@@ -384,7 +384,7 @@ PRs 3 → 8 deliver visible polish before the bigger Mascot + World Map work in 
 - Avatar customization (Welcome flow / name picker / theme color) — separate task
 - Badges / streaks / XP visibility / currency — separate engagement plan
 - Internationalization extraction (English-only for now; copy lives in `src/lib/mascotCopy.ts` ready for later extraction)
-- Curriculum / engine / persistence / accessibility-fix work — covered by the sibling [harden-and-polish.md](./harden-and-polish.md) plan
+- Curriculum / engine / persistence / accessibility-fix work — covered by the sibling [harden-and-polish-2026-04-30.md](./harden-and-polish-2026-04-30.md) plan
 - Parent dashboard, multiplayer, cloud sync — not in product scope
 
 ---
