@@ -21,6 +21,7 @@
     "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
     "lint": "eslint src --max-warnings 0 && prettier --check src",
     "lint:fix": "eslint src --fix && prettier --write src",
+    "lint:ci": "node scripts/residual-lint.mjs",
     "measure-bundle": "node scripts/measure-bundle.mjs",
     "deploy": "npx wrangler pages deploy dist --project-name questerix-fractions --branch main --commit-dirty=true",
     "validate:curriculum": "node scripts/validate-curriculum.mjs",
