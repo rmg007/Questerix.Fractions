@@ -10,7 +10,22 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
+        "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+      }
+    ]
   },
+  "overrides": [
+    {
+      "files": ["src/components/Mascot.ts"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    }
+  ],
   "ignorePatterns": ["dist", "node_modules", "build", ".venv", "pipeline"]
 }
