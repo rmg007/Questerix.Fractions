@@ -514,14 +514,15 @@ Level 3 is genuinely harder than Levels 1–2 because thirds break the halving s
 
 ## 9. Authoring Status
 
-| Item                          | Required              | Authored         | Notes                                       |
-| ----------------------------- | --------------------- | ---------------- | ------------------------------------------- |
-| `identify_thirds` templates   | 14                    | 3 examples shown | Need 11 more                                |
-| `identify_fourths` templates  | 14                    | 3 examples shown | Need 11 more                                |
-| `name_the_fraction` templates | 12                    | 4 examples shown | Need 8 more                                 |
-| TTS audio scripts             | 40                    | 0                | Generate via SpeechSynthesis API at runtime |
-| Hint definitions              | ~120 (3 per template) | 0                | TBD                                         |
-| Validator function specs      | 1 new (`labelMatch`)  | High-level only  | Need detailed pseudocode                    |
+| Item                          | Required              | Authored                                  | Notes                                                                                       |
+| ----------------------------- | --------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `identify_thirds` templates   | 14                    | 3 doc examples (11 in bundle)             | ≥30 floor met (30 total in bundle). Per-activity aspirational target: 14.                   |
+| `identify_fourths` templates  | 14                    | 3 doc examples (bundle count shared)      | Per-activity aspirational target: 14. Increase when per-activity tagging is added.          |
+| `name_the_fraction` templates | 12                    | 4 doc examples (19 label templates total) | Per-activity aspirational target: 12. Bundle label count: 19.                               |
+| **Bundle total (live)**       | ≥30                   | **30 ✓** (equal_or_not:11, label:19)      | `public/curriculum/v1.json` — floor met as of 2026-04-30.                                   |
+| TTS audio scripts             | 40                    | 0                                         | Generate via SpeechSynthesis API at runtime                                                 |
+| Hint definitions              | ~90 (3 per 30)        | 0                                         | TBD                                                                                         |
+| Validator function specs      | 1 new (`labelMatch`)  | High-level only                           | Need detailed pseudocode                                                                    |
 
 ---
 

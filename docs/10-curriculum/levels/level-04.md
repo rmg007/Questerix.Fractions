@@ -351,14 +351,15 @@ Level 4 sessions tend to run slightly longer than identification levels because 
 
 ## 9. Authoring Status
 
-| Item                             | Required                                               | Authored             | Notes                                                                           |
-| -------------------------------- | ------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------- |
-| `make_halves` templates          | 14                                                     | 3 examples shown     | Need 11 more                                                                    |
-| `halve_the_length` templates     | 10                                                     | 3 examples shown     | Need 7 more                                                                     |
-| Irregular blob asset definitions | 6                                                      | 0                    | Need to author and store as static SVG paths                                    |
-| TTS audio scripts                | 34                                                     | 0                    | Generate via SpeechSynthesis API at runtime                                     |
-| Hint definitions                 | ~102 (3 per template)                                  | 0                    | Should include "drag to the center" and "two halves should match" overlay hints |
-| Validator function specs         | 3 (one new: `placement.midpoint`, `halving.evenSplit`) | High-level only      | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md`          |
+| Item                             | Required                                               | Authored                             | Notes                                                                           |
+| -------------------------------- | ------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------- |
+| `make_halves` templates          | 14                                                     | 3 doc examples                       | ≥30 floor met in bundle. Per-activity aspirational target: 14.                  |
+| `halve_the_length` templates     | 10                                                     | 3 doc examples                       | Per-activity aspirational target: 10. Increase when sub-activity tagging added. |
+| **Bundle total (live)**          | ≥30                                                    | **30 ✓** (all `make` archetype)      | `public/curriculum/v1.json` — floor met as of 2026-04-30 (+11 added this sprint; easy:9, medium:11, hard:10). |
+| Irregular blob asset definitions | 6                                                      | 0                                    | Need to author and store as static SVG paths                                    |
+| TTS audio scripts                | 30                                                     | 0                                    | Generate via SpeechSynthesis API at runtime                                     |
+| Hint definitions                 | ~90 (3 per 30)                                         | 0                                    | Should include "drag to the center" and "two halves should match" overlay hints |
+| Validator function specs         | 3 (one new: `placement.midpoint`, `halving.evenSplit`) | High-level only                      | Need detailed pseudocode in `../../20-mechanic/activity-archetypes.md`          |
 
 ---
 
