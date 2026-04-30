@@ -186,4 +186,52 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
       { timeout: 3000 }
     );
   });
+
+  test('mascot sentinel returns to idle after cheer animation completes', async ({ page }) => {
+    await navigateToLevel01(page);
+
+    const partitionTarget = page.locator('[data-testid="partition-target"]');
+    await expect(partitionTarget).toBeVisible({ timeout: 5000 });
+    await partitionTarget.click();
+
+    // Confirm mascot enters cheer state on correct answer
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'cheer',
+      { timeout: 2000 }
+    );
+
+    // celebrate() runs ~500ms; wait for the feedback overlay to auto-dismiss
+    // and then confirm the sentinel has been reset to idle by setState('idle').
+    await expect(page.locator('[data-testid="feedback-overlay"]')).not.toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'idle',
+      { timeout: 3000 }
+    );
+  });
+
+  test('mascot sentinel returns to idle after cheer-big animation completes', async ({ page }) => {
+    await navigateToLevel01(page);
+
+    await page.locator('[data-testid="session-complete-btn"]').click({ force: true });
+
+    // Confirm mascot enters cheer-big state on session complete
+    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'cheer-big',
+      { timeout: 3000 }
+    );
+
+    // cheerBig() runs ~800ms; after it finishes setState('idle') is called,
+    // resetting the sentinel. Allow 4 seconds total for CI headroom.
+    await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
+      'data-state',
+      'idle',
+      { timeout: 4000 }
+    );
+  });
 });

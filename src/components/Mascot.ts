@@ -126,7 +126,7 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.stopCurrent();
 
     if (this.reduceMotion) {
-      this.idle();
+      this.setState('idle');
       return;
     }
 
@@ -152,7 +152,7 @@ export class Mascot extends Phaser.GameObjects.Container {
           ease: 'Bounce.easeOut',
           onComplete: () => {
             this.setAngle(0);
-            this.idle();
+            this.setState('idle');
           },
         },
       ],
@@ -196,7 +196,7 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.stopCurrent();
 
     if (this.reduceMotion) {
-      this.idle();
+      this.setState('idle');
       return;
     }
 
@@ -222,7 +222,7 @@ export class Mascot extends Phaser.GameObjects.Container {
           ease: 'Bounce.easeOut',
           onComplete: () => {
             this.setAngle(0);
-            this.idle();
+            this.setState('idle');
           },
         },
       ],
