@@ -116,10 +116,27 @@ export class LevelMapScene extends Phaser.Scene {
     const unlocked = this._getUnlockedLevels();
     const completedLevels = this._getCompletedLevels();
 
-    // "Suggested next" = the lowest unlocked level that has not been completed.
-    const suggestedLevel = LEVEL_META.find(
-      (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
-    )?.number ?? null;
+    // "Suggested next" — check if the adaptive router wrote a suggestion, else default to lowest-unlocked-not-completed.
+    let suggestedLevel: number | null = null;
+    try {
+      const sKey = this.lastStudentId ? `suggestedLevel:${this.lastStudentId}` : 'suggestedLevel';
+      const sRaw = localStorage.getItem(sKey);
+      if (sRaw !== null) {
+        const parsed = parseInt(sRaw, 10);
+        // Only honour it if the level is actually unlocked (sanity guard)
+        if (!isNaN(parsed) && unlocked.has(parsed)) {
+          suggestedLevel = parsed;
+        }
+      }
+    } catch {
+      // fall through to default
+    }
+    // Fallback: lowest unlocked level not yet completed
+    if (suggestedLevel === null) {
+      suggestedLevel = LEVEL_META.find(
+        (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
+      )?.number ?? null;
+    }
 
     // ── Mastery data ───────────────────────────────────────────────────────
     const masteredLevels = await this._getMasteredLevels();

@@ -485,10 +485,27 @@ export class MenuScene extends Phaser.Scene {
 
     const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
 
-    // "Suggested next" = lowest unlocked and not-yet-completed level.
-    const suggestedLevel = unlockedMeta.find(
-      (m) => !completedLevels.has(m.number)
-    )?.number ?? null;
+    // "Suggested next" — check if the adaptive router wrote a suggestion, else default to lowest-unlocked-not-completed.
+    let suggestedLevel: number | null = null;
+    try {
+      const sKey = this.lastStudentId ? `suggestedLevel:${this.lastStudentId}` : 'suggestedLevel';
+      const sRaw = localStorage.getItem(sKey);
+      if (sRaw !== null) {
+        const parsed = parseInt(sRaw, 10);
+        // Only honour it if the level is actually unlocked (sanity guard)
+        if (!isNaN(parsed) && unlocked.has(parsed)) {
+          suggestedLevel = parsed;
+        }
+      }
+    } catch {
+      // fall through to default
+    }
+    // Fallback: lowest unlocked level not yet completed
+    if (suggestedLevel === null) {
+      suggestedLevel = unlockedMeta.find(
+        (m) => !completedLevels.has(m.number)
+      )?.number ?? null;
+    }
 
     for (let i = 0; i < unlockedMeta.length; i++) {
       const meta = unlockedMeta[i];
