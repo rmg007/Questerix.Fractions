@@ -10,7 +10,7 @@ import { CLR, HEX } from './utils/colors';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
-import { backupToFile, restoreFromFile } from '../persistence/backup';
+import { backupToFile, restoreFromFile, playtestExportToFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
 
@@ -57,8 +57,8 @@ export class SettingsScene extends Phaser.Scene {
 
     // ── Section labels ─────────────────────────────────────────────────────
     this.sectionLabel(cx, 190, 'Preferences');
-    this.sectionLabel(cx, 560, 'Data');
-    this.sectionLabel(cx, 920, 'Privacy');
+    this.sectionLabel(cx, 540, 'Data');
+    this.sectionLabel(cx, 960, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     // Canvas top ~100px; section label at 190 canvas px.
@@ -85,33 +85,49 @@ export class SettingsScene extends Phaser.Scene {
       )
     );
 
-    // ── Export button ──────────────────────────────────────────────────────
+    // ── Export backup button ───────────────────────────────────────────────
     TestHooks.mountInteractive('settings-export-btn', () => void this.doExport(), {
-      top: toViewport(630),
+      top: toViewport(610),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      630,
+      610,
       'Export My Backup',
       CLR.primary,
       HEX.neutral0,
       () => void this.doExport()
     );
 
-    // ── Restore button ─────────────────────────────────────────────────────
-    this.setupFileInput();
-    TestHooks.mountInteractive('settings-restore-btn', () => this.triggerFilePicker(), {
-      top: toViewport(720),
+    // ── Playtest export button (researcher-friendly flat JSON) ─────────────
+    TestHooks.mountInteractive('settings-playtest-export-btn', () => void this.doPlaytestExport(), {
+      top: toViewport(695),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      720,
+      695,
+      'Export Playtest Data',
+      CLR.primary,
+      HEX.neutral0,
+      () => void this.doPlaytestExport()
+    );
+
+    // ── Restore button ─────────────────────────────────────────────────────
+    this.setupFileInput();
+    TestHooks.mountInteractive('settings-restore-btn', () => this.triggerFilePicker(), {
+      top: toViewport(790),
+      left: halfCanvas,
+      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+      height: `${BTN_H * scaleY}px`,
+    });
+    this.createButton(
+      cx,
+      790,
       'Restore from Backup',
       CLR.primary,
       HEX.neutral0,
@@ -120,24 +136,24 @@ export class SettingsScene extends Phaser.Scene {
 
     // ── Reset button ───────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-reset-btn', () => this.handleReset(), {
-      top: toViewport(820),
+      top: toViewport(875),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createResetButton(cx, 820);
+    this.createResetButton(cx, 875);
 
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 970);
+    this.createPrivacyLink(cx, 1010);
 
     // ── Back button ────────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
-      top: toViewport(1100),
+      top: toViewport(1110),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(cx, 1100, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
+    this.createButton(cx, 1110, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -304,10 +320,38 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
+  private playtestStatusText: Phaser.GameObjects.Text | null = null;
+
+  private async doPlaytestExport(): Promise<void> {
+    try {
+      await playtestExportToFile();
+      this.showPlaytestStatus('Playtest data saved!');
+    } catch (err) {
+      this.showPlaytestStatus('Export failed — please try again.');
+    }
+  }
+
+  private showPlaytestStatus(msg: string): void {
+    this.playtestStatusText?.destroy();
+    this.playtestStatusText = this.add
+      .text(CW / 2, 740, msg, {
+        fontSize: '16px',
+        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        color: '#059669',
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
+
+    this.time.delayedCall(3000, () => {
+      this.playtestStatusText?.destroy();
+      this.playtestStatusText = null;
+    });
+  }
+
   private showExportStatus(msg: string): void {
     this.exportStatusText?.destroy();
     this.exportStatusText = this.add
-      .text(CW / 2, 680, msg, {
+      .text(CW / 2, 658, msg, {
         fontSize: '16px',
         fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
         color: '#059669',
@@ -375,8 +419,8 @@ export class SettingsScene extends Phaser.Scene {
     this.restoreStatusText = null;
 
     const cx = CW / 2;
-    const statusY = 760;
-    const cancelY = 810;
+    const statusY = 840;
+    const cancelY = 893;
 
     let remaining = 3;
 
@@ -461,7 +505,7 @@ export class SettingsScene extends Phaser.Scene {
   private showRestoreStatus(msg: string, isError = false): void {
     this.restoreStatusText?.destroy();
     this.restoreStatusText = this.add
-      .text(CW / 2, 770, msg, {
+      .text(CW / 2, 840, msg, {
         fontSize: '16px',
         fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
         color: isError ? '#DC2626' : '#059669',

@@ -556,16 +556,86 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
 }
 
 /**
- * ORD-01 — Ordering confusion (placeholder for expansion)
-
-/**
- * ORD-01 — Ordering confusion (placeholder for expansion)
- * Future: detect pattern errors in sequencing fractions.
+ * ORD-01 — Ordering confusion (placeholder for Level 9+ expansion).
+ * The `order` archetype first appears at level 09 in curriculum/v1.json.
+ * Level 7 is `compare` archetype — do NOT activate this detector before L9.
+ * Future: detect sequential-guessing patterns in fraction ordering tasks.
  */
 export function detectORD01(attempts: Attempt[], level: number): MisconceptionFlag | null {
-  if (level < 7 || attempts.length < 5) return null;
+  if (level < 9 || attempts.length < 5) return null;
 
-  // Placeholder: future expansion from order archetype
+  // Filter to ordering attempts only (archetype 'order' at L9+)
+  const orderingAttempts = attempts.filter(
+    (a) =>
+      ((a.archetype as string) === 'order' || (a.archetype as string) === 'ordering') &&
+      a.studentAnswerRaw &&
+      Array.isArray(a.studentAnswerRaw)
+  );
+  if (orderingAttempts.length < 5) return null;
+
+  const evidenceIds: string[] = [];
+  const evidenceThreshold = 0.5; // 50% of ordering attempts must show pattern
+
+  for (const attempt of orderingAttempts) {
+    // Pattern A: Sequential tray picking (indices 0, 1, 2... in order)
+    if (attempt.roundEvents && attempt.roundEvents.length > 0) {
+      const pickUpEvents = attempt.roundEvents.filter((e) => (e as any).type === 'pickUp');
+      if (pickUpEvents.length >= 3) {
+        const pickedIndices = pickUpEvents.slice(0, 3).map((e) => (e as any).trayIndex);
+        const isSequential =
+          pickedIndices.length === 3 &&
+          pickedIndices[0] === 0 &&
+          pickedIndices[1] === 1 &&
+          pickedIndices[2] === 2;
+        if (isSequential) {
+          evidenceIds.push(attempt.id);
+          continue;
+        }
+      }
+    }
+
+    // Pattern B: High swap count (≥ 2 swaps) on wrong/close outcomes
+    if (attempt.roundEvents && attempt.roundEvents.length > 0 && !evidenceIds.includes(attempt.id)) {
+      const swapEvents = attempt.roundEvents.filter((e) => (e as any).type === 'swap');
+      const swapCount = swapEvents.length;
+      if ((attempt.outcome === 'WRONG' || attempt.outcome === 'CLOSE') && swapCount >= 2) {
+        evidenceIds.push(attempt.id);
+        continue;
+      }
+    }
+
+    // Pattern C: Benchmark misplacement (wrong ordering on 3+ fractions = magnitude confusion)
+    if (
+      attempt.studentAnswerRaw &&
+      Array.isArray(attempt.studentAnswerRaw) &&
+      (attempt.studentAnswerRaw as unknown[]).length >= 3 &&
+      attempt.outcome === 'WRONG' &&
+      !evidenceIds.includes(attempt.id)
+    ) {
+      // Wrong outcome on multi-fraction ordering task indicates magnitude confusion
+      evidenceIds.push(attempt.id);
+    }
+  }
+
+  // Flag if rate ≥ 50% and at least 3 observations
+  const rate = evidenceIds.length / orderingAttempts.length;
+  if (rate >= evidenceThreshold && evidenceIds.length >= 3) {
+    const { nanoid } = await import('nanoid').catch(() => ({
+      nanoid: () => `mc-${Date.now()}`,
+    }));
+    return {
+      id: (nanoid as any)() as string,
+      studentId: attempts[0]!.studentId,
+      misconceptionId: 'MC-ORD-01' as import('@/types').MisconceptionId,
+      firstObservedAt: Date.now(),
+      lastObservedAt: Date.now(),
+      observationCount: evidenceIds.length,
+      resolvedAt: null,
+      evidenceAttemptIds: evidenceIds.slice(0, 5) as any,
+      syncState: 'local',
+    };
+  }
+
   return null;
 }
 

@@ -25,6 +25,7 @@ import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
+import { tts } from '../audio/TTSService';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -193,6 +194,57 @@ export class MenuScene extends Phaser.Scene {
       },
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
+    // R30/R31: Add missing testids for L2–L5, L8, L9 (off-canvas for e2e bypass tests)
+    TestHooks.mountInteractive(
+      'level-card-L2',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L3',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 3, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L4',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 4, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L5',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 5, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L8',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 8, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    TestHooks.mountInteractive(
+      'level-card-L9',
+      () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 9, studentId: this.lastStudentId });
+      },
+      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
+    );
+    // R30: Add settings-btn testid
+    TestHooks.mountInteractive(
+      'settings-btn',
+      () => {
+        fadeAndStart(this, 'SettingsScene');
+      },
+      { width: '100px', height: '100px', top: '8.3%', left: '50%' }
+    );
 
     // ── Background: pale sky + soft glow circles ──────────────────────────
     this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);
@@ -325,11 +377,13 @@ export class MenuScene extends Phaser.Scene {
     this.mascot?.destroy();
     this.mascot = new Mascot(this, 680, 980);
     this.mascot.setState('idle');
-    // Wave only on the first menu load; skip on _closeLevelGrid re-renders
+    // Wave + TTS greeting only on the first menu load per session.
+    // K-2 players can't reliably read the title, so Quest speaks it.
     if (!mascotGreeted) {
       mascotGreeted = true;
       this.time.delayedCall(400, () => {
         this.mascot?.setState('wave');
+        tts.speak('Hello! Welcome to Questerix Fractions. Tap Play to start!');
       });
     }
 
@@ -591,7 +645,18 @@ export class MenuScene extends Phaser.Scene {
   private _startLevel(levelNumber: number, resume = false): void {
     const data = { levelNumber, studentId: this.lastStudentId, resume };
     if (levelNumber === 1) {
-      fadeAndStart(this, 'Level01Scene', data);
+      // First-time players see the drag tutorial before Level 1 (per open-questions Q4).
+      // Returning players (onboardingSeen flag set) go straight to the level.
+      let onboardingSeen = false;
+      try {
+        onboardingSeen = !!localStorage.getItem('questerix.onboardingSeen');
+      } catch { /* ignore */ }
+
+      if (!onboardingSeen) {
+        fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
+      } else {
+        fadeAndStart(this, 'Level01Scene', data);
+      }
     } else {
       fadeAndStart(this, 'LevelScene', data);
     }

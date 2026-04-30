@@ -29,14 +29,29 @@ export default defineConfig(async () => {
         injectRegister: 'script',
         includeAssets: ['manifest.json', 'icons/*.png'],
         workbox: {
+          // Explicitly precache all build output so the app shell (JS, CSS, HTML)
+          // is available offline on first launch after install.
+          // Per C10 (offline-first) and PWA / offline verification.
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Suppress noisy Workbox warning about large entry points (Phaser 1.3 MB)
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
           runtimeCaching: [
             {
+              // Curriculum JSON fetched at runtime — cache-first so offline
+              // sessions still load the curriculum after the first online visit.
               urlPattern: /\/curriculum\/v\d+\.json/,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'curriculum',
                 expiration: { maxAgeSeconds: 30 * 86400 }, // 30 days
               },
+            },
+            {
+              // Custom webfonts (Fredoka One, Lexend) loaded from CDN.
+              // StaleWhileRevalidate keeps them fresh while still serving offline.
+              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
+              handler: 'StaleWhileRevalidate',
+              options: { cacheName: 'google-fonts' },
             },
           ],
         },

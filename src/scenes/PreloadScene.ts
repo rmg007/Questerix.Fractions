@@ -47,6 +47,14 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on('progress', (value: number) => {
       this.progressBar.width = CW * 0.6 * value;
       this.loadingText.setText(`Loading… ${Math.floor(value * 100)}%`);
+
+      // Update fraction tiles in splash screen as loader progresses
+      const tiles = document.querySelectorAll('#fraction-tiles svg');
+      tiles.forEach((tile, index) => {
+        // Tile appears at: 0 → 33% (first), 33% → 66% (second), 66% → 100% (third)
+        const threshold = (index + 1) / tiles.length;
+        (tile as HTMLElement).style.opacity = value >= threshold ? '1' : '0';
+      });
     });
 
     this.load.on('complete', () => {

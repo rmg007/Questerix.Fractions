@@ -14,15 +14,39 @@ export interface TTSOptions {
 export class TTSService {
   private enabled: boolean;
   private synth: SpeechSynthesis | null;
+  private voicesReady: Promise<void>;
 
   constructor() {
     this.synth = typeof speechSynthesis !== 'undefined' ? speechSynthesis : null;
     this.enabled = !!this.synth;
+
+    // R10: iOS TTS onvoiceschanged listener. On iOS Safari, voices load asynchronously.
+    // Without waiting for onvoiceschanged, the first speak() call may fire before voices
+    // populate, causing silent failure. Promise resolves once voices are ready.
+    this.voicesReady = new Promise<void>((resolve) => {
+      if (!this.synth) {
+        resolve();
+        return;
+      }
+      const checkVoices = () => {
+        if (this.synth!.getVoices().length > 0) {
+          resolve();
+        }
+      };
+      // Check immediately in case voices are already loaded
+      if (this.synth.getVoices().length > 0) {
+        resolve();
+      } else {
+        // Listen for async voice population (iOS)
+        this.synth.onvoiceschanged = checkVoices;
+      }
+    });
   }
 
-  speak(text: string, opts: TTSOptions = {}): void {
+  async speak(text: string, opts: TTSOptions = {}): Promise<void> {
     if (!this.enabled || !this.synth) return;
     try {
+      await this.voicesReady;
       if (this.synth.speaking) this.synth.cancel(); // never overlap
       const u = new SpeechSynthesisUtterance(text);
       u.rate = opts.rate ?? 0.95; // slightly slower for K-2
