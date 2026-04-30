@@ -26,6 +26,7 @@ import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
+import { checkReduceMotion } from '../lib/preferences';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -127,7 +128,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    this.reduceMotion = this.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
     if (!this.reduceMotion) {
@@ -864,17 +865,6 @@ export class MenuScene extends Phaser.Scene {
       update();
       opts.onTap();
     });
-  }
-
-  // ── Reduced motion + font ready helpers ───────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 
   /**

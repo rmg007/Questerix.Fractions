@@ -40,6 +40,7 @@ import { Mascot } from '../components/Mascot';
 // stays consistent and localizable without scene-side string literals.
 import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ export class LevelScene extends Phaser.Scene {
     drawAdventureBackground(this, CW, CH);
 
     // Fade in from black on arrival
-    if (!this.checkReduceMotion()) {
+    if (!checkReduceMotion()) {
       this.cameras.main.fadeIn(300, 0, 0, 0);
     }
 
@@ -292,7 +293,7 @@ export class LevelScene extends Phaser.Scene {
 
     // S3-T1: speak prompt aloud via TTS (preference already loaded in create())
     // Gate by prefers-reduced-motion for users who don't want auto-speech
-    if (!this.checkReduceMotion()) {
+    if (!checkReduceMotion()) {
       tts.speak(this.currentTemplate.prompt.text);
     }
 
@@ -830,7 +831,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private pulseHintButton(): void {
-    if (this.checkReduceMotion()) return;
+    if (checkReduceMotion()) return;
     this.tweens.add({
       targets: this.hintButton,
       scaleX: 1.1,
@@ -1121,7 +1122,7 @@ export class LevelScene extends Phaser.Scene {
    * reports prefers-reduced-motion.
    */
   private animateCounterBadge(): void {
-    if (this.checkReduceMotion()) return;
+    if (checkReduceMotion()) return;
     const badge = this.questionCounterText;
     badge.setScale(1);
     this.tweens.add({
@@ -1135,14 +1136,6 @@ export class LevelScene extends Phaser.Scene {
         badge.setScale(1);
       },
     });
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 
   preDestroy(): void {

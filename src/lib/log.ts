@@ -21,9 +21,9 @@
  *   PERF   — performance / timing data
  *
  * Filtering at runtime:
- *   localStorage.LOG = '*'            → all categories (default in DEV)
- *   localStorage.LOG = 'Q,VALID'      → only Q and VALID
- *   localStorage.LOG = ''             → silence all
+ *   sessionStorage.LOG = '*'          → all categories (default in DEV)
+ *   sessionStorage.LOG = 'Q,VALID'    → only Q and VALID
+ *   sessionStorage.LOG = ''           → silence all (resets on tab close)
  *   URL ?log=Q,VALID also works
  *
  * In production builds (import.meta.env.PROD) only WARN/ERROR are emitted.
@@ -39,8 +39,8 @@ function getFilter(): string {
   try {
     const url = new URLSearchParams(window.location.search).get('log');
     if (url !== null) return url;
-    return localStorage.getItem('LOG') ?? 'Q,VALID,HINT';
-  } catch (err) {
+    return sessionStorage.getItem('LOG') ?? '*';
+  } catch {
     return '*';
   }
 }
@@ -140,16 +140,16 @@ if (import.meta.env.DEV) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__LOG = {
     setFilter: (f: string) => {
-      localStorage.setItem('LOG', f);
+      sessionStorage.setItem('LOG', f);
       console.log(`[LOG] filter set to: "${f}" — reload not required`);
     },
     getFilter,
     silence: () => {
-      localStorage.setItem('LOG', '');
+      sessionStorage.setItem('LOG', '');
       console.log('[LOG] silenced');
     },
     all: () => {
-      localStorage.setItem('LOG', '*');
+      sessionStorage.setItem('LOG', '*');
       console.log('[LOG] all categories enabled');
     },
   };
