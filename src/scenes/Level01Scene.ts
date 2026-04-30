@@ -41,6 +41,7 @@ import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
+import { MASTERY_THRESHOLD } from '../engine/bkt';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -152,6 +153,8 @@ export class Level01Scene extends Phaser.Scene {
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
   private templatePool: QuestionTemplate[] = [];
+  private calibrationState: import('../engine/calibration').CalibrationState | null = null;
+  private recentOutcomes: boolean[] = [];
 
   // UI components
   private feedbackOverlay!: FeedbackOverlay;
@@ -190,6 +193,8 @@ export class Level01Scene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.inputLocked = false;
+    this.calibrationState = null;
+    this.recentOutcomes = [];
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -987,6 +992,7 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private onCorrectAnswer(): void {
+    this.recentOutcomes.push(true);
     this.attemptCount++;
     this.progressBar.setProgress(this.attemptCount);
     log.q('correct', {
@@ -1005,6 +1011,7 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private onWrongAnswer(): void {
+    this.recentOutcomes.push(false);
     this.wrongCount++;
     log.q('wrong', {
       questionIndex: this.questionIndex,
@@ -1343,6 +1350,24 @@ export class Level01Scene extends Phaser.Scene {
 
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
+
+    // Adaptive router: write suggested next level (simplified for L1 — no mastery tracking)
+    try {
+      const { decideNextLevel } = await import('../engine/router');
+      const inCalibration = !!(this.calibrationState && this.calibrationState.remaining > 0);
+      // Level 1 has no prerequisites, so prereqsMet is always false
+      const suggestedLevel = decideNextLevel({
+        currentLevel: 1 as import('@/types').LevelId,
+        masteries: new Map(),
+        prereqsMet: false,
+        inCalibration,
+        recentOutcomes: this.recentOutcomes.slice(-5),
+      });
+      const suggestKey = this.studentId ? `suggestedLevel:${this.studentId}` : 'suggestedLevel';
+      localStorage.setItem(suggestKey, String(suggestedLevel));
+    } catch (err) {
+      log.warn('ROUT', 'decision_error', { error: String(err) });
+    }
 
     // Quest-complete check: if all 9 levels are now done, show grand overlay
     const allDone = this._allLevelsComplete();
