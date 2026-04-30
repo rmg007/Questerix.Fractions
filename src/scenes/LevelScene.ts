@@ -77,9 +77,6 @@ export class LevelScene extends Phaser.Scene {
   // Fix G-E3: hint events linked to attempt records
   private currentQuestionHintIds: string[] = [];
 
-  // R3: Track the current attempt ID so hint events can be linked after creation
-  private currentAttemptId: import('@/types').AttemptId | null = null;
-
   // Template pool
   private templatePool: QuestionTemplate[] = [];
   private currentTemplate!: QuestionTemplate;
@@ -921,7 +918,6 @@ export class LevelScene extends Phaser.Scene {
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
       const attemptId = nanoid() as import('@/types').AttemptId;
-      this.currentAttemptId = attemptId; // R3: Store for hint linkage
       log.atmp('record_start', {
         attemptId,
         outcome,

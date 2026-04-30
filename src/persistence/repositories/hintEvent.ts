@@ -21,5 +21,11 @@ export const hintEventRepo = {
       return [];
     }
   },
+
+  async update(id: string, patch: Partial<HintEvent>): Promise<void> {
+    const key = parseInt(id, 10);
+    if (isNaN(key)) return;
+    await db.hintEvents.update(key, patch);
+  },
 };
 
