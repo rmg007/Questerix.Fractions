@@ -57,7 +57,7 @@ const GLOW_EMERALD = 0x6ee7b7; // emerald-300
 const GLOW_BLUE = 0x93c5fd; // blue-300
 
 export const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
-export const BODY_FONT = '"Nunito", system-ui, sans-serif';
+export const BODY_FONT = '"Lexend", "Nunito", system-ui, sans-serif';
 
 // ── Background ───────────────────────────────────────────────────────────────
 

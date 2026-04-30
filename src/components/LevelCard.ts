@@ -14,6 +14,7 @@ import {
   ACTION_BORDER,
   ACTION_TEXT,
   TITLE_FONT,
+  BODY_FONT,
   TEXT_BODY,
   TEXT_MUTED,
   TEXT_DIM,
@@ -22,12 +23,11 @@ import {
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
 
-const BODY_FONT = '"Lexend", "Nunito", system-ui, sans-serif';
-
 // ── Mastery ribbon palette (matches LevelMapScene) ────────────────────────────
 const RIBBON_GOLD = 0xfbbf24; // amber-400
 const RIBBON_BORDER = 0xb45309; // amber-700
 const RIBBON_H = 20;
+
 
 // ── Adventure theme colours ───────────────────────────────────────────────────
 
