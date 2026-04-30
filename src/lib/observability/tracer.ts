@@ -43,7 +43,9 @@ class TracerService {
 
     if (otlpUrl) {
       const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
-      spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter({ url: otlpUrl, headers: {} })));
+      spanProcessors.push(
+        new BatchSpanProcessor(new OTLPTraceExporter({ url: otlpUrl, headers: {} }))
+      );
     }
 
     const provider = new WebTracerProvider({

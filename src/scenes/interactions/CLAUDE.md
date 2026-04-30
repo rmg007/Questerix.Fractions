@@ -9,12 +9,17 @@ import type { Interaction, InteractionContext } from './types';
 
 export class FooInteraction implements Interaction {
   archetype: ArchetypeId = 'foo';
-  mount(ctx: InteractionContext): void { /* build Phaser GameObjects under ctx.scene */ }
-  unmount(): void { /* destroy everything created in mount */ }
+  mount(ctx: InteractionContext): void {
+    /* build Phaser GameObjects under ctx.scene */
+  }
+  unmount(): void {
+    /* destroy everything created in mount */
+  }
 }
 ```
 
 `InteractionContext` provides:
+
 - `scene` — the parent Phaser scene
 - `template` — the current `QuestionTemplate` (typed payload by archetype)
 - `centerX/centerY/width/height` — interaction's allotted region

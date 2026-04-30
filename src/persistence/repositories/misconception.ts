@@ -31,4 +31,3 @@ export const misconceptionRepo = {
     await db.misconceptions.clear();
   },
 };
-

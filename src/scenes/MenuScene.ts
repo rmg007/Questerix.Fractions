@@ -396,9 +396,7 @@ export class MenuScene extends Phaser.Scene {
     const masteredLevels = new Set<number>();
     try {
       if (this.lastStudentId) {
-        const records = await skillMasteryRepo.getAllForStudent(
-          StudentId(this.lastStudentId)
-        );
+        const records = await skillMasteryRepo.getAllForStudent(StudentId(this.lastStudentId));
         for (const rec of records) {
           if (rec.masteryEstimate < OVERLAY_MASTERY_THRESHOLD) continue;
           for (const meta of LEVEL_META) {
@@ -422,14 +420,17 @@ export class MenuScene extends Phaser.Scene {
     };
 
     // ── Dark scrim ───────────────────────────────────────────────────────────
-    const scrim = this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x000000, 0.7)
+    const scrim = this.add
+      .rectangle(CW / 2, CH / 2, CW, CH, 0x000000, 0.7)
       .setDepth(OVERLAY_DEPTH)
       .setInteractive(); // block clicks below
     track(scrim);
 
     // ── White panel ──────────────────────────────────────────────────────────
-    const panelW = 760, panelH = 600;
-    const panelX = CW / 2, panelY = 600;
+    const panelW = 760,
+      panelH = 600;
+    const panelX = CW / 2,
+      panelY = 600;
     const panelG = this.add.graphics().setDepth(OVERLAY_DEPTH + 1);
     panelG.fillStyle(WHITE, 1);
     panelG.fillRoundedRect(panelX - panelW / 2, panelY - panelH / 2, panelW, panelH, 20);
@@ -439,11 +440,12 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Title ────────────────────────────────────────────────────────────────
     track(
-      this.add.text(panelX, panelY - panelH / 2 + 44, 'Choose a Level', {
-        fontFamily: TITLE_FONT,
-        fontSize: '38px',
-        color: NAVY_HEX,
-      })
+      this.add
+        .text(panelX, panelY - panelH / 2 + 44, 'Choose a Level', {
+          fontFamily: TITLE_FONT,
+          fontSize: '38px',
+          color: NAVY_HEX,
+        })
         .setOrigin(0.5)
         .setDepth(OVERLAY_DEPTH + 2)
     );
@@ -456,16 +458,18 @@ export class MenuScene extends Phaser.Scene {
     closeBg.fillCircle(closeX, closeY, 24);
     track(closeBg);
     track(
-      this.add.text(closeX, closeY, '×', {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '34px',
-        color: NAVY_HEX,
-      })
+      this.add
+        .text(closeX, closeY, '×', {
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          fontSize: '34px',
+          color: NAVY_HEX,
+        })
         .setOrigin(0.5, 0.5)
         .setDepth(OVERLAY_DEPTH + 3)
     );
-    const closeHit = this.add.circle(closeX, closeY, 28, 0x000000, 0)
+    const closeHit = this.add
+      .circle(closeX, closeY, 28, 0x000000, 0)
       .setDepth(OVERLAY_DEPTH + 4)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', () => this._closeChooseLevelOverlay());
@@ -483,9 +487,7 @@ export class MenuScene extends Phaser.Scene {
     const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
 
     // "Suggested next" = lowest unlocked and not-yet-completed level.
-    const suggestedLevel = unlockedMeta.find(
-      (m) => !completedLevels.has(m.number)
-    )?.number ?? null;
+    const suggestedLevel = unlockedMeta.find((m) => !completedLevels.has(m.number))?.number ?? null;
 
     for (let i = 0; i < unlockedMeta.length; i++) {
       const meta = unlockedMeta[i];
@@ -906,4 +908,3 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 }
-

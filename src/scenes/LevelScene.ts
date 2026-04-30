@@ -1034,9 +1034,8 @@ export class LevelScene extends Phaser.Scene {
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
-    const nextLevel = this.levelNumber < 9
-      ? (this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-      : null;
+    const nextLevel =
+      this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
 
     new SessionCompleteOverlay({
       scene: this,
@@ -1085,7 +1084,8 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy = this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
+      const accuracy =
+        this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1148,4 +1148,3 @@ export class LevelScene extends Phaser.Scene {
     A11yLayer.unmountAll();
   }
 }
-

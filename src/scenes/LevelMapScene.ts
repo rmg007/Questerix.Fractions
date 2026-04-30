@@ -112,15 +112,14 @@ export class LevelMapScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-
     // ── Unlock data ────────────────────────────────────────────────────────
     const unlocked = await this._getUnlockedLevels();
     const completedLevels = await this._getCompletedLevels();
 
     // "Suggested next" = the lowest unlocked level that has not been completed.
-    const suggestedLevel = LEVEL_META.find(
-      (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
-    )?.number ?? null;
+    const suggestedLevel =
+      LEVEL_META.find((m) => unlocked.has(m.number) && !completedLevels.has(m.number))?.number ??
+      null;
 
     // ── Mastery data ───────────────────────────────────────────────────────
     const masteredLevels = await this._getMasteredLevels();
@@ -160,12 +159,18 @@ export class LevelMapScene extends Phaser.Scene {
     });
     for (const meta of LEVEL_META) {
       if (unlocked.has(meta.number)) {
-        A11yLayer.mountAction(`a11y-map-level-${meta.number}`, `Play Level ${meta.number}: ${meta.name}`, () => {
-          this._startLevel(meta.number);
-        });
+        A11yLayer.mountAction(
+          `a11y-map-level-${meta.number}`,
+          `Play Level ${meta.number}: ${meta.name}`,
+          () => {
+            this._startLevel(meta.number);
+          }
+        );
       }
     }
-    A11yLayer.announce('Adventure Map. Select a level to play, or press Back to return to the menu.');
+    A11yLayer.announce(
+      'Adventure Map. Select a level to play, or press Back to return to the menu.'
+    );
 
     // ── Test hooks — DOM selectors for E2E tests ────────────────────────────
     // Every node gets a non-interactive sentinel (map-node-<N>) so Playwright
@@ -187,11 +192,12 @@ export class LevelMapScene extends Phaser.Scene {
       const [nx, ny] = NODE_POSITIONS[i];
       const topPct = `${((ny / CH) * 100).toFixed(1)}%`;
       const leftPct = `${((nx / CW) * 100).toFixed(1)}%`;
-      TestHooks.mountInteractive(
-        `map-level-${lvl}`,
-        () => this._startLevel(lvl),
-        { width: '110px', height: '110px', top: topPct, left: leftPct }
-      );
+      TestHooks.mountInteractive(`map-level-${lvl}`, () => this._startLevel(lvl), {
+        width: '110px',
+        height: '110px',
+        top: topPct,
+        left: leftPct,
+      });
       // Mastery ribbon sentinel — only for completed + mastered nodes.
       if (completedLevels.has(meta.number) && masteredLevels.has(meta.number)) {
         TestHooks.mountSentinel(`mastery-ribbon-L${meta.number}`);

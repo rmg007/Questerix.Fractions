@@ -28,7 +28,7 @@ const STAR_EMPTY = '☆';
 const STAR_FILLED = '★';
 const STAR_FONT_SIZE = '36px';
 const STAR_COLOR_FILLED = '#FBBF24'; // gold / amber-400 per colors.ts HEX.gold
-const STAR_COLOR_EMPTY = '#FDE68A';  // goldDim / amber-200 per colors.ts HEX.goldDim
+const STAR_COLOR_EMPTY = '#FDE68A'; // goldDim / amber-200 per colors.ts HEX.goldDim
 const ANIMATE_MS = 200;
 
 export class ProgressBar extends Phaser.GameObjects.Container {
@@ -127,4 +127,3 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     }
   }
 }
-

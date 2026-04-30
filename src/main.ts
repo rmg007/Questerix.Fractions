@@ -43,7 +43,7 @@ function hideSplash(): void {
 async function boot(): Promise<void> {
   // 1. Load preferences to check telemetry consent
   const meta = await deviceMetaRepo.get();
-  
+
   // 2. Initialize observability ASAP (non-fatal: SDK version mismatches must not block boot)
   try {
     initObservability({
@@ -62,9 +62,24 @@ async function boot(): Promise<void> {
   let scenes: import('phaser').Types.Scenes.SceneType[] = [];
 
   try {
-    const { BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene } =
-      await import('./scenes');
-    scenes = [BootScene, PreloadScene, MenuScene, LevelMapScene, Level01Scene, LevelScene, SettingsScene];
+    const {
+      BootScene,
+      PreloadScene,
+      MenuScene,
+      LevelMapScene,
+      Level01Scene,
+      LevelScene,
+      SettingsScene,
+    } = await import('./scenes');
+    scenes = [
+      BootScene,
+      PreloadScene,
+      MenuScene,
+      LevelMapScene,
+      Level01Scene,
+      LevelScene,
+      SettingsScene,
+    ];
   } catch (err) {
     errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
       context: 'boot_scenes',
@@ -86,7 +101,7 @@ async function boot(): Promise<void> {
   };
 
   const game = new Phaser.Game(config);
-  
+
   // 3. Instrument the game instance (non-fatal)
   try {
     const { instrumentGame } = await import('./lib/observability/phaserInstrumentation');

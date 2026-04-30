@@ -6,7 +6,7 @@ One file per archetype. Each exports a default array of `ValidatorRegistration` 
 
 ```ts
 export const fooExact: ValidatorRegistration<FooInput, FooExpected> = {
-  id: 'validator.foo.exact',          // matches QuestionTemplate.validatorId
+  id: 'validator.foo.exact', // matches QuestionTemplate.validatorId
   archetype: 'foo',
   variant: 'exact',
   fn(input, expected): ValidatorResult {

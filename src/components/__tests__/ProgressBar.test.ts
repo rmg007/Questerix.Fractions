@@ -167,9 +167,7 @@ describe('ProgressBar', () => {
     it('updates aria-label to reflect current progress', () => {
       const { bar } = buildBar(5);
       bar.setProgress(3);
-      expect(sentinelEl.getAttribute('aria-label')).toBe(
-        'Progress: 3 of 5 questions correct'
-      );
+      expect(sentinelEl.getAttribute('aria-label')).toBe('Progress: 3 of 5 questions correct');
     });
   });
 

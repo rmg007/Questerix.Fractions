@@ -10,8 +10,12 @@ export function instrumentScene(scene: Scene) {
   const sceneName = scene.scene.key;
 
   // Lifecycle monitoring
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   scene.events.on('init', (data: any) => {
-    logger.info('Scene Init', { category: 'SCENE', data: { scene: sceneName, ...data } });
+    logger.info('Scene Init', {
+      category: 'SCENE',
+      data: { scene: sceneName, ...(data as Record<string, unknown>) },
+    });
   });
 
   scene.events.on('create', () => {
@@ -44,8 +48,8 @@ export function instrumentScene(scene: Scene) {
  */
 export function instrumentGame(game: Phaser.Game) {
   // Automatically instrument every scene that is added/started
-  game.scene.scenes.forEach(scene => instrumentScene(scene));
-  
+  game.scene.scenes.forEach((scene) => instrumentScene(scene));
+
   // For scenes added dynamically later
   game.events.on('step', () => {
     // This is a bit heavy, let's use a better event if available.

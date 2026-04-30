@@ -221,4 +221,3 @@ export class DragHandle {
     }
   }
 }
-

@@ -70,4 +70,3 @@ export const AccessibilityAnnouncer = {
     // If already destroyed, no-op (no error thrown)
   },
 };
-

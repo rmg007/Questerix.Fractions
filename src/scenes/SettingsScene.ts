@@ -38,7 +38,9 @@ export class SettingsScene extends Phaser.Scene {
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     const cx = CW / 2;
 
@@ -109,13 +111,8 @@ export class SettingsScene extends Phaser.Scene {
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(
-      cx,
-      720,
-      'Restore from Backup',
-      CLR.primary,
-      HEX.neutral0,
-      () => this.triggerFilePicker()
+    this.createButton(cx, 720, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
+      this.triggerFilePicker()
     );
 
     // ── Reset button ───────────────────────────────────────────────────────
@@ -365,7 +362,6 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
-
   private showRestoreStatus(msg: string, isError = false): void {
     this.restoreStatusText?.destroy();
     this.restoreStatusText = this.add
@@ -481,4 +477,3 @@ export class SettingsScene extends Phaser.Scene {
     this.cleanup();
   }
 }
-

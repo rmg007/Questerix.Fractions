@@ -81,11 +81,11 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
 
   // Always log to observability logger (it handles its own filtering/consent)
   if (fn === 'error') {
-    logger.error(event, { category, data: data as Record<string, any> });
+    logger.error(event, { category, data: data as Record<string, unknown> });
   } else if (fn === 'warn') {
-    logger.warn(event, { category, data: data as Record<string, any> });
+    logger.warn(event, { category, data: data as Record<string, unknown> });
   } else {
-    logger.info(event, { category, data: data as Record<string, any> });
+    logger.info(event, { category, data: data as Record<string, unknown> });
   }
 
   if (!enabled) return;
@@ -94,7 +94,7 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
   const style = STYLES[cat.trim()] ?? 'color:#374151;font-weight:700';
   const prefix = `%c[${ts()}] ${cat}%c ${event}`;
   const reset = 'color:inherit;font-weight:normal';
-  
+
   if (data !== undefined) {
     (console[fn] as (...a: unknown[]) => void)(prefix, style, reset, data);
   } else {
@@ -140,4 +140,3 @@ if (import.meta.env.DEV) {
     },
   };
 }
-

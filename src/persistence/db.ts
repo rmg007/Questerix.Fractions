@@ -263,4 +263,3 @@ export async function ensurePersistenceGranted(): Promise<boolean> {
     return false;
   }
 }
-

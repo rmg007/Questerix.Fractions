@@ -11,7 +11,7 @@ const BUILD_INFO = {
 
 export interface LogOptions {
   category?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   studentId?: StudentId;
   sessionId?: SessionId;
   error?: Error;
@@ -58,11 +58,21 @@ class Logger {
     if (isDev || severity === 'error' || severity === 'fatal' || severity === 'warn') {
       const label = `[${severity.toUpperCase()}] ${options?.category ? `[${options.category}] ` : ''}${event}`;
       const consoleArgs = options?.data ? [label, options.data] : [label];
-      
+
       if (options?.error) {
         console.error(label, options.error, options.data);
       } else {
-        (console[severity === 'fatal' ? 'error' : severity === 'debug' ? 'debug' : severity === 'info' ? 'info' : 'warn'] || console.log)(...consoleArgs);
+        (
+          console[
+            severity === 'fatal'
+              ? 'error'
+              : severity === 'debug'
+                ? 'debug'
+                : severity === 'info'
+                  ? 'info'
+                  : 'warn'
+          ] || console.log
+        )(...consoleArgs);
       }
     }
 
@@ -117,7 +127,7 @@ class Logger {
           .offset(count - 1000)
           .limit(1)
           .primaryKeys();
-        
+
         if (oldestToKeep !== undefined) {
           await db.telemetryEvents.where('id').below(oldestToKeep).delete();
         }

@@ -265,13 +265,17 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const rotated = eolAttempts.filter((a) => {
-    const p = a.payload as Record<string, any>;
+    const p = a.payload as Record<string, unknown>;
     return p && p.rotation !== 0 && p.rotation !== undefined;
   });
   if (rotated.length < 3) return null;
 
   const evidenceIds = rotated
-    .filter((a) => a.outcome === 'WRONG' && (a.studentAnswerRaw as any)?.studentAnswer === false)
+    .filter(
+      (a) =>
+        a.outcome === 'WRONG' &&
+        (a.studentAnswerRaw as Record<string, unknown>)?.studentAnswer === false
+    )
     .map((a) => a.id);
 
   if (evidenceIds.length / rotated.length >= 0.5) {
@@ -283,7 +287,7 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -297,7 +301,11 @@ export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionF
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const evidenceIds = eolAttempts
-    .filter((a) => a.outcome === 'WRONG' && (a.studentAnswerRaw as any)?.studentAnswer === true)
+    .filter(
+      (a) =>
+        a.outcome === 'WRONG' &&
+        (a.studentAnswerRaw as Record<string, unknown>)?.studentAnswer === true
+    )
     .map((a) => a.id);
 
   if (evidenceIds.length / eolAttempts.length >= 0.4) {
@@ -309,7 +317,7 @@ export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionF
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -323,7 +331,11 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const evidenceIds = eolAttempts
-    .filter((a) => a.outcome === 'WRONG' && (a.studentAnswerRaw as any)?.studentAnswer === false)
+    .filter(
+      (a) =>
+        a.outcome === 'WRONG' &&
+        (a.studentAnswerRaw as Record<string, unknown>)?.studentAnswer === false
+    )
     .map((a) => a.id);
 
   if (evidenceIds.length / eolAttempts.length >= 0.5) {
@@ -335,7 +347,7 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -361,7 +373,7 @@ export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -375,13 +387,16 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
   if (level < 8 || attempts.length < 5) return null;
   const benchmarkAttempts = attempts.filter((a) => a.archetype === 'benchmark');
   const targetAboveHalf = benchmarkAttempts.filter((a) => {
-    const c = a.correctAnswerRaw as any;
-    return c && c.targetValue > 0.5;
+    const c = a.correctAnswerRaw as Record<string, unknown>;
+    return c && typeof c.targetValue === 'number' && c.targetValue > 0.5;
   });
   if (targetAboveHalf.length < 3) return null;
 
   const evidenceIds = targetAboveHalf
-    .filter((a) => (a.studentAnswerRaw as any)?.placedValue < 0.5)
+    .filter((a) => {
+      const s = a.studentAnswerRaw as Record<string, unknown>;
+      return s && typeof s.placedValue === 'number' && s.placedValue < 0.5;
+    })
     .map((a) => a.id);
 
   if (evidenceIds.length / targetAboveHalf.length >= 0.6) {
@@ -393,7 +408,7 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -421,7 +436,7 @@ export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -446,7 +461,7 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -457,9 +472,7 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
  * VOC-01 — Fourth ≠ Quarter
  */
 export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionFlag | null {
-  const vocabAttempts = attempts.filter((a) =>
-    a.prompt?.text?.toLowerCase().includes('quarter')
-  );
+  const vocabAttempts = attempts.filter((a) => a.prompt?.text?.toLowerCase().includes('quarter'));
   if (vocabAttempts.length < 2) return null;
 
   const evidenceIds = vocabAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
@@ -472,7 +485,7 @@ export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionF
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -486,7 +499,7 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
   if (level !== 5) return null;
   const thirdsAttempts = attempts.filter((a) => a.payload?.targetPartitions === 3);
   const evidenceIds = thirdsAttempts
-    .filter((a) => (a.studentAnswerRaw as any)?.actualPartitions === 2)
+    .filter((a) => (a.studentAnswerRaw as Record<string, unknown>)?.actualPartitions === 2)
     .map((a) => a.id);
 
   if (evidenceIds.length / thirdsAttempts.length >= 0.5) {
@@ -498,7 +511,7 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -512,7 +525,7 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
   if (level !== 5) return null;
   const fourthsAttempts = attempts.filter((a) => a.payload?.targetPartitions === 4);
   const evidenceIds = fourthsAttempts
-    .filter((a) => (a.studentAnswerRaw as any)?.cutCount === 3)
+    .filter((a) => (a.studentAnswerRaw as Record<string, unknown>)?.cutCount === 3)
     .map((a) => a.id);
 
   if (evidenceIds.length >= 1) {
@@ -524,7 +537,7 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -548,7 +561,7 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
       lastObservedAt: Date.now(),
       observationCount: evidenceIds.length,
       resolvedAt: null,
-      evidenceAttemptIds: evidenceIds as any,
+      evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
       syncState: 'local',
     };
   }
@@ -579,11 +592,14 @@ export function detectSTRAT01(attempts: Attempt[], level: number): Misconception
   if (level < 9 || attempts.length < 3) return null;
 
   const orderingAttempts = attempts.filter(
-    (a) => ((a.archetype as string) === 'ordering' || (a.archetype as string) === 'order') && a.roundEvents && a.roundEvents.length > 0
+    (a) =>
+      ((a.archetype as string) === 'ordering' || (a.archetype as string) === 'order') &&
+      a.roundEvents &&
+      a.roundEvents.length > 0
   );
   if (orderingAttempts.length < 3) return null;
 
-  const evidenceIds: any[] = [];
+  const evidenceIds: import('@/types').AttemptId[] = [];
   for (const attempt of orderingAttempts) {
     const events = attempt.roundEvents!;
 

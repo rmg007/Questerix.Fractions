@@ -209,4 +209,3 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
 // Suppress unused-import warning — Dexie is referenced for Table generic above
 void (Dexie as unknown);
-

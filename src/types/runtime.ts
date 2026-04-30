@@ -348,7 +348,7 @@ export interface TelemetryEvent {
   event: string;
   severity: TelemetrySeverity;
   /** Arbitrary context properties. */
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   /** Optional student context. */
   studentId?: StudentId;
   /** Optional session context. */

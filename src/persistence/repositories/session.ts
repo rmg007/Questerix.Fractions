@@ -59,4 +59,3 @@ export const sessionRepo = {
     return sessionRepo.update(id, summary);
   },
 };
-
