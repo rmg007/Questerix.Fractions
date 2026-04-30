@@ -30,7 +30,7 @@ jobs:
       - name: Start Vite dev server
         run: npm run dev:app &
       - name: Wait for server
-        run: npx wait-on http://localhost:5173 --timeout 30000
+        run: npx wait-on http://localhost:5000 --timeout 30000
 
       - name: Run synthetic playtest (quick mode)
         run: npm run playtest:synthetic:quick

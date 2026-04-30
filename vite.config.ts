@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 import { execSync } from 'child_process';
+import { DEV_PORT } from './src/config/shared';
 
 // Inject git short SHA + build time so the live site exposes its version.
 // Surfaced via meta tag in index.html and queryable via postdeploy.
@@ -105,7 +106,7 @@ export default defineConfig(async () => {
       },
     },
     server: {
-      port: 5000,
+      port: DEV_PORT,
       host: '0.0.0.0',
       allowedHosts: true,
       watch: {

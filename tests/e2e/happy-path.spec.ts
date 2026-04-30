@@ -4,7 +4,7 @@
  * per test-strategy.md §1.3 and playtest-protocol.md §3/§5
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 import { navigateToLevel01, doAttempt } from './test-helpers';
 
 test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Menu', () => {

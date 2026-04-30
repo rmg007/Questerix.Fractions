@@ -10,7 +10,7 @@ import { expect } from '@playwright/test';
  * Route: boot-start-btn → menu-scene → level-card-L1 → level-map-scene.
  */
 export async function navigateToLevelMap(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/?testHooks=1');
   const startBtn = page.locator('[data-testid="boot-start-btn"]');
   await expect(startBtn).toBeVisible({ timeout: 15000 });
   await startBtn.click();

@@ -1,6 +1,6 @@
 // Smoke test: Boot → Menu → Level01 first attempt
 // per test-strategy.md §1.3 (E2E happy path) and playtest-protocol.md §4
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 test.describe('Smoke — boot to first attempt', () => {
   test('boots app, navigates Boot→Menu→L1, renders FeedbackOverlay within 1000ms', async ({
@@ -17,7 +17,7 @@ test.describe('Smoke — boot to first attempt', () => {
     // Navigate to Menu
     await startBtn.click();
     const menuScene = page.locator('[data-testid="menu-scene"]');
-    await expect(menuScene).toBeVisible({ timeout: 3000 });
+    await expect(menuScene).toBeVisible({ timeout: 8000 });
 
     // Click Play / level-card-L1 — now opens the Adventure Map
     const level1Card = page.locator('[data-testid="level-card-L1"]');

@@ -1,6 +1,6 @@
 // WCAG 2.1 AA automated checks and touch-target audit
 // per accessibility.md §7 (test plan) and §2 (touch targets ≥ 44×44 CSS px)
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
