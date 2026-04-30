@@ -13,6 +13,7 @@
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { sfx } from '../audio/SFXService';
 
 export type FeedbackKind = 'correct' | 'incorrect' | 'close';
 
@@ -129,6 +130,11 @@ export class FeedbackOverlay {
     this.label.setX(this.cx + 20);
 
     this.dismissTimer?.remove(false);
+
+    // ── Sound effect ─────────────────────────────────────────────────────────
+    if (kind === 'correct') {
+      sfx.playCorrect();
+    }
 
     // ── Test hooks ─────────────────────────────────────────────────────────
     TestHooks.mountSentinel('feedback-overlay');

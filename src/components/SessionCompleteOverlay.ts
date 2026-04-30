@@ -18,6 +18,7 @@ import {
 } from '../scenes/utils/levelTheme';
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { sfx } from '../audio/SFXService';
 
 export interface SessionCompleteConfig {
   scene: Phaser.Scene;
@@ -136,6 +137,7 @@ export class SessionCompleteOverlay {
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
+      sfx.playComplete();
       this.announce(levelNumber, starCount);
       TestHooks.mountSentinel('completion-screen');
       return;
@@ -148,6 +150,7 @@ export class SessionCompleteOverlay {
       ease: 'Back.easeOut',
       delay: 60,
       onComplete: () => {
+        sfx.playComplete();
         this.animateStars(scene, cx, 530, depth, () => {
           this.announce(levelNumber, starCount);
           TestHooks.mountSentinel('completion-screen');

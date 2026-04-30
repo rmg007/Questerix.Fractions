@@ -31,6 +31,7 @@ import type { Interaction } from './interactions/types';
 import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
 import { tts } from '../audio/TTSService';
+import { sfx } from '../audio/SFXService';
 import { log } from '../lib/log';
 import { Mascot } from '../components/Mascot';
 // Quest microcopy catalog (registered at boot via src/main.ts).
@@ -201,8 +202,9 @@ export class LevelScene extends Phaser.Scene {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
+      sfx.setEnabled(meta.preferences.audio ?? true);
     } catch (err) {
-      // Graceful fallback — leave TTS in its default state
+      // Graceful fallback — leave TTS and SFX in their default state
     }
 
     this.loadQuestion(0);

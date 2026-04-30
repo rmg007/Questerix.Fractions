@@ -33,6 +33,7 @@ import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import type { ValidatorResult, QuestionTemplate } from '@/types';
 import type { PartitionInput, PartitionPayload } from '../validators/partition';
 import { tts } from '../audio/TTSService';
+import { sfx } from '../audio/SFXService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
@@ -320,8 +321,9 @@ export class Level01Scene extends Phaser.Scene {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
+      sfx.setEnabled(meta.preferences.audio ?? true);
     } catch (err) {
-      // Graceful fallback — leave TTS in its default state
+      // Graceful fallback — leave TTS and SFX in their default state
     }
 
     log.scene('create_done');

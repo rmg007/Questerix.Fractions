@@ -76,7 +76,7 @@ export class SettingsScene extends Phaser.Scene {
         { top: toViewport(250), left: halfCanvas }
       ),
       new PreferenceToggle(
-        { key: 'audio', label: 'TTS Enabled' },
+        { key: 'audio', label: 'Audio Enabled' },
         { top: toViewport(330), left: halfCanvas }
       ),
       new PreferenceToggle(

@@ -4,3 +4,4 @@
  */
 export { TTSService, tts } from './TTSService';
 export type { TTSOptions } from './TTSService';
+export { SFXService, sfx } from './SFXService';
