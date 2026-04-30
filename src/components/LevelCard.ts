@@ -40,6 +40,12 @@ const BADGE_FILL = ACTION_FILL; // amber — matches Check button / Play station
 const SUGGESTED_BORDER = ACTION_FILL; // amber border for suggested card
 const SUGGESTED_GLOW = ACTION_FILL; // amber glow behind suggested card
 
+// Completed level palette — amber tint to signal progress
+const COMPLETED_BG = 0xfffbeb; // amber-50 — warm tint
+const COMPLETED_BORDER = 0xfbbf24; // amber-400
+const COMPLETED_STAR_BG = 0xfbbf24; // amber-400 — star badge fill
+const COMPLETED_STAR_BORDER = 0xb45309; // amber-700 — star badge stroke
+
 const CARD_W = 220;
 const CARD_H = 160;
 const CARD_RADIUS = 16;
@@ -50,6 +56,7 @@ export interface LevelCardOptions {
   y: number;
   meta: LevelMeta;
   unlocked: boolean;
+  completed?: boolean;
   suggested: boolean;
   mastered?: boolean;
   /**
@@ -73,6 +80,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
   private readonly unlocked: boolean;
   private readonly mastered: boolean;
   private readonly containerScale: number;
+  private readonly completed: boolean;
   private readonly onTap: (n: number) => void;
   private bg!: Phaser.GameObjects.Graphics;
   private readonly reducedMotion: boolean;
@@ -85,9 +93,10 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.unlocked = opts.unlocked;
     this.mastered = opts.mastered ?? false;
     this.containerScale = opts.containerScale ?? 1;
+    this.completed = opts.completed ?? false;
     this.onTap = opts.onTap;
-    this.bgFill = opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
-    this.bgBorder = opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
+    this.bgFill = this.completed ? COMPLETED_BG : opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
+    this.bgBorder = this.completed ? COMPLETED_BORDER : opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
     this.reducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -196,20 +205,43 @@ export class LevelCard extends Phaser.GameObjects.Container {
         .setOrigin(0.5)
     );
 
-    // Grade band — top-right
-    this.add(
-      s.add
-        .text(CARD_W / 2 - 10, -CARD_H / 2 + 12, `Gr ${this.meta.gradeBand}`, {
-          fontSize: '11px',
-          fontFamily: BODY_FONT,
-          color: this.unlocked ? TEXT_BODY : TEXT_DIM,
-        })
-        .setOrigin(1, 0)
-    );
+    // Grade band — top-right (hidden when completed to make room for the star badge)
+    if (!this.completed) {
+      this.add(
+        s.add
+          .text(CARD_W / 2 - 10, -CARD_H / 2 + 12, `Gr ${this.meta.gradeBand}`, {
+            fontSize: '11px',
+            fontFamily: BODY_FONT,
+            color: this.unlocked ? TEXT_BODY : TEXT_DIM,
+          })
+          .setOrigin(1, 0)
+      );
+    }
 
     // Lock icon for locked levels
     if (!this.unlocked) {
       this.add(s.add.text(0, -36, '🔒', { fontSize: '22px' }).setOrigin(0.5));
+    }
+
+    // Star badge for completed levels — top-right corner circle
+    if (this.completed) {
+      const BADGE_R = 18;
+      const bx = CARD_W / 2 - BADGE_R + 4;
+      const by = -CARD_H / 2 + BADGE_R - 4;
+      const badgeCircle = s.add.graphics();
+      badgeCircle.fillStyle(COMPLETED_STAR_BG, 1);
+      badgeCircle.lineStyle(2.5, COMPLETED_STAR_BORDER, 1);
+      badgeCircle.fillCircle(bx, by, BADGE_R);
+      badgeCircle.strokeCircle(bx, by, BADGE_R);
+      this.add(badgeCircle);
+      this.add(
+        s.add
+          .text(bx, by, '★', {
+            fontSize: '20px',
+            color: '#78350f',
+          })
+          .setOrigin(0.5)
+      );
     }
 
     // "Suggested next" amber badge — bottom centre

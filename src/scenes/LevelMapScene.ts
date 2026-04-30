@@ -139,6 +139,7 @@ export class LevelMapScene extends Phaser.Scene {
         y: ny,
         meta,
         unlocked: isUnlocked,
+        completed: isCompleted,
         suggested: isSuggested,
         mastered: isCompleted && masteredLevels.has(meta.number),
         containerScale: CARD_SCALE,
