@@ -28,13 +28,14 @@ import {
   drawAdventureBackground,
 } from './utils/levelTheme';
 import { fadeAndStart } from './utils/sceneTransition';
-import { checkReduceMotion } from '../lib/preferences';
 import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { LEVEL_META } from './utils/levelMeta';
 import { LevelCard } from '../components/LevelCard';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import type { StudentId } from '../types';
+import { StudentId as StudentIdConstructor } from '../types/branded';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -88,7 +89,7 @@ export class LevelMapScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    this.reduceMotion = checkReduceMotion();
+    this.reduceMotion = this._checkReduceMotion();
 
     // Fade in from black
     if (!this.reduceMotion) {
@@ -111,32 +112,14 @@ export class LevelMapScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-
     // ── Unlock data ────────────────────────────────────────────────────────
-    const unlocked = this._getUnlockedLevels();
-    const completedLevels = this._getCompletedLevels();
+    const unlocked = await this._getUnlockedLevels();
+    const completedLevels = await this._getCompletedLevels();
 
-    // "Suggested next" — check if the adaptive router wrote a suggestion, else default to lowest-unlocked-not-completed.
-    let suggestedLevel: number | null = null;
-    try {
-      const sKey = this.lastStudentId ? `suggestedLevel:${this.lastStudentId}` : 'suggestedLevel';
-      const sRaw = localStorage.getItem(sKey);
-      if (sRaw !== null) {
-        const parsed = parseInt(sRaw, 10);
-        // Only honour it if the level is actually unlocked (sanity guard)
-        if (!isNaN(parsed) && unlocked.has(parsed)) {
-          suggestedLevel = parsed;
-        }
-      }
-    } catch {
-      // fall through to default
-    }
-    // Fallback: lowest unlocked level not yet completed
-    if (suggestedLevel === null) {
-      suggestedLevel = LEVEL_META.find(
-        (m) => unlocked.has(m.number) && !completedLevels.has(m.number)
-      )?.number ?? null;
-    }
+    // "Suggested next" = the lowest unlocked level that has not been completed.
+    const suggestedLevel =
+      LEVEL_META.find((m) => unlocked.has(m.number) && !completedLevels.has(m.number))?.number ??
+      null;
 
     // ── Mastery data ───────────────────────────────────────────────────────
     const masteredLevels = await this._getMasteredLevels();
@@ -176,12 +159,18 @@ export class LevelMapScene extends Phaser.Scene {
     });
     for (const meta of LEVEL_META) {
       if (unlocked.has(meta.number)) {
-        A11yLayer.mountAction(`a11y-map-level-${meta.number}`, `Play Level ${meta.number}: ${meta.name}`, () => {
-          this._startLevel(meta.number);
-        });
+        A11yLayer.mountAction(
+          `a11y-map-level-${meta.number}`,
+          `Play Level ${meta.number}: ${meta.name}`,
+          () => {
+            this._startLevel(meta.number);
+          }
+        );
       }
     }
-    A11yLayer.announce('Adventure Map. Select a level to play, or press Back to return to the menu.');
+    A11yLayer.announce(
+      'Adventure Map. Select a level to play, or press Back to return to the menu.'
+    );
 
     // ── Test hooks — DOM selectors for E2E tests ────────────────────────────
     // Every node gets a non-interactive sentinel (map-node-<N>) so Playwright
@@ -203,11 +192,12 @@ export class LevelMapScene extends Phaser.Scene {
       const [nx, ny] = NODE_POSITIONS[i];
       const topPct = `${((ny / CH) * 100).toFixed(1)}%`;
       const leftPct = `${((nx / CW) * 100).toFixed(1)}%`;
-      TestHooks.mountInteractive(
-        `map-level-${lvl}`,
-        () => this._startLevel(lvl),
-        { width: '110px', height: '110px', top: topPct, left: leftPct }
-      );
+      TestHooks.mountInteractive(`map-level-${lvl}`, () => this._startLevel(lvl), {
+        width: '110px',
+        height: '110px',
+        top: topPct,
+        left: leftPct,
+      });
       // Mastery ribbon sentinel — only for completed + mastered nodes.
       if (completedLevels.has(meta.number) && masteredLevels.has(meta.number)) {
         TestHooks.mountSentinel(`mastery-ribbon-L${meta.number}`);
@@ -343,36 +333,28 @@ export class LevelMapScene extends Phaser.Scene {
     return mastered;
   }
 
-  private _getUnlockedLevels(): Set<number> {
-    const unlocked = new Set<number>([1]);
+  private async _getUnlockedLevels(): Promise<Set<number>> {
+    if (!this.studentId) {
+      return new Set([1]); // Level 1 always unlocked
+    }
     try {
-      const key = this.studentId ? `unlockedLevels:${this.studentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => unlocked.add(n));
-      }
+      return await levelProgressionRepo.getUnlockedLevels(StudentIdConstructor(this.studentId));
     } catch {
       // Fall back to level 1 only on storage error
+      return new Set([1]);
     }
-    return unlocked;
   }
 
-  private _getCompletedLevels(): Set<number> {
-    const completed = new Set<number>();
+  private async _getCompletedLevels(): Promise<Set<number>> {
+    if (!this.studentId) {
+      return new Set();
+    }
     try {
-      // Read from the explicit completedLevels key written by MenuScene.markLevelComplete.
-      // This correctly covers Level 9 which has no successor level to unlock.
-      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => completed.add(n));
-      }
+      return await levelProgressionRepo.getCompletedLevels(StudentIdConstructor(this.studentId));
     } catch {
       // Ignore storage errors — map renders without star badges on failure
+      return new Set();
     }
-    return completed;
   }
 
   private _startLevel(levelNumber: number): void {
@@ -384,4 +366,11 @@ export class LevelMapScene extends Phaser.Scene {
     }
   }
 
+  private _checkReduceMotion(): boolean {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
+  }
 }

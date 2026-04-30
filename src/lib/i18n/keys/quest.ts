@@ -89,7 +89,8 @@ const QUEST_COPY: Catalog = {
   },
   'quest.feedback.wrong.benchmark': {
     text: 'Try again. Think near the half.',
-    notes: 'Wrong answer for benchmark. Points to the half benchmark; all 1-syllable words keep FK low.',
+    notes:
+      'Wrong answer for benchmark. Points to the half benchmark; all 1-syllable words keep FK low.',
     tone: 'persona-quest',
   },
   'quest.feedback.wrong.label': {

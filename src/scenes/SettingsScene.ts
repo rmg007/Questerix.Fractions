@@ -10,13 +10,9 @@ import { CLR, HEX } from './utils/colors';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
-import { backupToFile, restoreFromFile, playtestExportToFile } from '../persistence/backup';
+import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
-import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
-import { sfx } from '../audio/SFXService';
-import { tts } from '../audio/TTSService';
-import { checkReduceMotion } from '../lib/preferences';
 
 const CW = 800;
 const CH = 1280;
@@ -28,7 +24,6 @@ type ResetStep = 'idle' | 'confirm';
 
 export class SettingsScene extends Phaser.Scene {
   private toggles: PreferenceToggle[] = [];
-  private volumeSliderWrapper: HTMLElement | null = null;
 
   constructor() {
     super({ key: 'SettingsScene' });
@@ -40,10 +35,12 @@ export class SettingsScene extends Phaser.Scene {
 
     // Fade in from black on arrival
     try {
-      if (!checkReduceMotion()) {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     const cx = CW / 2;
 
@@ -62,8 +59,8 @@ export class SettingsScene extends Phaser.Scene {
 
     // ── Section labels ─────────────────────────────────────────────────────
     this.sectionLabel(cx, 190, 'Preferences');
-    this.sectionLabel(cx, 540, 'Data');
-    this.sectionLabel(cx, 960, 'Privacy');
+    this.sectionLabel(cx, 560, 'Data');
+    this.sectionLabel(cx, 920, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     // Canvas top ~100px; section label at 190 canvas px.
@@ -81,98 +78,63 @@ export class SettingsScene extends Phaser.Scene {
         { top: toViewport(250), left: halfCanvas }
       ),
       new PreferenceToggle(
-        {
-          key: 'audio',
-          label: 'Audio Enabled',
-          onChange: (val) => {
-            const audioOn = val as boolean;
-            if (this.volumeSliderWrapper) {
-              const slider = this.volumeSliderWrapper.querySelector('input') as HTMLInputElement | null;
-              if (slider) slider.disabled = !audioOn;
-              this.volumeSliderWrapper.style.opacity = audioOn ? '1' : '0.4';
-            }
-          },
-        },
+        { key: 'audio', label: 'Audio Enabled' },
         { top: toViewport(330), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
-        { top: toViewport(490), left: halfCanvas }
+        { top: toViewport(410), left: halfCanvas }
       )
     );
 
-    // ── Volume slider (DOM overlay) ────────────────────────────────────────
-    void this.createVolumeSlider(toViewport(410), halfCanvas);
-
-    // ── Export backup button ───────────────────────────────────────────────
+    // ── Export button ──────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-export-btn', () => void this.doExport(), {
-      top: toViewport(610),
+      top: toViewport(630),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      610,
+      630,
       'Export My Backup',
       CLR.primary,
       HEX.neutral0,
       () => void this.doExport()
     );
 
-    // ── Playtest export button (researcher-friendly flat JSON) ─────────────
-    TestHooks.mountInteractive('settings-playtest-export-btn', () => void this.doPlaytestExport(), {
-      top: toViewport(695),
-      left: halfCanvas,
-      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
-      height: `${BTN_H * scaleY}px`,
-    });
-    this.createButton(
-      cx,
-      695,
-      'Export Playtest Data',
-      CLR.primary,
-      HEX.neutral0,
-      () => void this.doPlaytestExport()
-    );
-
     // ── Restore button ─────────────────────────────────────────────────────
     this.setupFileInput();
     TestHooks.mountInteractive('settings-restore-btn', () => this.triggerFilePicker(), {
-      top: toViewport(790),
+      top: toViewport(720),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(
-      cx,
-      790,
-      'Restore from Backup',
-      CLR.primary,
-      HEX.neutral0,
-      () => this.triggerFilePicker()
+    this.createButton(cx, 720, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
+      this.triggerFilePicker()
     );
 
     // ── Reset button ───────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-reset-btn', () => this.handleReset(), {
-      top: toViewport(875),
+      top: toViewport(820),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createResetButton(cx, 875);
+    this.createResetButton(cx, 820);
 
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 1010);
+    this.createPrivacyLink(cx, 970);
 
     // ── Back button ────────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
-      top: toViewport(1110),
+      top: toViewport(1100),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(cx, 1110, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
+    this.createButton(cx, 1100, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -184,88 +146,6 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private _keyHandler: ((e: KeyboardEvent) => void) | null = null;
-
-  // ── Volume slider ─────────────────────────────────────────────────────────
-
-  private async createVolumeSlider(top: string, left: string): Promise<void> {
-    if (typeof document === 'undefined') return;
-
-    const meta = await deviceMetaRepo.get();
-    const currentVolume = meta.preferences.volume ?? 0.8;
-    const audioEnabled = meta.preferences.audio;
-
-    // Reuse the same container as PreferenceToggle
-    let container = document.getElementById('qf-pref-toggles');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'qf-pref-toggles';
-      Object.assign(container.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: '10000',
-      });
-      document.body.appendChild(container);
-    }
-
-    // Wrapper row — mirrors PreferenceToggle layout
-    const wrapper = document.createElement('div');
-    Object.assign(wrapper.style, {
-      position: 'absolute',
-      top,
-      left,
-      transform: 'translateX(-50%)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      pointerEvents: 'auto',
-      opacity: audioEnabled ? '1' : '0.4',
-    });
-
-    // Label
-    const labelEl = document.createElement('label');
-    labelEl.setAttribute('for', 'qf-volume-slider');
-    labelEl.textContent = 'Volume';
-    Object.assign(labelEl.style, {
-      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-      fontSize: '18px',
-      color: '#374151',
-      minWidth: '180px',
-    });
-
-    // Range input
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.id = 'qf-volume-slider';
-    slider.min = '0';
-    slider.max = '1';
-    slider.step = '0.05';
-    slider.value = String(currentVolume);
-    slider.disabled = !audioEnabled;
-    slider.setAttribute('aria-label', 'Volume');
-    slider.setAttribute('data-testid', 'volume-slider');
-    Object.assign(slider.style, {
-      width: '160px',
-      accentColor: '#6C63FF',
-      cursor: 'pointer',
-    });
-
-    slider.addEventListener('input', () => {
-      const vol = parseFloat(slider.value);
-      void deviceMetaRepo.updatePreferences({ volume: vol });
-      sfx.setVolume(vol);
-      tts.setVolume(vol);
-    });
-
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(slider);
-    container.appendChild(wrapper);
-
-    this.volumeSliderWrapper = wrapper;
-  }
 
   // ── Reset state ───────────────────────────────────────────────────────────
   private resetStep: ResetStep = 'idle';
@@ -421,38 +301,10 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
-  private playtestStatusText: Phaser.GameObjects.Text | null = null;
-
-  private async doPlaytestExport(): Promise<void> {
-    try {
-      await playtestExportToFile();
-      this.showPlaytestStatus('Playtest data saved!');
-    } catch (err) {
-      this.showPlaytestStatus('Export failed — please try again.');
-    }
-  }
-
-  private showPlaytestStatus(msg: string): void {
-    this.playtestStatusText?.destroy();
-    this.playtestStatusText = this.add
-      .text(CW / 2, 740, msg, {
-        fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
-    this.time.delayedCall(3000, () => {
-      this.playtestStatusText?.destroy();
-      this.playtestStatusText = null;
-    });
-  }
-
   private showExportStatus(msg: string): void {
     this.exportStatusText?.destroy();
     this.exportStatusText = this.add
-      .text(CW / 2, 658, msg, {
+      .text(CW / 2, 680, msg, {
         fontSize: '16px',
         fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
         color: '#059669',
@@ -469,13 +321,6 @@ export class SettingsScene extends Phaser.Scene {
   // ── Restore ────────────────────────────────────────────────────────────────
   private fileInput: HTMLInputElement | null = null;
   private restoreStatusText: Phaser.GameObjects.Text | null = null;
-
-  private _restoreCountdownText: Phaser.GameObjects.Text | null = null;
-  private _restoreCancelGraphic: Phaser.GameObjects.Graphics | null = null;
-  private _restoreCancelBtnText: Phaser.GameObjects.Text | null = null;
-  private _restoreCancelHit: Phaser.GameObjects.Rectangle | null = null;
-  private _restoreTimerId: number | null = null;
-  private _restoreIntervalId: number | null = null;
 
   private setupFileInput(): void {
     if (typeof document === 'undefined') return;
@@ -501,7 +346,10 @@ export class SettingsScene extends Phaser.Scene {
     if (!file) return;
     try {
       const result = await restoreFromFile(file);
-      this.startRestoreCountdown(result.added);
+      this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      this.time.delayedCall(3000, () => {
+        if (typeof location !== 'undefined') location.reload();
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
@@ -514,99 +362,10 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
-  private startRestoreCountdown(recordsAdded: number): void {
-    this._clearRestoreCountdown();
-    this.restoreStatusText?.destroy();
-    this.restoreStatusText = null;
-
-    const cx = CW / 2;
-    const statusY = 840;
-    const cancelY = 893;
-
-    let remaining = 3;
-
-    const countdownText = this.add
-      .text(cx, statusY, this._countdownLabel(recordsAdded, remaining), {
-        fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-        color: '#059669',
-        align: 'center',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this._restoreCountdownText = countdownText;
-
-    const cancelBtnW = 120;
-    const cancelBtnH = 36;
-
-    const cancelG = this.add.graphics();
-    cancelG.fillStyle(0xe5e7eb, 1);
-    cancelG.fillRoundedRect(cx - cancelBtnW / 2, cancelY - cancelBtnH / 2, cancelBtnW, cancelBtnH, 8);
-    cancelG.setDepth(4);
-    this._restoreCancelGraphic = cancelG;
-
-    const cancelText = this.add
-      .text(cx, cancelY, 'Cancel', {
-        fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: '#374151',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this._restoreCancelBtnText = cancelText;
-
-    const cancelHit = this.add
-      .rectangle(cx, cancelY, cancelBtnW, cancelBtnH, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(6);
-    this._restoreCancelHit = cancelHit;
-
-    cancelHit.on('pointerup', () => {
-      this._clearRestoreCountdown();
-      this.showRestoreStatus('Reload cancelled');
-    });
-
-    this._restoreIntervalId = window.setInterval(() => {
-      remaining -= 1;
-      if (remaining > 0) {
-        countdownText.setText(this._countdownLabel(recordsAdded, remaining));
-      }
-    }, 1000);
-
-    this._restoreTimerId = window.setTimeout(() => {
-      this._clearRestoreCountdown();
-      if (typeof location !== 'undefined') location.reload();
-    }, 3000);
-  }
-
-  private _countdownLabel(recordsAdded: number, seconds: number): string {
-    return `Restored ${recordsAdded} records — reloading in ${seconds}…`;
-  }
-
-  private _clearRestoreCountdown(): void {
-    if (this._restoreTimerId !== null) {
-      window.clearTimeout(this._restoreTimerId);
-      this._restoreTimerId = null;
-    }
-    if (this._restoreIntervalId !== null) {
-      window.clearInterval(this._restoreIntervalId);
-      this._restoreIntervalId = null;
-    }
-    this._restoreCountdownText?.destroy();
-    this._restoreCountdownText = null;
-    this._restoreCancelGraphic?.destroy();
-    this._restoreCancelGraphic = null;
-    this._restoreCancelBtnText?.destroy();
-    this._restoreCancelBtnText = null;
-    this._restoreCancelHit?.destroy();
-    this._restoreCancelHit = null;
-  }
-
   private showRestoreStatus(msg: string, isError = false): void {
     this.restoreStatusText?.destroy();
     this.restoreStatusText = this.add
-      .text(CW / 2, 840, msg, {
+      .text(CW / 2, 770, msg, {
         fontSize: '16px',
         fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
         color: isError ? '#DC2626' : '#059669',
@@ -704,13 +463,8 @@ export class SettingsScene extends Phaser.Scene {
       document.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
     }
-    this._clearRestoreCountdown();
     this.toggles.forEach((t) => t.destroy());
     this.toggles = [];
-    if (this.volumeSliderWrapper) {
-      this.volumeSliderWrapper.remove();
-      this.volumeSliderWrapper = null;
-    }
     PreferenceToggle.destroyAll();
     TestHooks.unmountAll();
     if (this.fileInput) {
@@ -723,4 +477,3 @@ export class SettingsScene extends Phaser.Scene {
     this.cleanup();
   }
 }
-

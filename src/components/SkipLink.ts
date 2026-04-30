@@ -83,4 +83,3 @@ export function injectSkipLink(): void {
 export function removeSkipLink(): void {
   document.getElementById(SKIP_LINK_ID)?.remove();
 }
-

@@ -21,14 +21,12 @@ import {
 } from '../scenes/utils/levelTheme';
 
 import { TestHooks } from '../scenes/utils/TestHooks';
-import { checkReduceMotion } from '../lib/preferences';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
 
 // ── Mastery ribbon palette (matches LevelMapScene) ────────────────────────────
 const RIBBON_GOLD = 0xfbbf24; // amber-400
 const RIBBON_BORDER = 0xb45309; // amber-700
 const RIBBON_H = 20;
-
 
 // ── Adventure theme colours ───────────────────────────────────────────────────
 
@@ -97,8 +95,14 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.completed = opts.completed ?? false;
     this.onTap = opts.onTap;
     this.bgFill = this.completed ? COMPLETED_BG : opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
-    this.bgBorder = this.completed ? COMPLETED_BORDER : opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
-    this.reducedMotion = checkReduceMotion();
+    this.bgBorder = this.completed
+      ? COMPLETED_BORDER
+      : opts.unlocked
+        ? UNLOCKED_BORDER
+        : LOCKED_BORDER;
+    this.reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     this.build(opts.suggested);
     opts.scene.add.existing(this);
     const hookPrefix = opts.testHookPrefix ?? 'level-card';
@@ -155,15 +159,19 @@ export class LevelCard extends Phaser.GameObjects.Container {
       const localBorder = 2 / cs;
       const ribbonG = s.add.graphics();
       ribbonG.fillStyle(RIBBON_GOLD, 1);
-      ribbonG.fillRoundedRect(
-        -CARD_W / 2, -CARD_H / 2, CARD_W, localH,
-        { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
-      );
+      ribbonG.fillRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, localH, {
+        tl: CARD_RADIUS,
+        tr: CARD_RADIUS,
+        bl: 0,
+        br: 0,
+      });
       ribbonG.lineStyle(localBorder, RIBBON_BORDER, 1);
-      ribbonG.strokeRoundedRect(
-        -CARD_W / 2, -CARD_H / 2, CARD_W, localH,
-        { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
-      );
+      ribbonG.strokeRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, localH, {
+        tl: CARD_RADIUS,
+        tr: CARD_RADIUS,
+        bl: 0,
+        br: 0,
+      });
       this.add(ribbonG);
     }
 
@@ -279,7 +287,11 @@ export class LevelCard extends Phaser.GameObjects.Container {
         });
         hit.on('pointerout', () => {
           this.bg.clear();
-          this.drawCard(this.bgFill, suggested ? SUGGESTED_BORDER : this.bgBorder, suggested ? 0.3 : 0);
+          this.drawCard(
+            this.bgFill,
+            suggested ? SUGGESTED_BORDER : this.bgBorder,
+            suggested ? 0.3 : 0
+          );
         });
       }
     }

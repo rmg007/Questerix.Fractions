@@ -31,4 +31,3 @@ export const curriculumPackRepo = {
     await db.curriculumPacks.clear();
   },
 };
-

@@ -35,4 +35,3 @@ export const hintRepo = {
     await db.hints.clear();
   },
 };
-

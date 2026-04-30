@@ -11,7 +11,6 @@
 import * as Phaser from 'phaser';
 import { TITLE_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
-import { checkReduceMotion } from '../lib/preferences';
 
 export interface ProgressBarConfig {
   scene: Phaser.Scene;
@@ -28,9 +27,9 @@ const DEFAULT_GOAL = 5;
 const STAR_EMPTY = '☆';
 const STAR_FILLED = '★';
 const STAR_FONT_SIZE = '36px';
-const STAR_COLOR_FILLED = '#F59E0B'; // amber-500 per design spec
-const STAR_COLOR_EMPTY = '#D1D5DB';  // gray-300 per design spec
-const ANIMATE_MS = 280;
+const STAR_COLOR_FILLED = '#FBBF24'; // gold / amber-400 per colors.ts HEX.gold
+const STAR_COLOR_EMPTY = '#FDE68A'; // goldDim / amber-200 per colors.ts HEX.goldDim
+const ANIMATE_MS = 200;
 
 export class ProgressBar extends Phaser.GameObjects.Container {
   private stars: Phaser.GameObjects.Text[] = [];
@@ -81,7 +80,7 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   setProgress(value: number): void {
     const prev = this.currentValue;
     this.currentValue = Math.min(Math.max(0, value), this.goal);
-    const reduceMotion = checkReduceMotion();
+    const reduceMotion = this.checkReduceMotion();
 
     this.stars.forEach((star, i) => {
       const filled = i < this.currentValue;
@@ -102,18 +101,6 @@ export class ProgressBar extends Phaser.GameObjects.Container {
       }
     });
 
-    // Halfway nudge: 3rd star gets emphasis
-    if (!reduceMotion && this.currentValue === 3) {
-      const thirdStar = this.stars[2];
-      thirdStar.setScale(1.3); // slightly less than 1.4 since already filled
-      this.scene.tweens.add({
-        targets: thirdStar,
-        scale: 1,
-        duration: ANIMATE_MS,
-        ease: 'Back.easeOut',
-      });
-    }
-
     TestHooks.setAriaValueNow('progress-bar', this.currentValue);
     const el = this.sentinel ?? TestHooks.get('progress-bar');
     if (el) {
@@ -132,5 +119,11 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     return this.currentValue >= this.goal;
   }
 
+  private checkReduceMotion(): boolean {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (err) {
+      return false;
+    }
+  }
 }
-

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Project-level Claude Code settings. Committed to the repo so any agent (any clone, any device) inherits the same baseline. Personal overrides go in .claude/settings.local.json (gitignored).",
+
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Edit(**)",
+      "Write(**)",
+      "MultiEdit(**)",
+
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run dev\\:app:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run lint\\:fix:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run test\\:unit:*)",
+      "Bash(npm run test\\:integration:*)",
+      "Bash(npm run test\\:e2e:*)",
+      "Bash(npm run test\\:a11y:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run build\\:curriculum:*)",
+      "Bash(npm run build\\:analyze:*)",
+      "Bash(npm run measure-bundle:*)",
+      "Bash(npm run validate\\:curriculum:*)",
+      "Bash(npm run preview:*)",
+
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx playwright:*)",
+
+      "Bash(node scripts/*)",
+      "Bash(python -m pipeline.verify:*)",
+      "Bash(python -m pipeline.generate:*)",
+      "Bash(pip install -r pipeline/requirements.txt)",
+
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git restore:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(wc:*)",
+      "Bash(jq:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(echo:*)",
+
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:phaser.io)",
+      "WebFetch(domain:typescriptlang.org)",
+      "WebFetch(domain:vitejs.dev)",
+      "WebFetch(domain:dexie.org)",
+      "WebFetch(domain:developer.mozilla.org)",
+      "WebFetch(domain:web.dev)",
+      "WebFetch(domain:docs.anthropic.com)"
+    ],
+
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(npm run deploy:*)",
+      "Bash(npm publish:*)"
+    ],
+
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf ~:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ]
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /preflight /sync-curriculum /diag /learn /retro /sprint-status /c5-check /test-changed /decision\"; echo \"├─ Subagents: c1-c10-auditor bundle-watcher validator-parity-checker a11y-auditor\"; echo \"├─ Skim .claude/learnings.md for non-obvious gotchas\"; echo \"├─ Ignore _archive/ paths during exploration\"; echo \"└─ Active sprint: PLANS/master-plan-2026-04-26.md\""
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p .claude && echo \"[$(date '+%F %H:%M')] pre-compact | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) STAGED=$(git log -1 --name-only --pretty=format: 2>/dev/null | grep -v '^$'); if echo \"$STAGED\" | grep -q '^src/' && ! echo \"$STAGED\" | grep -qE '(CHANGELOG|PLANS/|learnings\\.md)'; then echo '◇ Source changed but no CHANGELOG/PLANS/learnings update — consider /retro before pushing.' >&2; fi ;; esac; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

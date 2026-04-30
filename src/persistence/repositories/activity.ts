@@ -47,4 +47,3 @@ export const activityRepo = {
     await db.activities.clear();
   },
 };
-

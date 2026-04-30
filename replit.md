@@ -72,9 +72,10 @@ into a level. From the map, players tap a node to launch that level.
   - *Unlocked/current* — emerald circle with level number + name; gentle
     scale-pulse tween; ▶ Play pill label below
   - *Locked* — gray circle with 🔒, non-interactive
-- Completion status is read from the `unlockedLevels` localStorage key (same
-  source as the rest of the game). A level is "completed" when the next level
-  key is present.
+- Completion status is currently read from the `unlockedLevels` localStorage
+  key (same source as the rest of the game). A level is "completed" when the
+  next level key is present. **TODO:** this is a known C5 deviation; the
+  authoritative store should move to a Dexie `progressionStat` row.
 - Fade transitions (prefers-reduced-motion aware) on both arrival and departure.
 - "← Menu" back button returns to MenuScene.
 - Full WCAG A11yLayer DOM mirror for keyboard/screen-reader users.

@@ -24,7 +24,8 @@
     "deploy": "npx wrangler pages deploy dist --project-name questerix-fractions --branch main --commit-dirty=true",
     "validate:curriculum": "node scripts/validate-curriculum.mjs",
     "predeploy": "npm run typecheck && npm run lint && npm run test:unit && npm run validate:curriculum && npm run build && node scripts/measure-bundle.mjs",
-    "postdeploy": "node scripts/postdeploy-check.mjs"
+    "postdeploy": "node scripts/postdeploy-check.mjs",
+    "agent-doctor": "node scripts/agent-doctor.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
@@ -47,6 +48,9 @@
     "vitest": "^1.0.0",
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [
     "phaser",

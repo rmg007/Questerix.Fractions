@@ -29,6 +29,7 @@ export interface SessionCompleteConfig {
   width?: number;
   height?: number;
   depth?: number;
+  onNextLevel?: () => void;
   onPlayAgain: () => void;
   onMenu: () => void;
 }
@@ -55,6 +56,7 @@ export class SessionCompleteOverlay {
       width = 800,
       height = 1280,
       depth = 50,
+      onNextLevel,
       onPlayAgain,
       onMenu,
     } = config;
@@ -66,9 +68,7 @@ export class SessionCompleteOverlay {
     const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
-    this.container = scene.add
-      .container(0, reduceMotion ? 0 : height)
-      .setDepth(depth);
+    this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
 
     // Full-screen sky-blue card
     const cardBg = scene.add.graphics();
@@ -134,9 +134,15 @@ export class SessionCompleteOverlay {
       .setOrigin(0.5);
     this.container.add(accT);
 
-    // Buttons
-    this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
-    this.addMenuButton(scene, cx, 880, onMenu);
+    // Buttons — "Next Level" (primary) when available, then "Play Again", then Menu
+    if (onNextLevel) {
+      this.addNextLevelButton(scene, cx, 780, onNextLevel);
+      this.addPlayAgainButton(scene, cx, 860, onPlayAgain);
+      this.addMenuButton(scene, cx, 940, onMenu);
+    } else {
+      this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
+      this.addMenuButton(scene, cx, 880, onMenu);
+    }
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
@@ -171,7 +177,10 @@ export class SessionCompleteOverlay {
   }
 
   private addPlayAgainButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 64, R = 32, SHADOW = 7;
+    const W = 300,
+      H = 64,
+      R = 32,
+      SHADOW = 7;
 
     const shadow = scene.add.graphics();
     shadow.fillStyle(ACTION_BORDER, 1);
@@ -200,8 +209,50 @@ export class SessionCompleteOverlay {
     this.container.add([shadow, face, txt, hit]);
   }
 
+  private addNextLevelButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
+    const W = 300,
+      H = 64,
+      R = 32,
+      SHADOW = 7;
+
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(ACTION_BORDER, 1);
+    shadow.fillRoundedRect(x - W / 2, y - H / 2 + SHADOW, W, H, R);
+
+    const face = scene.add.graphics();
+    face.fillStyle(ACTION_FILL, 1);
+    face.fillRoundedRect(x - W / 2, y - H / 2, W, H, R);
+    face.lineStyle(5, ACTION_BORDER, 1);
+    face.strokeRoundedRect(x - W / 2, y - H / 2, W, H, R);
+
+    const txt = scene.add
+      .text(x, y, 'Next Level →', {
+        fontFamily: TITLE_FONT,
+        fontSize: '26px',
+        color: ACTION_TEXT,
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+
+    const hit = scene.add
+      .rectangle(x, y, W, H + SHADOW, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerup', onTap);
+
+    TestHooks.mountInteractive('next-level-btn', onTap, {
+      width: '200px',
+      height: '60px',
+      top: '62%',
+      left: '50%',
+    });
+
+    this.container.add([shadow, face, txt, hit]);
+  }
+
   private addMenuButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 54, R = 27;
+    const W = 300,
+      H = 54,
+      R = 27;
 
     const bg = scene.add.graphics();
     bg.fillStyle(0xffffff, 1);

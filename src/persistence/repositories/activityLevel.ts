@@ -47,4 +47,3 @@ export const activityLevelRepo = {
     await db.activityLevels.clear();
   },
 };
-

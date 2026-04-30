@@ -80,12 +80,26 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
   const enabled = isEnabled(category);
 
   // Always log to observability logger (it handles its own filtering/consent)
+  const logData =
+    typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined;
   if (fn === 'error') {
-    logger.error(event, { category, data: data as Record<string, any> });
+    if (logData !== undefined) {
+      logger.error(event, { category, data: logData });
+    } else {
+      logger.error(event, { category });
+    }
   } else if (fn === 'warn') {
-    logger.warn(event, { category, data: data as Record<string, any> });
+    if (logData !== undefined) {
+      logger.warn(event, { category, data: logData });
+    } else {
+      logger.warn(event, { category });
+    }
   } else {
-    logger.info(event, { category, data: data as Record<string, any> });
+    if (logData !== undefined) {
+      logger.info(event, { category, data: logData });
+    } else {
+      logger.info(event, { category });
+    }
   }
 
   if (!enabled) return;
@@ -94,7 +108,7 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
   const style = STYLES[cat.trim()] ?? 'color:#374151;font-weight:700';
   const prefix = `%c[${ts()}] ${cat}%c ${event}`;
   const reset = 'color:inherit;font-weight:normal';
-  
+
   if (data !== undefined) {
     (console[fn] as (...a: unknown[]) => void)(prefix, style, reset, data);
   } else {
@@ -140,4 +154,3 @@ if (import.meta.env.DEV) {
     },
   };
 }
-

@@ -215,4 +215,3 @@ export class DragHandle {
   }
 
 }
-

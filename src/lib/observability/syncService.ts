@@ -18,10 +18,10 @@ class TelemetrySyncService {
 
     // Listen for network changes to trigger immediate sync when coming back online
     window.addEventListener('online', () => this.sync());
-    
+
     // Periodic sync
     this.intervalId = window.setInterval(() => this.sync(), this.syncInterval);
-    
+
     // Initial sync attempt after a short delay to avoid contention during boot
     setTimeout(() => this.sync(), 5000);
   }
@@ -60,7 +60,7 @@ class TelemetrySyncService {
     // The telemetry endpoint should be configured in the environment.
     // Falls back to a dummy if not present to avoid crashes.
     const endpoint = import.meta.env.VITE_TELEMETRY_URL;
-    
+
     if (!endpoint) {
       if (import.meta.env.DEV) {
         console.warn('[TelemetrySync] VITE_TELEMETRY_URL not defined. Events remain buffered.');
@@ -70,7 +70,7 @@ class TelemetrySyncService {
 
     try {
       const deviceMeta = await db.deviceMeta.toCollection().first();
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -85,12 +85,12 @@ class TelemetrySyncService {
       });
 
       if (response.ok) {
-        const ids = events.map(e => e.id).filter((id): id is number => id !== undefined);
-        
+        const ids = events.map((e) => e.id).filter((id): id is number => id !== undefined);
+
         // Remove successfully synced events to free up IndexedDB space.
         // Telemetry is treated as a fire-and-forget log; persistence on server is the goal.
         await db.telemetryEvents.bulkDelete(ids);
-        
+
         // If we processed a full batch, there might be more. Continue flushing.
         if (events.length === this.batchSize) {
           // Avoid recursion depth issues, just schedule next flush
@@ -98,7 +98,11 @@ class TelemetrySyncService {
         }
       } else {
         if (import.meta.env.DEV) {
-          console.error('[TelemetrySync] Server rejected events:', response.status, response.statusText);
+          console.error(
+            '[TelemetrySync] Server rejected events:',
+            response.status,
+            response.statusText
+          );
         }
       }
     } catch (err) {

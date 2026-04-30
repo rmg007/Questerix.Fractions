@@ -31,7 +31,7 @@ class MeterService {
   /**
    * Log a custom timing metric.
    */
-  measure(name: string, durationMs: number, attributes?: Record<string, any>) {
+  measure(name: string, durationMs: number, attributes?: Record<string, unknown>) {
     logger.info(`MEASURE: ${name}`, {
       category: 'PERF',
       data: {

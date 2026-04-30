@@ -10,8 +10,14 @@ export function instrumentScene(scene: Scene) {
   const sceneName = scene.scene.key;
 
   // Lifecycle monitoring
-  scene.events.on('init', (data: any) => {
-    logger.info('Scene Init', { category: 'SCENE', data: { scene: sceneName, ...data } });
+  scene.events.on('init', (data: unknown) => {
+    logger.info('Scene Init', {
+      category: 'SCENE',
+      data: {
+        scene: sceneName,
+        ...(typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {}),
+      },
+    });
   });
 
   scene.events.on('create', () => {
@@ -44,8 +50,8 @@ export function instrumentScene(scene: Scene) {
  */
 export function instrumentGame(game: Phaser.Game) {
   // Automatically instrument every scene that is added/started
-  game.scene.scenes.forEach(scene => instrumentScene(scene));
-  
+  game.scene.scenes.forEach((scene) => instrumentScene(scene));
+
   // For scenes added dynamically later
   game.events.on('step', () => {
     // This is a bit heavy, let's use a better event if available.
