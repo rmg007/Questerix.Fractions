@@ -277,6 +277,7 @@ export class LevelScene extends Phaser.Scene {
     this.hintTextGO.setVisible(false);
     this.promptText.setText(this.currentTemplate.prompt.text);
     this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
+    this.animateCounterBadge();
     log.q('load', {
       index,
       id: this.currentTemplate.id,
@@ -1091,6 +1092,28 @@ export class LevelScene extends Phaser.Scene {
   }
 
   // ── Utilities ────────────────────────────────────────────────────────────────
+
+  /**
+   * Plays a brief scale-bounce (1.0 → 1.25 → 1.0, ~200 ms) on the question
+   * counter badge so young children notice it updating. Skipped when the OS
+   * reports prefers-reduced-motion.
+   */
+  private animateCounterBadge(): void {
+    if (this.checkReduceMotion()) return;
+    const badge = this.questionCounterText;
+    badge.setScale(1);
+    this.tweens.add({
+      targets: badge,
+      scaleX: 1.25,
+      scaleY: 1.25,
+      duration: 100,
+      ease: 'Cubic.easeOut',
+      yoyo: true,
+      onComplete: () => {
+        badge.setScale(1);
+      },
+    });
+  }
 
   private checkReduceMotion(): boolean {
     try {
