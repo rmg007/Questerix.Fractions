@@ -7,6 +7,7 @@
 import * as Phaser from 'phaser';
 import { CLR } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { checkReduceMotion } from '../lib/preferences';
 
 export interface ProgressBarConfig {
   scene: Phaser.Scene;
@@ -93,7 +94,7 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     this.countText.setText(`${this.currentValue} / ${this.goal}`);
     TestHooks.setAriaValueNow('progress-bar', this.currentValue);
 
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (reduceMotion) {
       // per design-language.md §6.4 — instant transition
@@ -114,13 +115,5 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   }
   get isComplete(): boolean {
     return this.currentValue >= this.goal;
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
   }
 }

@@ -7,6 +7,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from './utils/colors';
+import { checkReduceMotion } from '../lib/preferences';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -116,20 +117,12 @@ export class PreloadScene extends Phaser.Scene {
 
   create(): void {
     // Brief pause so "Ready!" is visible before transition
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     const delay = reduceMotion ? 0 : 200;
 
     this.time.delayedCall(delay, () => {
       // per runtime-architecture.md §5 — pass lastStudentId through to MenuScene
       this.scene.start('MenuScene', { lastStudentId: this.lastStudentId });
     });
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
   }
 }

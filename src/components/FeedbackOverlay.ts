@@ -10,6 +10,7 @@
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { checkReduceMotion } from '../lib/preferences';
 
 export type FeedbackKind = 'correct' | 'incorrect' | 'close';
 
@@ -100,7 +101,7 @@ export class FeedbackOverlay {
    */
   show(kind: FeedbackKind, onDismiss?: () => void): void {
     const cfg = KIND_CONFIG[kind];
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     this.bg.setFillStyle(cfg.bg, 0.97);
     this.iconGO.setText(cfg.icon).setColor(cfg.textColor).setVisible(true);
@@ -156,14 +157,6 @@ export class FeedbackOverlay {
     this.bg.setVisible(false).setAlpha(1);
     this.iconGO.setVisible(false).setAlpha(1);
     this.label.setVisible(false).setAlpha(1);
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
   }
 
   destroy(): void {

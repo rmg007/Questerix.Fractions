@@ -17,6 +17,7 @@
 import * as Phaser from 'phaser';
 import { injectSkipLink, labelCanvas } from '../components/SkipLink';
 import { TestHooks } from './utils/TestHooks';
+import { checkReduceMotion } from '../lib/preferences';
 
 interface MenuData {
   lastStudentId: string | null;
@@ -103,7 +104,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.reduceMotion = this.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     // Ensure custom webfonts are decoded before Phaser snapshots glyphs into
     // its texture cache. Without this, the title falls back to a system font
@@ -757,17 +758,6 @@ export class MenuScene extends Phaser.Scene {
       update();
       opts.onTap();
     });
-  }
-
-  // ── Reduced motion + font ready helpers ───────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
   }
 
   /**

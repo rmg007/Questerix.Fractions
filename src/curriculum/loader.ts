@@ -73,6 +73,32 @@ function makeEmpty(): ParsedBundle {
 }
 
 /**
+ * Lightweight structural guard: throws if the bundle is missing required
+ * top-level fields. Runs at parse time so downstream code never sees a
+ * malformed bundle.
+ */
+function assertBundleShape(bundle: unknown): asserts bundle is CurriculumBundle {
+  if (typeof bundle !== 'object' || bundle === null) {
+    throw new Error('Invalid curriculum bundle: not an object');
+  }
+  const b = bundle as Record<string, unknown>;
+  if (typeof b['version'] !== 'number' || typeof b['contentVersion'] !== 'string') {
+    throw new Error('Invalid curriculum bundle: missing version or contentVersion');
+  }
+  // If the legacy levels map is present, verify it maps to arrays
+  if ('levels' in b && b['levels'] !== undefined) {
+    if (typeof b['levels'] !== 'object' || b['levels'] === null) {
+      throw new Error('Invalid curriculum bundle: levels must be an object');
+    }
+    for (const val of Object.values(b['levels'] as Record<string, unknown>)) {
+      if (!Array.isArray(val)) {
+        throw new Error('Invalid curriculum bundle: each level must map to an array');
+      }
+    }
+  }
+}
+
+/**
  * Parse a raw CurriculumBundle object into a ParsedBundle.
  * Handles both legacy (levels map) and comprehensive (individual stores) formats.
  * Returns `empty` if the bundle is malformed.
@@ -143,7 +169,9 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
       return empty;
     }
 
-    const bundle: CurriculumBundle = (await response.json()) as CurriculumBundle;
+    const raw: unknown = await response.json();
+    assertBundleShape(raw);
+    const bundle = raw as CurriculumBundle;
     return parseBundle(bundle, empty);
   } catch (err) {
     if (err instanceof TypeError) {
@@ -154,7 +182,8 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
         '[loadCurriculumBundle] Fetch unavailable (TypeError) — using bundled curriculum'
       );
       try {
-        return parseBundle(bundledData as unknown as CurriculumBundle, empty);
+        assertBundleShape(bundledData);
+        return parseBundle(bundledData as CurriculumBundle, empty);
       } catch (parseErr) {
         console.warn('[loadCurriculumBundle] Bundled curriculum parse failed:', parseErr);
       }

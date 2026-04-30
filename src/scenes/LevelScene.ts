@@ -26,6 +26,7 @@ import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
 import { tts } from '../audio/TTSService';
 import { log } from '../lib/log';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -685,7 +686,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private pulseHintButton(): void {
-    if (this.checkReduceMotion()) return;
+    if (checkReduceMotion()) return;
     this.tweens.add({
       targets: this.hintButton,
       scaleX: 1.1,
@@ -1000,14 +1001,6 @@ export class LevelScene extends Phaser.Scene {
   }
 
   // ── Utilities ────────────────────────────────────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
 
   preDestroy(): void {
     log.scene('destroy', { level: this.levelNumber });

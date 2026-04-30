@@ -7,6 +7,7 @@ import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
+import { checkReduceMotion } from '../lib/preferences';
 
 const CARD_W = 220;
 const CARD_H = 160;
@@ -34,9 +35,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.meta = opts.meta;
     this.unlocked = opts.unlocked;
     this.onTap = opts.onTap;
-    this.reducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    this.reducedMotion = checkReduceMotion();
     this.build(opts.suggested);
     opts.scene.add.existing(this);
     // per test-strategy.md §1.3 — interactive testid overlay per card

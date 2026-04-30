@@ -31,6 +31,7 @@ import type { PartitionInput, PartitionPayload } from '../validators/partition';
 import { tts } from '../audio/TTSService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -891,7 +892,7 @@ export class Level01Scene extends Phaser.Scene {
    * per design-language.md §6.1 (partition demonstration 400–600ms)
    */
   private animateWorkedExample(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (reduceMotion) {
       // per design-language.md §6.4 — static overlay
@@ -923,7 +924,7 @@ export class Level01Scene extends Phaser.Scene {
 
   /** One-time pulse on the hint button per interaction-model.md §5.4 */
   private pulseHintButton(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     if (reduceMotion) return;
 
     this.tweens.add({
@@ -1222,16 +1223,6 @@ export class Level01Scene extends Phaser.Scene {
       await sessionRepo.close(this.sessionId as import('@/types').SessionId, summary);
     } catch (err) {
       log.warn('SESS', 'close_error', { error: String(err) });
-    }
-  }
-
-  // ── Utilities ─────────────────────────────────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
     }
   }
 

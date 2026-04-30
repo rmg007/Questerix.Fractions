@@ -11,6 +11,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR } from '../scenes/utils/colors';
+import { checkReduceMotion } from '../lib/preferences';
 
 export interface DragHandleConfig {
   scene: Phaser.Scene;
@@ -185,7 +186,7 @@ export class DragHandle {
   moveTo(newPos: number, animate = false): void {
     const clamped = Phaser.Math.Clamp(newPos, this.cfg.minPos, this.cfg.maxPos);
     const isHoriz = this.cfg.axis === 'horizontal';
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (!animate || reduceMotion) {
       this._pos = clamped;
@@ -210,14 +211,6 @@ export class DragHandle {
     this.hitZone.destroy();
     if (this.keyHandler) {
       this.scene.input.keyboard?.off('keydown', this.keyHandler);
-    }
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
     }
   }
 }
