@@ -35,6 +35,7 @@ import { tts } from '../audio/TTSService';
 import { sfx } from '../audio/SFXService';
 import { log } from '../lib/log';
 import { Mascot } from '../components/Mascot';
+import { MASTERY_THRESHOLD } from '../engine/bkt';
 // Quest microcopy catalog (registered at boot via src/main.ts).
 // Per ux-elevation §9 T28 — the level screen routes its hint, feedback,
 // and session-complete copy through `getCopy('quest.…')` so Quest's voice
@@ -85,6 +86,8 @@ export class LevelScene extends Phaser.Scene {
   private recentTemplateIds = new Set<string>();
   private recentQueue: string[] = [];
   private studentMastery: Map<string, import('@/types').SkillMastery> = new Map();
+  private calibrationState: import('../engine/calibration').CalibrationState | null = null;
+  private recentOutcomes: boolean[] = [];
 
   // Current interaction
   private activeInteraction: Interaction | null = null;
@@ -119,6 +122,8 @@ export class LevelScene extends Phaser.Scene {
     this.recentTemplateIds = new Set();
     this.recentQueue = [];
     this.studentMastery = new Map();
+    this.calibrationState = null;
+    this.recentOutcomes = [];
     // Reset the cached display name on every scene init so a previous
     // student's name can't leak into a later anonymous session-complete
     // line. `openSession()` re-resolves it from Dexie when a studentId
@@ -149,6 +154,9 @@ export class LevelScene extends Phaser.Scene {
 
     // Open session record
     await this.openSession();
+
+    // Initialize calibration round (Q19 fix: H-04 retention measurement)
+    await this._initCalibration();
 
     // Build chrome
     this.createHeader();
@@ -298,6 +306,90 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
+  private async _initCalibration(): Promise<void> {
+    if (!this.studentId || !this.sessionId) return;
+    try {
+      const { sessionRepo } = await import('../persistence/repositories/session');
+      const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const { startCalibration } = await import('../engine/calibration');
+
+      // Get the most recent prior session for this student (list returns newest-first)
+      const sessions = await sessionRepo.listForStudent(
+        this.studentId as import('@/types').StudentId
+      );
+      // sessions[0] is the current session; sessions[1] is the previous one
+      const prevSession = sessions.length > 1 ? sessions[1] : null;
+
+      let prevSkillIds: import('@/types').SkillId[] = [];
+      if (prevSession) {
+        const prevAttempts = await attemptRepo.listForSession(prevSession.id);
+        const skillSet = new Set<string>();
+        for (const a of prevAttempts) {
+          if (a.skillIds) {
+            for (const sid of a.skillIds) skillSet.add(sid);
+          }
+        }
+        // If attempts had no skillIds (older records), derive from prevSession.levelNumber
+        if (skillSet.size === 0 && prevSession.levelNumber) {
+          const derivedId = prevSession.levelNumber === 1
+            ? 'skill.partition_halves'
+            : `skill.level_${prevSession.levelNumber}`;
+          skillSet.add(derivedId);
+        }
+        prevSkillIds = Array.from(skillSet) as import('@/types').SkillId[];
+      }
+
+      this.calibrationState = startCalibration(
+        prevSession,
+        prevSkillIds,
+        this.sessionId as import('@/types').SessionId
+      );
+      log.scene('calibration_init', {
+        active: this.calibrationState !== null,
+        remaining: this.calibrationState?.remaining ?? 0,
+        targetSkillIds: this.calibrationState?.targetSkillIds ?? [],
+      });
+    } catch (err) {
+      log.warn('CAL', 'init_error', { error: String(err) });
+      this.calibrationState = null;
+    }
+  }
+
+  private _computePrereqsMet(): boolean {
+    if (this.studentMastery.size === 0) return false;
+    for (const mastery of this.studentMastery.values()) {
+      if (mastery.masteryEstimate < MASTERY_THRESHOLD) return false;
+    }
+    return true;
+  }
+
+  private _applyRouterDecision(suggestedLevel: number): void {
+    try {
+      const unlockKey = this.studentId
+        ? `unlockedLevels:${this.studentId}`
+        : 'unlockedLevels';
+      const raw = localStorage.getItem(unlockKey);
+      const arr: number[] = raw ? (JSON.parse(raw) as number[]) : [];
+      if (suggestedLevel <= 9 && !arr.includes(suggestedLevel)) {
+        arr.push(suggestedLevel);
+        localStorage.setItem(unlockKey, JSON.stringify(arr));
+      }
+
+      // Write the suggested level so LevelMapScene can highlight it
+      const suggestKey = this.studentId
+        ? `suggestedLevel:${this.studentId}`
+        : 'suggestedLevel';
+      localStorage.setItem(suggestKey, String(suggestedLevel));
+
+      log.scene('router_decision', {
+        currentLevel: this.levelNumber,
+        suggestedLevel,
+      });
+    } catch (err) {
+      log.warn('ROUT', 'apply_decision_error', { error: String(err) });
+    }
+  }
+
   // ── Question loading ─────────────────────────────────────────────────────────
 
   private async loadQuestion(index: number): Promise<void> {
@@ -314,8 +406,23 @@ export class LevelScene extends Phaser.Scene {
     // Pick template
     if (this.templatePool.length > 0) {
       const { selectNextQuestion } = await import('../engine/selection');
+
+      // Calibration filter: during the first CALIBRATION_ITEMS questions,
+      // restrict selection to templates whose skillIds overlap the target skill IDs.
+      let candidatePool = this.templatePool;
+      if (this.calibrationState && this.calibrationState.remaining > 0) {
+        const targetSet = new Set(this.calibrationState.targetSkillIds);
+        const calibPool = this.templatePool.filter((t) =>
+          t.skillIds.some((sid) => targetSet.has(sid as import('@/types').SkillId))
+        );
+        // Only apply the filter if it doesn't empty the pool (edge case: no overlap)
+        if (calibPool.length > 0) {
+          candidatePool = calibPool;
+        }
+      }
+
       const selected = selectNextQuestion({
-        candidates: this.templatePool,
+        candidates: candidatePool,
         studentMastery: this.studentMastery as Map<import('@/types').SkillId, import('@/types').SkillMastery>,
         recentTemplateIds: this.recentTemplateIds as Set<import('@/types').QuestionTemplateId>,
         preferUnmastered: true,
@@ -377,6 +484,12 @@ export class LevelScene extends Phaser.Scene {
       onCommit: (payload) => void this.onCommit(payload),
       pushEvent: (event) => this.currentRoundEvents.push(event),
     });
+
+    // Decrement calibration counter after each calibration question is served
+    if (this.calibrationState && this.calibrationState.remaining > 0) {
+      const { recordCalibrationAttempt } = await import('../engine/calibration');
+      this.calibrationState = recordCalibrationAttempt(this.calibrationState);
+    }
   }
 
   private makeFallbackTemplate(): QuestionTemplate {
@@ -780,6 +893,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private onCorrectAnswer(): void {
+    this.recentOutcomes.push(true);
     this.attemptCount++;
     this.correctCount++; // Fix G-E4: track correct answers separately
     this.progressBar.setProgress(this.attemptCount);
@@ -800,6 +914,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private onWrongAnswer(): void {
+    this.recentOutcomes.push(false);
     this.wrongCount++;
     this.inputLocked = false;
     this.lastPayload = null;
@@ -1129,6 +1244,31 @@ export class LevelScene extends Phaser.Scene {
 
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
+
+    // Adaptive router: decide suggested next level (Task 1 wiring)
+    try {
+      const { decideNextLevel } = await import('../engine/router');
+      const inCalibration = !!(this.calibrationState && this.calibrationState.remaining > 0);
+      const suggestedLevel = decideNextLevel({
+        currentLevel: this.levelNumber as import('@/types').LevelId,
+        masteries: this.studentMastery as Map<import('@/types').SkillId, import('@/types').SkillMastery>,
+        prereqsMet: this._computePrereqsMet(),
+        inCalibration,
+        recentOutcomes: this.recentOutcomes.slice(-5),
+      });
+      // markLevelComplete already unlocked levelNumber + 1; router may unlock an additional skip-ahead level
+      if (suggestedLevel !== this.levelNumber && suggestedLevel !== this.levelNumber + 1) {
+        this._applyRouterDecision(suggestedLevel);
+      } else {
+        // Still write the suggestedLevel key so LevelMapScene can highlight the next card
+        const suggestKey = this.studentId
+          ? `suggestedLevel:${this.studentId}`
+          : 'suggestedLevel';
+        localStorage.setItem(suggestKey, String(suggestedLevel));
+      }
+    } catch (err) {
+      log.warn('ROUT', 'decision_error', { error: String(err) });
+    }
 
     // Check if all 9 levels are now complete — show Quest Complete overlay
     const allDone = this._allLevelsComplete();
