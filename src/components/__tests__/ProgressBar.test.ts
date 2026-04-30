@@ -133,9 +133,9 @@ describe('ProgressBar', () => {
       const { bar, stars } = buildBar(5);
       bar.setProgress(2);
 
-      expect(stars[0].setColor).toHaveBeenLastCalledWith('#FBBF24');
-      expect(stars[1].setColor).toHaveBeenLastCalledWith('#FBBF24');
-      expect(stars[2].setColor).toHaveBeenLastCalledWith('#FDE68A');
+      expect(stars[0].setColor).toHaveBeenLastCalledWith('#F59E0B');
+      expect(stars[1].setColor).toHaveBeenLastCalledWith('#F59E0B');
+      expect(stars[2].setColor).toHaveBeenLastCalledWith('#D1D5DB');
     });
 
     it('exposes the correct value via the .value getter', () => {
@@ -181,7 +181,7 @@ describe('ProgressBar', () => {
 
       expect(stars[0].setScale).toHaveBeenCalledWith(1.4);
       expect(mockTweensAdd).toHaveBeenCalledWith(
-        expect.objectContaining({ targets: stars[0], scale: 1, duration: 200 })
+        expect.objectContaining({ targets: stars[0], scale: 1, duration: 280 })
       );
     });
 

@@ -79,9 +79,27 @@ type AnyScene = SettingsScene & {
   restoreStatusText: { destroy: () => void } | null;
   toggles: Array<{ destroy: () => void }>;
   _keyHandler: ((e: KeyboardEvent) => void) | null;
+  _restoreTimerId: number | null;
+  _restoreIntervalId: number | null;
+  _restoreCountdownText: { destroy: () => void; setText: (s: string) => void } | null;
+  _restoreCancelGraphic: { destroy: () => void } | null;
+  _restoreCancelBtnText: { destroy: () => void } | null;
+  _restoreCancelHit: { destroy: () => void; on: (...args: unknown[]) => void } | null;
   add: {
     text: (x: number, y: number, msg: string, style: object) => {
       setOrigin: (n: number) => { setDepth: (n: number) => object };
+    };
+    graphics: () => {
+      fillStyle: (color: number, alpha: number) => void;
+      fillRoundedRect: (x: number, y: number, w: number, h: number, r: number) => void;
+      setDepth: (d: number) => object;
+      destroy: () => void;
+    };
+    rectangle: (x: number, y: number, w: number, h: number, color: number, alpha: number) => {
+      setInteractive: (opts: object) => { setDepth: (d: number) => { on: (...args: unknown[]) => object } };
+      setDepth: (d: number) => object;
+      destroy: () => void;
+      on: (...args: unknown[]) => void;
     };
   };
   time: {
@@ -99,19 +117,50 @@ function makeScene(): AnyScene {
   scene.fileInput = null;
   scene.toggles = [];
   scene._keyHandler = null;
+  scene._restoreTimerId = null;
+  scene._restoreIntervalId = null;
+  scene._restoreCountdownText = null;
+  scene._restoreCancelGraphic = null;
+  scene._restoreCancelBtnText = null;
+  scene._restoreCancelHit = null;
 
-  // Track the last message passed to add.text() for assertions
-  const capturedText = { msg: '' };
+  // Track all messages passed to add.text() — first is the status/countdown label
+  const capturedText = { msgs: [] as string[] };
+
+  const makeTextObj = (msg: string) => ({
+    setOrigin: (_n: number) => ({
+      setDepth: (_d: number) => {
+        capturedText.msgs.push(msg);
+        return {};
+      },
+    }),
+    destroy: vi.fn(),
+    setText: vi.fn(),
+  });
+
+  const makeGraphicsObj = () => ({
+    fillStyle: vi.fn(),
+    fillRoundedRect: vi.fn(),
+    setDepth: vi.fn().mockReturnThis(),
+    destroy: vi.fn(),
+  });
+
+  const makeRectObj = () => {
+    const obj = {
+      setInteractive: (_opts: object) => ({
+        setDepth: (_d: number) => ({ on: vi.fn().mockReturnThis() }),
+      }),
+      setDepth: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+      on: vi.fn(),
+    };
+    return obj;
+  };
 
   scene.add = {
-    text: (_x: number, _y: number, msg: string, _style: object) => ({
-      setOrigin: (_n: number) => ({
-        setDepth: (_d: number) => {
-          capturedText.msg = msg;
-          return {};
-        },
-      }),
-    }),
+    text: (_x: number, _y: number, msg: string, _style: object) => makeTextObj(msg),
+    graphics: () => makeGraphicsObj(),
+    rectangle: (_x, _y, _w, _h, _c, _a) => makeRectObj(),
   };
 
   scene.time = {
@@ -125,7 +174,8 @@ function makeScene(): AnyScene {
 }
 
 function capturedStatus(scene: AnyScene): string {
-  return (scene as unknown as { _capturedText: { msg: string } })._capturedText.msg;
+  const data = (scene as unknown as { _capturedText: { msgs: string[] } })._capturedText;
+  return data.msgs[0] ?? '';
 }
 
 // ── Setup ──────────────────────────────────────────────────────────────────
@@ -133,30 +183,35 @@ function capturedStatus(scene: AnyScene): string {
 beforeEach(() => {
   vi.clearAllMocks();
   // Prevent the reload triggered on success from interfering with tests
-  vi.stubGlobal('window', { setTimeout: vi.fn() });
+  vi.stubGlobal('window', {
+    setTimeout: vi.fn(),
+    clearTimeout: vi.fn(),
+    setInterval: vi.fn(),
+    clearInterval: vi.fn(),
+  });
 });
 
 // ── Happy path ─────────────────────────────────────────────────────────────
 
 describe('SettingsScene doRestore — happy path', () => {
-  it('shows "Restored N records — reloading…" when restoreFromFile resolves', async () => {
+  it('shows countdown label when restoreFromFile resolves with records', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 7, skipped: 0 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading…');
+    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading in 3…');
   });
 
-  it('shows "Restored 0 records — reloading…" when backup was empty but valid', async () => {
+  it('shows countdown label when backup was empty but valid', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 0, skipped: 3 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading…');
+    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading in 3…');
   });
 });
 
