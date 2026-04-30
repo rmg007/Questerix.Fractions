@@ -140,6 +140,9 @@ export class Level01Scene extends Phaser.Scene {
   // Fix 6 (G-E3): hint-event IDs accumulated per question
   private currentQuestionHintIds: string[] = [];
 
+  // Archetype of the active question — set when loading from templatePool, else 'partition'
+  private currentArchetype: string = 'partition';
+
   // Current question — may come from DB pool or synthetic fallback
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
@@ -525,9 +528,11 @@ export class Level01Scene extends Phaser.Scene {
         snapMode: tmpl.difficultyTier === 'easy' ? 'axis' : 'free',
         promptText: tmpl.prompt.text,
       };
+      this.currentArchetype = tmpl.archetype;
     } else {
       // Synthetic fallback — keeps game playable with no curriculum bundle
       this.currentQuestion = QUESTIONS[this.questionIndex % QUESTIONS.length]!;
+      this.currentArchetype = 'partition';
     }
 
     this.wrongCount = 0;
@@ -816,8 +821,9 @@ export class Level01Scene extends Phaser.Scene {
   /**
    * Quest-voiced feedback for the outcome. Mirrors LevelScene.questFeedbackText().
    * Correct picks the denominator-named line; Level 1 is always halves (2)
-   * so it always resolves to `quest.feedback.correct.half`. Incorrect returns
-   * the generic unequal line. null for partial/close outcomes.
+   * so it always resolves to `quest.feedback.correct.half`. Incorrect switches
+   * on archetype exactly as LevelScene does, with the same generic fallback.
+   * null for partial/close outcomes.
    */
   private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
     if (kind === 'correct') {
@@ -834,7 +840,23 @@ export class Level01Scene extends Phaser.Scene {
       }
     }
     if (kind === 'incorrect') {
-      return getCopy('quest.feedback.wrong.unequal');
+      const archetype = this.currentArchetype as string | undefined;
+      switch (archetype) {
+        case 'equal_or_not':
+        case 'compare':
+        case 'order':
+        case 'benchmark':
+        case 'label':
+        case 'make':
+        case 'snap_match':
+          try {
+            return getCopy(`quest.feedback.wrong.${archetype}`);
+          } catch {
+            return getCopy('quest.feedback.wrong.unequal');
+          }
+        default:
+          return getCopy('quest.feedback.wrong.unequal');
+      }
     }
     return null;
   }

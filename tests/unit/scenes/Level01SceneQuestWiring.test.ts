@@ -45,6 +45,7 @@ type AnyScene = Level01Scene & {
   questHintText: () => string;
   payloadDenominator: () => number;
   studentDisplayName: string | null;
+  currentArchetype: string;
 };
 
 function makeScene(): AnyScene {
@@ -75,12 +76,49 @@ describe('Level01Scene Quest wiring (T28 — introductory level)', () => {
   });
 
   describe('questFeedbackText — wrong answer', () => {
-    it('returns the unequal Quest line verbatim', () => {
+    it('returns the unequal Quest line verbatim when archetype is partition (default)', () => {
+      scene.currentArchetype = 'partition';
       expect(scene.questFeedbackText('incorrect')).toBe('Try again. The parts are not equal.');
     });
 
-    it('matches the catalog entry directly', () => {
+    it('matches the catalog entry directly for partition archetype', () => {
+      scene.currentArchetype = 'partition';
       expect(scene.questFeedbackText('incorrect')).toBe(getCopy('quest.feedback.wrong.unequal'));
+    });
+
+    it('returns the unequal fallback for unknown archetypes', () => {
+      scene.currentArchetype = 'unknown_archetype';
+      expect(scene.questFeedbackText('incorrect')).toBe(getCopy('quest.feedback.wrong.unequal'));
+    });
+
+    it('returns per-archetype wrong-answer lines for all 6 non-partition archetypes', () => {
+      const cases: Array<[string, string]> = [
+        ['compare', 'Try again. Look at both again.'],
+        ['order', 'Try again. Check the sizes.'],
+        ['benchmark', 'Try again. Think near the half.'],
+        ['label', 'Try again. Count the parts again.'],
+        ['make', 'Try again. Count the shaded parts.'],
+        ['snap_match', 'Try again. Those do not match.'],
+      ];
+      for (const [archetype, expected] of cases) {
+        scene.currentArchetype = archetype;
+        expect(scene.questFeedbackText('incorrect')).toBe(expected);
+      }
+    });
+
+    it('returns the equal_or_not line for equal_or_not archetype', () => {
+      scene.currentArchetype = 'equal_or_not';
+      expect(scene.questFeedbackText('incorrect')).toBe(getCopy('quest.feedback.wrong.equal_or_not'));
+    });
+
+    it('each archetype-specific line matches its catalog entry directly', () => {
+      const archetypes = ['compare', 'order', 'benchmark', 'label', 'make', 'snap_match'];
+      for (const archetype of archetypes) {
+        scene.currentArchetype = archetype;
+        expect(scene.questFeedbackText('incorrect')).toBe(
+          getCopy(`quest.feedback.wrong.${archetype}`)
+        );
+      }
     });
   });
 
