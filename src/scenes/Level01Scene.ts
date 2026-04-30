@@ -1452,6 +1452,12 @@ export class Level01Scene extends Phaser.Scene {
       onPlayAgain: () => {
         fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
       },
+      onNextLevel: () => {
+        fadeAndStart(this, 'LevelScene', {
+          levelNumber: 2,
+          studentId: this.studentId,
+        });
+      },
       onMenu: () => {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },

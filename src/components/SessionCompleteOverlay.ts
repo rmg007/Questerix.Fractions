@@ -78,14 +78,11 @@ export class SessionCompleteOverlay {
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
-    // S3-T3: Trophy — procedural graphics (gold cup with base)
-    this.drawProceduralTrophy(scene, cx, 320, depth);
-    // Fallback emoji for accessibility
-    const trophyA11y = scene.add
+    // Trophy emoji
+    const trophyT = scene.add
       .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
-      .setOrigin(0.5)
-      .setAlpha(0); // hide but keep for screen reader
-    this.container.add(trophyA11y);
+      .setOrigin(0.5);
+    this.container.add(trophyT);
 
     // Heading
     const headingT = scene.add
@@ -137,7 +134,6 @@ export class SessionCompleteOverlay {
     this.container.add(accT);
 
     // S3-T3: Buttons — Play Again + Next Level (if available) + Menu
-    const buttonSpacing = onNextLevel ? 60 : 80; // tighter if 3 buttons
     const playAgainY = onNextLevel ? 800 : 820;
     const nextLevelY = onNextLevel ? 870 : null;
     const menuY = onNextLevel ? 940 : 900;
@@ -193,6 +189,36 @@ export class SessionCompleteOverlay {
 
     const txt = scene.add
       .text(x, y, 'Play Again', {
+        fontFamily: TITLE_FONT,
+        fontSize: '26px',
+        color: ACTION_TEXT,
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+
+    const hit = scene.add
+      .rectangle(x, y, W, H + SHADOW, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerup', onTap);
+
+    this.container.add([shadow, face, txt, hit]);
+  }
+
+  private addNextLevelButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
+    const W = 300, H = 64, R = 32, SHADOW = 7;
+
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(ACTION_BORDER, 1);
+    shadow.fillRoundedRect(x - W / 2, y - H / 2 + SHADOW, W, H, R);
+
+    const face = scene.add.graphics();
+    face.fillStyle(ACTION_FILL, 1);
+    face.fillRoundedRect(x - W / 2, y - H / 2, W, H, R);
+    face.lineStyle(5, ACTION_BORDER, 1);
+    face.strokeRoundedRect(x - W / 2, y - H / 2, W, H, R);
+
+    const txt = scene.add
+      .text(x, y, 'Keep going ▶', {
         fontFamily: TITLE_FONT,
         fontSize: '26px',
         color: ACTION_TEXT,
@@ -265,22 +291,25 @@ export class SessionCompleteOverlay {
   private burstConfetti(scene: Phaser.Scene, x: number, y: number, depth: number): void {
     if (!scene.textures.exists('clr-accentA')) return;
 
+    // S3-T3: 60 particles total (~10 per color) with celebratory arc
     const colors = [0xfcd34d, 0x34d399, 0x60a5fa, 0xfb7185, 0xa78bfa, 0xf97316];
+    const particlesPerColor = Math.ceil(60 / colors.length);
+
     for (const tint of colors) {
       const emitter = scene.add.particles(x, y, 'clr-accentA', {
-        lifespan: 1000,
-        speed: { min: 70, max: 280 },
-        scale: { start: 9, end: 0 },
+        lifespan: 1200,
+        speed: { min: 80, max: 320 },
+        scale: { start: 8, end: 0 },
         alpha: { start: 1, end: 0 },
         tint,
-        angle: { min: -160, max: -20 },
-        gravityY: 320,
-        quantity: 5,
+        angle: { min: -170, max: -10 }, // wider upward arc
+        gravityY: 280,
+        quantity: particlesPerColor,
         emitting: false,
       });
       emitter.setDepth(depth + 15);
-      emitter.explode(5);
-      scene.time.delayedCall(1400, () => emitter.destroy());
+      emitter.explode(particlesPerColor);
+      scene.time.delayedCall(1600, () => emitter.destroy());
     }
   }
 

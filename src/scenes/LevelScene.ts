@@ -1071,7 +1071,7 @@ export class LevelScene extends Phaser.Scene {
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
-    new SessionCompleteOverlay({
+    const config: import('../components/SessionCompleteOverlay').SessionCompleteConfig = {
       scene: this,
       levelNumber: this.levelNumber,
       correctCount: this.correctCount,
@@ -1087,7 +1087,18 @@ export class LevelScene extends Phaser.Scene {
       onMenu: () => {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
-    });
+    };
+
+    if (this.levelNumber < 9) {
+      config.onNextLevel = () => {
+        fadeAndStart(this, 'LevelScene', {
+          levelNumber: this.levelNumber + 1,
+          studentId: this.studentId,
+        });
+      };
+    }
+
+    new SessionCompleteOverlay(config);
 
     // Move Quest beside the trophy card (right of centre, above the heading at
     // overlay-y=420) and raise its depth above the overlay (depth 50).
