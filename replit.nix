@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.gh
     pkgs.playwright-driver
     pkgs.libgbm
     pkgs.libGL
