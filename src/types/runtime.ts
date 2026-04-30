@@ -142,6 +142,17 @@ export interface Attempt {
    */
   roundEvents?: ProgressionEvent[];
   syncState: SyncState;
+  // ── Extended fields used by misconception detectors ───────────────────────
+  /** Archetype-specific question payload (e.g. shapeType, rotation, targetPartitions). */
+  payload?: Record<string, unknown>;
+  /** Skill IDs associated with this attempt for knowledge-component analysis. */
+  skillIds?: string[];
+  /** Time-on-task in ms (computed from startedAt/submittedAt in some contexts). */
+  durationMS?: number;
+  /** Number of hints requested during this attempt. */
+  hintCount?: number;
+  /** Prompt context supplied to the student (vocabulary, label, etc.). */
+  prompt?: { text?: string };
 }
 
 // ── §3.4 HintEvent ─────────────────────────────────────────────────────────

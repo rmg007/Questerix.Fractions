@@ -265,7 +265,7 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const rotated = eolAttempts.filter((a) => {
-    const p = (a as any).payload as Record<string, any>;
+    const p = a.payload as Record<string, any>;
     return p && p.rotation !== 0 && p.rotation !== undefined;
   });
   if (rotated.length < 3) return null;
@@ -348,7 +348,7 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
 export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level !== 5 || attempts.length < 3) return null;
   // Specific to compositional fourths in L5
-  const compAttempts = attempts.filter((a) => (a as any).skillIds?.includes('KC-PRODUCTION-2'));
+  const compAttempts = attempts.filter((a) => a.skillIds?.includes('KC-PRODUCTION-2'));
   if (compAttempts.length < 3) return null;
 
   const evidenceIds = compAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
@@ -405,11 +405,11 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
  */
 export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level > 2) return null;
-  const rectangleAttempts = attempts.filter((a) => (a as any).payload?.shapeType === 'rectangle');
+  const rectangleAttempts = attempts.filter((a) => a.payload?.shapeType === 'rectangle');
   if (rectangleAttempts.length < 3) return null;
 
   const evidenceIds = rectangleAttempts
-    .filter((a) => ((a as any).durationMS ?? 0) > 30000 || ((a as any).hintCount ?? 0) > 2)
+    .filter((a) => (a.durationMS ?? 0) > 30000 || (a.hintCount ?? 0) > 2)
     .map((a) => a.id);
 
   if (evidenceIds.length >= 2) {
@@ -433,7 +433,7 @@ export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFl
  */
 export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level !== 1) return null;
-  const smallShapeAttempts = attempts.filter((a) => (a as any).payload?.scale < 0.6);
+  const smallShapeAttempts = attempts.filter((a) => Number(a.payload?.scale ?? 0) < 0.6);
   if (smallShapeAttempts.length < 3) return null;
 
   const evidenceIds = smallShapeAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
@@ -458,7 +458,7 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
  */
 export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionFlag | null {
   const vocabAttempts = attempts.filter((a) =>
-    (a as any).prompt?.text?.toLowerCase().includes('quarter')
+    a.prompt?.text?.toLowerCase().includes('quarter')
   );
   if (vocabAttempts.length < 2) return null;
 
@@ -484,7 +484,7 @@ export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionF
  */
 export function detectL5ThirdsHalf(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level !== 5) return null;
-  const thirdsAttempts = attempts.filter((a) => (a as any).payload?.targetPartitions === 3);
+  const thirdsAttempts = attempts.filter((a) => a.payload?.targetPartitions === 3);
   const evidenceIds = thirdsAttempts
     .filter((a) => (a.studentAnswerRaw as any)?.actualPartitions === 2)
     .map((a) => a.id);
@@ -510,7 +510,7 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
  */
 export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level !== 5) return null;
-  const fourthsAttempts = attempts.filter((a) => (a as any).payload?.targetPartitions === 4);
+  const fourthsAttempts = attempts.filter((a) => a.payload?.targetPartitions === 4);
   const evidenceIds = fourthsAttempts
     .filter((a) => (a.studentAnswerRaw as any)?.cutCount === 3)
     .map((a) => a.id);
@@ -536,7 +536,7 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
  */
 export function detectL5DenSwitch(attempts: Attempt[], level: number): MisconceptionFlag | null {
   if (level !== 5) return null;
-  const multiStep = attempts.filter((a) => (a as any).payload?.isMultiStep === true);
+  const multiStep = attempts.filter((a) => a.payload?.isMultiStep === true);
   const evidenceIds = multiStep.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
 
   if (evidenceIds.length >= 3) {

@@ -136,7 +136,7 @@ export class MenuScene extends Phaser.Scene {
       });
     }
     A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
-      this.scene.launch('SettingsScene');
+      fadeAndStart(this, 'SettingsScene');
     });
     A11yLayer.mountAction('a11y-choose-level', 'Choose a different level', () => {
       this._openLevelChooser();
@@ -152,21 +152,21 @@ export class MenuScene extends Phaser.Scene {
     TestHooks.mountInteractive(
       'level-card-L1',
       () => {
-        this.scene.start('Level01Scene', { studentId: this.lastStudentId });
+        fadeAndStart(this, 'Level01Scene', { studentId: this.lastStudentId });
       },
       { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
     TestHooks.mountInteractive(
       'level-card-L6',
       () => {
-        this.scene.start('LevelScene', { levelNumber: 6, studentId: this.lastStudentId });
+        fadeAndStart(this, 'LevelScene', { levelNumber: 6, studentId: this.lastStudentId });
       },
       { width: '100px', height: '40px', top: '50%', left: '10%' }
     );
     TestHooks.mountInteractive(
       'level-card-L7',
       () => {
-        this.scene.start('LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
+        fadeAndStart(this, 'LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
       },
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
@@ -232,7 +232,7 @@ export class MenuScene extends Phaser.Scene {
       shadowOffset: 6,
       rounded: false,
       onTap: () => {
-        this.scene.launch('SettingsScene');
+        fadeAndStart(this, 'SettingsScene');
       },
     });
     this.drawTaglinePill(STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
