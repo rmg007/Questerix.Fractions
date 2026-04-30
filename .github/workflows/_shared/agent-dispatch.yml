@@ -1,0 +1,127 @@
+name: Agent Dispatch (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      prompt_template:
+        required: true
+        type: string
+        description: "Name of the prompt file under .github/agent-prompts/ (without .md)"
+      context_json:
+        required: false
+        type: string
+        default: '{}'
+        description: "JSON object of extra variables to inject into the prompt"
+      working_branch:
+        required: true
+        type: string
+        description: "Branch the agent should commit to"
+      pr_number:
+        required: false
+        type: string
+        default: ''
+        description: "PR number to post results to (leave empty to skip)"
+      timeout_minutes:
+        required: false
+        type: number
+        default: 30
+        description: "Max minutes for the agent job"
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+      GH_TOKEN:
+        required: true
+    outputs:
+      outcome:
+        description: "success | failure | skipped"
+        value: ${{ jobs.run-agent.outputs.outcome }}
+      summary:
+        description: "One-paragraph summary from the agent"
+        value: ${{ jobs.run-agent.outputs.summary }}
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    outputs:
+      outcome: ${{ steps.agent.outputs.outcome }}
+      summary: ${{ steps.agent.outputs.summary }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.working_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read prompt template
+        id: read-prompt
+        run: |
+          PROMPT=$(cat ".github/agent-prompts/${{ inputs.prompt_template }}.md")
+          echo "prompt<<EOF_PROMPT" >> "$GITHUB_OUTPUT"
+          echo "$PROMPT" >> "$GITHUB_OUTPUT"
+          echo "EOF_PROMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run agent
+        id: agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CONTEXT_JSON: ${{ inputs.context_json }}
+          PROMPT_TEMPLATE: ${{ inputs.prompt_template }}
+          WORKING_BRANCH: ${{ inputs.working_branch }}
+        run: |
+          set +e
+          npx @anthropic-ai/claude-code \
+            --allowedTools "Bash,Read,Write,Edit" \
+            --permission-mode acceptEdits \
+            --max-turns 40 \
+            --print \
+            "$(cat ".github/agent-prompts/${PROMPT_TEMPLATE}.md")" \
+            > /tmp/agent-output.txt 2>&1
+          EXIT_CODE=$?
+          set -e
+
+          SUMMARY=$(tail -n 20 /tmp/agent-output.txt || true)
+          echo "summary<<EOF_SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "$SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "EOF_SUMMARY" >> "$GITHUB_OUTPUT"
+
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "outcome=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "outcome=failure" >> "$GITHUB_OUTPUT"
+            cat /tmp/agent-output.txt
+            exit 1
+          fi
+
+      - name: Push agent commits
+        if: steps.agent.outputs.outcome == 'success'
+        run: |
+          git push origin "${{ inputs.working_branch }}" || true
+
+      - name: Update PR comment
+        if: inputs.pr_number != ''
+        uses: ./.github/actions/pr-comment-update
+        with:
+          pr_number: ${{ inputs.pr_number }}
+          body: |
+            ### Agent run: `${{ inputs.prompt_template }}`
+
+            **Outcome:** ${{ steps.agent.outputs.outcome }}
+
+            **Summary:**
+            ${{ steps.agent.outputs.summary }}
+          gh_token: ${{ secrets.GH_TOKEN }}

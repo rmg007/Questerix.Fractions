@@ -1,0 +1,57 @@
+name: PR Comment Update (Idempotent)
+description: >
+  Posts or updates a single bot comment on a PR identified by a marker string.
+  Idempotent — calling it multiple times replaces the previous comment rather
+  than appending new ones.
+
+inputs:
+  pr_number:
+    description: "Pull request number"
+    required: true
+  body:
+    description: "Full Markdown body for the comment"
+    required: true
+  marker:
+    description: "HTML comment used to find and replace existing bot comment"
+    required: false
+    default: "<!-- agent-dispatch-bot -->"
+  gh_token:
+    description: "GitHub token with pull-requests:write permission"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Post or update PR comment
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        MARKER: ${{ inputs.marker }}
+        BODY: ${{ inputs.body }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+
+        # Find an existing comment that contains our marker
+        EXISTING_ID=$(gh api \
+          "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+          --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" \
+          | head -n1 || true)
+
+        FULL_BODY="${MARKER}
+${BODY}"
+
+        if [ -n "$EXISTING_ID" ]; then
+          echo "Updating existing comment ${EXISTING_ID}"
+          gh api \
+            --method PATCH \
+            "repos/${REPO}/issues/comments/${EXISTING_ID}" \
+            -f body="$FULL_BODY"
+        else
+          echo "Creating new comment on PR #${PR_NUMBER}"
+          gh api \
+            --method POST \
+            "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            -f body="$FULL_BODY"
+        fi
