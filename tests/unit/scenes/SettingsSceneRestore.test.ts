@@ -79,6 +79,12 @@ type AnyScene = SettingsScene & {
   restoreStatusText: { destroy: () => void } | null;
   toggles: Array<{ destroy: () => void }>;
   _keyHandler: ((e: KeyboardEvent) => void) | null;
+  _restoreTimerId: number | null;
+  _restoreIntervalId: number | null;
+  _restoreCountdownText: { destroy: () => void } | null;
+  _restoreCancelGraphic: { destroy: () => void } | null;
+  _restoreCancelBtnText: { destroy: () => void } | null;
+  _restoreCancelHit: { destroy: () => void } | null;
   add: {
     text: (x: number, y: number, msg: string, style: object) => {
       setOrigin: (n: number) => { setDepth: (n: number) => object };
@@ -99,6 +105,12 @@ function makeScene(): AnyScene {
   scene.fileInput = null;
   scene.toggles = [];
   scene._keyHandler = null;
+  scene._restoreTimerId = null;
+  scene._restoreIntervalId = null;
+  scene._restoreCountdownText = null;
+  scene._restoreCancelGraphic = null;
+  scene._restoreCancelBtnText = null;
+  scene._restoreCancelHit = null;
 
   // Track the last message passed to add.text() for assertions
   const capturedText = { msg: '' };
@@ -108,9 +120,25 @@ function makeScene(): AnyScene {
       setOrigin: (_n: number) => ({
         setDepth: (_d: number) => {
           capturedText.msg = msg;
-          return {};
+          return { destroy: vi.fn(), setText: vi.fn() };
         },
       }),
+      destroy: vi.fn(),
+      setText: vi.fn(),
+    }),
+    graphics: () => ({
+      fillStyle: vi.fn(function () { return this; }),
+      fillRoundedRect: vi.fn(function () { return this; }),
+      setDepth: vi.fn(function () { return this; }),
+      destroy: vi.fn(),
+    }),
+    rectangle: () => ({
+      setInteractive: vi.fn(function () { return this; }),
+      setDepth: vi.fn(function () { return this; }),
+      on: vi.fn(),
+      destroy: vi.fn(),
+      emit: vi.fn(),
+      setVisible: vi.fn(),
     }),
   };
 
@@ -133,7 +161,13 @@ function capturedStatus(scene: AnyScene): string {
 beforeEach(() => {
   vi.clearAllMocks();
   // Prevent the reload triggered on success from interfering with tests
-  vi.stubGlobal('window', { setTimeout: vi.fn() });
+  // Mock all timer functions used by startRestoreCountdown and _clearRestoreCountdown
+  vi.stubGlobal('window', {
+    setTimeout: vi.fn(),
+    clearTimeout: vi.fn(),
+    setInterval: vi.fn(),
+    clearInterval: vi.fn(),
+  });
 });
 
 // ── Happy path ─────────────────────────────────────────────────────────────

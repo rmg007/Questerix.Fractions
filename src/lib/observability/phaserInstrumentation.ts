@@ -10,11 +10,13 @@ export function instrumentScene(scene: Scene) {
   const sceneName = scene.scene.key;
 
   // Lifecycle monitoring
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  scene.events.on('init', (data: any) => {
+  scene.events.on('init', (data: unknown) => {
     logger.info('Scene Init', {
       category: 'SCENE',
-      data: { scene: sceneName, ...(data as Record<string, unknown>) },
+      data: {
+        scene: sceneName,
+        ...(typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {}),
+      },
     });
   });
 

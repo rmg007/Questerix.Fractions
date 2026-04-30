@@ -80,12 +80,26 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
   const enabled = isEnabled(category);
 
   // Always log to observability logger (it handles its own filtering/consent)
+  const logData =
+    typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined;
   if (fn === 'error') {
-    logger.error(event, { category, data: data as Record<string, unknown> });
+    if (logData !== undefined) {
+      logger.error(event, { category, data: logData });
+    } else {
+      logger.error(event, { category });
+    }
   } else if (fn === 'warn') {
-    logger.warn(event, { category, data: data as Record<string, unknown> });
+    if (logData !== undefined) {
+      logger.warn(event, { category, data: logData });
+    } else {
+      logger.warn(event, { category });
+    }
   } else {
-    logger.info(event, { category, data: data as Record<string, unknown> });
+    if (logData !== undefined) {
+      logger.info(event, { category, data: logData });
+    } else {
+      logger.info(event, { category });
+    }
   }
 
   if (!enabled) return;
