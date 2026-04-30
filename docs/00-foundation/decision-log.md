@@ -24,6 +24,20 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-25 — 2026-04-30 — Autonomous Workflows Operating Principle
+**Date:** 2026-04-30
+**Status:** Accepted
+
+**Decision:** Optimise for maximum autonomy. All recurring mechanical work (bug fixes, curriculum refreshes, PR audits, CI recovery) is delegated to scheduled agent workflows. The solo developer acts as reviewer of agent work, not implementer of mechanical tasks.
+
+**Kill switch:** `AGENT_AUTONOMY_ENABLED` repo variable. Set to `false` to disable all agent dispatch instantly without modifying workflow files.
+
+**Budget:** `AGENT_DAILY_TOKEN_BUDGET` repo variable (informational, ~5M tokens/day initial cap).
+
+**Rationale:** Solo validation project. Agent infrastructure already exists (4 subagents, slash commands, prompt templates). Wiring it into CI maximises throughput without requiring ongoing manual invocation.
+
+---
+
 ## D-24 — 2026-04-30 — Committed Claude Code agent harness as canonical onboarding mechanism
 
 **Decision:** The autonomous agent system — `CLAUDE.md` (root + 8 nested subtree guides), `.claude/settings.json` with pre-approved allow/ask/deny tiers, SessionStart/PreCompact/PostToolUse hooks, 9 slash commands, 4 specialist subagents, and `scripts/agent-doctor.mjs` — is the canonical onboarding mechanism for all coding agents working on this repo.

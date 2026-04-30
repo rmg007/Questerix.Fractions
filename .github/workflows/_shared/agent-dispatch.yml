@@ -118,12 +118,16 @@ jobs:
             exit 1
           fi
           PROMPT=$(cat "$TEMPLATE_PATH")
+          # Use jq for safe value extraction — handles spaces, quotes, and
+          # special characters that would break naive bash string replacement.
           while IFS= read -r key; do
-            value=$(echo "$CONTEXT_JSON" | jq -r --arg k "$key" '.[$k]')
-            PROMPT="${PROMPT//\$\{\{$key\}\}/$value}"
-          done < <(echo "$CONTEXT_JSON" | jq -r 'keys[]')
+            value=$(printf '%s' "$CONTEXT_JSON" | jq -r --arg k "$key" '.[$k] // ""')
+            # Escape the value for use as a sed replacement string
+            escaped_value=$(printf '%s' "$value" | sed 's/[&/\]/\\&/g; s/$/\\n/; $s/\\n$//')
+            PROMPT=$(printf '%s' "$PROMPT" | sed "s/\\\${{${key}}}/${escaped_value}/g")
+          done < <(printf '%s' "$CONTEXT_JSON" | jq -r 'keys[]')
           echo "ASSEMBLED_PROMPT<<__PROMPT_EOF__" >> $GITHUB_ENV
-          echo "$PROMPT" >> $GITHUB_ENV
+          printf '%s\n' "$PROMPT" >> $GITHUB_ENV
           echo "__PROMPT_EOF__" >> $GITHUB_ENV
 
       - name: Run agent

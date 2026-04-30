@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   # -------------------------------------------------------------------
-  # Kill-switch: set Actions variable AUTONOMY_DISABLED=true to halt all
+  # Kill-switch: set Actions variable AGENT_AUTONOMY_ENABLED=false to halt all
   # agent workflows without touching code.
   # -------------------------------------------------------------------
   gate:
@@ -23,8 +23,8 @@ jobs:
       - name: Kill switch check
         id: check
         run: |
-          if [ "${{ vars.AUTONOMY_DISABLED }}" = "true" ]; then
-            echo "Kill switch active — skipping misconception-synthesis."
+          if [ "${{ vars.AGENT_AUTONOMY_ENABLED }}" != "true" ]; then
+            echo "::notice::Agent autonomy is disabled (AGENT_AUTONOMY_ENABLED != 'true'). Skipping misconception-synthesis."
             echo "enabled=false" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=true" >> "$GITHUB_OUTPUT"

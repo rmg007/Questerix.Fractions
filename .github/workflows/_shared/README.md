@@ -62,6 +62,47 @@ Bug to fix: BUG-01 — Wrong prompt on partition scene
 
 Substitution is literal string replacement. Keys not present in `context_json` are left as-is.
 
+## Pre-flight Setup
+
+One-time setup required before any agent workflows will fire.
+
+### 1. Repository Secret
+Settings → Secrets and variables → Actions → New repository secret:
+- Name: `ANTHROPIC_API_KEY`
+- Value: your Anthropic API key (sk-ant-...)
+
+### 2. Repository Variables
+Settings → Secrets and variables → Actions → Variables tab → New repository variable:
+
+| Name | Value | Purpose |
+|---|---|---|
+| `AGENT_AUTONOMY_ENABLED` | `false` | Master kill switch. Set to `true` after 1 week of observation. |
+| `AGENT_DAILY_TOKEN_BUDGET` | `5000000` | Informational cap. Not yet hard-enforced in workflows. |
+
+### 3. GITHUB_TOKEN Permissions
+Settings → Actions → General → Workflow permissions:
+- Select: "Read and write permissions"
+- Check: "Allow GitHub Actions to create and approve pull requests"
+
+### 4. Labels (create if missing)
+Settings → Labels → New label:
+
+| Name | Color | Used by |
+|---|---|---|
+| `claude:implement` | `#7057ff` | issue-to-copilot.yml |
+| `copilot-assigned` | `#7057ff` | issue-to-copilot.yml |
+| `autonomy-report` | `#0075ca` | telemetry-weekly.yml |
+| `curriculum` | `#e4e669` | curriculum-loop.yml |
+| `needs-attention` | `#d93f0b` | curriculum-loop.yml |
+
+### 5. Test Kill Switch
+After setup, manually trigger `bug-burndown` workflow with `AGENT_AUTONOMY_ENABLED=false`:
+- Should complete immediately with a "::notice::Agent autonomy is disabled" log line
+- No branch should be created, no PR should be opened
+
+### 6. Enable
+Set `AGENT_AUTONOMY_ENABLED=true` to activate all agent workflows.
+
 ## Adding a new prompt template
 
 1. Create `.github/agent-prompts/<name>.md`.
