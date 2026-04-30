@@ -93,6 +93,7 @@ export class LevelScene extends Phaser.Scene {
   private submitButtonContainer!: Phaser.GameObjects.Container;
   private mascot!: Mascot;
   private questionCounterText!: Phaser.GameObjects.Text;
+  protected studentDisplayName: string | null = null;
 
   constructor(key = 'LevelScene') {
     super({ key });
