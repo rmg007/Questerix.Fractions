@@ -207,81 +207,203 @@ Roughly 1.5–2× the v1 estimate, in exchange for ~5× the autonomy ceiling and
 
 ## Agent Work Queue
 
-Everything remaining for this agent to execute, in priority order. Updated 2026-04-30 based on full repo audit.
+Everything remaining for this agent to execute. Updated 2026-04-30 after deep audit of all source files, tests, CI, workflows, curriculum, and plan documents.
 
-### Priority 0 — Broken environment (blocks everything else)
+**Other plan documents in scope** (don't duplicate, reference):
+- `PLANS/master-plan-2026-04-26.md` — sprint backlog (S0–S5)
+- `PLANS/harden-and-polish-2026-04-30.md` — 56 hardening bugs (R1–R56), all open
+- `PLANS/ux-elevation-2026-04-30.md` — 10 UX tasks pending
+- `PLANS/audio-2026-04-30.md` — audio pipeline not built
+- `PLANS/curriculum-update-2026-04-30.md` — curriculum framework done; content gaps remain
+
+---
+
+### P0 — Broken environment (blocks all verification)
 
 | ID | Item | Root cause | Effort |
 |---|---|---|---|
-| E-1 | `npm install` not run — `vitest` not found, phaser types missing | Node modules absent in this shell session | 2 min |
-| E-2 | Typecheck fails: `Cannot find module 'phaser'` across all interaction files | Flows from E-1 | Resolves with E-1 |
-| E-3 | Kill switch variable inconsistency — P3 workflows use `vars.AUTONOMY_DISABLED`, all others use `vars.AGENT_AUTONOMY_ENABLED` | Three agents independently implemented the check | 10 min |
+| E-1 | `npm install` not run — `vitest` not found, phaser types missing | Node modules absent in shell | 2 min |
+| E-2 | Typecheck: `Cannot find module 'phaser'` across all 13 interaction/utils files | Flows from E-1 | Resolves with E-1 |
+| E-3 | 3 build scripts may not exist: `scripts/agent-doctor.mjs`, `scripts/postdeploy-check.mjs`, `scripts/validate-curriculum.mjs` | Never verified against filesystem | 10 min |
+| E-4 | Kill switch variable inconsistency — `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` use `vars.AUTONOMY_DISABLED`; everything else uses `vars.AGENT_AUTONOMY_ENABLED` | Three agents independently implemented the check | 10 min |
 
-### Priority 1 — Autonomous workflows system (PR #9)
+---
+
+### P1 — Critical bugs found in deep audit (new — not in other plans)
+
+These are concrete issues discovered by this session's audit that are NOT captured in `harden-and-polish-2026-04-30.md`.
+
+| ID | File | Location | Issue | Severity |
+|---|---|---|---|---|
+| N-1 | `src/scenes/LevelScene.ts` | Line 1092 | Accuracy uses `this.responseTimes.length` as denominator instead of `this.attemptCount`. If student submits multiple times per question, accuracy is wrong (understated or >100%). | CRITICAL |
+| N-2 | `src/scenes/Level01Scene.ts` | Line 1025 | `showOutcome()` calls `AccessibilityAnnouncer` but never calls `tts.speak()` for feedback text. K-2 non-readers miss "Correct!" / "Try again" audio entirely. | HIGH |
+| N-3 | `src/scenes/MenuScene.test.ts` | Line 5 | `TODO: add a lightweight canvas shim (jest-canvas-mock) to enable scene mount tests` — unresolved, blocking all scene unit tests. | MEDIUM |
+| N-4 | `src/scenes/interactions/` | — | `ExplainYourOrderInteraction.ts` exists but has no matching validator in `src/validators/`. The registry doesn't cover it. Any L8/L9 question using this archetype will silently return undefined from `validatorRegistry.get()`. | CRITICAL |
+| N-5 | `src/engine/bkt.ts` | ~line 80 | Export audit incomplete — `updateMastery()` called from scenes but unclear if cleanly exported. Verify `updateMastery` is in public exports, not just an internal alias. | HIGH |
+| N-6 | `.lighthouserc.json` | — | Exists but has zero thresholds. Lighthouse CI collects scores but enforces nothing. Performance and a11y regressions pass silently. | MEDIUM |
+
+---
+
+### P2 — Autonomous workflows system (PR #9)
 
 | ID | Item | Effort |
 |---|---|---|
-| A-1 | Fix E-3 kill switch inconsistency across `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` | 10 min |
-| A-2 | Audit `_shared/agent-dispatch.yml` end-to-end — multiple agents each produced a version; `--ours` kept S1's. Verify it handles all callers correctly. | 20 min |
-| A-3 | Document exact one-time repo setup steps as a runbook in `.github/workflows/_shared/README.md` (secrets, variables, token permissions, labels) | 15 min |
-| A-4 | Merge PR #9 once user confirms pre-flight setup complete | user action |
-| A-5 | After merge: manually trigger `bug-burndown` and `curriculum-loop` with `AGENT_AUTONOMY_ENABLED=false` to verify kill switch works end-to-end | 15 min |
-| A-6 | Flip `AGENT_AUTONOMY_ENABLED=true` after 1 week of kill-switch-off observation | deferred |
+| A-1 | Fix E-4: standardise kill switch variable to `AGENT_AUTONOMY_ENABLED` in `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` | 10 min |
+| A-2 | Audit `_shared/agent-dispatch.yml` end-to-end — S1 version kept via `--ours`; verify it handles all downstream callers (bug-burndown, ci-fix, subagent-pr-audit, validation-ingest, curriculum-loop, misconception-synthesis, coverage-matrix, claude-md-maintenance) | 20 min |
+| A-3 | Expand `.github/workflows/_shared/README.md` into a full pre-flight runbook: exact secret names, variable names and defaults, GITHUB_TOKEN permission grants, label names + colours, how to test kill switch | 15 min |
+| A-4 | Merge PR #9 — user action; depends on pre-flight runbook completion | user action |
+| A-5 | After merge: manually trigger `bug-burndown` with `AGENT_AUTONOMY_ENABLED=false` to verify no-op; then flip to `true` and trigger again to verify agent fires | 15 min |
 
-### Priority 2 — Sprint completion (game must work)
+---
 
-These are open items from `PLANS/master-plan-2026-04-26.md`. Code is reportedly done; verification is pending.
+### P3 — Critical hardening (from `harden-and-polish-2026-04-30.md`)
 
-| ID | Sprint item | What to do | Needs browser? |
+56 open bugs. Do the critical and high items that are code-only (no UX polish or infrastructure). Full list in the harden plan — these are the highest-priority subset:
+
+| Harden ID | File | Issue |
+|---|---|---|
+| R3 | `src/scenes/Level01Scene.ts:919` | Hint `attemptId` never linked — all hint events orphaned. Every hint recorded against a blank FK. |
+| R4 | `src/persistence/repositories/hintEvent.ts:14` | `id` typed as `string`, Dexie stores `number`. Type mismatch causes silent failures on hint queries. |
+| R5 | `src/scenes/Level01Scene.ts:752` | `validatorRegistry.get(id as never)` — `as never` hides undefined; validator silently missing returns undefined, session stalls. |
+| R6 | `src/scenes/Level01Scene.ts:314` | Session creation has no error guard — silent collapse loses all 30-min session data |
+| R7 | `src/scenes/Level01Scene.ts:1331` | `preDestroy()` doesn't destroy 4 components — timer and tween leaks per scene exit |
+| R9 | all repos | `QuotaExceededError` unhandled — Safari Private mode silently loses data |
+| R11 | `src/components/FeedbackOverlay.ts:35` | WCAG 1.4.3 fail — contrast 2.52:1 (need ≥4.5:1). Blocks WCAG AA compliance. |
+| R12 | `src/components/SkipLink.ts:46` | Skip-link targets unfocusable `<canvas>`, not first interactive button. Broken for screen reader users. |
+| R13 | `src/scenes/MenuScene.ts:348` | `localStorage unlockedLevels:${studentId}` — C5 constraint violation |
+| R17 | `src/persistence/db.ts:82` | Schema versions 2–4 missing `upgrade()` re-index hooks. New indices not built on existing data. |
+| R27 | `src/lib/log.ts:40` | `localStorage LOG` key violates C5 constraint |
+| R28 | `src/curriculum/loader.ts:80` | Curriculum bundle not schema-validated on load. Malformed bundle crashes `loadQuestion()`. |
+| R38 | 8 files | `checkReduceMotion()` reimplemented 8 times — centralise in `src/scenes/utils/easings.ts` |
+
+Lower-priority harden items (R14–R16, R18–R26, R29–R56) to be tackled after critical items above, per the full harden plan sequencing.
+
+---
+
+### P4 — Sprint completion items (from `master-plan-2026-04-26.md`)
+
+Code reportedly done; verification and remaining wiring pending.
+
+| ID | Sprint ref | What to do | Needs Playwright |
 |---|---|---|---|
-| G-1 | S0-T5 — round-trip screenshot: Menu → L1 → 5-correct → session-complete | Run Playwright or manual Chrome test; commit screenshot to `PLANS/screenshots/` | Playwright |
-| G-2 | S1-T5 — IndexedDB state transitions: `NOT_STARTED → LEARNING → APPROACHING → MASTERED` | Add Playwright assertion checking IndexedDB after 5 correct answers | Playwright |
-| G-3 | S2-T1 — choose unlock model (D-1: BKT mastery vs. session completion vs. free play) | Write decision to `docs/00-foundation/decision-log.md`, implement chosen model | Code |
-| G-4 | S4-T3 — per-level browser smoke test (L1–L9 all load, questions render) | Playwright parameterized smoke spec | Playwright |
-| G-5 | S4-T4 — mastery-gated unlock wired into menu state | Implement once D-1 is decided | Code |
-| G-6 | S5-T4 — Playwright happy-path E2E for L1 | TestHooks already in place; write the spec | Code |
-| G-7 | S5-T7 — deploy to Cloudflare Pages | CI deploy workflow already exists; verify secrets, trigger | Infra |
+| G-1 | S0-T5 | Round-trip screenshot: Menu → L1 → 5-correct → session-complete. Commit to `PLANS/screenshots/`. | Yes |
+| G-2 | S1-T5 | Assert IndexedDB shows mastery state transitions after 5 questions | Yes |
+| G-3 | S2-T1 + D-1 | Decide unlock model (BKT threshold vs completion vs free-play); add to decision log; implement | Code |
+| G-4 | S4-T3 | Playwright parameterised smoke: L1–L9 each load, first question renders | Yes |
+| G-5 | S4-T4 | Mastery-gated unlock wired into MenuScene — depends on G-3 decision | Code |
+| G-6 | S5-T4 | Playwright happy-path E2E for L1 (TestHooks already in place) | Code |
+| G-7 | S5-T7 | Deploy to Cloudflare Pages — verify CI secrets, trigger deploy | Infra |
 
-### Priority 3 — CLAUDE.md reconciliation
+---
 
-The master plan marks S0-T1 (BUG-01), S0-T2 (BUG-02), S0-T3 (BUG-04), S1-T1 (G-E1), S2-T3 (G-C7) as done. CLAUDE.md "Active bugs" table still lists them as open. Either the master plan is wrong (code exists but browser-unverified) or CLAUDE.md is stale.
+### P5 — Test coverage gaps (new findings)
 
-| ID | Item | Effort |
+| ID | Missing test | Gap | Effort |
+|---|---|---|---|
+| T-1 | `tests/unit/validators/utils.test.ts` | `src/validators/utils.ts` has 3 exported functions (`lerp`, `manhattanDistance`, `polygonArea`) with zero tests (R39) | 20 min |
+| T-2 | `tests/unit/engine/selection.test.ts` | `src/engine/selection.ts` — ZPD window, recency window, cold-start fallback — never tested (R40) | 45 min |
+| T-3 | `tests/unit/engine/router.test.ts` | `src/engine/router.ts` — next-archetype picker — no test file confirmed | 30 min |
+| T-4 | `tests/unit/persistence/` (15 files) | 15 of 16 persistence repos have zero unit tests — only `deviceMeta.test.ts` exists | 3–5 hr |
+| T-5 | `tests/e2e/level02-l09.spec.ts` | L2–L9 have no dedicated E2E coverage; generic smoke only | 1–2 hr |
+| T-6 | `tests/a11y/contrast.spec.ts` | Automated WCAG contrast checks not in a11y suite — only axe scan exists | 30 min |
+| T-7 | `tests/unit/validators/explain-your-order.test.ts` | No validator exists for `ExplainYourOrderInteraction` (see N-4) — need both validator and test | 45 min |
+| T-8 | `tests/unit/` canvas shim | `MenuScene.test.ts:5` TODO for jest-canvas-mock — blocks all scene unit tests | 20 min |
+
+---
+
+### P6 — Curriculum content gaps (from `curriculum-update-2026-04-30.md`)
+
+| ID | Issue | Impact |
 |---|---|---|
-| C-1 | After G-1 (browser verification): remove confirmed-fixed bugs from CLAUDE.md active bugs table | 5 min |
-| C-2 | Add decision D-1 outcome to CLAUDE.md once chosen | 5 min |
-| C-3 | Append session learnings to `.claude/learnings.md` (kill switch naming, worktree conflict pattern) | 5 min |
+| CU-1 | All 255 templates use bare imperatives ("Split this rectangle"). Zero sharing-context prompts ("2 children share a pizza"). Contradicts pedagogical design. | HIGH — affects engagement with K-2 audience |
+| CU-2 | Number-line representation missing from L1–L7; introduced only at L8 (SK-27). Pedagogical commitment violated. | HIGH |
+| CU-3 | 5 of 7 misconception detectors have template mismatches with curriculum content — need re-audit (Phase A.5 in curriculum plan) | MEDIUM |
+| CU-4 | 9 level spec docs missing: quantitative mastery thresholds, out-of-scope statements, reinforced-skill lists | MEDIUM |
 
-### Priority 4 — Infrastructure hygiene
+---
+
+### P7 — Audio pipeline (from `audio-2026-04-30.md`)
+
+Decision made (OpenAI gpt-4o-mini-tts), nothing built. Entire pipeline is missing:
+
+| ID | Item | File to create |
+|---|---|---|
+| AU-1 | Build script to generate audio clips from catalog | `scripts/build-audio.mjs` |
+| AU-2 | Check script to detect missing clips | `scripts/check-audio.mjs` |
+| AU-3 | Runtime audio catalog and player | `src/audio/AudioCatalog.ts` |
+| AU-4 | Wire player into TTS service — replace Web Speech API fallback | `src/audio/TTSService.ts` |
+| AU-5 | Generate clips for L1–L9 prompts (~255 clips, ~1.7 MB separate from JS budget) | `public/audio/` |
+
+---
+
+### P8 — UX elevation (from `ux-elevation-2026-04-30.md`)
+
+10 tasks pending. Do only after P3 (critical bugs) are resolved — C10 constraint (every change must serve validation, not polish). Exceptions: items that directly affect validation data quality.
+
+| ID | UX task | Validation relevance |
+|---|---|---|
+| UX-1 | Star progress bar rewrite (`src/components/ProgressBar.ts`) | Students need clear progress feedback to stay engaged through 5 questions |
+| UX-2 | Trophy/session-complete screen with 1/2/3-star rating | Session completion signal; needed for G-1 screenshot |
+| UX-3 | Mascot component (`src/components/Mascot.ts`) — procedural reactions | Emotional engagement; not validation-critical |
+| UX-4 | Animations respect `prefers-reduced-motion` in MenuScene (R36) | A11y compliance; also blocks WCAG audit |
+| UX-5–UX-10 | World map, loading screen, level cards, celebration effects, theme polish | Post-validation polish |
+
+---
+
+### P9 — Infrastructure hygiene
 
 | ID | Item | File | Effort |
 |---|---|---|---|
 | I-1 | Fix `synthetic-playtest.yml` Node 20 → 24 | `.github/workflows/synthetic-playtest.yml` | 2 min |
-| I-2 | Add decision log entry for autonomy operating principle | `docs/00-foundation/decision-log.md` | 10 min |
-| I-3 | Lighthouse assertions — add `.lighthouserc.json` with `a11y >= 90`, `performance >= 80` thresholds | `.lighthouserc.json` | 15 min |
+| I-2 | Add Lighthouse thresholds: `a11y >= 90`, `performance >= 80`, `best-practices >= 90` | `.lighthouserc.json` | 10 min |
+| I-3 | Add decision log entry: autonomy operating principle + kill-switch protocol | `docs/00-foundation/decision-log.md` | 10 min |
+| I-4 | Centralise `checkReduceMotion()` into one util (R38) — 8 duplicates | `src/scenes/utils/easings.ts` + 8 callers | 30 min |
+| I-5 | Add `noUncheckedIndexedAccess` to tsconfig (R41) — fix resulting errors | `tsconfig.json` | 1 hr |
 
-### Priority 5 — Open decisions (user input needed)
+---
+
+### P10 — CLAUDE.md reconciliation
+
+| ID | Item | Effort |
+|---|---|---|
+| C-1 | After G-1 (browser verification passes): remove BUG-01, BUG-02, BUG-04, G-E1, G-C7 from active bugs table (master plan marks these done) | 5 min |
+| C-2 | Record D-1 decision in CLAUDE.md and decision log once chosen | 5 min |
+| C-3 | Append session learnings: kill switch naming, worktree merge conflict pattern, accuracy denominator bug | 5 min |
+| C-4 | Add `ExplainYourOrderInteraction` → missing validator to active issues | 5 min |
+
+---
+
+### Open decisions (user input needed before blocking items)
 
 | ID | Decision | Blocks |
 |---|---|---|
-| D-1 | Level unlock model: BKT mastery threshold vs. session completion vs. always unlocked | G-3, G-5 |
-| D-2 | Should `bug-burndown` attempt Sprint-1-scale bugs (≤2 hr) after the first wave (≤30 min) proves out? | L1 tuning |
-| D-3 | Sunset `Level01Scene.ts` once `LevelScene.ts` reaches parity, or keep both? | Refactor scope |
+| D-1 | Level unlock model: BKT mastery threshold vs. session completion vs. always-unlocked free play | G-3, G-5 |
+| D-2 | `ExplainYourOrderInteraction` — add validator now or remove/defer the archetype? | N-4, T-7 |
+| D-3 | Audio pipeline timing — before or after first validation cycle? Affects AU-1 through AU-5 | P7 |
+| D-4 | Sunset `Level01Scene.ts` after `LevelScene.ts` reaches parity, or maintain both? | Refactor scope |
+| D-5 | Bug-burndown effort threshold after first wave — raise from ≤30 min to ≤2 hr? | L1 loop tuning |
 
-### Execution order (what I'll tackle next, in order)
+---
 
-1. **E-1** — `npm install`
-2. **E-2** — verify typecheck green
-3. **A-1** — fix kill switch variable name in P3 workflows
-4. **A-2** — audit `agent-dispatch.yml`
-5. **A-3** — pre-flight runbook in README
-6. **I-1** — Node 20 → 24 in synthetic-playtest
-7. **I-2** — decision log entry for autonomy
-8. **G-6** — Playwright happy-path E2E for L1 (can write without browser)
-9. **G-1/G-2/G-4** — Playwright verification specs (run CI to execute)
-10. **G-3** — D-1 decision + unlock implementation
-11. **C-1/C-2/C-3** — CLAUDE.md reconciliation
-12. **G-5** — mastery-gated unlock
-13. **G-7** — deploy to Cloudflare Pages
-14. **I-3** — Lighthouse assertions
-15. **A-4 onwards** — depends on user merging PR #9 and completing pre-flight
+### Execution order
+
+Sequenced by: blockers first → data integrity → game completeness → coverage → infrastructure.
+
+```
+P0  E-1, E-2, E-3, E-4
+P2  A-1, A-2, A-3
+P1  N-1 (accuracy bug), N-4 (ExplainYourOrder validator), N-2 (TTS feedback)
+P3  R5, R6, R3, R4, R7, R9, R11, R12, R13, R17, R27, R28, R38
+P4  G-1, G-6 (write), G-4 (write) → run in CI → G-2
+    D-1 decision → G-3, G-5
+P5  T-1, T-2, T-3, T-8 → T-4 (persistence repos) → T-5 (L2–L9 e2e) → T-6, T-7
+P6  CU-1, CU-2 (pipeline re-run with sharing context) → CU-3, CU-4
+P8  UX-1, UX-2, UX-4 (validation-relevant only; defer UX-3, UX-5–UX-10)
+P7  AU-1 through AU-5 (after D-3 decision)
+P9  I-1, I-2, I-3, I-4, I-5
+P10 C-1 through C-4
+P2  A-4 (user: merge PR #9), A-5 (validate kill switch)
+G-7 Deploy to Cloudflare Pages
+```
+
+**Total open items: ~85 across 10 priority buckets.** Critical path to Sprint 0 exit (playable game, green tests, deployed): P0 → P1(N-1, N-4) → P3(R5,R6) → P4(G-1,G-6) → P9(I-1) → G-7.
