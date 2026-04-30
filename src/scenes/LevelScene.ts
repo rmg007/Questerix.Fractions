@@ -175,13 +175,13 @@ export class LevelScene extends Phaser.Scene {
     const levelId = `level${String(this.levelNumber).padStart(2, '0')}-scene`;
     TestHooks.mountSentinel(levelId);
 
-    // hint-btn interactive overlay (upper-right ~y=160)
+    // hint-btn interactive overlay (upper-right ~y=240)
     TestHooks.mountInteractive(
       'hint-btn',
       () => {
         this.onHintRequest();
       },
-      { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' }
+      { width: '80px', height: '80px', top: '18.75%', left: 'calc(50% + 280px)' }
     );
 
     // hint-text sentinel (hidden until text set)
@@ -325,31 +325,43 @@ export class LevelScene extends Phaser.Scene {
   // ── Header / chrome ─────────────────────────────────────────────────────────
 
   private createHeader(): void {
+    // White card banner spanning the top — matches the adventure card style
+    const headerG = this.add.graphics().setDepth(4);
+    headerG.fillStyle(0xffffff, 0.95);
+    headerG.fillRoundedRect(10, 10, CW - 20, 92, 20);
+    headerG.lineStyle(3, 0x1e3a8a, 1);
+    headerG.strokeRoundedRect(10, 10, CW - 20, 92, 20);
+
+    // Level title — centred, Fredoka One
     this.add
-      .text(CW / 2, 60, `Level ${this.levelNumber}`, {
-        fontSize: '32px',
+      .text(CW / 2, 57, `Level ${this.levelNumber}`, {
+        fontSize: '38px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
-        stroke: '#FFFFFF',
-        strokeThickness: 3,
       })
       .setOrigin(0.5)
       .setDepth(5);
 
+    // Back pill — left side
+    const BACK_W = 118, BACK_H = 52;
+    const backG = this.add.graphics().setDepth(5);
+    backG.fillStyle(0xe0f2fe, 1);
+    backG.fillRoundedRect(18, 27, BACK_W, BACK_H, 14);
+    backG.lineStyle(2, 0x1e3a8a, 1);
+    backG.strokeRoundedRect(18, 27, BACK_W, BACK_H, 14);
+
     const backBtn = this.add
-      .text(52, 60, '← Menu', {
-        fontSize: '18px',
+      .text(18 + BACK_W / 2, 27 + BACK_H / 2, '← Menu', {
+        fontSize: '17px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
-        backgroundColor: 'rgba(255,255,255,0.75)',
-        padding: { x: 10, y: 6 },
       })
       .setOrigin(0.5)
-      .setDepth(5)
+      .setDepth(6)
       .setInteractive({
-        hitArea: new Phaser.Geom.Rectangle(-28, -20, 56, 40),
+        hitArea: new Phaser.Geom.Rectangle(-BACK_W / 2, -BACK_H / 2, BACK_W, BACK_H),
         hitAreaCallback: Phaser.Geom.Rectangle.Contains,
         useHandCursor: true,
       });
@@ -365,16 +377,21 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private createPromptArea(): void {
+    // Question prompt card — white with PATH_BLUE border, matching adventure cards
+    const promptG = this.add.graphics().setDepth(4);
+    promptG.fillStyle(0xffffff, 1);
+    promptG.fillRoundedRect(60, 114, CW - 120, 100, 18);
+    promptG.lineStyle(3, 0x93c5fd, 1);
+    promptG.strokeRoundedRect(60, 114, CW - 120, 100, 18);
+
     this.promptText = this.add
-      .text(CW / 2, 160, '', {
+      .text(CW / 2, 164, '', {
         fontSize: '22px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
         align: 'center',
-        wordWrap: { width: 640 },
-        backgroundColor: 'rgba(255,255,255,0.75)',
-        padding: { x: 14, y: 8 },
+        wordWrap: { width: CW - 160 },
       })
       .setOrigin(0.5)
       .setDepth(5);
@@ -392,7 +409,7 @@ export class LevelScene extends Phaser.Scene {
     this.hintButton = createHintCircleButton(
       this,
       CW - 60,
-      160,
+      240,
       () => {
         log.input('hint_button_tap', {
           level: this.levelNumber,

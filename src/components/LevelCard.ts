@@ -1,16 +1,36 @@
 /**
  * LevelCard — interactive Phaser.GameObjects.Container for a single level tile.
+ * Uses the sky-blue adventure theme from levelTheme.ts to stay cohesive with
+ * MenuScene and LevelScene.
  * per design-language.md §2 (palette), §5 (touch target ≥44×44 CSS px)
  * per runtime-architecture.md §8 step 3
  */
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../scenes/utils/colors';
+import {
+  SKY_BG,
+  PATH_BLUE,
+  NAVY_HEX,
+  ACTION_FILL,
+  ACTION_BORDER,
+  ACTION_TEXT,
+  TITLE_FONT,
+  BODY_FONT,
+} from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
 
+// ── Adventure theme colours ───────────────────────────────────────────────────
+
+const UNLOCKED_BG     = SKY_BG;        // #E0F2FE — pale sky
+const UNLOCKED_BORDER = PATH_BLUE;     // #93C5FD — light blue path
+const LOCKED_BG       = 0xf1f5f9;     // slate-100 — muted for locked
+const LOCKED_BORDER   = 0xc8d6e0;     // soft blue-grey
+const HOVER_BG        = PATH_BLUE;    // blue-300 on hover
+const BADGE_FILL      = ACTION_FILL;  // amber — matches Check button / Play station
+
 const CARD_W = 220;
 const CARD_H = 160;
-const CARD_RADIUS = 14;
+const CARD_RADIUS = 16;
 
 export interface LevelCardOptions {
   scene: Phaser.Scene;
@@ -28,18 +48,21 @@ export class LevelCard extends Phaser.GameObjects.Container {
   private readonly onTap: (n: number) => void;
   private bg!: Phaser.GameObjects.Graphics;
   private readonly reducedMotion: boolean;
+  private readonly bgFill: number;
+  private readonly bgBorder: number;
 
   constructor(opts: LevelCardOptions) {
     super(opts.scene, opts.x, opts.y);
     this.meta = opts.meta;
     this.unlocked = opts.unlocked;
     this.onTap = opts.onTap;
+    this.bgFill = opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
+    this.bgBorder = opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
     this.reducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     this.build(opts.suggested);
     opts.scene.add.existing(this);
-    // per test-strategy.md §1.3 — interactive testid overlay per card
     TestHooks.mountInteractive(
       `level-card-L${opts.meta.number}`,
       () => opts.onTap(opts.meta.number),
@@ -50,73 +73,82 @@ export class LevelCard extends Phaser.GameObjects.Container {
   private build(suggested: boolean): void {
     const s = this.scene;
 
-    // Background card — greyed when locked, primary-soft when unlocked
-    // per design-language.md §2.1 — no neon
-    const bgColor = this.unlocked ? CLR.primarySoft : CLR.neutral100;
-    const borderColor = this.unlocked ? CLR.primary : CLR.neutral300;
-
     this.bg = s.add.graphics();
-    this.drawCard(bgColor, borderColor);
+    this.drawCard(this.bgFill, this.bgBorder);
     this.add(this.bg);
 
-    // Level number
+    // Level number chip — top-left
     this.add(
-      s.add.text(-CARD_W / 2 + 16, -CARD_H / 2 + 14, `L${this.meta.number}`, {
+      s.add.text(-CARD_W / 2 + 14, -CARD_H / 2 + 12, `L${this.meta.number}`, {
         fontSize: '20px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontFamily: TITLE_FONT,
         fontStyle: 'bold',
-        color: this.unlocked ? HEX.primary : HEX.neutral600,
+        color: this.unlocked ? '#1E3A8A' : '#64748B',
       })
     );
-    // Name
+
+    // Level name — centred
     this.add(
       s.add
-        .text(0, -14, this.meta.name, {
+        .text(0, -12, this.meta.name, {
           fontSize: '18px',
-          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontFamily: TITLE_FONT,
           fontStyle: 'bold',
-          color: this.unlocked ? HEX.neutral900 : HEX.neutral600,
+          color: this.unlocked ? NAVY_HEX : '#64748B',
           align: 'center',
           wordWrap: { width: CARD_W - 24 },
         })
         .setOrigin(0.5)
     );
-    // Concept
+
+    // Concept — smaller, centred
     this.add(
       s.add
-        .text(0, 24, this.meta.concept, {
+        .text(0, 26, this.meta.concept, {
           fontSize: '13px',
-          fontFamily: '"Nunito", system-ui, sans-serif',
-          color: this.unlocked ? HEX.neutral600 : HEX.neutral300,
+          fontFamily: BODY_FONT,
+          color: this.unlocked ? '#475569' : '#94A3B8',
           align: 'center',
           wordWrap: { width: CARD_W - 24 },
         })
         .setOrigin(0.5)
     );
 
-    // Grade band + optional "Suggested next" badge
-    // per runtime-architecture.md §11 routing rules
-    const gradeText = s.add
-      .text(CARD_W / 2 - 12, -CARD_H / 2 + 14, `Gr ${this.meta.gradeBand}`, {
-        fontSize: '11px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        color: HEX.neutral600,
-      })
-      .setOrigin(1, 0);
-    this.add(gradeText);
+    // Grade band — top-right
+    this.add(
+      s.add
+        .text(CARD_W / 2 - 10, -CARD_H / 2 + 12, `Gr ${this.meta.gradeBand}`, {
+          fontSize: '11px',
+          fontFamily: BODY_FONT,
+          color: this.unlocked ? '#475569' : '#94A3B8',
+        })
+        .setOrigin(1, 0)
+    );
 
+    // Lock icon for locked levels
+    if (!this.unlocked) {
+      this.add(
+        s.add
+          .text(0, -36, '🔒', { fontSize: '22px' })
+          .setOrigin(0.5)
+      );
+    }
+
+    // "Suggested next" amber badge — bottom centre
     if (suggested) {
       const badgeBg = s.add.graphics();
-      badgeBg.fillStyle(CLR.accentA, 1);
-      badgeBg.fillRoundedRect(-54, CARD_H / 2 - 28, 108, 22, 8);
+      badgeBg.fillStyle(BADGE_FILL, 1);
+      badgeBg.lineStyle(2, ACTION_BORDER, 1);
+      badgeBg.fillRoundedRect(-58, CARD_H / 2 - 30, 116, 24, 10);
+      badgeBg.strokeRoundedRect(-58, CARD_H / 2 - 30, 116, 24, 10);
       this.add(badgeBg);
       this.add(
         s.add
-          .text(0, CARD_H / 2 - 17, 'Suggested next', {
+          .text(0, CARD_H / 2 - 18, 'Suggested next', {
             fontSize: '11px',
-            fontFamily: '"Nunito", system-ui, sans-serif',
+            fontFamily: BODY_FONT,
             fontStyle: 'bold',
-            color: HEX.neutral900,
+            color: ACTION_TEXT,
           })
           .setOrigin(0.5)
       );
@@ -125,29 +157,34 @@ export class LevelCard extends Phaser.GameObjects.Container {
     // Hit zone — ≥44×44 per accessibility.md
     const hit = s.add
       .rectangle(0, 0, CARD_W, CARD_H, 0x000000, 0)
-      .setInteractive({ useHandCursor: true });
+      .setInteractive({ useHandCursor: this.unlocked });
     this.add(hit);
 
-    hit.on('pointerup', () => this.onTap(this.meta.number));
+    if (this.unlocked) {
+      hit.on('pointerup', () => this.onTap(this.meta.number));
 
-    if (!this.reducedMotion) {
-      hit.on('pointerover', () => {
-        this.bg.clear();
-        const hover = this.unlocked ? CLR.primary : CLR.neutral300;
-        this.drawCard(hover, hover, 0.15);
-      });
-      hit.on('pointerout', () => {
-        this.bg.clear();
-        this.drawCard(bgColor, borderColor);
-      });
+      if (!this.reducedMotion) {
+        hit.on('pointerover', () => {
+          this.bg.clear();
+          this.drawCard(HOVER_BG, UNLOCKED_BORDER, 0.5);
+        });
+        hit.on('pointerout', () => {
+          this.bg.clear();
+          this.drawCard(this.bgFill, this.bgBorder);
+        });
+      }
     }
   }
 
-  private drawCard(fill: number, border: number, alpha = 1): void {
+  private drawCard(fill: number, border: number, shadowAlpha = 0): void {
     this.bg.clear();
-    this.bg.fillStyle(fill, alpha < 1 ? alpha : 1);
+    if (shadowAlpha > 0) {
+      this.bg.fillStyle(border, shadowAlpha);
+      this.bg.fillRoundedRect(-CARD_W / 2 + 2, -CARD_H / 2 + 4, CARD_W, CARD_H, CARD_RADIUS);
+    }
+    this.bg.fillStyle(fill, 1);
     this.bg.fillRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, CARD_RADIUS);
-    this.bg.lineStyle(2, border, 1);
+    this.bg.lineStyle(3, border, 1);
     this.bg.strokeRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, CARD_RADIUS);
   }
 }
