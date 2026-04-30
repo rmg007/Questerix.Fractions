@@ -1335,6 +1335,9 @@ export class Level01Scene extends Phaser.Scene {
       totalAttempts: this.totalQuestionsAttempted,
       width: CW,
       height: CH,
+      onNextLevel: () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.studentId });
+      },
       onPlayAgain: () => {
         fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
       },

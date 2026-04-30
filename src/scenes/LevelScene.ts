@@ -1034,6 +1034,10 @@ export class LevelScene extends Phaser.Scene {
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
+    const nextLevel = this.levelNumber < 9
+      ? (this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+      : null;
+
     new SessionCompleteOverlay({
       scene: this,
       levelNumber: this.levelNumber,
@@ -1041,6 +1045,16 @@ export class LevelScene extends Phaser.Scene {
       totalAttempts: this.responseTimes.length,
       width: CW,
       height: CH,
+      ...(nextLevel !== null
+        ? {
+            onNextLevel: () => {
+              fadeAndStart(this, 'LevelScene', {
+                levelNumber: nextLevel,
+                studentId: this.studentId,
+              });
+            },
+          }
+        : {}),
       onPlayAgain: () => {
         fadeAndStart(this, 'LevelScene', {
           levelNumber: this.levelNumber,
