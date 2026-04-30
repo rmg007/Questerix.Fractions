@@ -1,0 +1,130 @@
+name: Agent Dispatch (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      prompt_template:
+        required: true
+        type: string
+        description: "Name of the prompt template under .github/agent-prompts/ (without .md)"
+      context_json:
+        required: true
+        type: string
+        description: "JSON object whose keys replace ${{KEY}} placeholders in the template"
+      working_branch:
+        required: false
+        type: string
+        default: ''
+        description: "Branch to checkout before running the agent (defaults to triggering branch)"
+      pr_number:
+        required: false
+        type: string
+        default: ''
+        description: "Pull request number for context"
+      timeout_minutes:
+        required: false
+        type: number
+        default: 15
+        description: "Max minutes before the agent job is cancelled"
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+      GH_TOKEN:
+        required: true
+    outputs:
+      outcome:
+        description: "'success' or 'failed'"
+        value: ${{ jobs.run-agent.outputs.outcome }}
+      summary:
+        description: "One-paragraph summary produced by the agent"
+        value: ${{ jobs.run-agent.outputs.summary }}
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+
+    outputs:
+      outcome: ${{ steps.agent.outputs.outcome }}
+      summary: ${{ steps.agent.outputs.summary }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.working_branch != '' && inputs.working_branch || github.sha }}
+          fetch-depth: 0
+
+      - name: Build prompt from template
+        id: build-prompt
+        shell: bash
+        env:
+          TEMPLATE_NAME: ${{ inputs.prompt_template }}
+          CONTEXT_JSON: ${{ inputs.context_json }}
+        run: |
+          TEMPLATE_FILE=".github/agent-prompts/${TEMPLATE_NAME}.md"
+          if [ ! -f "$TEMPLATE_FILE" ]; then
+            echo "ERROR: Prompt template not found: $TEMPLATE_FILE"
+            exit 1
+          fi
+
+          PROMPT=$(cat "$TEMPLATE_FILE")
+
+          # Replace each ${{KEY}} placeholder with the value from context_json
+          # Uses python for reliable JSON parsing
+          PROMPT=$(python3 - <<'PYEOF'
+          import json, os, re, sys
+
+          template = open(f".github/agent-prompts/{os.environ['TEMPLATE_NAME']}.md").read()
+          ctx = json.loads(os.environ['CONTEXT_JSON'])
+
+          def replace_placeholder(m):
+              key = m.group(1).strip()
+              return ctx.get(key, m.group(0))
+
+          result = re.sub(r'\$\{\{([^}]+)\}\}', replace_placeholder, template)
+          print(result, end='')
+          PYEOF
+          )
+
+          # Write to a temp file to avoid argument-length limits
+          echo "$PROMPT" > /tmp/agent-prompt.txt
+          echo "prompt_file=/tmp/agent-prompt.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude agent
+        id: agent
+        shell: bash
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set +e
+
+          # Install claude CLI if not present
+          if ! command -v claude &>/dev/null; then
+            npm install -g @anthropic-ai/claude-code 2>/dev/null || true
+          fi
+
+          PROMPT=$(cat /tmp/agent-prompt.txt)
+
+          # Run agent with non-interactive flag, capture output
+          AGENT_OUTPUT=$(claude --print --no-update-check \
+            --output-format text \
+            "$PROMPT" 2>&1)
+          EXIT_CODE=$?
+
+          # Truncate summary to 65000 chars to stay within output limits
+          SUMMARY="${AGENT_OUTPUT:0:65000}"
+
+          # Escape for multiline GitHub output
+          SUMMARY="${SUMMARY//'%'/'%25'}"
+          SUMMARY="${SUMMARY//$'\n'/'%0A'}"
+          SUMMARY="${SUMMARY//$'\r'/'%0D'}"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "outcome=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "outcome=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
