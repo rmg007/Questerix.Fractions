@@ -266,7 +266,7 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
   'quest.hint.identify.visual': {
-    text: 'Look at how many parts are shaded.',
+    text: 'Count the shaded parts.',
     notes: 'Tier 2 hint for identify. Points to visual evidence.',
     tone: 'persona-quest',
   },
@@ -325,7 +325,7 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
   'quest.menu.allDone': {
-    text: 'You mastered all 9 levels!',
+    text: 'You did all 9 levels!',
     notes: 'Shown when student has completed all 9 levels.',
     tone: 'persona-quest',
   },
