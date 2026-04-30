@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+    # Don't auto-update the core framework stack (C4 constraint — no stack changes)
+    ignore:
+      - dependency-name: phaser
+        reason: "C4: Phaser 4 is pinned until 2029. Major version bumps require explicit review."
+      - dependency-name: dexie
+        reason: "C4: Dexie 4 is pinned. Schema migrations required for major bumps."
+      - dependency-name: vite
+        reason: "Review vite major bumps manually — build config may need updating."
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /pipeline
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+    open-pull-requests-limit: 3

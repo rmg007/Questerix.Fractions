@@ -10,6 +10,29 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Claude Code agent harness** — committed `CLAUDE.md` (root + 8 nested subtree guides), `.claude/settings.json` with SessionStart/PreCompact/PostToolUse hooks and allow/ask/deny tiers, 9 slash commands (`/preflight`, `/sync-curriculum`, `/diag`, `/learn`, `/retro`, `/sprint-status`, `/c5-check`, `/test-changed`, `/decision`), 4 specialist subagents (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`), `.claude/learnings.md` append-only gotcha log, `AGENTS.md` router for Codex/Aider/Cursor.
+- `scripts/agent-doctor.mjs` — 21-check harness validator; exits 1 on failure; wired to `npm run agent-doctor`.
+- `.github/dependabot.yml` — weekly npm/pip/actions Dependabot; Phaser/Dexie/Vite pinned to avoid C4 violations.
+- `PLANS/work-queue-2026-04-30.md` — ordered P1–P4 implementation plan for Sprint 0 exit.
+- `PLANS/INDEX.md` entry for work-queue-2026-04-30.
+- CI step: `npm run agent-doctor` after install.
+
+### Changed
+
+- `CONTRIBUTING.md` removed (solo project; replaced by agent harness docs).
+- `README.md` slimmed to 30-line router; stale "Pre-MVP" status fixed; broken doc link corrected.
+- `package.json`: added `engines.node >=20.0.0` and `agent-doctor` npm script.
+- `.npmrc`: `engine-strict=true`.
+- `docs/INDEX.md`: added hint-system and KEYBOARD_BINDINGS entries; bumped `last_reviewed`.
+- Lighthouse CI workflow: Node 20 → 24; removed redundant `--legacy-peer-deps`.
+- 13 stale `.claude/*.md` session reports archived to `.claude/_archive/`.
+- 12 orphan hint-generation scripts archived to `.claude/_archive/scripts/`.
+- 8 superseded `PLANS/phase-*` docs archived to `PLANS/_archive/`.
+
+### Fixed
+
+- **OTel/Sentry lazy imports (P1)** — `@sentry/browser` (141 KB gzip) and 7 OTel SDK packages (~25 KB gzip) converted from static to dynamic `import()`. Both now excluded from the initial bundle when no DSN or `VITE_OTLP_URL` is configured (default MVP builds). `initObservability()` made async; `Promise.allSettled` isolates boot failures.
+
 - Public `about.html` static page linked from `index.html`
 - Keyboard-accessible nav in `index.html` (skip-to-content + About / Privacy links)
 - `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` (MIT)

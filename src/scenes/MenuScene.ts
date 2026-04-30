@@ -23,9 +23,9 @@ import { Mascot } from '../components/Mascot';
 import { LevelCard } from '../components/LevelCard';
 import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
-import { tts } from '../audio/TTSService';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -126,7 +126,7 @@ export class MenuScene extends Phaser.Scene {
     this.dashTickHandler = null;
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.reduceMotion = this.checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
@@ -144,7 +144,7 @@ export class MenuScene extends Phaser.Scene {
     injectSkipLink();
 
     // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
-    const unlocked = this._getUnlockedLevels();
+    const unlocked = await this._getUnlockedLevels();
     const currentLevel = Math.max(...Array.from(unlocked));
 
     A11yLayer.unmountAll();
@@ -193,57 +193,6 @@ export class MenuScene extends Phaser.Scene {
         fadeAndStart(this, 'LevelScene', { levelNumber: 7, studentId: this.lastStudentId });
       },
       { width: '100px', height: '40px', top: '55%', left: '10%' }
-    );
-    // R30/R31: Add missing testids for L2–L5, L8, L9 (off-canvas for e2e bypass tests)
-    TestHooks.mountInteractive(
-      'level-card-L2',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    TestHooks.mountInteractive(
-      'level-card-L3',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 3, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    TestHooks.mountInteractive(
-      'level-card-L4',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 4, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    TestHooks.mountInteractive(
-      'level-card-L5',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 5, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    TestHooks.mountInteractive(
-      'level-card-L8',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 8, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    TestHooks.mountInteractive(
-      'level-card-L9',
-      () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 9, studentId: this.lastStudentId });
-      },
-      { width: '1px', height: '1px', top: '-9999px', left: '-9999px' }
-    );
-    // R30: Add settings-btn testid
-    TestHooks.mountInteractive(
-      'settings-btn',
-      () => {
-        fadeAndStart(this, 'SettingsScene');
-      },
-      { width: '100px', height: '100px', top: '8.3%', left: '50%' }
     );
 
     // ── Background: pale sky + soft glow circles ──────────────────────────
@@ -377,13 +326,11 @@ export class MenuScene extends Phaser.Scene {
     this.mascot?.destroy();
     this.mascot = new Mascot(this, 680, 980);
     this.mascot.setState('idle');
-    // Wave + TTS greeting only on the first menu load per session.
-    // K-2 players can't reliably read the title, so Quest speaks it.
+    // Wave only on the first menu load; skip on _closeLevelGrid re-renders
     if (!mascotGreeted) {
       mascotGreeted = true;
       this.time.delayedCall(400, () => {
         this.mascot?.setState('wave');
-        tts.speak('Hello! Welcome to Questerix Fractions. Tap Play to start!');
       });
     }
 
@@ -442,16 +389,14 @@ export class MenuScene extends Phaser.Scene {
     // Close any existing overlay first.
     this._closeChooseLevelOverlay();
 
-    const unlocked = this._getUnlockedLevels();
-    const completedLevels = this._getCompletedLevels();
+    const unlocked = await this._getUnlockedLevels();
+    const completedLevels = await this._getCompletedLevels();
 
     // Query mastery estimates from IndexedDB.
     const masteredLevels = new Set<number>();
     try {
       if (this.lastStudentId) {
-        const records = await skillMasteryRepo.getAllForStudent(
-          StudentId(this.lastStudentId)
-        );
+        const records = await skillMasteryRepo.getAllForStudent(StudentId(this.lastStudentId));
         for (const rec of records) {
           if (rec.masteryEstimate < OVERLAY_MASTERY_THRESHOLD) continue;
           for (const meta of LEVEL_META) {
@@ -475,14 +420,17 @@ export class MenuScene extends Phaser.Scene {
     };
 
     // ── Dark scrim ───────────────────────────────────────────────────────────
-    const scrim = this.add.rectangle(CW / 2, CH / 2, CW, CH, 0x000000, 0.7)
+    const scrim = this.add
+      .rectangle(CW / 2, CH / 2, CW, CH, 0x000000, 0.7)
       .setDepth(OVERLAY_DEPTH)
       .setInteractive(); // block clicks below
     track(scrim);
 
     // ── White panel ──────────────────────────────────────────────────────────
-    const panelW = 760, panelH = 600;
-    const panelX = CW / 2, panelY = 600;
+    const panelW = 760,
+      panelH = 600;
+    const panelX = CW / 2,
+      panelY = 600;
     const panelG = this.add.graphics().setDepth(OVERLAY_DEPTH + 1);
     panelG.fillStyle(WHITE, 1);
     panelG.fillRoundedRect(panelX - panelW / 2, panelY - panelH / 2, panelW, panelH, 20);
@@ -492,11 +440,12 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Title ────────────────────────────────────────────────────────────────
     track(
-      this.add.text(panelX, panelY - panelH / 2 + 44, 'Choose a Level', {
-        fontFamily: TITLE_FONT,
-        fontSize: '38px',
-        color: NAVY_HEX,
-      })
+      this.add
+        .text(panelX, panelY - panelH / 2 + 44, 'Choose a Level', {
+          fontFamily: TITLE_FONT,
+          fontSize: '38px',
+          color: NAVY_HEX,
+        })
         .setOrigin(0.5)
         .setDepth(OVERLAY_DEPTH + 2)
     );
@@ -509,16 +458,18 @@ export class MenuScene extends Phaser.Scene {
     closeBg.fillCircle(closeX, closeY, 24);
     track(closeBg);
     track(
-      this.add.text(closeX, closeY, '×', {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '34px',
-        color: NAVY_HEX,
-      })
+      this.add
+        .text(closeX, closeY, '×', {
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          fontSize: '34px',
+          color: NAVY_HEX,
+        })
         .setOrigin(0.5, 0.5)
         .setDepth(OVERLAY_DEPTH + 3)
     );
-    const closeHit = this.add.circle(closeX, closeY, 28, 0x000000, 0)
+    const closeHit = this.add
+      .circle(closeX, closeY, 28, 0x000000, 0)
       .setDepth(OVERLAY_DEPTH + 4)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', () => this._closeChooseLevelOverlay());
@@ -536,9 +487,7 @@ export class MenuScene extends Phaser.Scene {
     const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
 
     // "Suggested next" = lowest unlocked and not-yet-completed level.
-    const suggestedLevel = unlockedMeta.find(
-      (m) => !completedLevels.has(m.number)
-    )?.number ?? null;
+    const suggestedLevel = unlockedMeta.find((m) => !completedLevels.has(m.number))?.number ?? null;
 
     for (let i = 0; i < unlockedMeta.length; i++) {
       const meta = unlockedMeta[i];
@@ -608,36 +557,28 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  /** Read completed levels from localStorage (with optional studentId prefix). */
-  private _getCompletedLevels(): Set<number> {
-    const completed = new Set<number>();
+  /** Read completed levels from IndexedDB. */
+  private async _getCompletedLevels(): Promise<Set<number>> {
+    if (!this.lastStudentId) return new Set();
     try {
-      const key = this.lastStudentId ? `completedLevels:${this.lastStudentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => completed.add(n));
-      }
+      return await levelProgressionRepo.getCompletedLevels(StudentId(this.lastStudentId));
     } catch {
-      // Ignore storage errors
+      // Ignore storage errors — default to empty set
+      return new Set();
     }
-    return completed;
   }
 
-  /** Read unlocked levels from localStorage (with optional studentId prefix). */
-  private _getUnlockedLevels(): Set<number> {
-    const unlocked = new Set<number>([1]); // Level 1 always unlocked
-    try {
-      const key = this.lastStudentId ? `unlockedLevels:${this.lastStudentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const arr = JSON.parse(raw) as number[];
-        arr.forEach((n) => unlocked.add(n));
-      }
-    } catch (err) {
-      // Ignore storage errors — default to level 1 only
+  /** Read unlocked levels from IndexedDB. */
+  private async _getUnlockedLevels(): Promise<Set<number>> {
+    if (!this.lastStudentId) {
+      return new Set([1]); // Level 1 always unlocked
     }
-    return unlocked;
+    try {
+      return await levelProgressionRepo.getUnlockedLevels(StudentId(this.lastStudentId));
+    } catch {
+      // Ignore storage errors — default to level 1 only
+      return new Set([1]);
+    }
   }
 
   /** Persist that a level was completed so the next one unlocks. */
@@ -645,45 +586,18 @@ export class MenuScene extends Phaser.Scene {
   private _startLevel(levelNumber: number, resume = false): void {
     const data = { levelNumber, studentId: this.lastStudentId, resume };
     if (levelNumber === 1) {
-      // First-time players see the drag tutorial before Level 1 (per open-questions Q4).
-      // Returning players (onboardingSeen flag set) go straight to the level.
-      let onboardingSeen = false;
-      try {
-        onboardingSeen = !!localStorage.getItem('questerix.onboardingSeen');
-      } catch { /* ignore */ }
-
-      if (!onboardingSeen) {
-        fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
-      } else {
-        fadeAndStart(this, 'Level01Scene', data);
-      }
+      fadeAndStart(this, 'Level01Scene', data);
     } else {
       fadeAndStart(this, 'LevelScene', data);
     }
   }
 
-  static markLevelComplete(levelNumber: number, studentId: string | null): void {
+  static async markLevelComplete(levelNumber: number, studentId: string | null): Promise<void> {
+    if (!studentId) return; // No-op for non-logged-in students
     try {
-      // Unlock the next level (levels 1–8 only — no level 10 exists)
-      const unlockKey = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
-      const raw = localStorage.getItem(unlockKey);
-      const arr: number[] = raw ? (JSON.parse(raw) as number[]) : [];
-      const next = levelNumber + 1;
-      if (next <= 9 && !arr.includes(next)) {
-        arr.push(next);
-        localStorage.setItem(unlockKey, JSON.stringify(arr));
-      }
-
-      // Record this level as explicitly completed (covers Level 9 which has no successor)
-      const compKey = studentId ? `completedLevels:${studentId}` : 'completedLevels';
-      const rawComp = localStorage.getItem(compKey);
-      const compArr: number[] = rawComp ? (JSON.parse(rawComp) as number[]) : [];
-      if (!compArr.includes(levelNumber)) {
-        compArr.push(levelNumber);
-        localStorage.setItem(compKey, JSON.stringify(compArr));
-      }
+      await levelProgressionRepo.complete(StudentId(studentId), levelNumber);
     } catch (err) {
-      // Ignore storage errors
+      // Ignore storage errors — caller will retry on next session
     }
   }
 
@@ -994,4 +908,3 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 }
-

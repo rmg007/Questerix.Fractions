@@ -12,29 +12,32 @@ export interface ObservabilityConfig {
 }
 
 /**
- * Initialize the observability stack.
+ * Initialize the observability stack. Returns a promise that resolves once all
+ * async (dynamically-imported) services are ready. Callers may fire-and-forget —
+ * every service has a safe no-op fallback until initialization completes.
  */
-export function initObservability(config: ObservabilityConfig = {}) {
+export async function initObservability(config: ObservabilityConfig = {}): Promise<void> {
   const env = config.environment || (import.meta.env.MODE as string);
   const release = (import.meta.env.VITE_GIT_SHA as string) || 'dev';
 
   // 1. Set consent
   logger.setConsent(config.telemetryConsent || false);
 
-  // 2. Init Error Reporting (Sentry)
-  errorReporter.init({
-    ...(config.sentryDsn !== undefined ? { dsn: config.sentryDsn } : {}),
-    environment: env,
-    release,
-  });
+  // 2. Init Error Reporting (Sentry) + Tracing (OTel) in parallel.
+  //    allSettled: one failure must not block the other.
+  await Promise.allSettled([
+    errorReporter.init({
+      ...(config.sentryDsn !== undefined ? { dsn: config.sentryDsn } : {}),
+      environment: env,
+      release,
+    }),
+    tracerService.init(),
+  ]);
 
-  // 3. Init Tracing (OpenTelemetry)
-  tracerService.init();
-
-  // 4. Init Metrics (Web Vitals)
+  // 3. Init Metrics (Web Vitals) — synchronous, no dynamic imports
   meterService.init();
 
-  // 5. Start Telemetry Sync
+  // 4. Start Telemetry Sync
   telemetrySyncService.init();
 
   logger.info('Observability initialized', {

@@ -78,6 +78,22 @@ The authoritative pedagogical and structural roadmap for the Questerix curriculu
 
 ---
 
+## 🆕 Active Work Queue (2026-04-30)
+
+### [work-queue-2026-04-30.md](work-queue-2026-04-30.md) — CURRENT AGENT WORK QUEUE
+
+Ordered list of everything to implement next, with exact file references, approach, and done criteria.
+
+**Sections:**
+1. P1 — OTel/Sentry lazy imports (bundle trim, 50–100 KB gzip reduction)
+2. P2 — Sprint 0 bugs (BUG-01, BUG-02, BUG-04, G-E1, G-C7)
+3. P3 — CI/infra quick wins (agent-doctor in CI, Lighthouse node fix, CHANGELOG, decision log)
+4. P4 — C5 localStorage → Dexie migration
+
+**Gate:** Sprint 0 exit — student completes 5-question session in browser.
+
+---
+
 ## 🔴 Critical Blockers (Fix In This Order)
 
 | #   | Blocker                                                                       | File              | Effort   |

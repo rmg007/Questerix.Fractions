@@ -28,4 +28,3 @@ export const hintEventRepo = {
     await db.hintEvents.update(key, patch);
   },
 };
-

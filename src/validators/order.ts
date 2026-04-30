@@ -65,7 +65,10 @@ export const orderAcceptable: ValidatorRegistration<OrderInput, OrderAcceptableP
     const { acceptableOrders } = payload;
 
     for (const order of acceptableOrders) {
-      if (studentSequence.length === order.length && studentSequence.every((id, i) => id === order[i])) {
+      if (
+        studentSequence.length === order.length &&
+        studentSequence.every((id, i) => id === order[i])
+      ) {
         return { outcome: 'correct', score: 1 };
       }
     }

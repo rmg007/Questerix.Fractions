@@ -174,7 +174,7 @@ export class PreferenceToggle {
     this.setChecked(checked, raw);
   }
 
-  private setChecked(checked: boolean, raw: boolean | string): void {
+  private setChecked(checked: boolean, raw: boolean | string | number): void {
     this.btn.setAttribute('aria-checked', String(checked));
     const thumb = this.btn.querySelector('span') as HTMLSpanElement;
     if (checked) {

@@ -11,6 +11,8 @@ type AudioContextWindow = Window & typeof globalThis & { webkitAudioContext?: ty
 export class SFXService {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
+  /** Volume multiplier, 0–1. Scales the base gain of 0.35. */
+  private volume: number = 0.8;
 
   private getContext(): AudioContext | null {
     if (!this.enabled) return null;
@@ -33,7 +35,7 @@ export class SFXService {
    * Tones: E5 (659 Hz) → G5 (784 Hz), 80 ms each, sine wave.
    */
   playCorrect(): void {
-    this.playNotes([659, 784], 0.08, 'sine', 0.35);
+    this.playNotes([659, 784], 0.08, 'sine', 0.35 * this.volume);
   }
 
   /**
@@ -41,7 +43,7 @@ export class SFXService {
    * Tones: C5 → E5 → G5 → C6, 110 ms each, sine wave.
    */
   playComplete(): void {
-    this.playNotes([523, 659, 784, 1047], 0.11, 'sine', 0.35);
+    this.playNotes([523, 659, 784, 1047], 0.11, 'sine', 0.35 * this.volume);
   }
 
   setEnabled(on: boolean): void {
@@ -50,6 +52,18 @@ export class SFXService {
 
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  /**
+   * Set the volume multiplier (0–1). Scales base gain of 0.35.
+   * e.g. volume=0.8 → gain 0.28; volume=1.0 → gain 0.35; volume=0 → silent.
+   */
+  setVolume(volume: number): void {
+    this.volume = Math.max(0, Math.min(1, volume));
+  }
+
+  getVolume(): number {
+    return this.volume;
   }
 
   private playNotes(

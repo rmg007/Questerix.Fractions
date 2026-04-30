@@ -19,6 +19,7 @@ import {
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
+import { checkReduceMotion } from '../lib/preferences';
 
 export interface SessionCompleteConfig {
   scene: Phaser.Scene;
@@ -28,8 +29,8 @@ export interface SessionCompleteConfig {
   width?: number;
   height?: number;
   depth?: number;
-  onPlayAgain: () => void;
   onNextLevel?: () => void;
+  onPlayAgain: () => void;
   onMenu: () => void;
 }
 
@@ -44,6 +45,7 @@ export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
 export class SessionCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
+  private glowTween: Phaser.Tweens.Tween | null = null;
 
   constructor(config: SessionCompleteConfig) {
     const {
@@ -54,21 +56,19 @@ export class SessionCompleteOverlay {
       width = 800,
       height = 1280,
       depth = 50,
-      onPlayAgain,
       onNextLevel,
+      onPlayAgain,
       onMenu,
     } = config;
 
     const cx = width / 2;
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     const starCount = starsFromAccuracy(correctCount, totalAttempts);
     const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
-    this.container = scene.add
-      .container(0, reduceMotion ? 0 : height)
-      .setDepth(depth);
+    this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
 
     // Full-screen sky-blue card
     const cardBg = scene.add.graphics();
@@ -78,10 +78,11 @@ export class SessionCompleteOverlay {
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
-    // Trophy emoji
+    // Trophy — starts at scale 0.5 so the wave tween can spring it in
     const trophyT = scene.add
       .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setScale(reduceMotion ? 1 : 0.5);
     this.container.add(trophyT);
 
     // Heading
@@ -133,16 +134,15 @@ export class SessionCompleteOverlay {
       .setOrigin(0.5);
     this.container.add(accT);
 
-    // S3-T3: Buttons — Play Again + Next Level (if available) + Menu
-    const playAgainY = onNextLevel ? 800 : 820;
-    const nextLevelY = onNextLevel ? 870 : null;
-    const menuY = onNextLevel ? 940 : 900;
-
-    this.addPlayAgainButton(scene, cx, playAgainY, onPlayAgain);
-    if (onNextLevel && nextLevelY) {
-      this.addNextLevelButton(scene, cx, nextLevelY, onNextLevel);
+    // Buttons — "Next Level" (primary) when available, then "Play Again", then Menu
+    if (onNextLevel) {
+      this.addNextLevelButton(scene, cx, 780, onNextLevel);
+      this.addPlayAgainButton(scene, cx, 860, onPlayAgain);
+      this.addMenuButton(scene, cx, 940, onMenu);
+    } else {
+      this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
+      this.addMenuButton(scene, cx, 880, onMenu);
     }
-    this.addMenuButton(scene, cx, menuY, onMenu);
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
@@ -152,30 +152,35 @@ export class SessionCompleteOverlay {
       return;
     }
 
-    // S3-T3: Animate card with scale-in (400ms Back.easeOut) + confetti (60 particles)
-    this.container.setScale(0.8).setAlpha(0);
+    // Issue #96: overlay entrance — panel slides in from below the viewport.
+    // The container starts at y = height (below the canvas) and tweens to y = 0.
     scene.tweens.add({
       targets: this.container,
       y: 0,
-      scaleX: 1,
-      scaleY: 1,
-      alpha: 1,
-      duration: 400,
-      ease: 'Back.easeOut',
+      duration: 420,
+      ease: 'Back.Out',
       delay: 60,
       onComplete: () => {
         sfx.playComplete();
-        this.burstConfetti(scene, cx, 530, depth); // launch confetti early
-        this.animateStars(scene, cx, 530, depth, () => {
-          this.announce(levelNumber, starCount);
-          TestHooks.mountSentinel('completion-screen');
+        // Issue #70: Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
+        this.animateTrophyWave(scene, trophyT, () => {
+          // Issue #82: Glow sync — start repeating alpha pulse on heading after wave.
+          this.startGlowSync(scene, headingT);
+          // Animate stars after trophy wave lands.
+          this.animateStars(scene, cx, 530, depth, () => {
+            this.announce(levelNumber, starCount);
+            TestHooks.mountSentinel('completion-screen');
+          });
         });
       },
     });
   }
 
   private addPlayAgainButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 64, R = 32, SHADOW = 7;
+    const W = 300,
+      H = 64,
+      R = 32,
+      SHADOW = 7;
 
     const shadow = scene.add.graphics();
     shadow.fillStyle(ACTION_BORDER, 1);
@@ -205,7 +210,10 @@ export class SessionCompleteOverlay {
   }
 
   private addNextLevelButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 64, R = 32, SHADOW = 7;
+    const W = 300,
+      H = 64,
+      R = 32,
+      SHADOW = 7;
 
     const shadow = scene.add.graphics();
     shadow.fillStyle(ACTION_BORDER, 1);
@@ -218,7 +226,7 @@ export class SessionCompleteOverlay {
     face.strokeRoundedRect(x - W / 2, y - H / 2, W, H, R);
 
     const txt = scene.add
-      .text(x, y, 'Keep going ▶', {
+      .text(x, y, 'Next Level →', {
         fontFamily: TITLE_FONT,
         fontSize: '26px',
         color: ACTION_TEXT,
@@ -231,11 +239,20 @@ export class SessionCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    TestHooks.mountInteractive('next-level-btn', onTap, {
+      width: '200px',
+      height: '60px',
+      top: '62%',
+      left: '50%',
+    });
+
     this.container.add([shadow, face, txt, hit]);
   }
 
   private addMenuButton(scene: Phaser.Scene, x: number, y: number, onTap: () => void): void {
-    const W = 300, H = 54, R = 27;
+    const W = 300,
+      H = 54,
+      R = 27;
 
     const bg = scene.add.graphics();
     bg.fillStyle(0xffffff, 1);
@@ -258,6 +275,50 @@ export class SessionCompleteOverlay {
       .on('pointerup', onTap);
 
     this.container.add([bg, txt, hit]);
+  }
+
+  /**
+   * Issue #70: Trophy wave — elastic spring scale 0.5 → 1.2 → 1.0 over 600ms.
+   * Already guarded: only called when reduceMotion is false.
+   */
+  private animateTrophyWave(
+    scene: Phaser.Scene,
+    trophy: Phaser.GameObjects.Text,
+    onComplete: () => void
+  ): void {
+    scene.tweens.add({
+      targets: trophy,
+      scaleX: 1.2,
+      scaleY: 1.2,
+      duration: 400,
+      ease: Phaser.Math.Easing.Elastic.Out,
+      onComplete: () => {
+        scene.tweens.add({
+          targets: trophy,
+          scaleX: 1.0,
+          scaleY: 1.0,
+          duration: 200,
+          ease: 'Cubic.easeOut',
+          onComplete,
+        });
+      },
+    });
+  }
+
+  /**
+   * Issue #82: Glow sync — repeating alpha yoyo 1.0 ↔ 0.7 every 800ms on the
+   * "Level N Complete!" heading. Stored so destroy() can stop it cleanly.
+   * Already guarded: only called when reduceMotion is false.
+   */
+  private startGlowSync(scene: Phaser.Scene, target: Phaser.GameObjects.Text): void {
+    this.glowTween = scene.tweens.add({
+      targets: target,
+      alpha: 0.7,
+      duration: 800,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1,
+    });
   }
 
   private animateStars(
@@ -291,25 +352,22 @@ export class SessionCompleteOverlay {
   private burstConfetti(scene: Phaser.Scene, x: number, y: number, depth: number): void {
     if (!scene.textures.exists('clr-accentA')) return;
 
-    // S3-T3: 60 particles total (~10 per color) with celebratory arc
     const colors = [0xfcd34d, 0x34d399, 0x60a5fa, 0xfb7185, 0xa78bfa, 0xf97316];
-    const particlesPerColor = Math.ceil(60 / colors.length);
-
     for (const tint of colors) {
       const emitter = scene.add.particles(x, y, 'clr-accentA', {
-        lifespan: 1200,
-        speed: { min: 80, max: 320 },
-        scale: { start: 8, end: 0 },
+        lifespan: 1000,
+        speed: { min: 70, max: 280 },
+        scale: { start: 9, end: 0 },
         alpha: { start: 1, end: 0 },
         tint,
-        angle: { min: -170, max: -10 }, // wider upward arc
-        gravityY: 280,
-        quantity: particlesPerColor,
+        angle: { min: -160, max: -20 },
+        gravityY: 320,
+        quantity: 5,
         emitting: false,
       });
       emitter.setDepth(depth + 15);
-      emitter.explode(particlesPerColor);
-      scene.time.delayedCall(1600, () => emitter.destroy());
+      emitter.explode(5);
+      scene.time.delayedCall(1400, () => emitter.destroy());
     }
   }
 
@@ -324,15 +382,11 @@ export class SessionCompleteOverlay {
     return 'Nice try! Practice makes perfect!';
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
-
   destroy(): void {
+    if (this.glowTween) {
+      this.glowTween.stop();
+      this.glowTween = null;
+    }
     this.container.destroy(true);
     this.starTexts.length = 0;
   }

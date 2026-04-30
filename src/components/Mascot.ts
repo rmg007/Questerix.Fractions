@@ -10,6 +10,7 @@
 
 import * as Phaser from 'phaser';
 import { ACTION_FILL, ACTION_BORDER, NAVY } from '../scenes/utils/levelTheme';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Local palette tokens not exported from levelTheme ────────────────────────
 
@@ -24,7 +25,7 @@ const BODY_R = 40;
 const HAT_BASE = 50;
 const HAT_H = 55;
 
-export type MascotState = 'idle' | 'cheer' | 'think' | 'cheer-big' | 'wave';
+export type MascotState = 'idle' | 'cheer' | 'think' | 'cheer-big' | 'wave' | 'celebrate';
 
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
@@ -45,7 +46,7 @@ export class Mascot extends Phaser.GameObjects.Container {
 
     this.baseY = y;
     this.baseScale = scale;
-    this.reduceMotion = Mascot.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     this.buildCharacter();
 
@@ -83,6 +84,9 @@ export class Mascot extends Phaser.GameObjects.Container {
         break;
       case 'cheer-big':
         this.cheerBig();
+        break;
+      case 'celebrate':
+        this.celebrateHop();
         break;
       case 'wave':
         this.wave();
@@ -222,6 +226,36 @@ export class Mascot extends Phaser.GameObjects.Container {
           ease: 'Bounce.easeOut',
           onComplete: () => {
             this.setAngle(0);
+            this.setState('idle');
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * Issue #82 sub-item: quick bounce/hop — y -= 20 and back, 2 hops (~600ms),
+   * then returns to idle. Used when a session completes.
+   */
+  celebrateHop(): void {
+    this.stopCurrent();
+
+    if (this.reduceMotion) {
+      this.setState('idle');
+      return;
+    }
+
+    this.scene.tweens.chain({
+      targets: this,
+      tweens: [
+        { y: this.baseY - 20, duration: 130, ease: 'Sine.easeOut' },
+        { y: this.baseY, duration: 130, ease: 'Bounce.easeOut' },
+        { y: this.baseY - 20, duration: 130, ease: 'Sine.easeOut' },
+        {
+          y: this.baseY,
+          duration: 130,
+          ease: 'Bounce.easeOut',
+          onComplete: () => {
             this.setState('idle');
           },
         },
@@ -391,13 +425,6 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.rightArm.setAngle(0);
   }
 
-  private static checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
-      return false;
-    }
-  }
 
   /**
    * Create and attach a hidden DOM sentinel so Playwright tests can read the

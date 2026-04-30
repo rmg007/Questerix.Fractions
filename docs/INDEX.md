@@ -2,7 +2,7 @@
 title: Documentation Index
 status: active
 owner: solo
-last_reviewed: 2026-04-24
+last_reviewed: 2026-04-30
 ---
 
 # Documentation Index
@@ -60,6 +60,10 @@ Complete map of `/docs`. Read in the order shown for the first pass; jump around
 - [Test Strategy](./30-architecture/test-strategy.md) — unit/integration/E2E/property/parity layers
 - [Accessibility](./30-architecture/accessibility.md) — WCAG 2.1 AA commitments and verification
 - [Performance Budget](./30-architecture/performance-budget.md) — 1.0 MB gzipped budget by slice
+- [Hint System README](./30-architecture/hint-system/HINTS_README.md) — 3-tier hint ladder spec
+- [Hint Generation](./30-architecture/hint-system/HINT_GENERATION.md) — pipeline for authoring hints
+- [Hint System Files](./30-architecture/hint-system/HINT_SYSTEM_FILES.md) — file map for hint code paths
+- [Keyboard Bindings](./KEYBOARD_BINDINGS.md) — keyboard accessibility map
 
 ## Validation
 

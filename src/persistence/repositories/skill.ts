@@ -39,4 +39,3 @@ export const skillRepo = {
     await db.skills.clear();
   },
 };
-

@@ -76,9 +76,14 @@ function makeEmpty(): ParsedBundle {
 function isValidTemplate(row: unknown): row is QuestionTemplate {
   if (!row || typeof row !== 'object') return false;
   const t = row as Record<string, unknown>;
+  const promptValid =
+    typeof t.prompt === 'string' ||
+    (typeof t.prompt === 'object' &&
+      t.prompt !== null &&
+      typeof (t.prompt as Record<string, unknown>).text === 'string');
   return (
     typeof t.id === 'string' &&
-    typeof t.prompt === 'string' &&
+    promptValid &&
     t.payload != null &&
     typeof t.validatorId === 'string' &&
     Array.isArray(t.skillIds) &&

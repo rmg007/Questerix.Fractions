@@ -1,0 +1,12 @@
+# Session ephemera that shouldn't accumulate in the repo.
+# (settings.json, commands/, and CLAUDE.md files at any level remain tracked.)
+
+settings.local.json
+_session-log.md
+*.lock
+*REPORT*.md
+*SUMMARY*.md
+*COMPLETION*.md
+seed_*.ts
+seed_*.py
+batch_*.sh

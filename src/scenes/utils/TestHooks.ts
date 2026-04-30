@@ -148,4 +148,3 @@ export const TestHooks = {
     return registry.get(testid);
   },
 };
-

@@ -89,7 +89,7 @@ describe('seedIfEmpty', () => {
   it('returns alreadySeeded=true when DB has templates', async () => {
     // Set up device metadata with matching content version
     await db.deviceMeta.add({
-      installId: 'test-install-id',
+      installId: 'device',
       schemaVersion: 3,
       contentVersion: '1.0.0',
       preferences: {

@@ -47,4 +47,3 @@ export const fractionBankRepo = {
     await db.fractionBank.clear();
   },
 };
-

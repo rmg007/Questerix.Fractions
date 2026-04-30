@@ -139,21 +139,7 @@ export class LevelScene extends Phaser.Scene {
     await this.loadTemplates();
 
     // Open session record
-    // R6: Check return value; if session creation fails, show error and stop
-    const sessionOk = await this.openSession();
-    if (!sessionOk) {
-      this.add
-        .text(CW / 2, CH / 2, 'Could not start session.\nPlease go back and try again.', {
-          fontSize: '28px',
-          fontFamily: BODY_FONT,
-          color: '#ef4444',
-          align: 'center',
-          wordWrap: { width: CW - 80 },
-        })
-        .setOrigin(0.5)
-        .setDepth(100);
-      return;
-    }
+    await this.openSession();
 
     // Build chrome
     this.createHeader();
@@ -857,8 +843,8 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Persistence ──────────────────────────────────────────────────────────────
 
-  private async openSession(): Promise<boolean> {
-    if (!this.studentId) return true; // anonymous play is OK
+  private async openSession(): Promise<void> {
+    if (!this.studentId) return;
     try {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
@@ -906,10 +892,8 @@ export class LevelScene extends Phaser.Scene {
         level: this.levelNumber,
         activityId: `level_${this.levelNumber}`,
       });
-      return true;
     } catch (err) {
       log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
-      return false;
     }
   }
 
@@ -951,20 +935,6 @@ export class LevelScene extends Phaser.Scene {
         validatorPayload: result,
         syncState: 'local',
       });
-
-      // R3: Link hint events to this attempt (they were created with empty attemptId)
-      if (this.currentQuestionHintIds.length > 0) {
-        try {
-          const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
-          for (const hintId of this.currentQuestionHintIds) {
-            await hintEventRepo.update(hintId, { attemptId });
-          }
-          log.hint('linkage_ok', { attemptId, hintCount: this.currentQuestionHintIds.length });
-        } catch (err) {
-          log.warn('HINT', 'linkage_error', { error: String(err) });
-        }
-      }
-      this.currentQuestionHintIds = []; // Reset for next question
 
       // Fix G-E1: update BKT mastery after every attempt
       try {
@@ -1071,13 +1041,26 @@ export class LevelScene extends Phaser.Scene {
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
-    const config: import('../components/SessionCompleteOverlay').SessionCompleteConfig = {
+    const nextLevel =
+      this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
+
+    new SessionCompleteOverlay({
       scene: this,
       levelNumber: this.levelNumber,
       correctCount: this.correctCount,
       totalAttempts: this.responseTimes.length,
       width: CW,
       height: CH,
+      ...(nextLevel !== null
+        ? {
+            onNextLevel: () => {
+              fadeAndStart(this, 'LevelScene', {
+                levelNumber: nextLevel,
+                studentId: this.studentId,
+              });
+            },
+          }
+        : {}),
       onPlayAgain: () => {
         fadeAndStart(this, 'LevelScene', {
           levelNumber: this.levelNumber,
@@ -1087,18 +1070,7 @@ export class LevelScene extends Phaser.Scene {
       onMenu: () => {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
-    };
-
-    if (this.levelNumber < 9) {
-      config.onNextLevel = () => {
-        fadeAndStart(this, 'LevelScene', {
-          levelNumber: this.levelNumber + 1,
-          studentId: this.studentId,
-        });
-      };
-    }
-
-    new SessionCompleteOverlay(config);
+    });
 
     // Move Quest beside the trophy card (right of centre, above the heading at
     // overlay-y=420) and raise its depth above the overlay (depth 50).
@@ -1119,7 +1091,8 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy = this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
+      const accuracy =
+        this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1182,4 +1155,3 @@ export class LevelScene extends Phaser.Scene {
     A11yLayer.unmountAll();
   }
 }
-

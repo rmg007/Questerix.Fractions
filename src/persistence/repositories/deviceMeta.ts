@@ -15,6 +15,7 @@ const DEFAULT_META: DeviceMeta = {
   contentVersion: '0.0.0',
   preferences: {
     audio: true,
+    volume: 0.8,
     reduceMotion: false,
     highContrast: false,
     ttsLocale: 'en-US',
@@ -81,4 +82,3 @@ export const deviceMetaRepo = {
     }
   },
 };
-

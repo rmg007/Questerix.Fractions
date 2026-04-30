@@ -24,6 +24,7 @@ import type {
   HintTemplate,
   MisconceptionFlag,
   ProgressionStat,
+  LevelProgression,
   TelemetryEvent,
 } from '../types';
 import { observabilityMiddleware } from './middleware';
@@ -53,6 +54,7 @@ export class QuesterixDB extends Dexie {
   hintEvents!: Table<HintEvent, number>;
   misconceptionFlags!: Table<MisconceptionFlag, string>;
   progressionStat!: Table<ProgressionStat, [string, string]>;
+  levelProgression!: Table<LevelProgression, string>;
   telemetryEvents!: Table<TelemetryEvent, number>;
 
   constructor() {
@@ -170,6 +172,36 @@ export class QuesterixDB extends Dexie {
       // New store for v5
       telemetryEvents: '++id, timestamp, event, severity, syncState',
     });
+
+    // Schema version 6 — adds levelProgression store to replace localStorage keys.
+    // per C5 constraint and P4 (Dexie migration). Keypath is &studentId (primary key).
+    this.version(6).stores({
+      // Static curriculum stores (carried from v5)
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      // Dynamic stores (carried from v5)
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      hintEvents: '++id, attemptId',
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      telemetryEvents: '++id, timestamp, event, severity, syncState',
+      // New store for v6 — replace localStorage unlockedLevels/completedLevels
+      levelProgression: '&studentId',
+    });
   }
 }
 
@@ -231,4 +263,3 @@ export async function ensurePersistenceGranted(): Promise<boolean> {
     return false;
   }
 }
-

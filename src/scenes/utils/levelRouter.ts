@@ -34,7 +34,10 @@ const interactionRegistry = new Map<ArchetypeId, () => Interaction>([
  * Returns a fresh Interaction instance for the given archetype and validator.
  * Some archetypes (like 'order') branch into different Interactions based on validatorId.
  */
-export function getInteractionForArchetype(archetype: ArchetypeId, validatorId?: string): Interaction {
+export function getInteractionForArchetype(
+  archetype: ArchetypeId,
+  validatorId?: string
+): Interaction {
   // Level 9 Capstone: metacognitive "Explain Your Order" variant
   if (archetype === 'order' && validatorId === 'validator.order.withRuleExplanation') {
     return new ExplainYourOrderInteraction();
@@ -46,4 +49,3 @@ export function getInteractionForArchetype(archetype: ArchetypeId, validatorId?:
   }
   return factory();
 }
-

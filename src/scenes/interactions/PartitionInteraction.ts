@@ -28,15 +28,15 @@ export class PartitionInteraction implements Interaction {
   private partitionLine!: Phaser.GameObjects.Graphics;
   private dragHandle!: DragHandle;
   private handlePos!: number;
-  private _cx = 0;
-  private _cy = 0;
-  private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
+  private cutLineHint: Phaser.GameObjects.Graphics | null = null;
+  private shapeCenterX!: number;
+  private shapeCenterY!: number;
+  private shapeType!: 'rectangle' | 'circle';
+  private targetPartitions = 2;
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
     const { centerX, centerY } = ctx;
-    this._cx = centerX;
-    this._cy = centerY;
 
     this.shapeGraphics = this.scene.add.graphics().setDepth(5);
     this.partitionLine = this.scene.add.graphics().setDepth(6);
@@ -53,6 +53,11 @@ export class PartitionInteraction implements Interaction {
     };
     const shapeType = payload.shapeType ?? 'rectangle';
     const snapMode = payload.snapMode ?? (ctx.template.difficultyTier === 'easy' ? 'axis' : 'free');
+
+    this.shapeCenterX = centerX;
+    this.shapeCenterY = centerY;
+    this.shapeType = shapeType;
+    this.targetPartitions = payload.targetPartitions ?? 2;
 
     this.drawShape(shapeType, centerX, centerY);
     this.updatePartitionLine(this.handlePos, centerY);
@@ -120,24 +125,52 @@ export class PartitionInteraction implements Interaction {
   unmount(): void {
     this.shapeGraphics?.destroy();
     this.partitionLine?.destroy();
+    this.cutLineHint?.destroy();
+    this.cutLineHint = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
-    this._overlayGfx.forEach((g) => g.destroy());
-    this._overlayGfx = [];
   }
 
+  /**
+   * Draws dashed cut-line hints at the correct division positions.
+   * Satisfies the Interaction.showVisualOverlay() interface contract.
+   * Uses the targetPartitions stored during mount.
+   */
   showVisualOverlay(): void {
-    const overlay = this.scene.add.graphics().setDepth(12).setAlpha(0.5);
-    overlay.lineStyle(3, 0xfbbf24, 1);
-    overlay.lineBetween(this._cx, this._cy - SHAPE_H / 2 - 20, this._cx, this._cy + SHAPE_H / 2 + 20);
-    this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this.scene.time.delayedCall(3000, () => { overlay.destroy(); });
+    this.cutLineHint?.destroy();
+    this.cutLineHint = this.scene.add.graphics().setDepth(7).setAlpha(0.85);
+
+    const CUT_COLOR = 0xffaa00;
+    const LINE_WIDTH = 3;
+    const DASH_LEN = 12;
+    const GAP_LEN = 7;
+
+    this.cutLineHint.lineStyle(LINE_WIDTH, CUT_COLOR, 1);
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+    const n = this.targetPartitions;
+
+    if (this.shapeType === 'rectangle') {
+      const left = cx - SHAPE_W / 2;
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      for (let i = 1; i < n; i++) {
+        const x = left + (SHAPE_W * i) / n;
+        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
+      }
     } else {
-      this.scene.time.delayedCall(3000, () => {
-        this.scene.tweens.add({ targets: overlay, alpha: 0, duration: 400, onComplete: () => overlay.destroy() });
-      });
+      const radius = SHAPE_W / 2;
+      const angleStep = (2 * Math.PI) / n;
+      for (let i = 0; i < n; i++) {
+        const angle = angleStep * i;
+        const ex = cx + radius * Math.cos(angle);
+        const ey = cy + radius * Math.sin(angle);
+        this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
+      }
     }
+
+    log.scene('cut_line_hint_shown', { shapeType: this.shapeType, targetPartitions: n });
   }
 
   private drawShape(shapeType: 'rectangle' | 'circle', cx: number, cy: number): void {
@@ -162,5 +195,36 @@ export class PartitionInteraction implements Interaction {
     const top = cy - SHAPE_H / 2;
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
+  }
+
+  private drawDashedLine(
+    g: Phaser.GameObjects.Graphics,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    dashLen: number,
+    gapLen: number
+  ): void {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const totalLen = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / totalLen;
+    const uy = dy / totalLen;
+    let traveled = 0;
+    let drawing = true;
+
+    while (traveled < totalLen) {
+      const segLen = Math.min(drawing ? dashLen : gapLen, totalLen - traveled);
+      if (drawing) {
+        const sx = x1 + ux * traveled;
+        const sy = y1 + uy * traveled;
+        const ex = x1 + ux * (traveled + segLen);
+        const ey = y1 + uy * (traveled + segLen);
+        g.lineBetween(sx, sy, ex, ey);
+      }
+      traveled += segLen;
+      drawing = !drawing;
+    }
   }
 }

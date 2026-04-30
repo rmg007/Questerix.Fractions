@@ -37,6 +37,7 @@ import { sfx } from '../audio/SFXService';
 import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
@@ -155,6 +156,8 @@ export class Level01Scene extends Phaser.Scene {
   private currentQuestion!: L01Question;
   /** Real templates fetched from Dexie. Empty → synthetic fallback. */
   private templatePool: QuestionTemplate[] = [];
+  private calibrationState: import('../engine/calibration').CalibrationState | null = null;
+  private recentOutcomes: boolean[] = [];
 
   // UI components
   private feedbackOverlay!: FeedbackOverlay;
@@ -196,6 +199,8 @@ export class Level01Scene extends Phaser.Scene {
     this.currentMasteryEstimate = 0.1;
     this.currentSnapPct = 0.15;
     this.usedQuestionIds = new Set<string>();
+    this.calibrationState = null;
+    this.recentOutcomes = [];
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -209,7 +214,7 @@ export class Level01Scene extends Phaser.Scene {
 
     // Fade in from black on arrival
     try {
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (!checkReduceMotion()) {
         this.cameras.main.fadeIn(300, 0, 0, 0);
       }
     } catch {
@@ -379,6 +384,9 @@ export class Level01Scene extends Phaser.Scene {
       const meta = await deviceMetaRepo.get();
       tts.setEnabled(meta.preferences.audio ?? true);
       sfx.setEnabled(meta.preferences.audio ?? true);
+      const vol = meta.preferences.volume ?? 0.8;
+      tts.setVolume(vol);
+      sfx.setVolume(vol);
     } catch (err) {
       // Graceful fallback — leave TTS and SFX in their default state
     }
@@ -1071,6 +1079,7 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private onCorrectAnswer(): void {
+    this.recentOutcomes.push(true);
     this.attemptCount++;
     this.progressBar.setProgress(this.attemptCount);
     log.q('correct', {
@@ -1089,6 +1098,7 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private onWrongAnswer(): void {
+    this.recentOutcomes.push(false);
     this.wrongCount++;
     log.q('wrong', {
       questionIndex: this.questionIndex,
@@ -1217,7 +1227,7 @@ export class Level01Scene extends Phaser.Scene {
    * per design-language.md §6.1 (partition demonstration 400–600ms)
    */
   private animateWorkedExample(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     if (reduceMotion) {
       // per design-language.md §6.4 — static overlay
@@ -1249,7 +1259,7 @@ export class Level01Scene extends Phaser.Scene {
 
   /** One-time pulse on the hint button per interaction-model.md §5.4 */
   private pulseHintButton(): void {
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
     if (reduceMotion) return;
 
     this.tweens.add({
@@ -1422,6 +1432,18 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
+  private _allLevelsComplete(): boolean {
+    try {
+      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
+      const raw = localStorage.getItem(key);
+      if (!raw) return false;
+      const arr = JSON.parse(raw) as number[];
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+    } catch {
+      return false;
+    }
+  }
+
   /** Show "Session complete" card after SESSION_GOAL correct answers. per C9, interaction-model.md §6.2 */
   private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
@@ -1442,6 +1464,48 @@ export class Level01Scene extends Phaser.Scene {
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
 
+    // Adaptive router: write suggested next level (simplified for L1 — no mastery tracking)
+    try {
+      const { decideNextLevel } = await import('../engine/router');
+      const inCalibration = !!(this.calibrationState && this.calibrationState.remaining > 0);
+      // Level 1 has no prerequisites, so prereqsMet is always false
+      const suggestedLevel = decideNextLevel({
+        currentLevel: 1 as import('@/types').LevelId,
+        masteries: new Map(),
+        prereqsMet: false,
+        inCalibration,
+        recentOutcomes: this.recentOutcomes.slice(-5),
+      });
+      const suggestKey = this.studentId ? `suggestedLevel:${this.studentId}` : 'suggestedLevel';
+      localStorage.setItem(suggestKey, String(suggestedLevel));
+    } catch (err) {
+      log.warn('ROUT', 'decision_error', { error: String(err) });
+    }
+
+    // Quest-complete check: if all 9 levels are now done, show grand overlay
+    const allDone = this._allLevelsComplete();
+    if (allDone) {
+      const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
+      new QuestCompleteOverlay({
+        scene: this,
+        width: CW,
+        height: CH,
+        onPlayAgainFromStart: () => {
+          fadeAndStart(this, 'LevelScene', { levelNumber: 1, studentId: this.studentId });
+        },
+        onMenu: () => {
+          fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+        },
+      });
+      if (this.mascot) {
+        this.mascot.setDepth(60);
+        this.mascot.reposition(CW - 120, 400);
+        this.mascot.setState('celebrate');
+      }
+      await this.closeSession();
+      return;
+    }
+
     new SessionCompleteOverlay({
       scene: this,
       levelNumber: 1,
@@ -1449,14 +1513,11 @@ export class Level01Scene extends Phaser.Scene {
       totalAttempts: this.totalQuestionsAttempted,
       width: CW,
       height: CH,
+      onNextLevel: () => {
+        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.studentId });
+      },
       onPlayAgain: () => {
         fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
-      },
-      onNextLevel: () => {
-        fadeAndStart(this, 'LevelScene', {
-          levelNumber: 2,
-          studentId: this.studentId,
-        });
       },
       onMenu: () => {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
@@ -1478,6 +1539,12 @@ export class Level01Scene extends Phaser.Scene {
 
   private async closeSession(): Promise<void> {
     if (!this.sessionId) return;
+    try {
+      const { updateStreak } = await import('../lib/streak');
+      updateStreak(this.studentId);
+    } catch {
+      // Non-critical
+    }
     try {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
@@ -1528,14 +1595,6 @@ export class Level01Scene extends Phaser.Scene {
     A11yLayer.announce(`Partition at ${pct} percent across.`);
   }
 
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
-  }
-
   // Called by Phaser when scene is shut down
   preDestroy(): void {
     log.scene('destroy');
@@ -1546,4 +1605,3 @@ export class Level01Scene extends Phaser.Scene {
     this.tapZone = null;
   }
 }
-

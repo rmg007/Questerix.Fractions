@@ -24,6 +24,18 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-24 — 2026-04-30 — Committed Claude Code agent harness as canonical onboarding mechanism
+
+**Decision:** The autonomous agent system — `CLAUDE.md` (root + 8 nested subtree guides), `.claude/settings.json` with pre-approved allow/ask/deny tiers, SessionStart/PreCompact/PostToolUse hooks, 9 slash commands, 4 specialist subagents, and `scripts/agent-doctor.mjs` — is the canonical onboarding mechanism for all coding agents working on this repo.
+
+**Why:** Solo project with no human team means onboarding docs must serve AI agents, not people. Committed `settings.json` eliminates per-session permission friction. Nested `CLAUDE.md` files auto-load and provide local context without inflating the root file. `agent-doctor` catches harness drift before it blocks sessions.
+
+**Alternatives:** External wiki or README prose. Rejected — not machine-parseable, not enforceable, not token-efficient.
+
+**Source:** `CLAUDE.md`, `.claude/settings.json`, `scripts/agent-doctor.mjs`, `PLANS/work-queue-2026-04-30.md §P1`
+
+---
+
 ## D-23 — 2026-04-30 — Ratification of 9-KC Consolidation Taxonomy
 
 **Decision:** The curriculum's Knowledge Component (KC) taxonomy is consolidated from 33 skills (`SK-NN`) to 9 high-level KCs: `KC-HALVES-VIS`, `KC-UNITS-VIS`, `KC-SET-MODEL`, `KC-PRODUCTION-1`, `KC-PRODUCTION-2`, `KC-SYMBOL-BASIC`, `KC-SYMBOL-ADV`, `KC-MAGNITUDE`, and `KC-ORDERING`.

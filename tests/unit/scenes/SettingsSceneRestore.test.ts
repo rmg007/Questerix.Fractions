@@ -160,7 +160,7 @@ function makeScene(): AnyScene {
   scene.add = {
     text: (_x: number, _y: number, msg: string, _style: object) => makeTextObj(msg),
     graphics: () => makeGraphicsObj(),
-    rectangle: (_x, _y, _w, _h, _c, _a) => makeRectObj(),
+    rectangle: (_x: number, _y: number, _w: number, _h: number, _c: number, _a: number) => makeRectObj(),
   };
 
   scene.time = {
@@ -183,6 +183,7 @@ function capturedStatus(scene: AnyScene): string {
 beforeEach(() => {
   vi.clearAllMocks();
   // Prevent the reload triggered on success from interfering with tests
+  // Mock all timer functions used by startRestoreCountdown and _clearRestoreCountdown
   vi.stubGlobal('window', {
     setTimeout: vi.fn(),
     clearTimeout: vi.fn(),
@@ -194,24 +195,24 @@ beforeEach(() => {
 // ── Happy path ─────────────────────────────────────────────────────────────
 
 describe('SettingsScene doRestore — happy path', () => {
-  it('shows countdown label when restoreFromFile resolves with records', async () => {
+  it('shows "Restored N records — reloading…" when restoreFromFile resolves', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 7, skipped: 0 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading in 3…');
+    expect(capturedStatus(scene)).toBe('Restored 7 records — reloading…');
   });
 
-  it('shows countdown label when backup was empty but valid', async () => {
+  it('shows "Restored 0 records — reloading…" when backup was empty but valid', async () => {
     mockRestoreFromFile.mockResolvedValue({ added: 0, skipped: 3 });
 
     const scene = makeScene();
     const file = new File(['{}'], 'backup.json', { type: 'application/json' });
     await scene.doRestore(file);
 
-    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading in 3…');
+    expect(capturedStatus(scene)).toBe('Restored 0 records — reloading…');
   });
 });
 

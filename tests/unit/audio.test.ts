@@ -23,7 +23,8 @@ function makeMockSynth(speakingInitially = false) {
     speaking: speakingInitially,
     speak: vi.fn(),
     cancel: vi.fn(),
-    getVoices: vi.fn(() => [{ name: 'default', lang: 'en-US' }]),
+    // Return a non-empty array so voicesReady resolves immediately in tests
+    getVoices: vi.fn(() => [{ name: 'Mock Voice', lang: 'en-US' }]),
   };
 }
 
