@@ -399,12 +399,13 @@ This is the **vocabulary commitment** activity — it forces the student to pair
 | MC ID                 | Name                                                                                                         | Detection signal                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | `MC-L3-PARTCOUNT-01`  | "More pieces = bigger" (M5) — student picks 4-part option when prompt asks for thirds, or vice-versa         | Wrong answer on `identify_thirds` Hard or `identify_fourths` Hard with cross-denominator distractors              |
-| `MC-L3-QTR-01`        | "Quarter ≠ fourth" (M10) — student picks differently when synonym is used                                    | Differential accuracy: "fourths" prompt > 80% correct, "quarters" prompt < 50% correct on same template structure |
+| `MC-VOC-01`           | "Fourth ≠ Quarter" (M10, canonical) — student treats "one-fourth" and "one-quarter" as different fractions   | Tagged on 4 `label` templates with denominator-4 options: N005 (easy), N006/N007 (medium), N008 (hard)            |
+| `MC-L3-QTR-01`        | (L3-local alias for MC-VOC-01) "Quarter ≠ fourth" — differential accuracy between synonym prompts            | Differential accuracy: "fourths" prompt > 80% correct, "quarters" prompt < 50% correct on same template structure |
 | `MC-L3-EQUAL-01`      | "Three pieces = thirds, regardless of equality" (M3 generalized) — student accepts 3 unequal parts as thirds | Wrong answer on `identify_thirds` Medium with unequal-3-part distractors                                          |
 | `MC-EOL-01`           | (carryover) "More lines = equal" — student accepts unequal partitioning if line count is right               | Wrong on Tier 2 across all activities                                                                             |
 | `MC-L3-CIRCLEONLY-01` | "Thirds only happen in pie shapes" — student picks circle option even when wrong                             | Pattern of always-circle picks on `identify_thirds` Medium with mixed shapes                                      |
 
-These mostly map to misconceptions **M3, M5, M9, M10** in `MISCONCEPTIONS_FRAMEWORK.md`.
+These mostly map to misconceptions **M3, M5, M9, M10** in `MISCONCEPTIONS_FRAMEWORK.md`. `MC-VOC-01` is the cross-level canonical code; `MC-L3-QTR-01` is the L3-scoped behavioural alias.
 
 ---
 

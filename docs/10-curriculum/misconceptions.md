@@ -263,7 +263,7 @@ Misconceptions about where fractions sit relative to landmark values.
 ## MC-VOC-01 — Fourth ≠ Quarter
 
 **Detector:** detectVOC01
-**Templates baiting:** 0
+**Templates baiting:** 4 (q:lb:L3:N005, q:lb:L3:N006, q:lb:L3:N007, q:lb:L3:N008)
 
 | Field                | Value                                                                                                                                                       |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

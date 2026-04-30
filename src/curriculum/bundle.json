@@ -2878,7 +2878,8 @@
           "SK-08"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-VOC-01"
         ],
         "difficultyTier": "easy"
       },
@@ -2922,7 +2923,8 @@
           "SK-10"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-VOC-01"
         ],
         "difficultyTier": "medium"
       },
@@ -2966,7 +2968,8 @@
           "SK-09"
         ],
         "misconceptionTraps": [
-          "MC-WHB-01"
+          "MC-WHB-01",
+          "MC-VOC-01"
         ],
         "difficultyTier": "medium"
       },
@@ -3010,7 +3013,8 @@
           "SK-10"
         ],
         "misconceptionTraps": [
-          "MC-EOL-01"
+          "MC-EOL-01",
+          "MC-VOC-01"
         ],
         "difficultyTier": "hard"
       },
