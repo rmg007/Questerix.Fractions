@@ -66,7 +66,7 @@ export class BenchmarkInteraction implements Interaction {
     // Three drop zones
     const zones: Array<{ key: Zone; label: string; value: number }> = [
       { key: 'zero', label: 'Closer to 0', value: 0 },
-      { key: 'half', label: 'Closer to ½', value: 0.5 },
+      { key: 'half', label: 'Closer to 1/2', value: 0.5 },
       { key: 'one', label: 'Closer to 1', value: 1 },
     ];
     const zoneW = Math.min(160, (width - 80) / 3 - 12);

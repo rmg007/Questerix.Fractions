@@ -59,7 +59,7 @@ export class NumberLine {
       const tx = left + ((v - minValue) / range) * length;
       this.gfx.lineStyle(2, CLR.neutral600, 1);
       this.gfx.lineBetween(tx, y - 12, tx, y + 12);
-      const lbl = v === 0.5 ? '½' : v === 0 ? '0' : v === 1 ? '1' : String(v);
+      const lbl = v === 0.5 ? '1/2' : v === 0 ? '0' : v === 1 ? '1' : String(v);
       const t = this.scene.add
         .text(tx, y + 20, lbl, {
           fontSize: '14px',
