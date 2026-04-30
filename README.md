@@ -1,10 +1,10 @@
 # Questerix Fractions
 
-A small browser-based math game that teaches K–2 fraction concepts through tactile drag-and-tap mechanics. **Pre-MVP — pure planning phase.**
+A small browser-based math game that teaches K–2 fraction concepts through tactile drag-and-tap mechanics.
 
 ## Status
 
-🚧 Foundation documentation in progress. No new code is being written until the documentation suite under [`/docs`](./docs/) is complete and reviewed.
+Phase 1 build complete. Phaser 4 scaffold running, content pipeline operational, test suite at 173+ units. Sprint 0 in-flight (gameplay loop bugs — see `PLANS/INDEX.md`).
 
 ## What This Is
 
@@ -20,7 +20,7 @@ Quick jumps:
 - **[Decision Log](./docs/00-foundation/decision-log.md)** — D-01 through D-15
 - **[Open Questions](./docs/00-foundation/open-questions.md)** — what still needs answering
 - **[MVP Roadmap](./docs/50-roadmap/mvp-l1-l9.md)** — phases and gates
- - **[Roadie Installation](./docs/ROADIE_INSTALLATION.md)** — local dev tool install instructions
+ - **[Agent Guide](./CLAUDE.md)** — commands, architecture map, and rules for coding agents
 
 ## Project Structure
 
@@ -81,7 +81,7 @@ This is also run automatically as part of `npm run build` (via `prebuild`). If y
 
 ## Contributing
 
-This is a solo validation project in Phase 1 build. The goal is to test whether magnetic-drag mechanics teach K–1 fractions better than traditional methods.
+Solo validation project. See [`CLAUDE.md`](./CLAUDE.md) for the full agent guide (commands, architecture, constraints, active bugs).
 
 ## License
 
