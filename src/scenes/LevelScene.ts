@@ -1062,6 +1062,20 @@ export class LevelScene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
+        // Refresh in-memory map so selectNextQuestion() uses updated estimates this session
+        this.studentMastery.set(skillId, withMeta);
+        for (const sid of this.currentTemplate.skillIds ?? []) {
+          if (sid !== skillId) {
+            const existing2 = this.studentMastery.get(sid as import('@/types').SkillId);
+            if (existing2) {
+              this.studentMastery.set(sid as import('@/types').SkillId, {
+                ...withMeta,
+                skillId: sid as import('@/types').SkillId,
+                compositeKey: [studentIdTyped, sid as import('@/types').SkillId],
+              });
+            }
+          }
+        }
       } catch (err) {
         log.warn('BKT', 'mastery_update_error', { level: this.levelNumber, error: String(err) });
       }
