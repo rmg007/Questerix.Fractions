@@ -121,7 +121,7 @@ Misinterpretations of what "equal parts" means.
 ## MC-EOL-02 — Rotated-Halves Confusion
 
 **Detector:** detectEOL02
-**Templates baiting:** 0
+**Templates baiting:** 3 (q:en:L3:N002, q:en:L3:N003, q:en:L3:N004)
 
 | Field                | Value                                                                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -149,7 +149,7 @@ Misinterpretations of what "equal parts" means.
 ## MC-EOL-04 — Equal Means Identical
 
 **Detector:** detectEOL04
-**Templates baiting:** 0
+**Templates baiting:** 4 (q:en:L3:N002, q:en:L3:N003, q:en:L3:N005, q:en:L3:N006)
 
 | Field                | Value                                                                                                                                     |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -235,7 +235,7 @@ Misconceptions about where fractions sit relative to landmark values.
 ## MC-SHP-01 — Whole = Circle
 
 **Detector:** detectSHP01
-**Templates baiting:** 0
+**Templates baiting:** 3 (q:pt:L1:N001, q:pt:L1:N002, q:pt:L1:N003)
 
 | Field                | Value                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |

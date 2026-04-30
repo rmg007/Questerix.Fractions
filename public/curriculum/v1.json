@@ -946,6 +946,76 @@
           "MC-WHB-01"
         ],
         "difficultyTier": "hard"
+      },
+      {
+        "id": "q:pt:L1:N001",
+        "archetype": "partition",
+        "prompt": {
+          "text": "This is a rectangle, not a circle! Can you still cut it in half?",
+          "ttsKey": "tts.pt.l1.n001"
+        },
+        "payload": {
+          "shapeType": "rectangle",
+          "targetPartitions": 2,
+          "areaTolerance": 0.05
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.partition.equalAreas",
+        "skillIds": [
+          "SK-01",
+          "SK-02"
+        ],
+        "misconceptionTraps": [
+          "MC-SHP-01"
+        ],
+        "difficultyTier": "easy"
+      },
+      {
+        "id": "q:pt:L1:N002",
+        "archetype": "partition",
+        "prompt": {
+          "text": "Split this square shape into 2 equal parts.",
+          "ttsKey": "tts.pt.l1.n002"
+        },
+        "payload": {
+          "shapeType": "square",
+          "targetPartitions": 2,
+          "areaTolerance": 0.05
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.partition.equalAreas",
+        "skillIds": [
+          "SK-01",
+          "SK-03"
+        ],
+        "misconceptionTraps": [
+          "MC-SHP-01"
+        ],
+        "difficultyTier": "medium"
+      },
+      {
+        "id": "q:pt:L1:N003",
+        "archetype": "partition",
+        "prompt": {
+          "text": "Divide this rectangle into 4 equal parts.",
+          "ttsKey": "tts.pt.l1.n003"
+        },
+        "payload": {
+          "shapeType": "rectangle",
+          "targetPartitions": 4,
+          "areaTolerance": 0.05
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.partition.equalAreas",
+        "skillIds": [
+          "SK-02",
+          "SK-03"
+        ],
+        "misconceptionTraps": [
+          "MC-SHP-01",
+          "MC-EOL-01"
+        ],
+        "difficultyTier": "hard"
       }
     ],
     "02": [
@@ -3128,6 +3198,175 @@
         ],
         "misconceptionTraps": [
           "MC-WHB-01"
+        ],
+        "difficultyTier": "hard"
+      },
+      {
+        "id": "q:en:L3:N002",
+        "archetype": "equal_or_not",
+        "prompt": {
+          "text": "Does this line make two equal parts?",
+          "ttsKey": "tts.en.l3.n002"
+        },
+        "payload": {
+          "shapeType": "rectangle",
+          "partitionLines": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0
+              ]
+            ]
+          ]
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.equal_or_not.areaTolerance",
+        "skillIds": [
+          "SK-07",
+          "SK-08"
+        ],
+        "misconceptionTraps": [
+          "MC-EOL-02",
+          "MC-EOL-04"
+        ],
+        "difficultyTier": "medium"
+      },
+      {
+        "id": "q:en:L3:N003",
+        "archetype": "equal_or_not",
+        "prompt": {
+          "text": "Are these two pieces equal?",
+          "ttsKey": "tts.en.l3.n003"
+        },
+        "payload": {
+          "shapeType": "square",
+          "partitionLines": [
+            [
+              [
+                1.0,
+                0.0
+              ],
+              [
+                0.0,
+                1.0
+              ]
+            ]
+          ]
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.equal_or_not.areaTolerance",
+        "skillIds": [
+          "SK-07",
+          "SK-08"
+        ],
+        "misconceptionTraps": [
+          "MC-EOL-02",
+          "MC-EOL-04"
+        ],
+        "difficultyTier": "medium"
+      },
+      {
+        "id": "q:en:L3:N004",
+        "archetype": "equal_or_not",
+        "prompt": {
+          "text": "Does this line cut the circle into equal pieces?",
+          "ttsKey": "tts.en.l3.n004"
+        },
+        "payload": {
+          "shapeType": "circle",
+          "partitionLines": [
+            [
+              [
+                0.0,
+                0.3
+              ],
+              [
+                1.0,
+                0.7
+              ]
+            ]
+          ]
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.equal_or_not.areaTolerance",
+        "skillIds": [
+          "SK-07",
+          "SK-08"
+        ],
+        "misconceptionTraps": [
+          "MC-EOL-02"
+        ],
+        "difficultyTier": "hard"
+      },
+      {
+        "id": "q:en:L3:N005",
+        "archetype": "equal_or_not",
+        "prompt": {
+          "text": "The two pieces look different. Are they still equal?",
+          "ttsKey": "tts.en.l3.n005"
+        },
+        "payload": {
+          "shapeType": "rectangle",
+          "partitionLines": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0
+              ]
+            ]
+          ],
+          "promptFocusEqualArea": true
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.equal_or_not.areaTolerance",
+        "skillIds": [
+          "SK-07",
+          "SK-08"
+        ],
+        "misconceptionTraps": [
+          "MC-EOL-04"
+        ],
+        "difficultyTier": "hard"
+      },
+      {
+        "id": "q:en:L3:N006",
+        "archetype": "equal_or_not",
+        "prompt": {
+          "text": "Do these two pieces have the same area?",
+          "ttsKey": "tts.en.l3.n006"
+        },
+        "payload": {
+          "shapeType": "square",
+          "partitionLines": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0
+              ]
+            ]
+          ],
+          "promptFocusEqualArea": true
+        },
+        "correctAnswer": true,
+        "validatorId": "validator.equal_or_not.areaTolerance",
+        "skillIds": [
+          "SK-07",
+          "SK-08"
+        ],
+        "misconceptionTraps": [
+          "MC-EOL-04"
         ],
         "difficultyTier": "hard"
       }
