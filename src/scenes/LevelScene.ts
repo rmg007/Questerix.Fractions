@@ -1090,7 +1090,7 @@ export class LevelScene extends Phaser.Scene {
 
       // Fix G-E4: compute real accuracy and avg response time
       const accuracy =
-        this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
+        this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
