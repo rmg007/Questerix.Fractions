@@ -145,6 +145,9 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
 }
 
 // Hard — symbolic only, no bar; tests whether SK-22 has internalized
+// WHB-01 tag: student who applies "larger numerator = bigger" shortcut
+// picks the correct answer (2/3 > 1/3) via flawed reasoning — a useful
+// diagnostic marker when the student never struggles on same-denom items.
 {
   "id": "q:cbsd:L6:0011",
   "type": "comparison",
@@ -157,7 +160,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
   "skillIds": ["SK-21", "SK-22", "SK-23"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 ```
@@ -247,7 +250,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
   "correctAnswer": "left",
   "validatorId": "validator.comparison.tapSide",
   "skillIds": ["SK-21", "SK-22"],
-  "misconceptionTraps": [],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 ```
