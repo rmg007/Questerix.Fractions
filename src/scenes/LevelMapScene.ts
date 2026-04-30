@@ -141,6 +141,7 @@ export class LevelMapScene extends Phaser.Scene {
         unlocked: isUnlocked,
         suggested: isSuggested,
         mastered: isCompleted && masteredLevels.has(meta.number),
+        containerScale: CARD_SCALE,
         onTap: (levelNumber) => this._startLevel(levelNumber),
       });
       card.setScale(CARD_SCALE).setDepth(10);

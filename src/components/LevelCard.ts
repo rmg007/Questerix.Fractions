@@ -50,6 +50,19 @@ export interface LevelCardOptions {
   unlocked: boolean;
   suggested: boolean;
   mastered?: boolean;
+  /**
+   * The CSS/Phaser scale that the container will be set to after construction.
+   * When provided, ribbon dimensions are divided by this value so the ribbon
+   * renders at the correct physical size after the parent applies `setScale`.
+   * Defaults to 1 (no compensation needed).
+   */
+  containerScale?: number;
+  /**
+   * Prefix used to name the TestHooks interactive element. Defaults to
+   * 'level-card'. Override (e.g. 'overlay-card') to avoid clashing with
+   * existing hooks when the card is used inside a floating overlay.
+   */
+  testHookPrefix?: string;
   onTap: (levelNumber: number) => void;
 }
 
@@ -57,6 +70,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
   private readonly meta: LevelMeta;
   private readonly unlocked: boolean;
   private readonly mastered: boolean;
+  private readonly containerScale: number;
   private readonly onTap: (n: number) => void;
   private bg!: Phaser.GameObjects.Graphics;
   private readonly reducedMotion: boolean;
@@ -68,6 +82,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.meta = opts.meta;
     this.unlocked = opts.unlocked;
     this.mastered = opts.mastered ?? false;
+    this.containerScale = opts.containerScale ?? 1;
     this.onTap = opts.onTap;
     this.bgFill = opts.unlocked ? UNLOCKED_BG : LOCKED_BG;
     this.bgBorder = opts.unlocked ? UNLOCKED_BORDER : LOCKED_BORDER;
@@ -76,8 +91,9 @@ export class LevelCard extends Phaser.GameObjects.Container {
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     this.build(opts.suggested);
     opts.scene.add.existing(this);
+    const hookPrefix = opts.testHookPrefix ?? 'level-card';
     TestHooks.mountInteractive(
-      `level-card-L${opts.meta.number}`,
+      `${hookPrefix}-L${opts.meta.number}`,
       () => {
         if (opts.unlocked) opts.onTap(opts.meta.number);
       },
@@ -93,16 +109,21 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.add(this.bg);
 
     // Gold mastery ribbon — top strip across the card, clipped to rounded corners.
+    // Dimensions are divided by containerScale so the ribbon appears at a fixed
+    // 20 × CARD_W screen-pixel size after the caller applies setScale(containerScale).
     if (this.mastered) {
+      const cs = this.containerScale;
+      const localH = RIBBON_H / cs;
+      const localBorder = 2 / cs;
       const ribbonG = s.add.graphics();
       ribbonG.fillStyle(RIBBON_GOLD, 1);
       ribbonG.fillRoundedRect(
-        -CARD_W / 2, -CARD_H / 2, CARD_W, RIBBON_H,
+        -CARD_W / 2, -CARD_H / 2, CARD_W, localH,
         { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
       );
-      ribbonG.lineStyle(1, RIBBON_BORDER, 1);
+      ribbonG.lineStyle(localBorder, RIBBON_BORDER, 1);
       ribbonG.strokeRoundedRect(
-        -CARD_W / 2, -CARD_H / 2, CARD_W, RIBBON_H,
+        -CARD_W / 2, -CARD_H / 2, CARD_W, localH,
         { tl: CARD_RADIUS, tr: CARD_RADIUS, bl: 0, br: 0 }
       );
       this.add(ribbonG);
