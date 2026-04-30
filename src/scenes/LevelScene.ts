@@ -1047,6 +1047,16 @@ export class LevelScene extends Phaser.Scene {
       },
     });
 
+    // Move Quest beside the trophy card (right of centre, above the heading at
+    // overlay-y=420) and raise its depth above the overlay (depth 50).
+    // x = CW - 120 keeps Quest inside the right edge; y = 400 sits between
+    // the trophy emoji (overlay-y=320) and the level heading (overlay-y=420).
+    if (this.mascot) {
+      this.mascot.setDepth(60);
+      this.mascot.reposition(CW - 120, 400);
+      this.mascot.celebrate();
+    }
+
     void this.closeSession();
   }
 

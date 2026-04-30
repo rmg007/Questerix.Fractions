@@ -26,7 +26,7 @@ const HAT_H = 55;
 
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
-  private readonly baseY: number;
+  private baseY: number;
   private readonly baseScale: number;
   private idleTween: Phaser.Tweens.Tween | null = null;
 
@@ -54,6 +54,17 @@ export class Mascot extends Phaser.GameObjects.Container {
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
+
+  /**
+   * Reposition the mascot to a new base location.
+   * Updates internal baseY so subsequent animations (idle bob, celebrate jump)
+   * are anchored to the new position rather than the construction-time position.
+   */
+  reposition(x: number, y: number): void {
+    this.stopCurrent();
+    this.baseY = y;
+    this.setPosition(x, y);
+  }
 
   /** Gentle floating bob — loops until another animation takes over. */
   idle(): void {
