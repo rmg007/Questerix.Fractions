@@ -156,6 +156,14 @@ src/curriculum/bundle.json       # static import fallback ┘ always run build:c
 - `src/lib/observability/errorReporter.ts` ships Sentry. **Only fires when a `dsn` is passed to `init()`.** Default builds: no egress.
 - Both are still in the bundle and count against the 1 MB budget. If they stay dormant for the MVP, consider lazy-importing them so unused builds don't pay the cost.
 
+### Git workflow
+- **Branch names must include a date.** Format: `<type>/YYYY-MM-DD-<slug>` — e.g. `feat/2026-04-30-hint-ladder`, `fix/2026-04-30-nan-guard`, `plans/2026-04-30-sprint-1`.
+- **Types:** `feat` (new behaviour), `fix` (bug), `refactor`, `plans` (doc/plan only), `chore` (tooling/infra).
+- **No bare slugs, no random suffixes.** A branch without a date is non-compliant and must be renamed before pushing.
+- **One concern per branch.** Don't mix feature work with plan-doc updates.
+- **Before opening a PR:** rebase onto current `main` — never let a branch sit stale long enough to conflict.
+- Full process: `docs/00-foundation/git-workflow.md`
+
 ### Accessibility
 - All new interactive elements need ARIA labels or accessible names.
 - Touch targets ≥ 44×44 CSS px.
