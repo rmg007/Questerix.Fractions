@@ -160,7 +160,7 @@ export class MenuScene extends Phaser.Scene {
     TestHooks.mountInteractive(
       'level-card-L1',
       () => {
-        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+        fadeAndStart(this, 'Level01Scene', { studentId: this.lastStudentId });
       },
       { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
@@ -723,3 +723,4 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 }
+

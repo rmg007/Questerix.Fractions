@@ -1340,3 +1340,4 @@ export class Level01Scene extends Phaser.Scene {
     this.tapZone = null;
   }
 }
+

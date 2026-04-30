@@ -6,6 +6,11 @@ import './styles/index.css';
 import './lib/i18n/keys/quest';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
+// Side-effect import: registers Quest microcopy in the typed i18n catalog.
+// Per ux-elevation §9 T28 — keys must be available before any scene calls
+// catalog.get('quest.…'). registerCatalog is HMR-safe (idempotent on
+// deep-equal content), so re-evaluation under Vite hot reload is fine.
+import './lib/i18n/keys/quest';
 
 // Swallow unhandled storage errors from third-party / sandboxed contexts
 // (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
@@ -81,7 +86,7 @@ async function boot(): Promise<void> {
   };
 
   const game = new Phaser.Game(config);
-
+  
   // 3. Instrument the game instance (non-fatal)
   try {
     const { instrumentGame } = await import('./lib/observability/phaserInstrumentation');

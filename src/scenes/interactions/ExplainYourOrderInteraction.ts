@@ -50,6 +50,7 @@ export class ExplainYourOrderInteraction implements Interaction {
   private bars: BarModel[] = [];
   private sequence: (string | null)[] = [];
   private selectedRule: string | null = null;
+  private currentPhase: 'ordering' | 'explaining' = 'ordering';
   private ctx!: InteractionContext;
 
   mount(ctx: InteractionContext): void {
@@ -175,6 +176,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     shit.on('pointerup', () => {
       const filled = this.sequence.every((s) => s !== null);
       if (filled) {
+        this.currentPhase = 'explaining';
         this.renderExplainingPhase();
       }
     });
@@ -184,6 +186,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       () => {
         const filled = this.sequence.every((s) => s !== null);
         if (filled) {
+          this.currentPhase = 'explaining';
           this.renderExplainingPhase();
         }
       },

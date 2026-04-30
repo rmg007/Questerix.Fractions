@@ -108,6 +108,11 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
+    // Reset the cached display name on every scene init so a previous
+    // student's name can't leak into a later anonymous session-complete
+    // line. `openSession()` re-resolves it from Dexie when a studentId
+    // is bound; otherwise `resolveQuestName(null)` falls back to "friend".
+    this.studentDisplayName = null;
     log.scene('init', {
       level: this.levelNumber,
       studentId: this.studentId,
@@ -810,6 +815,18 @@ export class LevelScene extends Phaser.Scene {
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
 
+      // Resolve the Quest-facing display name once, here, before any
+      // gameplay can fire `showSessionComplete()`. Failures are non-fatal —
+      // `resolveQuestName(null)` falls back to "friend" at render time.
+      try {
+        const { studentRepo } = await import('../persistence/repositories/student');
+        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+        this.studentDisplayName = student?.displayName ?? null;
+      } catch (err) {
+        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
+        this.studentDisplayName = null;
+      }
+
       const { sessionRepo } = await import('../persistence/repositories/session');
       const { nanoid } = await import('nanoid').catch(() => ({ nanoid: () => `s-${Date.now()}` }));
       const id = nanoid() as import('@/types').SessionId;
@@ -1057,3 +1074,4 @@ export class LevelScene extends Phaser.Scene {
     A11yLayer.unmountAll();
   }
 }
+

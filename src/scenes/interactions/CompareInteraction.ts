@@ -23,6 +23,12 @@ const RELATION_TESTID: Record<'<' | '=' | '>', string> = {
   '<': 'compare-relation-lt',
 };
 
+const RELATION_TESTID: Record<'<' | '=' | '>', string> = {
+  '>': 'compare-relation-gt',
+  '=': 'compare-relation-eq',
+  '<': 'compare-relation-lt',
+};
+
 type FractionRef = string | { numerator: number; denominator: number; label?: string } | undefined;
 
 interface ComparePayload {

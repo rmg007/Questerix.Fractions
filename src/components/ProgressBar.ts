@@ -122,8 +122,9 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
 }
+
