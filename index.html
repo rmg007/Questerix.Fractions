@@ -86,12 +86,26 @@
           content: '...';
         }
       }
+      #fraction-tiles {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 30px;
+        color: #2F6FED;
+      }
+      #fraction-tiles svg {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
       @media (prefers-reduced-motion: reduce) {
         #splash .loading::after {
           animation: none;
           content: '...';
         }
         #splash {
+          transition: none !important;
+        }
+        #fraction-tiles svg {
           transition: none !important;
         }
       }
@@ -102,6 +116,20 @@
       <h1>Questerix Fractions</h1>
       <p>A math adventure! 🚀</p>
       <p class="loading">Loading</p>
+      <div id="fraction-tiles">
+        <svg id="tile-half" width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="30" y="38" font-size="28" text-anchor="middle" dominant-baseline="middle" font-family="Lexend">½</text>
+        </svg>
+        <svg id="tile-quarter" width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="30" y="38" font-size="28" text-anchor="middle" dominant-baseline="middle" font-family="Lexend">¼</text>
+        </svg>
+        <svg id="tile-eighth" width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="30" y="38" font-size="28" text-anchor="middle" dominant-baseline="middle" font-family="Lexend">⅛</text>
+        </svg>
+      </div>
     </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
