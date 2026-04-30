@@ -25,6 +25,7 @@ import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
+import { tts } from '../audio/TTSService';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -325,11 +326,13 @@ export class MenuScene extends Phaser.Scene {
     this.mascot?.destroy();
     this.mascot = new Mascot(this, 680, 980);
     this.mascot.setState('idle');
-    // Wave only on the first menu load; skip on _closeLevelGrid re-renders
+    // Wave + TTS greeting only on the first menu load per session.
+    // K-2 players can't reliably read the title, so Quest speaks it.
     if (!mascotGreeted) {
       mascotGreeted = true;
       this.time.delayedCall(400, () => {
         this.mascot?.setState('wave');
+        tts.speak('Hello! Welcome to Questerix Fractions. Tap Play to start!');
       });
     }
 

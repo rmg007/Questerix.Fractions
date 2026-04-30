@@ -1049,6 +1049,9 @@ export class Level01Scene extends Phaser.Scene {
         : kind === 'close'
           ? 'Almost! Try a tiny adjustment.'
           : 'Not quite — try again.');
+    // Speak feedback aloud via TTS — essential for K-2 readers who can't
+    // reliably parse text. tts.speak() cancels any ongoing prompt narration.
+    tts.speak(announcement);
     AccessibilityAnnouncer.announce(announcement);
   }
 
@@ -1118,6 +1121,9 @@ export class Level01Scene extends Phaser.Scene {
     // escalates alongside the visual escalation already in place.
     const hintMessage = this.questHintText(tier);
     this.hintText.setText(hintMessage);
+    // Speak the hint aloud — hint text is invisible to K-2 readers who can't
+    // yet decode it. tts.speak() cancels any ongoing speech before starting.
+    tts.speak(hintMessage);
 
     switch (tier) {
       case 'verbal':
