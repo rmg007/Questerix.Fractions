@@ -18,6 +18,8 @@ import {
   TITLE_FONT,
   BODY_FONT,
   NAVY_HEX,
+  NAVY,
+  SKY_BG,
   PATH_BLUE,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
@@ -155,6 +157,9 @@ export class Level01Scene extends Phaser.Scene {
   private hintLadder!: HintLadder;
   private dragHandle!: DragHandle;
   private mascot!: Mascot;
+
+  // Counter badge
+  private questionCounterText!: Phaser.GameObjects.Text;
 
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
@@ -442,6 +447,26 @@ export class Level01Scene extends Phaser.Scene {
       });
       fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
     });
+
+    // Question counter pill badge — sky-blue, matches LevelScene style
+    const CTR_W = 118,
+      CTR_H = 52;
+    const ctrX = CW - 18 - CTR_W;
+    const ctrY = 34;
+    const ctrG = this.add.graphics().setDepth(5);
+    ctrG.fillStyle(SKY_BG, 1);
+    ctrG.fillRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+    ctrG.lineStyle(2, NAVY, 1);
+    ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
+    this.questionCounterText = this.add
+      .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${SESSION_GOAL}`, {
+        fontSize: '17px',
+        fontFamily: BODY_FONT,
+        fontStyle: 'bold',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(6);
   }
 
   private createPromptArea(): void {
@@ -538,6 +563,11 @@ export class Level01Scene extends Phaser.Scene {
 
     this.wrongCount = 0;
     this.inputLocked = false;
+
+    // Update question counter badge — use raw index so display is independent of
+    // template-pool cycling (matches LevelScene behaviour)
+    this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
+
     // Start off-centre so the partition is clearly unequal on load — student must drag.
     this.handlePos = SHAPE_CX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
     const initialPct = Math.round(((this.handlePos - (SHAPE_CX - SHAPE_W / 2)) / SHAPE_W) * 100);
