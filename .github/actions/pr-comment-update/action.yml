@@ -1,0 +1,123 @@
+name: PR Comment Update
+description: >
+  Idempotent PR comment management. Posts or updates a hidden-marker-keyed
+  comment on a PR so each agent workflow can upsert its findings without
+  creating duplicate comment spam.
+
+inputs:
+  comment-tag:
+    description: >
+      Unique identifier for this comment slot, e.g. "c1-c10-audit" or
+      "bundle-watch". Used as the hidden HTML marker key so the action can
+      find and update the correct comment across runs.
+    required: true
+  content:
+    description: Markdown body for the comment (the marker is prepended automatically).
+    required: true
+  pr-number:
+    description: PR number to comment on.
+    required: true
+  github-token:
+    description: Token with pull-requests:write (and issues:write) permissions.
+    required: true
+  mode:
+    description: >
+      "upsert" — create the comment if it does not exist, otherwise edit it.
+      "delete" — remove the comment if it exists, no-op otherwise.
+    required: false
+    default: upsert
+
+runs:
+  using: composite
+  steps:
+    # ─────────────────────────────────────────────────────────────
+    # Step 1: Find an existing comment that contains the marker.
+    # Outputs:  existing-comment-id  (empty string if not found)
+    # ─────────────────────────────────────────────────────────────
+    - name: Find existing comment
+      id: find
+      uses: actions/github-script@v7
+      env:
+        COMMENT_TAG: ${{ inputs.comment-tag }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const marker = `<!-- agent-comment: ${process.env.COMMENT_TAG} -->`;
+          const prNumber = parseInt(process.env.PR_NUMBER, 10);
+
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            per_page: 100,
+          });
+
+          const existing = comments.data.find(c => c.body && c.body.includes(marker));
+          core.setOutput('existing-comment-id', existing ? String(existing.id) : '');
+          core.info(existing
+            ? `Found existing comment id=${existing.id} for tag "${process.env.COMMENT_TAG}"`
+            : `No existing comment found for tag "${process.env.COMMENT_TAG}"`);
+
+    # ─────────────────────────────────────────────────────────────
+    # Step 2: Upsert — create or update the comment.
+    # Runs only when mode == 'upsert'.
+    # ─────────────────────────────────────────────────────────────
+    - name: Upsert comment
+      if: ${{ inputs.mode == 'upsert' }}
+      uses: actions/github-script@v7
+      env:
+        COMMENT_TAG: ${{ inputs.comment-tag }}
+        CONTENT: ${{ inputs.content }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        EXISTING_ID: ${{ steps.find.outputs.existing-comment-id }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const marker = `<!-- agent-comment: ${process.env.COMMENT_TAG} -->`;
+          const body   = `${marker}\n\n${process.env.CONTENT}`;
+          const existingId = process.env.EXISTING_ID;
+          const prNumber   = parseInt(process.env.PR_NUMBER, 10);
+
+          if (existingId) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: parseInt(existingId, 10),
+              body,
+            });
+            core.info(`Updated comment id=${existingId} for tag "${process.env.COMMENT_TAG}"`);
+          } else {
+            const created = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body,
+            });
+            core.info(`Created comment id=${created.data.id} for tag "${process.env.COMMENT_TAG}"`);
+          }
+
+    # ─────────────────────────────────────────────────────────────
+    # Step 3: Delete — remove the comment if it exists.
+    # Runs only when mode == 'delete'.
+    # ─────────────────────────────────────────────────────────────
+    - name: Delete comment
+      if: ${{ inputs.mode == 'delete' }}
+      uses: actions/github-script@v7
+      env:
+        COMMENT_TAG: ${{ inputs.comment-tag }}
+        EXISTING_ID: ${{ steps.find.outputs.existing-comment-id }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const existingId = process.env.EXISTING_ID;
+          if (existingId) {
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: parseInt(existingId, 10),
+            });
+            core.info(`Deleted comment id=${existingId} for tag "${process.env.COMMENT_TAG}"`);
+          } else {
+            core.info(`No comment to delete for tag "${process.env.COMMENT_TAG}" — no-op.`);
+          }
