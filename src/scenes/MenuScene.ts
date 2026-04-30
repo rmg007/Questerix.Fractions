@@ -351,7 +351,7 @@ export class MenuScene extends Phaser.Scene {
         const arr = JSON.parse(raw) as number[];
         arr.forEach((n) => unlocked.add(n));
       }
-    } catch {
+    } catch (err) {
       // Ignore storage errors — default to level 1 only
     }
     return unlocked;
@@ -378,7 +378,7 @@ export class MenuScene extends Phaser.Scene {
         arr.push(next);
         localStorage.setItem(key, JSON.stringify(arr));
       }
-    } catch {
+    } catch (err) {
       // Ignore storage errors
     }
   }
@@ -773,7 +773,7 @@ export class MenuScene extends Phaser.Scene {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
@@ -804,8 +804,9 @@ export class MenuScene extends Phaser.Scene {
         };
         recurse(obj);
       });
-    } catch {
+    } catch (err) {
       // ignore — fallback font will display
     }
   }
 }
+

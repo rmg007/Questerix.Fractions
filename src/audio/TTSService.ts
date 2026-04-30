@@ -32,7 +32,7 @@ export class TTSService {
         if (v) u.voice = v;
       }
       this.synth.speak(u);
-    } catch {
+    } catch (err) {
       // Never throw — game must continue if TTS fails
     }
   }
@@ -40,7 +40,7 @@ export class TTSService {
   stop(): void {
     try {
       this.synth?.cancel();
-    } catch {
+    } catch (err) {
       // safe to swallow
     }
   }
@@ -56,3 +56,4 @@ export class TTSService {
 }
 
 export const tts = new TTSService();
+

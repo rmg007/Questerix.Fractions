@@ -128,7 +128,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
   try {
     envelope = JSON.parse(text) as BackupEnvelope;
-  } catch {
+  } catch (err) {
     throw new Error('backup.restore: invalid JSON');
   }
 
@@ -209,3 +209,4 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
 
 // Suppress unused-import warning — Dexie is referenced for Table generic above
 void (Dexie as unknown);
+

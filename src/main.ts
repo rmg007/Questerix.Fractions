@@ -1,4 +1,6 @@
 import './styles/index.css';
+import { initObservability, errorReporter } from './lib/observability';
+import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
 
 // Swallow unhandled storage errors from third-party / sandboxed contexts
 // (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
@@ -9,6 +11,8 @@ window.addEventListener('unhandledrejection', (event) => {
   if (/storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i.test(message)) {
     console.warn('[main] Suppressed storage-restricted error:', message);
     event.preventDefault();
+  } else if (reason instanceof Error) {
+    errorReporter.report(reason, { source: 'unhandledrejection' });
   }
 });
 
@@ -27,6 +31,15 @@ function hideSplash(): void {
 }
 
 async function boot(): Promise<void> {
+  // 1. Load preferences to check telemetry consent
+  const meta = await deviceMetaRepo.get();
+  
+  // 2. Initialize observability ASAP
+  initObservability({
+    telemetryConsent: meta.preferences.telemetryConsent,
+    sentryDsn: import.meta.env.VITE_SENTRY_DSN, // Optional, can be provided via env
+  });
+
   // Phaser is dynamically imported so the entry chunk stays tiny and the
   // HTML splash can paint immediately. Phaser lives in its own bundle chunk
   // (see vite.config.ts manualChunks) so this download is parallelisable.
@@ -39,7 +52,9 @@ async function boot(): Promise<void> {
       await import('./scenes');
     scenes = [BootScene, PreloadScene, MenuScene, Level01Scene, LevelScene, SettingsScene];
   } catch (err) {
-    console.error('[main] Failed to load scenes:', err);
+    errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
+      context: 'boot_scenes',
+    });
   }
 
   const config: import('phaser').Types.Core.GameConfig = {
@@ -57,6 +72,10 @@ async function boot(): Promise<void> {
   };
 
   const game = new Phaser.Game(config);
+  
+  // 3. Instrument the game instance
+  const { instrumentGame } = await import('./lib/observability/phaserInstrumentation');
+  instrumentGame(game);
 
   // Hide splash on the first rendered frame (boot scene + canvas are up)
   game.events.once('ready', hideSplash);
@@ -73,6 +92,8 @@ async function boot(): Promise<void> {
 }
 
 boot().catch((err: unknown) => {
-  console.error('[main] Failed to boot Phaser:', err);
+  errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
+    context: 'boot_phaser',
+  });
   // If Phaser fails to load, leave the splash up so the user sees something
 });

@@ -17,8 +17,9 @@ export const hintEventRepo = {
   async listForAttempt(attemptId: AttemptId): Promise<HintEvent[]> {
     try {
       return await db.hintEvents.where('attemptId').equals(attemptId).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
 };
+

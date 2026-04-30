@@ -15,7 +15,7 @@ export const bookmarkRepo = {
   async get(id: string): Promise<Bookmark | undefined> {
     try {
       return await db.bookmarks.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -27,7 +27,7 @@ export const bookmarkRepo = {
       return rows.reduce((latest: Bookmark, b: Bookmark) =>
         b.savedAt > latest.savedAt ? b : latest
       );
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -35,7 +35,7 @@ export const bookmarkRepo = {
   async listForStudent(studentId: StudentId): Promise<Bookmark[]> {
     try {
       return await db.bookmarks.where('studentId').equals(studentId).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -43,8 +43,9 @@ export const bookmarkRepo = {
   async delete(id: string): Promise<void> {
     try {
       await db.bookmarks.delete(id);
-    } catch {
+    } catch (err) {
       // idempotent
     }
   },
 };
+

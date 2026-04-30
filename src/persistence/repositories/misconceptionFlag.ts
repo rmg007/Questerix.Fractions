@@ -11,7 +11,7 @@ export const misconceptionFlagRepo = {
   async get(id: string): Promise<MisconceptionFlag | undefined> {
     try {
       return await db.misconceptionFlags.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -19,7 +19,7 @@ export const misconceptionFlagRepo = {
   async upsert(flag: MisconceptionFlag): Promise<void> {
     try {
       await db.misconceptionFlags.put(flag);
-    } catch {
+    } catch (err) {
       // swallow
     }
   },
@@ -34,7 +34,7 @@ export const misconceptionFlagRepo = {
         .equals([studentId, misconceptionId])
         .toArray();
       return rows[0];
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -46,7 +46,7 @@ export const misconceptionFlagRepo = {
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .toArray();
       return all.filter((f) => f.resolvedAt === null);
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -57,7 +57,7 @@ export const misconceptionFlagRepo = {
         .where('[studentId+misconceptionId]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -66,8 +66,9 @@ export const misconceptionFlagRepo = {
     try {
       const updated = await db.misconceptionFlags.update(id, { resolvedAt: Date.now() });
       return updated > 0;
-    } catch {
+    } catch (err) {
       return false;
     }
   },
 };
+

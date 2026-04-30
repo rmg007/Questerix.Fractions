@@ -10,7 +10,7 @@ export const curriculumPackRepo = {
   async get(id: string): Promise<CurriculumPack | undefined> {
     try {
       return await db.curriculumPacks.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -18,7 +18,7 @@ export const curriculumPackRepo = {
   async getCurrent(): Promise<CurriculumPack | undefined> {
     try {
       return await db.curriculumPacks.toCollection().first();
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -31,3 +31,4 @@ export const curriculumPackRepo = {
     await db.curriculumPacks.clear();
   },
 };
+

@@ -11,7 +11,7 @@ export const skillMasteryRepo = {
   async get(studentId: StudentId, skillId: SkillId): Promise<SkillMastery | undefined> {
     try {
       return await db.skillMastery.get([studentId, skillId]);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -23,7 +23,7 @@ export const skillMasteryRepo = {
   async upsert(mastery: SkillMastery): Promise<void> {
     try {
       await db.skillMastery.put(mastery);
-    } catch {
+    } catch (err) {
       // swallow write errors; BKT will retry on next attempt
     }
   },
@@ -31,7 +31,7 @@ export const skillMasteryRepo = {
   async getAllForStudent(studentId: StudentId): Promise<SkillMastery[]> {
     try {
       return await db.skillMastery.where('studentId').equals(studentId).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -39,8 +39,9 @@ export const skillMasteryRepo = {
   async delete(studentId: StudentId, skillId: SkillId): Promise<void> {
     try {
       await db.skillMastery.delete([studentId, skillId]);
-    } catch {
+    } catch (err) {
       // idempotent
     }
   },
 };
+

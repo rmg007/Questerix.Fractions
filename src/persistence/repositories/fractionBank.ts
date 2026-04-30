@@ -10,7 +10,7 @@ export const fractionBankRepo = {
   async get(id: string): Promise<FractionBank | undefined> {
     try {
       return await db.fractionBank.get(id);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -18,7 +18,7 @@ export const fractionBankRepo = {
   async getAll(): Promise<FractionBank[]> {
     try {
       return await db.fractionBank.toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -26,7 +26,7 @@ export const fractionBankRepo = {
   async getByDenominatorFamily(family: FractionBank['denominatorFamily']): Promise<FractionBank[]> {
     try {
       return await db.fractionBank.where('denominatorFamily').equals(family).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -34,7 +34,7 @@ export const fractionBankRepo = {
   async getByBenchmark(benchmark: FractionBank['benchmark']): Promise<FractionBank[]> {
     try {
       return await db.fractionBank.where('benchmark').equals(benchmark).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -47,3 +47,4 @@ export const fractionBankRepo = {
     await db.fractionBank.clear();
   },
 };
+

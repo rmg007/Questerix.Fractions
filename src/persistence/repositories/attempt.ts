@@ -25,7 +25,7 @@ export const attemptRepo = {
       // auto-increment PK is stored as number in IndexedDB
       const numericId = Number(id);
       return await db.attempts.get(numericId);
-    } catch {
+    } catch (err) {
       return undefined;
     }
   },
@@ -33,7 +33,7 @@ export const attemptRepo = {
   async listForSession(sessionId: SessionId): Promise<Attempt[]> {
     try {
       return await db.attempts.where('sessionId').equals(sessionId).toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -44,7 +44,7 @@ export const attemptRepo = {
         .where('[studentId+submittedAt]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -52,7 +52,7 @@ export const attemptRepo = {
   async countForStudent(studentId: StudentId): Promise<number> {
     try {
       return await db.attempts.where('studentId').equals(studentId).count();
-    } catch {
+    } catch (err) {
       return 0;
     }
   },
@@ -66,7 +66,7 @@ export const attemptRepo = {
         .where('[studentId+questionTemplateId]')
         .equals([studentId, questionTemplateId])
         .toArray();
-    } catch {
+    } catch (err) {
       return [];
     }
   },
@@ -87,8 +87,9 @@ export const attemptRepo = {
         results = results.slice(0, options.limit);
       }
       return results;
-    } catch {
+    } catch (err) {
       return [];
     }
   },
 };
+

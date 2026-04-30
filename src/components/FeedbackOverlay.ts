@@ -161,7 +161,7 @@ export class FeedbackOverlay {
   private checkReduceMotion(): boolean {
     try {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch {
+    } catch (err) {
       return false;
     }
   }
@@ -174,3 +174,4 @@ export class FeedbackOverlay {
     this.label.destroy();
   }
 }
+

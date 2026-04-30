@@ -1,8 +1,8 @@
 ---
 title: Level 1 — Halves and Equal Parts
-status: draft
+status: active
 owner: solo
-last_reviewed: 2026-04-25
+last_reviewed: 2026-04-30
 applies_to: [mvp]
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md]
@@ -12,13 +12,22 @@ related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 
 The student's first encounter with fractions. Goal: build the schema "**equal parts** of a whole."
 
-This document is the **complete spec** for Level 1. Every QuestionTemplate, validator, fraction, and skill referenced here corresponds to a row in IndexedDB after curriculum seed.
+## 1. Specification
 
-It is also the **template** for Levels 2–9. The structure of this file is the structure of every level file.
+| Field | Value |
+|---|---|
+| **Mastery objective** | Divides a regular shape into two equal parts (area or count) within 8% tolerance on first try ≥ 70%; recognizes equal-parts language. |
+| **Prerequisite skills** | None |
+| **Skills introduced** | `KC-HALVES-VIS` (Recognize equal partitioning, Identify halves visually, Use word "half") |
+| **Skills reinforced** | None |
+| **Misconceptions targeted** | `MC-EOL-01` (Equal-parts blindness), `MC-EOL-02` (Count-only fraction) |
+| **Representations used** | Area, Set |
+| **Out-of-scope at this level** | Symbolic notation (1/2), denominators > 2 |
+| **Evidence-of-mastery threshold** | BKT estimate ≥ 0.85 AND first-try accuracy ≥ 70% on last 8 attempts |
 
 ---
 
-## 1. Learning Goals
+## 2. Learning Goals (Detailed)
 
 By the end of Level 1, the student can:
 
@@ -27,21 +36,18 @@ By the end of Level 1, the student can:
 - **G1.3** — Identify "one half" of a shape (the highlighted equal part)
 - **G1.4** — Use the words **"half"** and **"whole"** in context (audio + visual)
 
-Symbolic notation `1/2` is **not introduced at this level** (per `RoadMap/02_Level_03_05/02_LEARNING_TRAJECTORY.md`). Symbols arrive at Level 6.
+Symbolic notation `1/2` is **not introduced at this level**. Symbols arrive at Level 6.
 
 ---
 
-## 2. Skills Tracked
+## 3. Skills Tracked
 
 See `../skills.md` for canonical definitions.
 
-| Skill ID | Name                                           | BKT priors                                           |
-| -------- | ---------------------------------------------- | ---------------------------------------------------- |
-| `SK-01`  | Recognize equal partitioning                   | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
-| `SK-02`  | Identify halves visually                       | `pInit=0.15, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
-| `SK-03`  | Use the word "half" for one of two equal parts | `pInit=0.10, pTransit=0.20, pSlip=0.10, pGuess=0.25` |
+| Skill ID | Name | BKT priors |
+|---|---|---|
+| `KC-HALVES-VIS` | Core Halving Recognition | `pInit=0.15, pTransit=0.25, pSlip=0.10, pGuess=0.30` |
 
-Mastery of all three skills at `state: "MASTERED"` is the gate to unlock Level 2.
 
 ---
 
@@ -98,7 +104,7 @@ The student sees a partitioned shape and answers a binary question: _Are the par
   },
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.areaTolerance",
-  "skillIds": ["SK-01"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -115,7 +121,7 @@ The student sees a partitioned shape and answers a binary question: _Are the par
   },
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.areaTolerance",
-  "skillIds": ["SK-01"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": ["MC-EOL-01"],
   "difficultyTier": "easy"
 }
@@ -132,7 +138,7 @@ The student sees a partitioned shape and answers a binary question: _Are the par
   },
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.areaTolerance",
-  "skillIds": ["SK-01"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "medium"
 }
@@ -149,7 +155,7 @@ The student sees a partitioned shape and answers a binary question: _Are the par
   },
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.areaTolerance",
-  "skillIds": ["SK-01"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": ["MC-EOL-03"],
   "difficultyTier": "hard"
 }
@@ -222,7 +228,7 @@ The student sees 3 shapes side by side. One has 1/2 highlighted (correctly: one 
   },
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
-  "skillIds": ["SK-02", "SK-03"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "easy",
 }
@@ -271,7 +277,7 @@ The student sees a whole shape and drags a line across it to split it into 2 equ
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-01"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -288,7 +294,7 @@ The student sees a whole shape and drags a line across it to split it into 2 equ
   },
   "correctAnswer": null,
   "validatorId": "validator.partition.equalAreas",
-  "skillIds": ["SK-01", "SK-02"],
+  "skillIds": ["KC-HALVES-VIS"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -335,7 +341,7 @@ Per C8, denominators 3+ do not appear at this level.
 
 A student unlocks Level 2 when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-01`, `SK-02`, **and** `SK-03`
+- `SkillMastery.state === "MASTERED"` for `KC-HALVES-VIS`
 - At least 12 attempts across at least 2 different activities
 - Tier 3 (Hard) accuracy ≥ 70% across the last 5 hard attempts (no scaffolding)
 

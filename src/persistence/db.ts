@@ -24,7 +24,9 @@ import type {
   HintTemplate,
   MisconceptionFlag,
   ProgressionStat,
+  TelemetryEvent,
 } from '../types';
+import { observabilityMiddleware } from './middleware';
 
 // ── DB class ───────────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ export class QuesterixDB extends Dexie {
   hintEvents!: Table<HintEvent, number>;
   misconceptionFlags!: Table<MisconceptionFlag, string>;
   progressionStat!: Table<ProgressionStat, [string, string]>;
+  telemetryEvents!: Table<TelemetryEvent, number>;
 
   constructor() {
     super('questerix-fractions');
@@ -138,10 +141,40 @@ export class QuesterixDB extends Dexie {
       misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
       progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
     });
+
+    // Schema version 5 — adds telemetryEvents store for durable offline buffering.
+    // per observability-spec.md §3.2
+    this.version(5).stores({
+      // Static curriculum stores (carried from v4)
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      // Dynamic stores (carried from v4)
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      hintEvents: '++id, attemptId',
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      // New store for v5
+      telemetryEvents: '++id, timestamp, event, severity, syncState',
+    });
   }
 }
 
 export const db = new QuesterixDB();
+db.use(observabilityMiddleware);
 
 // ── Persistence grant helper ───────────────────────────────────────────────
 
@@ -162,7 +195,7 @@ export async function ensurePersistenceGranted(): Promise<boolean> {
   const alreadyWarned = (() => {
     try {
       return sessionStorage.getItem(PERSIST_WARN_KEY) === '1';
-    } catch {
+    } catch (err) {
       return false;
     }
   })();
@@ -170,7 +203,7 @@ export async function ensurePersistenceGranted(): Promise<boolean> {
   const markWarned = () => {
     try {
       sessionStorage.setItem(PERSIST_WARN_KEY, '1');
-    } catch {
+    } catch (err) {
       // sessionStorage unavailable — ignore
     }
   };
@@ -198,3 +231,4 @@ export async function ensurePersistenceGranted(): Promise<boolean> {
     return false;
   }
 }
+

@@ -52,7 +52,7 @@ export const AccessibilityAnnouncer = {
       requestAnimationFrame(() => {
         region.textContent = text;
       });
-    } catch {
+    } catch (err) {
       // DOM manipulation failed — safe to swallow (game still runs)
     }
   },
@@ -70,3 +70,4 @@ export const AccessibilityAnnouncer = {
     // If already destroyed, no-op (no error thrown)
   },
 };
+

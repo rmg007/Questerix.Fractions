@@ -12,6 +12,7 @@ import { MakeInteraction } from '../interactions/MakeInteraction';
 import { CompareInteraction } from '../interactions/CompareInteraction';
 import { BenchmarkInteraction } from '../interactions/BenchmarkInteraction';
 import { OrderInteraction } from '../interactions/OrderInteraction';
+import { ExplainYourOrderInteraction } from '../interactions/ExplainYourOrderInteraction';
 import { SnapMatchInteraction } from '../interactions/SnapMatchInteraction';
 import { EqualOrNotInteraction } from '../interactions/EqualOrNotInteraction';
 import { PlacementInteraction } from '../interactions/PlacementInteraction';
@@ -30,13 +31,19 @@ const interactionRegistry = new Map<ArchetypeId, () => Interaction>([
 ]);
 
 /**
- * Returns a fresh Interaction instance for the given archetype.
- * Throws if archetype is not registered.
+ * Returns a fresh Interaction instance for the given archetype and validator.
+ * Some archetypes (like 'order') branch into different Interactions based on validatorId.
  */
-export function getInteractionForArchetype(archetype: ArchetypeId): Interaction {
+export function getInteractionForArchetype(archetype: ArchetypeId, validatorId?: string): Interaction {
+  // Level 9 Capstone: metacognitive "Explain Your Order" variant
+  if (archetype === 'order' && validatorId === 'validator.order.withRuleExplanation') {
+    return new ExplainYourOrderInteraction();
+  }
+
   const factory = interactionRegistry.get(archetype);
   if (!factory) {
     throw new Error(`[levelRouter] No interaction registered for archetype: ${archetype}`);
   }
   return factory();
 }
+
