@@ -195,10 +195,11 @@ async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false):
         total += bundle.fractionBank.length;
       }
       if (templatesWithGroup.length > 0) {
-        // Explicitly strip levelGroup before persisting to match DB schema.
-        // levelGroup is derived on read; not part of QuestionTemplate's base type.
-        const sanitized = templatesWithGroup.map(({ levelGroup: _lg, ...rest }) => rest);
-        await db.questionTemplates.bulkPut(sanitized);
+        // levelGroup is an indexed field in the questionTemplates store
+        // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
+        // it MUST be persisted, not stripped. Without it, getByLevel() returns 0 rows.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await db.questionTemplates.bulkPut(templatesWithGroup as any);
         total += templatesWithGroup.length;
       }
       if (bundle.misconceptions.length > 0) {
