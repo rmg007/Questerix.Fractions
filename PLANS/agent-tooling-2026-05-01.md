@@ -30,7 +30,7 @@ Total effort: ~15–20 hours, sequenced into 8 dated branches. Estimated session
 
 This plan responds to seven concrete pain points observed across the merge sessions of 2026-05-01. Every phase ties back to at least one.
 
-1. **PRs auto-close within ~30 s of creation** (PR #21, PR #24). Each occurrence cost ~3 k tokens in narration + recovery. Root cause unconfirmed: `.github/workflows/issue-to-copilot.yml` only fires on `issues: labeled` events with the `claude:implement` label, so it's not the culprit for PR auto-closes. The Copilot reviewer auto-close path or another workflow is. See Phase 5 + **Appendix A** (TBD).
+1. **PRs auto-close within ~30 s of creation when the title contains `phaser`/`dexie`/`vite` substrings** (PR #21, PR #24). Root cause **confirmed** (Phase 5 investigation): `.github/workflows/dependabot-auto-merge.yml` has a broken step-level author guard at lines 17–19 that uses `run: exit 0` — this exits the *step*, not the *job*, so the pin-check substring match at lines 32–52 runs for every PR author and closes any PR whose lowercased title contains a pinned-package name. PR #24's title was "wrap attempt+mastery in single Dexie transaction" → contained "dexie" → matched → closed. Fix is one line: lift the guard to job-level `if: github.actor == 'dependabot[bot]'`. Each occurrence cost ~3 k tokens in narration + recovery. See Phase 5 + Appendix A.
 
 2. **GitHub's `mergeable_state` lies briefly** after a base-branch update. Calling `merge_pull_request` 30 s after another merge returned `mergeable_state: unknown` then 405. Local `git merge` was clean. Workaround used twice: push merge commit to PR branch, retry. Pattern worth a learning entry.
 
@@ -81,7 +81,63 @@ The autonomous infrastructure is significantly more mature than the prior plan a
 - `docs/00-foundation/decision-log.md` — 29 entries, D-NN format, append-only newest-at-top.
 - `.claude/learnings.md` — 5 entries since 2026-04-30. Underused (Phase 6 fixes).
 
-**The implication for the rest of this plan:** every phase below assumes this surface is the baseline. "Create" verbs are reserved for things that genuinely don't exist (the two new subagents, the blast-radius router, the PR template); everything else is "refine," "extend," or "wire."
+**The implication for the rest of this plan:** every phase below assumes this surface is the baseline. "Create" verbs are reserved for things that genuinely don't exist (the two new subagents, the blast-radius router, the PR template, the LOC-budget enforcer); everything else is "refine," "extend," or "wire."
+
+---
+
+## Core principle: Proactive over reactive
+
+The four existing subagents (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`) are all **reactive** — they audit *after* a diff exists. That's how `Level01Scene.ts` reached 1727 LOC despite four scoped subagents existing: nothing prevented it; the auditors only commented on it after the fact, by which time the cost of unwinding exceeded the appetite to do so.
+
+This plan adopts a stricter model: **prevent the failure mode at the moment it would be introduced, not after.** Each phase below is graded on whether it adds proactive prevention (good) or just better reactive auditing (acceptable but not the goal).
+
+| Failure mode | Reactive (audit after) | Proactive (prevent at write-time) |
+|---|---|---|
+| God file (>budget LOC) | `bundle-watcher` reports it post-merge | PostToolUse Edit hook **blocks** writes that push a file past its LOC budget |
+| Cross-layer import (engine → scenes) | ESLint flag at lint time | PreToolUse Read warns when opening a file already at 80% of budget; scaffolder doesn't generate cross-layer imports in the first place |
+| New `localStorage` key outside C5 | `c1-c10-auditor` at PR open | PostToolUse hook warns inline at the edit |
+| Curriculum dual-file drift | `curriculum-byte-parity` at PR open | PostToolUse hook auto-runs `build:curriculum` on `pipeline/output/**`; direct edits to either bundle file are **blocked** with `exit 2` |
+| Branch-name drift | nightly review | `.husky/pre-push` regex rejects |
+| Decision-log D-NN collision | merge conflict at PR | numbering helper or write-lock convention (Appendix B open question) |
+| God-file *creation* (new monolith from scratch) | (none) | `npm run scaffold:scene <name>` generates `<name>Scene.ts` + `<name>Controller.ts` + `<name>State.ts` + tests; new scenes can't be born monolithic |
+
+### Per-directory LOC budgets (proactive enforcement)
+
+Enforced at three layers (write-time, lint-time, CI-time) so no single bypass loses the gate:
+
+| Path glob | Budget (LOC) | Rationale |
+|---|---|---|
+| `src/scenes/*Scene.ts` | 600 | Phaser scenes that exceed this become god files (see `Level01Scene.ts` at 1727) |
+| `src/components/*.ts` | 300 | UI components should be focused; >300 signals missed extraction |
+| `src/validators/*.ts` | 200 | One archetype per file by convention; >200 means logic belongs in a helper |
+| `src/engine/*.ts` | 400 | Engine modules should be small + composable |
+| `src/lib/*.ts` | 300 | Same logic as components |
+
+Enforced via:
+1. **ESLint `max-lines` rule** scoped to each file group in `.eslintrc.json` (compile-time).
+2. **PostToolUse Edit hook** that runs `wc -l` on the post-edit file and exits `2` (block) if the count exceeds budget — with a structured advisory pointing to the corresponding extraction pattern (Path A / controller pattern from D-27 for scenes; helper extraction for validators; etc.).
+3. **CI gate in `subagent-pr-audit.yml`** that fails on PR if any in-scope file exceeds budget (PR-time backstop).
+
+### Pre-existing god files: frozen, not grandfathered
+
+- `src/scenes/Level01Scene.ts` (1727 LOC) — already on D-27's deletion list (Phase 3 of `code-quality-2026-05-01.md`).
+- `src/scenes/LevelScene.ts` (also large) — sibling of the same Path-A migration.
+
+These pre-date the budget. They are **frozen**: the LOC-budget hook rejects any net-LOC-positive edit until extraction lands. Bug-fix edits that delete more than they add are allowed. This forces the deferred sunset (D-27) to either happen or be explicitly waived per-PR with `--no-verify` plus a one-line justification in the PR body. The freeze is the proactive layer that makes the deferred sunset costless to defer (no additional rot accumulates).
+
+### Scaffolding that enforces the split
+
+- `npm run scaffold:scene <name>` → creates `<name>Scene.ts` + `<name>Controller.ts` + `<name>State.ts` + matching test files from templates at `templates/scene/`.
+- `npm run scaffold:validator <archetype>` → creates `<archetype>.ts` + `<archetype>.test.ts` + parity fixture stub at `pipeline/fixtures/parity/`.
+- `npm run scaffold:component <name>` → creates `<name>.ts` + `__tests__/<name>.test.ts` + the matching `A11yLayer.addElement` stub.
+
+New work starts split. Existing god files don't replicate.
+
+### Why this matters for token economy
+
+A reactive audit on a 1727-LOC file consumes ~30 k tokens just to read the file. The same audit on three 600-LOC files consumes ~30 k tokens too — but the *editing* cost in subsequent sessions drops by ~3× because each file fits in a smaller context, and merge conflicts on parallel work drop because edits to different concerns no longer collide.
+
+Proactive prevention pays compounding dividends: every god file we *don't* create saves tokens for the rest of the project's lifetime.
 
 ---
 
@@ -101,234 +157,1201 @@ The autonomous infrastructure is significantly more mature than the prior plan a
 
 ---
 
-## Phase 1 — Auto-invoke layer
+## Phase 1 — Auto-invoke layer (concrete artifacts)
 
-**Goal:** Stop requiring the user to type slash commands. Mechanical things via hooks; judgment things via skills invoked by behavior rules.
+**Goal:** Stop requiring the user to type slash commands. Mechanical things via hooks; judgment things via skills invoked by behavior rules. The LOC-budget hook (1.4) is the proactive piece — it blocks god-file growth at write-time, not post-merge.
 
-### 1a. Hooks — mechanical auto-fires
+### 1.1 `.claude/settings.json` — extended `PostToolUse(Edit|Write|MultiEdit)` hook
 
-Extend `.claude/settings.json`:
+Replace the existing `Edit|Write|MultiEdit` matcher block (currently at `.claude/settings.json:135-143`) with the entry below. The single existing concern (workflow-config drift) is preserved as the first `case` arm; new arms are appended. Each arm is a single `case` pattern in one bash one-liner so the hook stays under one process spawn.
 
-| Trigger | Action | Cost |
+```json
+{
+  "matcher": "Edit|Write|MultiEdit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] && exit 0; case \"$FILE\" in *public/curriculum/v1.json|*src/curriculum/bundle.json) echo 'BLOCKED: curriculum bundles are generated artifacts. Edit pipeline/output/level_*/all.json then run: npm run build:curriculum' >&2; exit 2 ;; *vite.config.ts|*playwright.config.ts|*src/config/shared.ts|*scripts/workflows/generator.mjs) echo '▶ config touched — checking workflow drift...'; npm run gen:workflows >/dev/null 2>&1 || true; git diff --exit-code .github/workflows >/dev/null 2>&1 || echo 'WARNING: workflow drift — run npm run gen:workflows && git add .github/workflows' >&2 ;; *pipeline/output/*) echo '▶ pipeline output changed — syncing curriculum bundles...'; npm run build:curriculum 2>&1 | tail -n 8 >&2 || true ;; *src/persistence/db.ts) echo '◇ db.ts edited — Dexie schema-version bump? Add a new .version(N).stores({...}).upgrade(tx => ...) block; never mutate an existing version. See src/persistence/CLAUDE.md.' >&2 ;; *src/persistence/*|*src/scenes/*|*src/lib/*) HITS=$(grep -nE 'localStorage\\.(get|set|remove)Item\\(' \"$FILE\" 2>/dev/null | grep -vE \"['\\\"](lastUsedStudentId|unlockedLevels:|completedLevels:)\" || true); [ -n \"$HITS\" ] && { echo '◇ C5 advisory: new localStorage usage in this file — only lastUsedStudentId is permitted (unlockedLevels:/completedLevels: are grandfathered in MenuScene/LevelMapScene only). Run /c5-check to verify.' >&2; echo \"$HITS\" >&2; } ;; esac; case \"$FILE\" in *.test.ts|*.test.tsx|*__tests__/*|*.spec.ts) : ;; *src/*.ts|*src/*.tsx) DIR=$(dirname \"$FILE\"); BASE=$(basename \"$FILE\" | sed 's/\\.tsx\\?$//'); SIBLING=\"$DIR/$BASE.test.ts\"; NESTED=\"$DIR/__tests__/$BASE.test.ts\"; TEST=''; [ -f \"$SIBLING\" ] && TEST=\"$SIBLING\"; [ -z \"$TEST\" ] && [ -f \"$NESTED\" ] && TEST=\"$NESTED\"; [ -n \"$TEST\" ] && { echo \"▶ running sibling test: $TEST\"; npx vitest run \"$TEST\" --reporter=basic 2>&1 | tail -n 10 >&2 || true; } ;; esac; exit 0"
+    }
+  ]
+}
+```
+
+Behavior summary (in evaluation order):
+
+| Trigger glob | Action | Exit |
 |---|---|---|
-| Edit `src/persistence/**`, `src/scenes/**`, `src/lib/**` | grep for new `localStorage` uses outside `lastUsedStudentId` | <100 ms, advisory to stderr |
-| Edit `pipeline/output/**` | run `npm run build:curriculum` | ~5 s (one-time per pipeline change) |
-| Edit `src/**/*.ts` (non-test) | find sibling test, run only it via `npm run test:unit -- <path>` | ~1–3 s |
-| Edit `src/persistence/db.ts` | print reminder: "Schema-version bump? (Dexie v6→v7 pattern)" | <50 ms |
-| Edit `src/engine/ports.ts` | print reminder: "Run `validator-parity-checker` if validators change" | <50 ms |
-| Edit `public/curriculum/v1.json` or `src/curriculum/bundle.json` directly | block edit, print: "Use `npm run build:curriculum` — these files must stay byte-identical" | <50 ms |
+| `public/curriculum/v1.json`, `src/curriculum/bundle.json` | **Hard block** — generated artifacts; route through `build:curriculum` | `2` |
+| `vite.config.ts`, `playwright.config.ts`, `src/config/shared.ts`, `scripts/workflows/generator.mjs` | Run `gen:workflows`, warn if `.github/workflows` drifts (preserved from current hook) | `0` |
+| `pipeline/output/**` | Auto-run `npm run build:curriculum`, tail 8 lines (enforces dual-file byte-equality) | `0` |
+| `src/persistence/db.ts` | Reminder about additive Dexie `.version(N)` bump pattern | `0` |
+| `src/persistence/**`, `src/scenes/**`, `src/lib/**` | Grep for non-allowlisted `localStorage` calls; print advisory | `0` |
+| Any `src/**/*.ts(x)` non-test edit | Find `<base>.test.ts` sibling or `__tests__/<base>.test.ts`, run it, tail 10 lines | `0` |
 
-### 1b. Husky git hooks — heavy gates at natural boundaries
+**Properties:** fail-soft (every internal failure suffixed `|| true`; only the dual-file write uses `exit 2`); idempotent (pure read/diff except for `build:curriculum`, which is itself idempotent); fast for advisories (C5 grep, schema reminder, drift check each <50 ms; the heavier `build:curriculum` and per-file `vitest` only fire on narrow paths).
 
-| Trigger | Action |
-|---|---|
-| `.husky/pre-commit` | typecheck + lint (lint-staged so only changed files) |
-| `.husky/pre-push` | full `/preflight` (typecheck + lint + unit + integration + build + bundle) |
+### 1.2 CLAUDE.md "Auto-invoke skills" section
 
-### 1c. Skills — judgment-call auto-invocation via root CLAUDE.md rule
+Insert immediately after the existing **Specialist subagents** section in root CLAUDE.md:
 
-Add to root `CLAUDE.md` under a new section "Auto-invoke skills":
+```markdown
+## Auto-invoke skills
 
-> **Before any non-trivial `git commit` (>10 lines or any `src/**/*.ts` edit):** invoke `simplify` skill.
-> **Before any `mcp__github__create_pull_request` if changed paths include `src/persistence/**`, `src/lib/observability/**`, `pipeline/**`, or `*.config.*`:** invoke `security-review` skill.
-> **After `mcp__github__create_pull_request` succeeds:** invoke `review` skill on the PR I just opened.
-> **When a session has hit ≥5 permission prompts:** invoke `fewer-permission-prompts` skill at end of session.
+The harness exposes user-invocable skills that overlap our slash commands. The hooks above cover *mechanical* triggers (file paths). The triggers below are *semantic* and live with me — when the condition is met I invoke the skill via the Skill tool **before** finalizing a response, without waiting to be asked.
 
-These are gates Claude (the agent) honors based on rules I read in CLAUDE.md, not events the harness can detect. That's the right level — they need judgment.
+| Skill | Auto-invoke when… | Rationale |
+|---|---|---|
+| `simplify` | I just wrote >40 net new LOC to a single file under `src/` (any path), or my change touched ≥3 files in `src/scenes/interactions/`, `src/validators/`, or `src/engine/`. | God-file drift is empirically validated (Level01Scene 1604→1727 in one session). A pre-flight simplify pass catches duplication before it lands. |
+| `security-review` | The diff touches `src/persistence/**`, `src/lib/observability/**`, `src/lib/i18n/**`, anything that reads `import.meta.env`, or adds a `WebFetch` / `fetch(` call. | C1 (no egress), C5 (localStorage scope), and the env-gated OTel/Sentry contract all live in these surfaces. |
+| `review` | I am about to ask the user to open a PR, or the working tree contains a commit on a `feat/`, `fix/`, or `refactor/` branch with no review yet. | Catches issues that the husky pre-push gate can't (semantic regressions, missing tests, scope creep). |
+| `fewer-permission-prompts` | A session has hit ≥3 permission prompts for read-only `Bash`/`Grep`/`Read` invocations not yet in `.claude/settings.json`. | Friction-reduction; expands `permissions.allow` for the patterns I keep retyping. |
 
-### 1d. Delete duplicate slash commands now that skills cover them
+**Recursion guard:** auto-invoke fires once per skill per turn; never auto-invoke from inside a skill response. Any skill response can write `[no-auto-followup]` to suppress the next auto-invocation.
 
-The skills listed in the harness (`diag`, `preflight`, `retro`, `learn`, `sprint-status`, `decision`, `sync-curriculum`, `test-changed`, `c5-check`) duplicate the project files in `.claude/commands/`. Drop the `.claude/commands/` versions where the skill is identical — one source of truth, no drift.
+If a skill fires, I cite it in the final response (`▶ ran simplify on src/scenes/Level01Scene.ts — 0 findings`) so the user sees the audit trail.
+```
 
-**Acceptance:**
-- User never types `/preflight`, `/test-changed`, `/c5-check`, `/sync-curriculum` again — they fire via hook on the relevant edit/commit/push.
-- User never types `simplify`, `security-review`, `review` — Claude invokes them per the CLAUDE.md rule.
-- A doc-only commit is fast (<1 s of overhead), a `src/persistence/**` commit triggers the right gates.
+### 1.3 Slash commands — keep vs. delete
 
-**Effort:** 2 hr.
+Every project slash command in `.claude/commands/` listed in CLAUDE.md has a same-named harness skill. Recommendation:
+
+| Command file | Recommendation | Reason |
+|---|---|---|
+| `.claude/commands/preflight.md` | **Delete** | Replaced by Phase 2 router invoked from husky + the `preflight` skill. |
+| `.claude/commands/sync-curriculum.md` | **Delete** | The PostToolUse hook auto-runs `build:curriculum` on `pipeline/output/**` writes. |
+| `.claude/commands/diag.md` | **Delete** | SessionStart hook prints the same; the `diag` skill covers ad-hoc need. |
+| `.claude/commands/test-changed.md` | **Delete** | The PostToolUse hook now runs sibling tests automatically on every Edit. |
+| `.claude/commands/learn.md` | **Keep** | Project-specific entry format (`YYYY-MM-DD <area>: …`, newest below the marker at `.claude/learnings.md:19`) isn't in the generic skill. |
+| `.claude/commands/retro.md` | **Keep** | Project-specific update targets (CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, decision-log) — generic skill won't know the right files. Phase 6 enhances it. |
+| `.claude/commands/sprint-status.md` | **Keep** | Pulls from `PLANS/master-plan-2026-04-26.md` and the bug table in CLAUDE.md; project-specific. |
+| `.claude/commands/c5-check.md` | **Keep** | Permitted-key allowlist is project-specific; the hook above uses the same list. |
+| `.claude/commands/decision.md` | **Keep** | Targets `docs/00-foundation/decision-log.md` with project-specific D-NN format. |
+
+Net: delete 4, keep 5. Surface area shrinks ~45% with no capability loss.
+
+### 1.4 Proactive LOC-budget hook (the keystone proactive piece)
+
+This is the gate that prevents god files from forming. Adds a second `PostToolUse(Edit|Write|MultiEdit)` stanza after 1.1:
+
+```json
+{
+  "matcher": "Edit|Write|MultiEdit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ] && exit 0; LOC=$(wc -l < \"$FILE\" 2>/dev/null | tr -d ' '); BUDGET=0; case \"$FILE\" in *src/scenes/*Scene.ts) BUDGET=600 ;; *src/components/*.ts) BUDGET=300 ;; *src/validators/*.ts) BUDGET=200 ;; *src/engine/*.ts) BUDGET=400 ;; *src/lib/*.ts) BUDGET=300 ;; esac; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt \"$BUDGET\" ]; then case \"$FILE\" in *Level01Scene.ts|*LevelScene.ts) PRE=$(git show HEAD:\"$FILE\" 2>/dev/null | wc -l | tr -d ' ' || echo 0); if [ \"$LOC\" -gt \"$PRE\" ]; then echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. This is a frozen god file (D-27 deferred sunset) — net-LOC-positive edits are rejected until extraction lands. Bug-fix edits that delete more than they add are allowed. To bypass with justification: git commit --no-verify with a one-line rationale in the PR body.\" >&2; exit 2; fi ;; *) echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. Extract before adding more. See PLANS/agent-tooling-2026-05-01.md → Core principle: Proactive over reactive.\" >&2; exit 2 ;; esac; fi; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt $((BUDGET * 8 / 10)) ]; then echo \"◇ LOC advisory: $FILE is at $LOC/$BUDGET (>80%). Consider extracting before next addition.\" >&2; fi; exit 0"
+    }
+  ]
+}
+```
+
+Behavior:
+- Files in budgeted globs that exceed the budget after the edit → **block** (`exit 2`) with extraction guidance.
+- Pre-existing god files (`Level01Scene.ts`, `LevelScene.ts`) are **frozen** — only net-LOC-negative edits allowed (compares post-edit `wc -l` to `git show HEAD`'s line count). Bug fixes that delete more than they add are accepted.
+- Files at 80–100% of budget print an advisory but don't block.
+- Non-budgeted paths (tests, docs, configs) are untouched.
+
+### 1.5 ESLint `max-lines` rule (compile-time backstop)
+
+Add per-file-group rules in `.eslintrc.json`:
+
+```json
+{
+  "overrides": [
+    {
+      "files": ["src/scenes/*Scene.ts"],
+      "excludedFiles": ["src/scenes/Level01Scene.ts", "src/scenes/LevelScene.ts"],
+      "rules": { "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/components/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/validators/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 200, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/engine/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 400, "skipBlankLines": true, "skipComments": true }] }
+    }
+  ]
+}
+```
+
+The two pre-existing god files are exempted (the hook handles them with the freeze policy). All new scenes inherit the budget at the lint layer too — three independent gates (write-time hook, lint-time eslint, PR-time CI) so no single bypass loses the protection.
+
+### 1.6 Acceptance for Phase 1
+
+- Editing `pipeline/output/level_3/all.json` triggers `build:curriculum` automatically.
+- Editing `public/curriculum/v1.json` directly is blocked with a clear remediation message.
+- Editing `src/scenes/MenuScene.ts` adding `localStorage.setItem('foo', ...)` prints a C5 advisory.
+- Editing `src/engine/bkt.ts` runs `src/engine/bkt.test.ts` and tails 10 lines.
+- Adding LOC to a 1727-LOC `Level01Scene.ts` is **blocked** unless the diff is net-negative.
+- Creating a 700-LOC `MenuScene.ts` is **blocked** at write-time, not at PR-time.
+- Root CLAUDE.md contains an "Auto-invoke skills" section with at least 4 rules and a recursion guard.
+
+**Effort:** 3 hr (was 2 hr; the LOC-budget hook adds ~1 hr).
 
 ---
 
-## Phase 2 — Blast-radius-aware preflight
+## Phase 2 — Blast-radius preflight (concrete artifacts)
 
-**Goal:** The full preflight runs full only when needed.
+**Goal:** The full preflight runs full only when needed. The proactive piece: when a `chore/` or `docs/` branch unexpectedly touches `src/**`, the router auto-escalates to the full tier rather than trusting the prefix.
 
-### Branch-prefix → gate level
+### 2.1 `scripts/preflight-router.mjs` — full source
 
-| Branch prefix | Gate |
-|---|---|
-| `chore/`, `docs/`, `plans/` | typecheck + lint |
-| `fix/`, `test/` | typecheck + lint + unit |
-| `refactor/`, `feat/` | full `/preflight` |
+```javascript
+#!/usr/bin/env node
+/**
+ * preflight-router.mjs
+ *
+ * Branch-aware preflight gate. Reads the current branch name and runs the
+ * tier of checks proportional to the branch's blast radius:
+ *
+ *   chore/* docs/* plans/*       → light   (typecheck + lint)
+ *   fix/*   test/*               → medium  (light + unit)
+ *   feat/*  refactor/*           → full    (medium + integration + build + bundle)
+ *   claude/* worktree-agent-* …  → full    (defensive default)
+ *
+ * Auto-escalation: a chore/docs/plans branch that touches src/** is
+ * escalated to full tier with a stderr note. The branch prefix is a hint,
+ * not a contract.
+ *
+ * Invoked by .husky/pre-push. Fails fast on the first failing step.
+ *
+ * Exit 0 = all checks passed
+ * Exit 1 = a check failed (message printed) or git unavailable
+ */
 
-Implement as `scripts/preflight-router.mjs` reading `git branch --show-current` and routing.
+import { execSync, spawnSync } from 'node:child_process';
 
-### Outcome
+const TIERS = {
+  light: ['typecheck', 'lint'],
+  medium: ['typecheck', 'lint', 'test:unit'],
+  full: ['typecheck', 'lint', 'test:unit', 'test:integration', 'build', 'measure-bundle'],
+};
+
+function currentBranch() {
+  try {
+    return execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function changedSrcPaths() {
+  try {
+    const base = execSync('git merge-base HEAD origin/main', { encoding: 'utf8' }).trim();
+    const out = execSync(`git diff --name-only ${base}..HEAD`, { encoding: 'utf8' });
+    return out.split('\n').filter((p) => p.startsWith('src/'));
+  } catch {
+    return [];
+  }
+}
+
+function tierFor(branch) {
+  if (/^(chore|docs|plans)\//.test(branch)) return 'light';
+  if (/^(fix|test)\//.test(branch)) return 'medium';
+  if (/^(feat|refactor)\//.test(branch)) return 'full';
+  // claude/*, worktree-agent-*, main, detached, unknown — defensive default
+  return 'full';
+}
+
+function run(script) {
+  process.stdout.write(`  → npm run ${script}\n`);
+  const r = spawnSync('npm', ['run', script], { stdio: 'inherit' });
+  if (r.status !== 0) {
+    console.error(`\n✗ preflight failed at: npm run ${script}`);
+    process.exit(1);
+  }
+}
+
+const branch = currentBranch() || '(detached)';
+let tier = tierFor(branch);
+
+// Proactive auto-escalation: a "doc-only" branch that touched src/** is
+// suspicious. Escalate to full tier rather than trusting the prefix.
+if (tier === 'light') {
+  const srcPaths = changedSrcPaths();
+  if (srcPaths.length > 0) {
+    console.error(`◇ auto-escalating: branch '${branch}' is prefixed for light tier but touches src/**:`);
+    srcPaths.slice(0, 5).forEach((p) => console.error(`  - ${p}`));
+    if (srcPaths.length > 5) console.error(`  - … and ${srcPaths.length - 5} more`);
+    tier = 'full';
+  }
+}
+
+const steps = TIERS[tier];
+
+console.log(`▶ tier: ${tier}  (branch: ${branch})`);
+for (const step of steps) run(step);
+console.log(`✓ all checks passed (${tier})`);
+```
+
+Notes:
+- Pure Node; no new dependencies.
+- Auto-escalation is the proactive piece — it catches the case where someone (human or agent) mislabels a branch.
+- `measure-bundle` is gated to `full` because it requires a fresh `dist/`.
+
+### 2.2 Updated `.husky/pre-push`
+
+```sh
+#!/usr/bin/env sh
+# Pre-push guard:
+#   1. Branch-name compliance (per CLAUDE.md git-workflow rule)
+#   2. Workflow regen drift check
+#   3. Tiered preflight router (see scripts/preflight-router.mjs)
+# Bypass with: git push --no-verify (CI consistency gate is backstop)
+
+# 1. Branch-name compliance ---------------------------------------------------
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  main|claude/*|worktree-agent-*) ;;
+  *)
+    if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+      echo ""
+      echo "ERROR: branch name '$BRANCH' is non-compliant."
+      echo "Required shape: <type>/YYYY-MM-DD-<slug>"
+      echo "  type ∈ {feat, fix, refactor, plans, chore, docs, test}"
+      echo "  slug: lowercase, kebab-case"
+      echo "See docs/00-foundation/git-workflow.md and CLAUDE.md → 'Git workflow'."
+      exit 1
+    fi
+    ;;
+esac
+
+# 2. Workflow drift -----------------------------------------------------------
+echo "▶ pre-push: checking workflow consistency..."
+npm run gen:workflows
+if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then
+  echo ""
+  echo "ERROR: Workflow drift detected — run 'npm run gen:workflows' and commit the updated YAML."
+  exit 1
+fi
+
+# 3. Tiered preflight ---------------------------------------------------------
+node scripts/preflight-router.mjs || exit 1
+
+echo "✓ pre-push checks passed"
+```
+
+The standalone `npm run lint:ci` line that used to live at `.husky/pre-push:14-15` is removed because `lint` is now a member of every tier in the router.
+
+### 2.3 Updated `.husky/pre-commit`
+
+Already minimal — keep typecheck only:
+
+```sh
+#!/usr/bin/env sh
+# Quick pre-commit check — typecheck only (~3s).
+# Heavy gates (lint, unit, integration, build, bundle) run on pre-push via
+# scripts/preflight-router.mjs. Do NOT add work here — it slows every commit
+# and an aborted commit loses the staged diff. Push-time is the right tier.
+npm run typecheck
+```
+
+### 2.4 Outcome
 
 | Branch type | Preflight time before | After |
 |---|---|---|
-| `chore/...` | ~90 s | ~5 s |
+| `chore/...` (no src/ touched) | ~90 s | ~5 s |
+| `chore/...` (touches src/ — auto-escalated) | ~90 s | ~90 s (correct! prefix lied) |
 | `fix/...` | ~90 s | ~25 s |
-| `feat/...` | ~90 s | ~90 s (unchanged — needs full) |
+| `feat/...`, `refactor/...` | ~90 s | ~90 s (unchanged — needs full) |
 
-**Acceptance:** `npm run preflight` on the current branch runs the right tier. Husky `pre-push` calls the router, not the full pipeline.
+### 2.5 Acceptance for Phase 2
+
+- `git push` from `plans/2026-05-15-agent-tooling` runs only typecheck + lint (~5 s).
+- `git push` from `feat/2026-05-15-hint-ladder` runs the full tier (~90 s).
+- `git push` from `feat/hint-ladder` (no date) is rejected before any check runs.
+- A `chore/...` branch that touches `src/persistence/db.ts` is auto-escalated with a stderr note explaining why.
 
 **Effort:** 2 hr.
 
 ---
 
-## Phase 3 — Two missing specialist subagents
+## Phase 3 — Two missing specialist subagents (concrete artifacts)
 
-**Goal:** Cover gaps recent PRs exposed.
+**Goal:** Cover gaps recent PRs exposed. Both subagents add VALUE by *explaining what to do* (which port to inject, which command to run), not by re-running existing automation.
 
-### 3a. `engine-determinism-auditor`
+### 3.1 New file: `.claude/agents/engine-determinism-auditor.md`
 
-**Triggers on:** any diff touching `src/engine/**`.
-**Checks:** no `Math.random`, no `Date.now()`, no `crypto.randomUUID()` outside `src/engine/ports.ts`.
-**Why a subagent when ESLint already enforces this?** ESLint output is hard for agents to read in a structured way. The subagent gives a one-paragraph summary: "Engine layer determinism contract violated at <file:line>. Inject the corresponding port (Rng / Clock / IdGenerator) per `src/engine/ports.ts`. See PR #16, #17, #29 for prior examples."
+```markdown
+---
+name: engine-determinism-auditor
+description: Audits diffs touching src/engine/** for direct host-global calls (Math.random, Date.now, crypto.randomUUID) and points to the correct port in src/engine/ports.ts. Use proactively whenever engine code changes.
+tools: Read, Grep, Glob, Bash
+---
 
-### 3b. `curriculum-byte-parity`
+You are the engine determinism auditor. The engine layer (`src/engine/**`) is the bottom of the dependency graph and must remain pure and deterministic so replays, property-based tests, and calibrated fixtures stay reproducible. ESLint already blocks the three forbidden host calls — your job is to translate any violation (or near-miss) into a structured advisory the author can act on without re-reading lint output.
 
-**Triggers on:** any diff with `public/curriculum/v1.json` or `src/curriculum/bundle.json`.
-**Checks:** the two files are byte-identical (sha256 match).
-**Failure message:** "Curriculum drift. Run `npm run build:curriculum` to regenerate both files from `pipeline/output/`. Per CLAUDE.md curriculum dual-file rule and `.claude/learnings.md` 2026-04-30."
+## Forbidden host calls and the ports that replace them
 
-### 3c. Document trigger discipline in CLAUDE.md
+The bans are encoded in `.eslintrc.json` under the `src/engine/**` override (excluding `src/engine/ports.ts`):
 
-Add a "When subagents fire automatically" section:
+| Forbidden call           | ESLint message anchor                                                | Port to inject (from `src/engine/ports.ts`) | Threaded via       |
+|--------------------------|----------------------------------------------------------------------|---------------------------------------------|--------------------|
+| `Date.now()`             | "Engine code must consume a Clock port … breaks deterministic replay." | `Clock.now()` / `Clock.monotonic()`         | `DetectorContext.clock` |
+| `crypto.randomUUID()`    | "Engine code must consume an IdGenerator port … prevents test-time fixtures." | `IdGenerator.generate()`                    | `DetectorContext.ids`   |
+| `Math.random` (member)   | "Engine code must inject a seedable Rng port … breaks determinism and replay." | `Rng.random()`                              | explicit `rng` param    |
 
-| Subagent | Always fires when... |
-|---|---|
-| `c1-c10-auditor` | persistence, network, dependency, or new top-level UI changes |
-| `bundle-watcher` | `package.json` or `package-lock.json` changes; large feature merges |
-| `validator-parity-checker` | `src/validators/*.ts` changes |
-| `a11y-auditor` | new interactive components or scene-level UI additions |
-| `engine-determinism-auditor` | `src/engine/**` changes (NEW) |
-| `curriculum-byte-parity` | curriculum bundle files changed (NEW) |
+Each rule references `PLANS/forensic-deep-dive-2026-05-01.md` §1.5 / §4.2 / Phase 4.4 for context.
 
-**Acceptance:** Both new subagents drop into `.claude/agents/` as `.md` files following the existing agent-definition convention. The CLAUDE.md trigger table is up-to-date.
+Prior PRs that established or applied this pattern (cite when relevant):
+- **PR #16** introduced the `Rng` port + first `Math.random` removal in selection logic.
+- **PR #17** introduced `Clock` and `IdGenerator` ports and threaded `DetectorContext`.
+- **PR #29** converted misconception detectors to a rules-data interpreter that consumes the same context — the canonical example for new engine code.
+
+## Process
+
+1. Identify the diff scope: `git diff --name-only main...HEAD -- 'src/engine/**'`. If empty, report "no engine changes" and stop.
+2. For every changed engine file (excluding `src/engine/ports.ts`), grep for the three forbidden patterns:
+   ```bash
+   git diff main...HEAD -- 'src/engine/**' | grep -nE '\b(Math\.random|Date\.now|crypto\.randomUUID)\b'
+   ```
+   Also scan added lines for indirect leaks: `new Date()` (use `clock.now()`), `performance.now()` (use `clock.monotonic()`), `Math.floor(Math.random()*n)` (still `Math.random`).
+3. For every hit, locate the surrounding function/class and determine which port should be injected. If the function does not yet receive a `DetectorContext` or `rng` parameter, the fix is two-step (thread the dep through the call site, then consume).
+4. Confirm `src/engine/ports.ts` itself is unchanged — or, if it changed, note that adapters in `src/lib/adapters/` and the composition root in `src/main.ts` must be updated in lockstep.
+5. Sanity-run the engine ESLint slice locally if the environment allows: `npx eslint 'src/engine/**/*.ts' --max-warnings 0`. Surface the verbatim ESLint message alongside the structured advisory.
+
+## Report format
+
+```
+## Engine Determinism Audit — <scope>
+
+### Violations
+- <file:line> — `<offending call>` inside `<function/class>`
+  - Port to inject: <Clock|IdGenerator|Rng>  (member: clock.now / ids.generate / rng.random)
+  - Threading: <already has DetectorContext> | <needs DetectorContext added to signature> | <needs explicit rng param>
+  - Reference: PR #<16|17|29>
+
+### Near-misses (advisory)
+- <file:line> — `new Date()` / `performance.now()` / etc. — prefer the Clock port for symmetry.
+
+### Verified clean
+- <files scanned with no host-global calls>
+
+### Action required
+1. <minimal patch description per violation>
+2. <if signature change needed> Update call sites: <list>
+3. Re-run `npx eslint 'src/engine/**/*.ts' --max-warnings 0` to confirm.
+```
+
+Read and report only — never edit the engine files. If the diff has no engine changes, say so plainly in one line.
+```
+
+### 3.2 New file: `.claude/agents/curriculum-byte-parity.md`
+
+```markdown
+---
+name: curriculum-byte-parity
+description: Confirms public/curriculum/v1.json and src/curriculum/bundle.json are byte-identical (sha256 match). Use whenever a diff touches either curriculum bundle file or pipeline output.
+tools: Read, Bash, Grep
+---
+
+You are the curriculum byte-parity auditor. The runtime fetches `public/curriculum/v1.json`; the static-import fallback uses `src/curriculum/bundle.json`. They MUST be byte-identical, and the only sanctioned writer is `npm run build:curriculum` (which is also wired as `prebuild` in `package.json`). Hand-edits silently desync the two bundles and produce loader behavior that depends on which path Vite resolves first.
+
+References:
+- Root `CLAUDE.md` → "Architecture" → curriculum dual-file rule.
+- `.claude/learnings.md` 2026-04-30 setup entry: *"Curriculum lives in TWO files … They MUST be byte-identical — only `npm run build:curriculum` writes them."*
+
+## Process
+
+1. Identify the trigger: `git diff --name-only main...HEAD | grep -E '^(public/curriculum/v1\.json|src/curriculum/bundle\.json|pipeline/output/)'`. If empty, report "no curriculum changes" and stop.
+2. Compute and compare hashes on the working tree:
+   ```bash
+   PUB=$(sha256sum public/curriculum/v1.json | awk '{print $1}')
+   SRC=$(sha256sum src/curriculum/bundle.json | awk '{print $1}')
+   echo "public: $PUB"
+   echo "src:    $SRC"
+   [ "$PUB" = "$SRC" ] && echo "MATCH" || echo "DRIFT"
+   ```
+3. If `DRIFT`: also compare sizes (`wc -c`) and the top-level keys (`jq -r 'keys[]' <file> | sort | diff …`) so the report names what diverged (whole-file vs. key-set vs. tail-bytes).
+4. If `DRIFT`: confirm whether either side was hand-edited by checking the diff for both files. A diff on only one of the two is the typical fingerprint.
+5. Run `npm run validate:curriculum` to confirm the schema is at least intact on both copies (catches the case where an editor saved a half-broken JSON).
+
+## Report format
+
+```
+## Curriculum Byte-Parity Audit
+
+### Hashes
+- public/curriculum/v1.json:   <sha256>  (<bytes> B)
+- src/curriculum/bundle.json:  <sha256>  (<bytes> B)
+- Result: MATCH | DRIFT
+
+### Schema validation
+- npm run validate:curriculum: PASS | FAIL — <error>
+
+### Diff fingerprint (only if DRIFT)
+- Files changed in PR: <one-of-two | both>
+- Top-level keys diverging: <list, or "identical key-set; payload differs">
+
+### Action required (only if DRIFT)
+- DO NOT hand-edit either file. Run:
+    npm run build:curriculum
+  This is the only sanctioned writer (also runs as `prebuild`). It regenerates BOTH files from `pipeline/output/`.
+- After regeneration, re-run this auditor to confirm MATCH.
+- Per root CLAUDE.md curriculum dual-file rule and `.claude/learnings.md` 2026-04-30.
+```
+
+Read and report only — never write either curriculum file directly. The single allowed remediation is the documented npm script.
+```
+
+### 3.3 CLAUDE.md trigger-table replacement
+
+Replace the current "Specialist subagents" section in root `CLAUDE.md` with:
+
+```markdown
+## Specialist subagents (in `.claude/agents/`)
+
+Delegate to these via the Agent tool when scope warrants. Auto-fire triggers (Phase 4 wires CI to match):
+
+| Subagent                       | Auto-fires when…                                                              |
+|--------------------------------|-------------------------------------------------------------------------------|
+| `c1-c10-auditor`               | persistence, network, dependency, or new top-level UI changes                |
+| `bundle-watcher`               | `package.json` / `package-lock.json` change; large feature merge             |
+| `validator-parity-checker`     | any `src/validators/*.ts` change                                             |
+| `a11y-auditor`                 | new interactive component or scene-level UI addition                         |
+| `engine-determinism-auditor`   | any `src/engine/**` change (excluding `src/engine/ports.ts`)                 |
+| `curriculum-byte-parity`       | `public/curriculum/v1.json` or `src/curriculum/bundle.json` (or pipeline output) changes |
+```
+
+### 3.4 Acceptance for Phase 3
+
+- Both new subagent files exist at `.claude/agents/engine-determinism-auditor.md` and `.claude/agents/curriculum-byte-parity.md`.
+- `node scripts/agent-doctor.mjs` exits 0 (frontmatter validates).
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces an `engine-determinism-auditor` finding citing the file and line.
+- Root CLAUDE.md "Specialist subagents" table lists all 6 agents with trigger conditions.
 
 **Effort:** 3 hr.
 
 ---
 
-## Phase 4 — Wire subagents into CI (delivers D-25)
+## Phase 4 — Refine existing `subagent-pr-audit.yml` (concrete patches)
 
-**Goal:** Drift caught even when no Claude session is open. PRs the user opens manually get audited too.
+**Goal:** Drift caught even when no Claude session is open. The workflow already exists; this phase wires the two new Phase 3 subagents and consolidates per-agent comment spam.
 
-`.github/workflows/subagent-pr-audit.yml`:
-- On PR open targeting `main`.
-- Detect changed paths via `dorny/paths-filter`.
-- Map paths → relevant subagents (Phase 3 table).
-- Invoke each via the Anthropic API with a per-subagent token cap.
-- Post a single consolidated PR comment (one bot message, not per-agent spam).
-- Idempotent: re-runs on `synchronize` overwrite the comment, don't append.
-- Gated by `AGENT_AUTONOMY_ENABLED` repo variable (already documented in D-25).
+### 4.1 Diagnosis of current state
 
-**Acceptance:** Open a test PR with a deliberate `Math.random` in `src/engine/`. Within 2 min, a single comment appears citing the violation with the PR-#16 reference.
+The current workflow (`.github/workflows/subagent-pr-audit.yml`, 347 lines) triggers on `pull_request: [opened, synchronize, reopened]` with a per-PR concurrency group that cancels in-progress runs (lines 11–13 — idempotent on `synchronize`).
+
+Job 1 `get-changed-files` (lines 19–82) calls `pulls.listFiles` (capped at 100 files) and uses an inline `match()` helper to compute four boolean outputs: `validators_changed` (`src/validators/**`), `interactions_changed` (`src/components/**`, `src/scenes/interactions/**`, top-level `src/scenes/*Scene.ts`), `bundle_changed` (`package.json` / `package-lock.json`), and `any_src_changed`.
+
+Jobs 2–5 (lines 87–346) each call the reusable `./.github/workflows/_shared/agent-dispatch.yml` with `timeout_minutes: 15` (no per-subagent token cap) and post one comment per subagent via `./.github/actions/pr-comment-update` keyed on a per-agent `comment-tag` (`c1-c10-audit`, `a11y-audit`, `bundle-audit`, `validator-parity-audit`).
+
+### 4.2 Gaps relative to Phase 3
+
+- **No `engine_changed` filter.** New `engine-determinism-auditor` has no trigger.
+- **No `curriculum_changed` filter.** New `curriculum-byte-parity` has no trigger.
+- **One PR comment per subagent.** Phase 3 brings the count to six separate threaded comments; needs consolidation into a single `subagent-audit-summary` upserted comment.
+- **No per-subagent token budget.** Reusable dispatcher gets `timeout_minutes: 15` only; one runaway agent could drain monthly key budget.
+- **Idempotency on `synchronize` is OK** (concurrency cancels in-flight; comment action upserts by tag).
+
+### 4.3 Patch A — extend Job 1 path filters
+
+```yaml
+   get-changed-files:
+     runs-on: ubuntu-latest
+     outputs:
+       validators_changed:    ${{ steps.check.outputs.validators_changed }}
+       interactions_changed:  ${{ steps.check.outputs.interactions_changed }}
+       bundle_changed:        ${{ steps.check.outputs.bundle_changed }}
++      engine_changed:        ${{ steps.check.outputs.engine_changed }}
++      curriculum_changed:    ${{ steps.check.outputs.curriculum_changed }}
+       any_src_changed:       ${{ steps.check.outputs.any_src_changed }}
+       changed_files_list:    ${{ steps.check.outputs.changed_files_list }}
+       diff_summary:          ${{ steps.check.outputs.diff_summary }}
+```
+
+Inside the `script:` block, after `bundle_changed`:
+
+```yaml
++            // Engine determinism — exclude the ports file itself, which is the boundary that may legally hold host calls.
++            const engine_changed = paths.some(
++              p => p.startsWith('src/engine/') && p !== 'src/engine/ports.ts'
++            );
++
++            // Curriculum byte-parity — both bundle paths plus pipeline output (a pipeline-only change still requires `npm run build:curriculum`).
++            const curriculum_changed =
++              paths.includes('public/curriculum/v1.json') ||
++              paths.includes('src/curriculum/bundle.json') ||
++              paths.some(p => p.startsWith('pipeline/output/'));
++
+             const any_src_changed = paths.some(
+```
+
+And at the bottom:
+
+```yaml
+             core.setOutput('bundle_changed',       String(bundle_changed));
++            core.setOutput('engine_changed',       String(engine_changed));
++            core.setOutput('curriculum_changed',   String(curriculum_changed));
+             core.setOutput('any_src_changed',      String(any_src_changed));
+```
+
+### 4.4 Patch B — Job 6 (engine-determinism-auditor)
+
+```yaml
++  audit-engine-determinism:
++    needs: get-changed-files
++    if: needs.get-changed-files.outputs.engine_changed == 'true'
++    continue-on-error: true
++    uses: ./.github/workflows/_shared/agent-dispatch.yml
++    with:
++      prompt_template: subagent-audit
++      context_json: >-
++        {
++          "SUBAGENT_NAME": "engine-determinism-auditor",
++          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
++          "PR_NUMBER": "${{ github.event.pull_request.number }}",
++          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
++        }
++      working_branch: ${{ github.event.pull_request.head.ref }}
++      pr_number: ${{ github.event.pull_request.number }}
++      timeout_minutes: 10
++      max_tokens: 8000
++    secrets:
++      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
++      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### 4.5 Patch C — Job 7 (curriculum-byte-parity)
+
+```yaml
++  audit-curriculum-parity:
++    needs: get-changed-files
++    if: needs.get-changed-files.outputs.curriculum_changed == 'true'
++    continue-on-error: true
++    uses: ./.github/workflows/_shared/agent-dispatch.yml
++    with:
++      prompt_template: subagent-audit
++      context_json: >-
++        {
++          "SUBAGENT_NAME": "curriculum-byte-parity",
++          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
++          "PR_NUMBER": "${{ github.event.pull_request.number }}",
++          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
++        }
++      working_branch: ${{ github.event.pull_request.head.ref }}
++      pr_number: ${{ github.event.pull_request.number }}
++      timeout_minutes: 5
++      max_tokens: 6000
++    secrets:
++      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
++      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> **Prerequisite for Patches B & C:** `max_tokens` must be added as an optional input to `_shared/agent-dispatch.yml` (default e.g. `15000`) and threaded into the Anthropic call. Apply the same input to the existing four dispatcher invocations to retire the unbudgeted state across the board.
+
+### 4.6 Patch D — Consolidate per-agent comments into one
+
+Replace the six `post-*-comment` jobs with one aggregator that runs `if: always()` after every `audit-*` job, collects each `outputs.summary`, and upserts a single comment under tag `subagent-audit-summary`. Strip comment steps from per-agent jobs; the aggregator is the only writer.
+
+```yaml
++  post-consolidated-comment:
++    needs:
++      - get-changed-files
++      - audit-c1-c10
++      - audit-a11y
++      - audit-bundle
++      - audit-validator-parity
++      - audit-engine-determinism
++      - audit-curriculum-parity
++    if: always() && needs.get-changed-files.outputs.any_src_changed == 'true'
++    runs-on: ubuntu-latest
++    continue-on-error: true
++    steps:
++      - uses: actions/checkout@v4
++      - name: Upsert consolidated PR comment
++        uses: ./.github/actions/pr-comment-update
++        with:
++          comment-tag: subagent-audit-summary
++          pr-number: ${{ github.event.pull_request.number }}
++          github-token: ${{ secrets.GITHUB_TOKEN }}
++          content: |
++            ## Subagent Audit Summary
++
++            ${{ needs.get-changed-files.outputs.diff_summary }}
++
++            <details><summary>C1–C10 Constraint Audit</summary>
++
++            ${{ needs.audit-c1-c10.result == 'skipped' && '_skipped (no relevant changes)_' || needs.audit-c1-c10.outputs.summary || '_auditor errored — manual review recommended_' }}
++            </details>
++
++            <details><summary>Engine Determinism Audit</summary>
++
++            ${{ needs.audit-engine-determinism.result == 'skipped' && '_skipped (no engine changes)_' || needs.audit-engine-determinism.outputs.summary || '_auditor errored — run `npx eslint src/engine/**/*.ts` locally_' }}
++            </details>
++
++            <details><summary>Curriculum Byte-Parity Audit</summary>
++
++            ${{ needs.audit-curriculum-parity.result == 'skipped' && '_skipped (no curriculum changes)_' || needs.audit-curriculum-parity.outputs.summary || '_auditor errored — run `sha256sum public/curriculum/v1.json src/curriculum/bundle.json` locally_' }}
++            </details>
++
++            *Consolidated by [subagent-pr-audit](/.github/workflows/subagent-pr-audit.yml). Re-runs on every push to this PR; this comment is upserted, not duplicated.*
+```
+
+(Full version includes `<details>` blocks for a11y, bundle, validator-parity too — same pattern.)
+
+### 4.7 Acceptance for Phase 4
+
+- `subagent-pr-audit.yml` has `engine_changed` and `curriculum_changed` outputs from Job 1.
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces a single bot comment (not six) within 2 min.
+- A `synchronize` event overwrites the comment in place — `gh api repos/.../issues/<n>/comments` returns one bot comment.
+- `_shared/agent-dispatch.yml` accepts `max_tokens` input; all six dispatcher invocations pass an explicit budget.
 
 **Effort:** 4–6 hr.
 
 ---
 
-## Phase 5 — Auto-close PR runbook
+## Phase 5 — Auto-close PR runbook (root cause confirmed)
 
-**Goal:** Stop spending tokens re-discovering this gotcha.
+**Goal:** Stop the auto-close at its source. Recovery becomes one command in the rare cases where the patch can't be applied first.
 
-### Already known (sessions of 2026-05-01)
+### 5.1 Investigation findings — confirmed root cause
 
-PRs #21 and #24 were both auto-closed within ~30 s of creation. Almost certainly the autonomous Copilot reviewer flow or a duplicate-detection workflow in `.github/workflows/`. The fix has been: push a no-op merge with main into the branch, then create a fresh PR. The original closed PR cannot be reopened.
+**Culprit: `.github/workflows/dependabot-auto-merge.yml`** — specifically the "Handle pinned packages and determine bump type" step at lines 21–52.
 
-### Actions
+**The bug:**
+- Trigger: `pull_request_target: [opened, synchronize]` (line 4–5) — fires on **every** PR, not just Dependabot PRs.
+- Step 1 "Author guard" (line 17–19): `if: github.actor != 'dependabot[bot]'` then `run: exit 0`. **This exits the step, not the job.** Subsequent steps run for every PR author including humans. **This is the load-bearing bug.**
+- Step 2 "Handle pinned packages" (lines 32–52): does a substring match of the **PR title (lowercased)** against `['phaser', 'dexie', 'vite']`. On a hit, posts a "Closing without merge" comment and calls `github.rest.pulls.update({ state: 'closed' })`. No author check inside this script — relies entirely on Step 1 having stopped the job, which it doesn't.
 
-1. **Append to `.claude/learnings.md`:**
-   > 2026-05-01 github: Newly-created PRs can auto-close within ~30 s — likely Copilot reviewer or duplicate-rule workflow. If it happens, push a no-op merge with origin/main and open a NEW PR; the original is unrecoverable for merge purposes.
+**Why PR #24 was closed:** title was `refactor(persistence): wrap attempt+mastery in single Dexie transaction` (verified via merged commit `c183b80`). Lowercased contains `dexie` → match → auto-closed within seconds. The closer appears as `github-actions[bot]`, not Copilot.
 
-2. **Add `/recreate-pr <branch>` slash command** that:
-   - Fetches the branch and origin/main.
-   - Merges origin/main into the branch (resolves trivial conflicts; aborts on real ones).
-   - Pushes.
-   - Opens a fresh PR via MCP, copying the body from the most-recent closed PR for that branch.
+**Why PR #21 was likely closed by the same path:** branch `refactor/2026-05-01-c5-streak-onboarding` was a localStorage→Dexie migration; its PR title or auto-merge-into-main commits very likely contained "Dexie." The existing learning at `.claude/learnings.md:21` confirms PR #13 (a Dexie v6→v7 schema change) hit the same pattern.
 
-3. **Investigate root cause.** Read `.github/workflows/issue-to-copilot.yml` and any other recent autonomy workflows; identify what closes PRs. Either fix the rule or add an exemption for `claude/` and `chore/`/`fix/` branches.
+**Copilot reviewer is a red herring.** `requested_reviewers: [Copilot]` is set on PR creation but Copilot the reviewer service does not have permission to close PRs. The `closed_by` field on the API is `github-actions[bot]` from this workflow.
 
-**Acceptance:** Next time a PR auto-closes, recovery is one slash command instead of a 5-step manual recipe.
+`grep -n "state.*closed\|gh pr close\|pulls.update"` over all workflows returns **only** `dependabot-auto-merge.yml:44` and `:48`. There is exactly one auto-close path in the repo.
 
-**Effort:** 90 min total (30 min for learning + command, 60 min for root cause).
+### 5.2 Mitigation 1 — Root-cause patch (apply this first)
+
+Convert the broken step-level guard into a job-level one:
+
+```yaml
+ jobs:
+   auto-merge:
+     runs-on: ubuntu-latest
++    # Job-level guard: skip entirely for non-dependabot PRs.
++    # Fixes the auto-close-on-substring bug where a step-level `exit 0`
++    # only stopped the author-guard step, letting the pin-check step
++    # close any human PR whose title contained "phaser"/"dexie"/"vite".
++    if: github.actor == 'dependabot[bot]'
+     env:
+       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     steps:
+-      - name: Author guard — only run for dependabot
+-        if: github.actor != 'dependabot[bot]'
+-        run: exit 0
+-
+       - name: Handle pinned packages and determine bump type
+         uses: actions/github-script@v7
+```
+
+**Defense-in-depth** (recommended in the same PR): inside the github-script at line 26, add a second guard:
+
+```javascript
+const author = context.payload.pull_request.user.login;
+if (author !== 'dependabot[bot]') {
+  core.notice(`PR #${prNumber} author is ${author}, not dependabot. Skipping pin check.`);
+  return;
+}
+```
+
+**Note:** this workflow is generated by `npm run gen:workflows`. Patch the **template/source** (search for the YAML's `name: R5 — Dependabot auto-merge` string), then run `npm run gen:workflows` and commit both source and generated YAML, otherwise the consistency gate fails.
+
+### 5.3 Mitigation 2 — Recovery runbook (for incidents before/during the patch)
+
+When a PR auto-closes within ~30 s of opening:
+
+1. Check the closing comment. If it says "This package is pinned per C4 constraint" you've hit the substring guard. Confirm via `gh pr view <N> --json title,closedAt,comments` — look for the bot comment and `closedAt - createdAt < 1 min`.
+2. Locally rebase/merge the head branch onto current main: `git fetch origin && git checkout <branch> && git merge origin/main` (resolve any conflicts), then push.
+3. Open a new PR with a **title that does not contain `phaser`, `dexie`, or `vite` as a substring** (case-insensitive). Examples: "Dexie transaction" → "DB transaction", "vite config" → "build config." Workaround until the patch lands.
+4. Copy the original PR's body verbatim into the new PR, prefixed with `(re-open of #<N> — auto-closed by dependabot-auto-merge title-substring guard)`.
+5. Verify the new PR has `closedAt: null` after 60 s; once green, proceed with normal review/merge.
+
+### 5.4 Mitigation 3 — `/recreate-pr` slash command
+
+Drop in at `.claude/commands/recreate-pr.md`:
+
+````markdown
+---
+description: Re-open an auto-closed PR with a merged-with-main head and rephrased title.
+---
+
+# /recreate-pr <pr-number>
+
+Recovers from the dependabot-auto-merge title-substring auto-close (see `.claude/learnings.md` 2026-05-01 github). Opens a fresh PR off the same head ref with the original body and a safe title.
+
+## Steps
+
+1. **Fetch the closed PR's metadata** via the GitHub MCP:
+   ```
+   mcp__github__pull_request_read pullNumber=<N> owner=<owner> repo=<repo>
+   ```
+   Capture `title`, `body`, `head.ref`, `base.ref`, `closed_by.login`, `created_at`, `closed_at`.
+
+2. **Sanity check** that this is a same-cause auto-close:
+   - `closed_at - created_at < 120 s`
+   - `closed_by.login == "github-actions[bot]"` OR a comment from `github-actions[bot]` containing "pinned per C4"
+   - PR title (lowercased) contains `phaser`, `dexie`, or `vite`
+   If any fails, **stop and ask the user** — do not blindly recreate.
+
+3. **Merge origin/main into the head ref locally**:
+   ```bash
+   git fetch origin
+   git checkout <head.ref>
+   git merge --no-edit origin/<base.ref>
+   git push origin <head.ref>
+   ```
+   If conflicts arise, surface them to the user and stop.
+
+4. **Compute a safe title.** Replace each pinned-package substring (case-insensitive):
+   - `dexie` → `IndexedDB` or `DB`
+   - `phaser` → `scene engine` or `runtime`
+   - `vite` → `build`
+   Keep the conventional-commit prefix intact; only rewrite words inside the description.
+
+5. **Open the new PR** via:
+   ```
+   mcp__github__create_pull_request \
+     title="<safe_title>" \
+     head=<head.ref> \
+     base=<base.ref> \
+     body="(re-open of #<N> — auto-closed by dependabot-auto-merge title-substring guard. Original title: <original_title>)\n\n<original_body>"
+   ```
+
+6. **Verify and report.** Wait 60 s, then `mcp__github__pull_request_read` the new PR and confirm `state == "open"` and `closed_at == null`. Print the new PR URL plus a one-line note: `"Re-opened #<N> as #<M>. Apply Phase 5 root-cause patch to stop this recurring."`
+
+## Refuse if
+
+- Original PR was closed by a human (not `github-actions[bot]`).
+- The closing comment doesn't mention C4 / pinned packages.
+- Title doesn't contain any trigger substring — the cause is something else.
+````
+
+### 5.5 Mitigation 4 — `learnings.md` entry
+
+Insert at top of entries (under the marker at `.claude/learnings.md:19`):
+
+```
+2026-05-01 github-pr: PRs auto-close in <30 s when title contains substrings `phaser`/`dexie`/`vite` — `.github/workflows/dependabot-auto-merge.yml` author guard at lines 17-19 uses `run: exit 0` which exits the step, not the job, so the pin-check step (32-52) runs for every author. Fix: lift guard to job-level `if: github.actor == 'dependabot[bot]'`. Use `/recreate-pr <N>` to recover.
+```
+
+### 5.6 Acceptance for Phase 5
+
+- `dependabot-auto-merge.yml` has a job-level `if: github.actor == 'dependabot[bot]'`.
+- A test PR titled `chore: test dexie poke (delete me)` from a human account remains open (the workflow run shows as skipped, not run-then-no-op).
+- `/recreate-pr` slash command exists at `.claude/commands/recreate-pr.md`.
+- learnings.md entry lands at the top of the entries list.
+
+### 5.7 Verification spike (before patching)
+
+Open a controlled test PR titled `test: dexie poke (delete me)` from a non-dependabot account, **before** applying the patch, while running `gh run watch --exit-status` against `R5 — Dependabot auto-merge` and `gh pr view --json closedAt,comments` in a 5-second polling loop. The expected observation is the workflow run completes successfully (not skipped), the PR closes within ~20 s, and the closing comment matches `"This package is pinned per C4 constraint"`. That confirms the diagnosis with a single observable run.
+
+**Effort:** 90 min (30 min for the patch, 30 min for the slash command, 30 min for verification spike + learnings).
 
 ---
 
-## Phase 6 — `learnings.md` discipline
+## Phase 6 — `learnings.md` discipline (concrete artifacts)
 
-**Goal:** Make the learnings log actually accumulate context, not just exist.
+**Goal:** Make the learnings log actually accumulate context, not just exist. 5 entries since 2026-04-30 — most recurring gotchas from the 2026-05-01 sessions are still unrecorded.
 
-**Current state:** 5 entries since 2026-04-30. Many recent gotchas (auto-close PRs, conflict resolution patterns, curriculum dual-file mechanics, mascot.setState rule, OpenTelemetry env-gating) are not all there.
+### 6.1 `SessionStart` hook patch — print 3 most-recent learnings inline
 
-### Actions
+Drop-in replacement for the `SessionStart` hook in `.claude/settings.json`. The new tail (`grep -E ... | head -3`) costs <200 tokens at session open and surfaces gotchas the user would otherwise rediscover.
 
-1. **Strengthen `SessionStart` hook** to print the *3 most recent* learnings inline, not just "Skim it." Surface the long tail at near-zero cost (<200 tokens).
+Updated `command` value (paste-ready, JSON-escaped):
 
-2. **`PostToolUse` hook on `git commit`** that, when the diff message contains `fix(` or `bug` keywords, prompts via stderr: `▶ Bug fix committed — consider /learn to capture the gotcha.`
+```
+BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /learn /retro /sprint-status /c5-check /decision /recreate-pr\"; echo \"├─ Subagents: c1-c10-auditor bundle-watcher validator-parity-checker a11y-auditor engine-determinism-auditor curriculum-byte-parity\"; echo \"├─ Active sprint: PLANS/master-plan-2026-04-26.md\"; echo \"├─ Recent learnings (3 newest):\"; grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} ' .claude/learnings.md 2>/dev/null | head -3 | sed 's/^/│   • /'; echo \"└─ /learn <text> appends a new one\"
+```
 
-3. **Enhance `/retro`** so it explicitly proposes a `learnings.md` entry as part of standard output (currently optional; make it a section header so it's hard to skip).
+### 6.2 `PostToolUse(Bash)` — nudge on bug-fix commits
 
-**Acceptance:** Learnings.md grows by ≥2 entries/week during active development. Recurring gotchas (auto-close, byte-parity, mascot.setState) all captured within one week of Phase 6 landing.
+Add a stanza to the existing `PostToolUse(Bash)` hook in `.claude/settings.json`:
+
+```json
+{
+  "matcher": "Bash",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) MSG=$(git log -1 --pretty=%B 2>/dev/null); if echo \"$MSG\" | grep -qE '(^|[^a-z])fix\\(|\\bbug\\b'; then echo '▶ Bug fix committed — consider /learn to capture the gotcha.' >&2; fi ;; esac; exit 0"
+    }
+  ]
+}
+```
+
+The regex `(^|[^a-z])fix\(|\bbug\b` matches `fix(scope):` Conventional-Commit prefixes and the word `bug` as a token, while ignoring substrings like `prefix(` or `bugfix-runtime`. Always `exit 0` so a missed nudge never blocks a commit.
+
+### 6.3 `/retro` enhancement — propose a candidate learnings.md entry every time
+
+Replace `.claude/commands/retro.md` with the version below. The single behavioural change: the `### .claude/learnings.md` section is **mandatory** — agent must propose at least one candidate or write `*(no candidate this session — confirm none qualify)*`.
+
+```markdown
+---
+description: End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+---
+
+Review what happened in this session and propose targeted documentation updates. **Do not edit any docs in this command** — only propose. The user decides what to apply.
+
+## Steps
+
+1. Run in parallel:
+   - `git diff --stat $(git merge-base HEAD origin/main 2>/dev/null || git log --oneline -20 | tail -1 | awk '{print $1}')..HEAD`
+   - `git log --oneline -10`
+   - `head -30 .claude/learnings.md`
+
+2. Cross-reference what changed against:
+   - **`CLAUDE.md`** (root + nested) — does any architectural rule or pattern in the diff belong here?
+   - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **You must propose at least one candidate entry.** If nothing qualifies, say so explicitly with reasoning — do not omit the section.
+   - **`PLANS/master-plan-2026-04-26.md`** — were any active blockers resolved?
+   - **`CHANGELOG.md`** `[Unreleased]` — any user-visible change missing?
+   - **`docs/00-foundation/decision-log.md`** — was a new architectural decision made? Needs a `D-NN` entry?
+
+3. Output a structured proposal in this exact shape. The `### .claude/learnings.md` section is **required** — never omit it.
+
+\`\`\`
+## Retro proposal
+
+### CLAUDE.md / nested CLAUDE.md
+- [path:section] proposed change — one-line reason
+
+### .claude/learnings.md   (REQUIRED — propose ≥1 candidate or explain why none qualify)
+- YYYY-MM-DD <area>: <one-line gotcha> [#commit-or-branch]
+  rationale: cost N min of debugging / contradicted CLAUDE.md / hidden invariant
+
+### PLANS/master-plan-2026-04-26.md
+- ✅ mark <bug-id> done — reason
+
+### CHANGELOG.md [Unreleased]
+- "Added/Changed/Fixed: <line>"
+
+### docs/00-foundation/decision-log.md
+- proposed D-NN entry — title only
+\`\`\`
+
+Skip any section other than `### .claude/learnings.md` that has nothing. Be concise — propose only updates that materially improve future agent context.
+
+4. End with: "Apply any of these? Reply with the section names to apply (e.g. 'CLAUDE.md and learnings')."
+```
+
+### 6.4 Five learnings to seed immediately
+
+Paste under the `<!-- Append new lines below this marker. -->` marker in `.claude/learnings.md`:
+
+```
+2026-05-01 github-pr: PRs auto-close in <30 s when title contains substrings `phaser`/`dexie`/`vite` — `.github/workflows/dependabot-auto-merge.yml` author guard at lines 17-19 uses `run: exit 0` which exits the step, not the job, so the pin-check step (32-52) runs for every author. Fix: lift guard to job-level `if: github.actor == 'dependabot[bot]'`. Use `/recreate-pr <N>` to recover.
+2026-05-01 github-api: GitHub `mergeable_state` lies briefly after a base-branch update — calling `merge_pull_request` within ~30 s of another merge can return `unknown` then 405 even when local `git merge` is clean. Workaround: push the merge commit to the PR branch and retry the MCP merge.
+2026-05-01 decision-log: D-NN renumbering is a recurring merge-conflict surface (PR #10 collided on D-25/D-26 because two branches added decisions in parallel). Until a numbering helper exists, treat D-NN slots as write-locked: rebase before adding, and bump the number on conflict rather than re-using.
+2026-05-01 mcp: The `github` MCP server token can expire mid-session with no warning — symptom is opaque 401s on read calls that worked minutes earlier. Fix: re-auth the MCP server; do not retry the same call in a loop.
+2026-05-01 god-files: New scenes must be created via `npm run scaffold:scene <name>` which generates Scene + Controller + State as separate files. Direct creation of monolithic *Scene.ts files is blocked by the LOC-budget hook (Phase 1.4). Pre-existing god files (`Level01Scene.ts`, `LevelScene.ts`) are frozen — only net-LOC-negative edits accepted until D-27 sunset lands.
+```
+
+### 6.5 Acceptance for Phase 6
+
+- `SessionStart` banner prints exactly 3 learnings lines under "Recent learnings".
+- A commit with message `fix(persistence): correct schema version bump` produces the stderr nudge.
+- `.claude/commands/retro.md` has the `(REQUIRED — propose ≥1 candidate)` annotation.
+- Five seed entries are in `.claude/learnings.md` at the top.
 
 **Effort:** 1 hr.
 
 ---
 
-## Phase 7 — PR template + branch enforcement
+## Phase 7 — PR template + branch enforcement (concrete artifacts)
 
-**Goal:** PR quality without the "lucky author" dependency. Branch-name compliance enforced, not aspirational.
+**Goal:** PR quality without the "lucky author" dependency. Branch-name compliance enforced, not aspirational. (Branch-name check already lives in Phase 2's husky update; this phase adds the template.)
 
-### Actions
+### 7.1 `.github/pull_request_template.md` — full content
 
-1. **Add `.github/pull_request_template.md`** with the structure recent PRs already follow:
-   ```
-   ## Summary
-   ## Test plan
-   - [ ] typecheck
-   - [ ] lint
-   - [ ] test:unit
-   - [ ] test:integration (if persistence/engine touched)
-   - [ ] manual session at localhost:5000 (if scene UI touched)
-   ## Conflict warning (if applicable)
-   ## Decision-log impact (if D-NN added or affected)
-   ## Bundle delta (if dependencies changed)
-   ```
+```markdown
+## Summary
 
-2. **Pre-push branch-name check** in `.husky/pre-push`:
-   ```sh
-   BRANCH=$(git branch --show-current)
-   echo "$BRANCH" | grep -E '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$' || {
-     echo "✗ Branch name '$BRANCH' violates <type>/YYYY-MM-DD-<slug> rule (CLAUDE.md). Rename before pushing."
-     exit 1
-   }
-   ```
-   Exempt `main`, `claude/*` (harness branches), `worktree-agent-*`.
+<!-- What does this PR do, and why? One or two sentences. Lead with intent, not files touched. -->
 
-**Acceptance:** A branch named `quick-fix` cannot be pushed without renaming. New PRs land with the structured body.
+## Test plan
+
+<!-- Check all that apply. Anything skipped should be justified one line below the box. -->
+
+- [ ] `npm run typecheck` clean
+- [ ] `npm run lint` clean (0 warnings)
+- [ ] `npm run test:unit` green
+- [ ] `npm run test:integration` green (required if `src/persistence/**` or `src/engine/**` touched)
+- [ ] `npm run test:e2e` green (required if scene UI touched)
+- [ ] `npm run build` succeeds
+- [ ] `npm run measure-bundle` ≤ 1.0 MB gzipped JS
+- [ ] Manual session at `localhost:5000` (required if scene UI or interaction touched)
+- [ ] `npm run validate:curriculum` clean (required if curriculum bundle changed)
+
+## Conflict warning
+
+<!-- Fill in if this branch is likely to collide with another open PR — e.g. shared decision-log slot,
+     overlapping LEVEL_META edits, both branches touching the same scene. Otherwise write "none". -->
+
+## Decision-log impact
+
+<!-- Does this PR add or alter a `D-NN` entry in docs/00-foundation/decision-log.md?
+     If yes: which number, and is it the next free slot at time of writing this PR? -->
+
+## Constraint references
+
+<!-- Which of C1–C10 does this PR touch or verify? Constraints in docs/00-foundation/constraints.md.
+     Mark each as: not affected / verified / known deviation (link the docs that bless it). -->
+
+| Constraint | Status |
+| --- | --- |
+| C1 — no backend | not affected / verified |
+| C4 — Phaser+TS+Vite+Dexie only | not affected / verified |
+| C5 — localStorage only `lastUsedStudentId` | not affected / verified |
+
+## Bundle delta
+
+<!-- Required if any change touches dependencies, dynamic imports, or assets.
+     Run `npm run measure-bundle` before and after. -->
+
+|        | Gzipped JS (bytes) |
+| ------ | ------------------ |
+| Before |                    |
+| After  |                    |
+| Delta  |                    |
+
+If delta > 10% of any single budget slice, justify here. Per `docs/30-architecture/performance-budget.md §5`.
+```
+
+### 7.2 Branch-name check in `.husky/pre-push`
+
+Already specified in Phase 2.2 above; reproduced here for completeness:
+
+```sh
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  main|claude/*|worktree-agent-*) ;;
+  *)
+    if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+      echo "✗ Branch '$BRANCH' violates the <type>/YYYY-MM-DD-<slug> rule (CLAUDE.md → Git workflow)."
+      echo "  Rename: git branch -m <type>/$(date +%Y-%m-%d)-<slug>"
+      echo "  Bypass: git push --no-verify (only when justified)."
+      exit 1
+    fi ;;
+esac
+```
+
+### 7.3 CLAUDE.md amendment — make the rule enforceable
+
+In root `CLAUDE.md` under the existing `### Git workflow` section, append:
+
+```diff
+ - **Branch names must include a date.** Format: `<type>/YYYY-MM-DD-<slug>` — e.g. `feat/2026-04-30-hint-ladder`, `fix/2026-04-30-nan-guard`, `plans/2026-04-30-sprint-1`.
+ - **Types:** `feat` (new behaviour), `fix` (bug), `refactor`, `plans` (doc/plan only), `chore` (tooling/infra).
++- **Enforced by `.husky/pre-push` regex:** `^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$`. Exempt: `main`, `claude/*`, `worktree-agent-*`. Bypass with `--no-verify` only when justified.
+ - **No bare slugs, no random suffixes.** A branch without a date is non-compliant and must be renamed before pushing.
+```
+
+### 7.4 Acceptance for Phase 7
+
+- `.github/pull_request_template.md` exists with all six sections.
+- `git push` from a branch named `quick-fix` exits with status 1.
+- `git push` from `main`, `claude/foo`, or `worktree-agent-bar` succeeds.
+- CLAUDE.md "Git workflow" section contains the regex literal and exemption list.
 
 **Effort:** 1 hr.
 
 ---
 
-## Phase 8 — Token telemetry
+## Phase 8 — Token telemetry (gated by verification spike)
 
-**Goal:** Optimize what you measure.
+**Goal:** Optimize what you measure. Phase 8 is gated by a verification spike: we don't yet know which env vars Claude Code surfaces in hook contexts.
 
-### Actions
+### 8.1 `PreCompact` hook extension
 
-1. **Extend `PreCompact` hook** to log the conversation token count if Claude Code surfaces it via env (`$CLAUDE_CONTEXT_TOKENS` or similar — verify in current build).
+Replace the existing `PreCompact` stanza in `.claude/settings.json`:
 
-2. **Roll up daily** in `.claude/_session-log.md` so a weekly `/retro` can spot patterns ("merge-and-resolve-conflicts sessions consistently hit 60% context — split into smaller scopes").
+```json
+"PreCompact": [
+  {
+    "hooks": [
+      {
+        "type": "command",
+        "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_SESSION_ID:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
+      }
+    ]
+  }
+]
+```
 
-3. **Add `/economy` slash command** (or skill if available) that prints "biggest context cost so far this session" — file reads vs tool output vs assistant prose.
+**Env-var status:**
+- `$CLAUDE_CONTEXT_TOKENS` — **speculative.** Not confirmed in Claude Code's hook env contract as of 2026-05-01. The hook records `unknown` until verified.
+- `$CLAUDE_SESSION_ID` — **speculative.** Same caveat. If absent, replace with `$(date +%s)` so each line has a stable correlator.
+- `$(date '+%F %H:%M')`, `$(git ...)` — **confirmed**, already in use.
 
-**Acceptance:** After 1 week of telemetry, the user has data to answer "which session shape burns the most?" — and can target Phase 1/2 cuts at the right thing.
+### 8.2 `/economy` slash command — `.claude/commands/economy.md`
 
-**Effort:** 2 hr.
+```markdown
+---
+description: Summarize this session's token cost — file reads vs tool output vs assistant prose
+---
+
+Estimate where this session's tokens went. **Do not call any tools that aren't strictly needed** — every tool call adds to the count you're trying to measure.
+
+## Steps
+
+1. **Self-introspection (preferred):** if you can recall the rough shape of this session, produce a four-line breakdown:
+   - Files read (count + biggest 3 by line count)
+   - Tool outputs returned (count + biggest 3 by char length)
+   - Assistant prose written (rough word count)
+   - Skill / subagent invocations (count + names)
+
+2. **Fallback:** read `.claude/_session-log.md` and report the most recent `pre-compact` line — its `tokens:` field is the harness's own count.
+
+3. Output:
+
+\`\`\`
+## Token economy — this session
+
+- File reads: <N> files, ~<M> lines total. Largest: <path> (<lines>).
+- Tool outputs: <N> calls. Heaviest: <tool name> @ <approx-chars>.
+- Assistant prose: ~<words> words across <turns> turns.
+- Skill / subagent: <list, or "none">.
+
+Most recent harness telemetry: <copy line from _session-log.md, or "no token field">.
+\`\`\`
+
+4. End with: "Run `/retro` if this session is closing." Do not auto-run anything.
+```
+
+### 8.3 Weekly rollup — `/retro-weekly`
+
+```markdown
+---
+description: Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
+---
+
+Read `.claude/_session-log.md`, group entries by date, report token-usage patterns over 7 days. **Read-only.**
+
+## Steps
+
+1. `tail -200 .claude/_session-log.md` — last ~7 days of pre-compact lines.
+2. Parse format: `[YYYY-MM-DD HH:MM] pre-compact | session: <id> | tokens: <N|unknown> | branch: <b> | ...`
+3. For each day with ≥1 numeric `tokens:`: count, p50, p90, max, branches generating p90+.
+4. **Outlier:** session whose tokens ≥ 1.5× the 7-day p90, OR ≥3 pre-compacts on the same branch in a day.
+5. Output a markdown table.
+6. End: "Outliers worth a `/retro` post-mortem: <list>." or "No outliers — token budget healthy."
+```
+
+### 8.4 Open question — verification spike before implementation
+
+Phase 8 carries a hard prerequisite: **we don't yet know whether Claude Code exposes a per-session token count to hook scripts**. Until that's confirmed, the `tokens:` field will record `unknown` and the rollup degrades gracefully — but the value of the phase is gated on it being confirmed.
+
+**Spike (≤30 min):** add a one-shot `PreCompact` hook that runs `env | grep -i claude > .claude/_env-probe.log`, run a substantive session, inspect the log. If no token-related var appears, file an issue with Anthropic asking for the env contract, or fall back to estimating from `_session-log.md` line count alone.
+
+**Phase 8 should not block Phases 6 or 7.**
+
+### 8.5 Acceptance for Phase 8
+
+- `.claude/_session-log.md` last line has a `tokens:` field (numeric or `unknown`).
+- `.claude/commands/economy.md` exists.
+- `.claude/commands/retro-weekly.md` exists.
+- The verification spike has been run; result recorded.
+
+**Effort:** 2 hr (after the spike).
+
+---
+
+## Appendix A — Risk register
+
+| Risk | Probability | Impact | Mitigation | Phase |
+|---|---|---|---|---|
+| `PostToolUse(Edit\|Write)` hook fires per-file-write but runs heavy `npm run gen:workflows`, blocks the agent | Med | High (latency) | Hook is keyed off Edit\|Write\|MultiEdit events (per-file, not per-keystroke); each arm short-circuits via `case "$FILE"` matching before doing any work | 1 |
+| LOC-budget hook misclassifies a file (e.g. blocks a legitimate refactor that adds LOC for clarity) | Med | Med | Hook prints clear extraction guidance; bypass with `git commit --no-verify` plus a one-line PR-body justification; CI gate is the backstop | 1 |
+| `.husky/pre-push` branch regex blocks emergency push (incident response, hotfix) | Low | High (when it happens) | `git push --no-verify` documented; PR template's "Conflict warning" section surfaces the bypass | 7 |
+| `$CLAUDE_CONTEXT_TOKENS` doesn't exist in Claude Code's hook env contract | High | Med | Hook records `unknown` and continues; verification spike (8.4) confirms before any rollup logic depends on real numbers | 8 |
+| New CI subagents spam PR with one comment per agent run | Med | Med | Phase 4 mandates a single consolidated comment per PR, idempotent on `synchronize`. Enforce via test PR before enabling autonomy variable | 4 |
+| `/recreate-pr` mis-fires when PR was legitimately closed by the user (not by the bot) | Med | High (recreates PRs the user explicitly killed) | Slash command checks closer is `github-actions[bot]`; if a human closed it, abort with confirmation prompt | 5 |
+| Husky tier router misclassifies a `chore/` branch that touched `src/**`, skips the heavy gate | Med | High (regression slips to main) | Auto-escalation logic in `preflight-router.mjs` reads `git diff --name-only main...HEAD`; if any `src/**` path appears on a `chore/`/`docs/`/`plans/` branch, escalate to `feat/` tier with stderr note | 2 |
+| CLAUDE.md "auto-invoke skills" rule causes infinite invocation loop (skill A → skill B → skill A …) | Low | High (session unrecoverable) | Recursion guard: auto-invoke fires once per skill per turn; never auto-invoke from inside a skill response. Manual escape: `[no-auto-followup]` in skill response | 1 |
+| Hook execution adds noticeable latency (>500 ms) to user-facing workflows | Med | Med | Every Phase 1 hook short-circuits via `case` before any I/O. Target: <200 ms p95 for path-mismatch fast path | 1 |
+| Frozen god-files block urgent bug fixes that need additions | Low | High | Hook compares post-edit LOC to `git show HEAD` LOC; net-LOC-negative edits (bug fixes that delete more than they add) are accepted | 1 |
+| Dependabot-auto-merge patch breaks dependabot's actual auto-merge flow | Low | Med | Verification spike before/after; test with a real dependabot PR after the patch lands | 5 |
+| ESLint `max-lines` rule trips on test fixtures or generated files | Med | Low | Per-file-group `overrides` are scoped to source globs (`src/scenes/*Scene.ts` etc.); tests, fixtures, generated files are not in scope | 1 |
+
+---
+
+## Appendix B — Open questions
+
+Ordered by impact. Each: question / what would resolve it.
+
+- **What env vars does Claude Code expose to hook scripts?** A one-shot `env > log` PreCompact hook plus a substantive session. Confirms `$CLAUDE_CONTEXT_TOKENS`, `$CLAUDE_SESSION_ID`, and any other per-session vars before Phase 8 commits to a schema.
+- **Does the dependabot-auto-merge patch break dependabot's actual auto-merge flow?** Test PR from `dependabot[bot]` after the patch lands; confirm the workflow runs (not skipped) when the author is dependabot.
+- **Should `/recreate-pr` be a skill (model-judgment) or a slash command (deterministic script)?** Side-by-side prototype on the next auto-close incident: if recovery is mechanical, slash command wins; if PR-body reconstruction needs judgment, skill wins.
+- **Does the D-NN renumbering pain warrant an automated numbering helper, or is a write-lock convention (manual rebase before every D-NN add) sufficient?** One more parallel-branch collision answers it; if it happens twice more in 4 weeks, build the helper.
+- **Should the `/economy` command estimate tokens itself (counting chars), or rely solely on `$CLAUDE_CONTEXT_TOKENS`?** Resolved by Phase 8.4: if env var is real, defer to it; if not, char-counting is the only path and the command's accuracy claim must be downgraded.
+- **Is `worktree-agent-*` the right exemption pattern for the pre-push branch check, or do agent worktrees use a different naming convention?** Grep `git for-each-ref refs/heads` after the next multi-agent session.
+- **What is the right LOC budget for `src/scenes/utils/levelMeta.ts`?** It's a registry file — naturally grows with each level. Likely needs an exemption or a higher budget (e.g. 500 LOC).
+- **Should the LOC-budget hook also enforce per-class method count or per-function complexity?** Probably yes long-term, but starting with line-count is the minimum-viable proactive gate. Add complexity rules in a future iteration.
+
+---
+
+## Appendix C — Acceptance criteria (testable)
+
+Per-phase, concrete and verifiable.
+
+### Phase 0 — Cleanup (already done in PR #32)
+- `find /home/user/Questerix.Fractions/.claude -type f | wc -l` returns ≤ 14.
+- `find /home/user/Questerix.Fractions -name "*roadie*" -not -path "*/node_modules/*"` returns 0 lines.
+- `ls /home/user/Questerix.Fractions/.claude/_archive 2>&1` reports "No such file or directory".
+
+### Phase 1 — Auto-invoke layer
+- A doc-only edit (e.g. `PLANS/foo.md`) followed by `git commit` triggers no `npm run` hook (verified by `time`: <1 s of hook overhead).
+- An edit to `src/persistence/db.ts` produces stderr containing "Schema-version bump?".
+- A direct edit to `public/curriculum/v1.json` is blocked with "Use `npm run build:curriculum`" message (`exit 2`).
+- Adding LOC to the 1727-LOC `Level01Scene.ts` is **blocked** unless the diff is net-negative.
+- Creating a 700-LOC `MenuScene.ts` is **blocked** at write-time.
+- Root CLAUDE.md contains "Auto-invoke skills" section with ≥4 rules and a recursion guard.
+
+### Phase 2 — Blast-radius preflight
+- `git push` from `chore/2026-05-15-foo` (no src/ touched) completes in ≤ 10 s.
+- The same on `feat/2026-05-15-foo` runs the full pipeline (≥ 60 s).
+- A `chore/...` branch that touches `src/persistence/db.ts` is auto-escalated to full tier with a stderr note.
+
+### Phase 3 — New subagents
+- `.claude/agents/engine-determinism-auditor.md` and `.claude/agents/curriculum-byte-parity.md` exist.
+- `node scripts/agent-doctor.mjs` exits 0.
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces an `engine-determinism-auditor` finding citing file:line.
+- Root CLAUDE.md "Specialist subagents" table lists all 6 agents.
+
+### Phase 4 — CI subagent audit refinement
+- A test PR with `Math.random` in `src/engine/` receives exactly one bot comment within 2 min.
+- A `synchronize` event overwrites the comment in place — `gh api` returns one bot comment.
+- `_shared/agent-dispatch.yml` accepts `max_tokens` input.
+
+### Phase 5 — Auto-close runbook + root-cause patch
+- `dependabot-auto-merge.yml` has a job-level `if: github.actor == 'dependabot[bot]'`.
+- A test PR titled `chore: test dexie poke (delete me)` from a human account remains open.
+- `.claude/commands/recreate-pr.md` exists.
+- learnings.md entry lands at the top of the entries list.
+
+### Phase 6 — learnings.md discipline
+- `SessionStart` banner prints exactly 3 learnings lines.
+- A commit `fix(persistence): correct schema version bump` produces the stderr nudge.
+- `.claude/commands/retro.md` has the `(REQUIRED)` annotation.
+- Five seed entries are present in `.claude/learnings.md`.
+
+### Phase 7 — PR template + branch enforcement
+- `.github/pull_request_template.md` exists with all six sections.
+- `git push` from `quick-fix` exits 1.
+- `git push` from `main`, `claude/foo`, `worktree-agent-bar` succeeds.
+- CLAUDE.md "Git workflow" section contains the regex literal.
+
+### Phase 8 — Token telemetry
+- `.claude/_session-log.md` last line has a `tokens:` field.
+- `.claude/commands/economy.md` exists.
+- `.claude/commands/retro-weekly.md` exists.
+- Verification spike has been run; result recorded.
 
 ---
 
