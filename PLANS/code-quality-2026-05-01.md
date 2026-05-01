@@ -1173,15 +1173,17 @@ Stage 1 ─────────────► Stage 2 ─────► St
 
 **Stage 1 alone is shippable** — it does not commit to Stages 2-4. But it should be designed to *not block* them. The largest risk: shipping Stage 1 phase 3 (sunset Level01Scene) via Path B (`QuestionLoopController` extraction) creates a *new* abstraction in the wrong layer, which then has to be unwound during Stage 2. **Recommend Stage 1 Phase 3 = Path A (delete Level01Scene cleanly), not Path B.** Path B is a Stage-1 hedge that costs Stage-2 velocity.
 
-### 12.7 Closing argument
+### 12.7 Closing argument — SUPERSEDED
 
-The codebase is healthier than its surface suggests, but its trajectory is not. The Original Sin (Phaser Scene as application unit, no Domain layer) is generating findings at a steady rate; each sprint that doesn't address it raises the cost of the eventual fix.
+> ⚠️ **The Stages 2-4 proposal in §12.6 is superseded by `forensic-deep-dive-2026-05-01.md` §4.** A subsequent forensic pass produced concrete pushback against the v3 Ideal State (event log overkill for single-user offline app; Domain layer over-abstraction for fixed 9-level scope; 8-state FSM imposed not observed). The diagnosis (§12.1 Original Sin) is preserved; the prescription is replaced by a lighter `SessionService` pivot (~30 hr instead of ~130 hr for Stages 2+3).
+>
+> Read `forensic-deep-dive-2026-05-01.md` before voting on Stage 2.
 
-**Three things to commit to today:**
+**Three things to commit to today** (revised; see deep-dive §5.1 for full reasoning):
 
-1. **Stage 1 (the v2 plan as written, with the §12.4 modifications).** Tactical, ~3 weeks, ships independently.
-2. **A decision on Stage 2** — yes / defer / no. If yes, scope it now so Stage 1's choices don't preclude it. If no, document the architectural ceiling that is being accepted (which would mean: every new level, every new mechanic, every new interaction will accrue duplication and state-leak debt at the current rate).
-3. **Recommendation A4 (delete or finish, never scaffold).** Apply retroactively to ports.ts, adapters, OTel, ICU helpers, branded-ID constructors. The half-built state is the problem.
+1. **Stage 1 (the v2 plan as written, with the §12.4 modifications + 2 new 1-line concurrency fixes from deep-dive §4.2).** Tactical, ~115 hr, ships independently.
+2. **A decision on the revised Stage 2 (`SessionService` pivot, ~30 hr)** — yes / defer / no. The smaller scope makes the vote tractable.
+3. **Recommendation A4 (delete or finish, never scaffold).** Apply retroactively to `ports.ts`, adapters, OTel, ICU helpers, branded-ID constructors. The half-built state is the problem.
 
 The rest follows.
 
