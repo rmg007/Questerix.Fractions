@@ -1,5 +1,7 @@
 # Forensic Deep-Dive — Questerix Fractions
 
+> **Status as of 2026-05-01 EOD:** Stage 1 (the 16-phase tactical surface) is **substantively complete**. Stage 2 (`SessionService` pivot) and the Sunset `Level01Scene` decision are **explicitly deferred** per the user's "this code is expensive — don't take risks" directive. The recommendations A1–A4 stand; A4 ("delete or finish, never scaffold") was applied this session (e.g., the misconception detector deferred-nanoid IIFE was deleted in PR #17). See `PLANS/AGENT_HANDOFF-2026-05-01.md` for what's safe to pick up next.
+
 **Status:** Companion to `code-quality-2026-05-01.md`. Deeper layer.
 **Last updated:** 2026-05-01
 **Scope:** Code archaeology · concurrency forensics · counter-argument to v3 Ideal State · revised migration proposal.

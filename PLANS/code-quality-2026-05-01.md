@@ -1,6 +1,8 @@
 # Plan: Code Quality & Architectural Hardening — Questerix Fractions
 
-**Status:** Awaiting approval
+> **Status as of 2026-05-01 EOD:** **Substantively complete.** 17 PRs (#10–#30) merged covering Slices 1–7 plus Phases 4.2 / 4.4 / 6.3 / 6.4 / 6.5 / 7.4 / 8.3 / 8.5 / 11 / 12. Cross-cutting: privacy (Sentry scrub), security baseline, post-merge cleanup. **Remaining items are explicitly deferred** per `PLANS/AGENT_HANDOFF-2026-05-01.md` — read that file before picking up new work. Sunset `Level01Scene` (D-25 Path A) is HIGH RISK and should not be attempted as a one-shot PR. The original plan body below is preserved for traceability and for the items that remain unscheduled.
+
+**Status:** Substantively executed (2026-05-01); remainder deferred
 **Last updated:** 2026-05-01
 **Audit lens:** Principal Software Architect (Architectural Cohesion · Computational Performance · Defensive Engineering · Modularity & Future-Proofing)
 **Scope boundary:** No new features. No framework changes. Architecture, code quality, defensive engineering, and test rigor only.

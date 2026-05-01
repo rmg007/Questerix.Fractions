@@ -1,9 +1,25 @@
 # Questerix Fractions — Planning Documents Index
 
-**Last updated:** 2026-05-01
-**Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
+**Last updated:** 2026-05-01 (end of architectural hardening sprint)
+**Status:** **17 PRs merged today** — code-quality plan substantively complete. Next move: real-browser MVP validation. **Read [`AGENT_HANDOFF-2026-05-01.md`](AGENT_HANDOFF-2026-05-01.md) before picking up new work.**
 
 > **Naming convention:** all plan files must be named `<slug>-YYYY-MM-DD.md` where the date is the day the file was created. Files without a date are non-compliant and must be renamed. Full rules: `docs/00-foundation/git-workflow.md`.
+
+---
+
+## 🆕 Read this first (2026-05-01)
+
+### [AGENT_HANDOFF-2026-05-01.md](AGENT_HANDOFF-2026-05-01.md) — NEXT-AGENT GUIDANCE
+
+End-of-session handoff for the agent picking up after the 2026-05-01 architectural hardening sprint. Contains:
+
+- The single critical-path next move (validate the MVP exit criterion in a real browser; ship if green)
+- Three remaining items with explicit risk levels (Sunset Level01Scene = HIGH, mastery span / coverage tighten / E2E parameterization = MEDIUM)
+- The user's directive: *"This code is expensive. Don't take risks."*
+- A list of what NOT to do (no one-shot Sunset, no more lint/zod/span layering, no `--no-verify`)
+- Slash commands + subagents reference
+
+**Read this before any code change.**
 
 ---
 
