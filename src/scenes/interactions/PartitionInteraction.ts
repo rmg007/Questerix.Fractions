@@ -120,6 +120,8 @@ export class PartitionInteraction implements Interaction {
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
     );
+
+    ctx.onCommit(buildInput());
   }
 
   unmount(): void {
