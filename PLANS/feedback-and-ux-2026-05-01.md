@@ -24,12 +24,28 @@ Six concrete issues were identified by auditing the code + running against a chi
 
 ## Tasks at a Glance
 
-| Task | Description | Effort | Risk |
-|---|---|---|---|
-| **T1** | Redesign FeedbackOverlay — timing, layout, animations | M | Low |
-| **T2** | Add Quest "oops" / wrong-answer expression | M | Low |
-| **T3** | Fix partition line visibility on white shapes | S | None |
-| **T4** | Decouple TTS from Reduce Motion preference | S | Low |
+| Task | Description | Effort | Risk | Group |
+|---|---|---|---|---|
+| **T1** | Redesign FeedbackOverlay — timing, layout, animations | M | Low | A |
+| **T2** | Add Quest "oops" / wrong-answer expression | M | Low | B |
+| **T3** | Fix partition line visibility on white shapes | S | None | C |
+| **T4** | Decouple TTS from Reduce Motion preference | S | Low | D |
+| **T5** | Wrong-answer sound effect (`playIncorrect()`) | S | None | A |
+| **T6** | "Back to Menu" two-tap accidental-tap protection | S | Low | D |
+| **T7** | Auto-hint after 3 wrong answers on same question | S | Low | D |
+| **T8** | Ghost midpoint guide after first wrong partition | M | Low | C |
+| **T9** | Onboarding: hand pointer position + tap-to-advance + oops | M | Low | B |
+| **T10** | Prompt text 22→28px, counter pill 17→22px | XS | None | D |
+| **T11** | SessionCompleteOverlay — advance/stay/regress call to action | M | Low | E |
+| **T12** | "3 in a Row! 🔥" streak milestone banner + SFX | M | Low | G |
+| **T13** | Partition snap juice — color fill + fraction labels + snap sound | M | Low | C |
+| **T14** | Quest idle/boredom timeout — 3-stage escalation | M | Low | F |
+| **T15** | Perfect session (5/5) special variant — gold overlay + fanfare | M | Low | E |
+| **T16** | Quest microcopy — personality speech bubbles at 10 key moments | S | None | F |
+| **T17** | Daily streak display in MenuScene + LevelMapScene pill | S | None | G |
+
+**Effort key:** XS < 30 min · S = 30–90 min · M = 1.5–3 hr  
+**Groups:** A=FeedbackOverlay · B=Quest expressions · C=Partition · D=Small isolates · E=Session complete · F=Quest personality (T14→T16 ordered) · G=Streaks
 
 ---
 

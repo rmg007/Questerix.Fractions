@@ -7,19 +7,34 @@
 
 ---
 
-## 🆕 Feedback & Core UX Fixes (2026-05-01)
+## 🆕 Feedback & UX — Full Polish Sprint (2026-05-01)
 
-### [feedback-and-ux-2026-05-01.md](feedback-and-ux-2026-05-01.md) — FEEDBACK OVERLAY REDESIGN + UX FIXES
+### [feedback-and-ux-2026-05-01.md](feedback-and-ux-2026-05-01.md) — 17-TASK CHILD UX OVERHAUL
 
-Four targeted fixes for K-2 child-facing issues identified in the pre-playtest audit.
+Comprehensive K-2 UX pass across feedback, engagement, personality, and retention. All tasks are grounded in live code audit. Parallel execution groups (A–G) defined in the plan.
 
-**Covers:**
-- T1 — FeedbackOverlay redesign: bottom-sheet layout, solid colors, 1400/1600ms timing, real shake on incorrect
-- T2 — Quest "oops" expression: drooped body + wince eyes + sweat drop on wrong answers
-- T3 — Partition line visibility: solid navy line, faint sky-tinted shape background
+**Fixes (T1–T11) — pre-playtest blockers:**
+- T1 — FeedbackOverlay: bottom-sheet layout, solid colors, 1400/1600ms timing, real shake
+- T2 — Quest "oops" expression: drooped body + wince + sweat drop on wrong answers
+- T3 — Partition line visibility: solid navy line, sky-tinted shape background
 - T4 — TTS decoupled from Reduce Motion: separate `ttsEnabled` preference + Settings toggle
+- T5 — Wrong-answer sound: `playIncorrect()` descending tone wired into FeedbackOverlay
+- T6 — "Back to Menu" two-tap protection: first tap → amber "Leave?" → 2s confirm window
+- T7 — Auto-hint on 3rd wrong answer: 800ms delay then `onHintRequest()` fires automatically
+- T8 — Ghost midpoint guide: faint dashed line at 50% after first wrong partition attempt
+- T9 — Onboarding: hand pointer on handle (not below shape), tap-to-advance Step 1, oops on fail
+- T10 — Prompt 22→28px, counter pill 17→22px (early reader sizing)
+- T11 — SessionCompleteOverlay: advance / stay / regress call-to-action banner
 
-**When to use:** before any child playtest session.
+**"Amazing and catchy" (T12–T17) — engagement and retention:**
+- T12 — "3 in a Row! 🔥" banner: BKT mastery threshold (≥3) finally celebrated mid-session
+- T13 — Partition snap juice: shape halves tint + fraction labels pop in + snap sound
+- T14 — Quest idle/boredom: 3-stage escalation at 10s / 18s / 28s with speech bubbles
+- T15 — Perfect session (5/5): gold overlay, "PERFECT! 🌟", doubled confetti, two-phase Quest animation
+- T16 — Quest microcopy: personality speech bubbles at 10 key moments (depends on T14)
+- T17 — Daily streak: flame + count shown in MenuScene + LevelMapScene pill (data already tracked)
+
+**When to use:** before any child playtest session. Work in parallel groups A–G.
 
 ---
 
