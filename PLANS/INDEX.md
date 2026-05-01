@@ -7,6 +7,22 @@
 
 ---
 
+## 🆕 Feedback & Core UX Fixes (2026-05-01)
+
+### [feedback-and-ux-2026-05-01.md](feedback-and-ux-2026-05-01.md) — FEEDBACK OVERLAY REDESIGN + UX FIXES
+
+Four targeted fixes for K-2 child-facing issues identified in the pre-playtest audit.
+
+**Covers:**
+- T1 — FeedbackOverlay redesign: bottom-sheet layout, solid colors, 1400/1600ms timing, real shake on incorrect
+- T2 — Quest "oops" expression: drooped body + wince eyes + sweat drop on wrong answers
+- T3 — Partition line visibility: solid navy line, faint sky-tinted shape background
+- T4 — TTS decoupled from Reduce Motion: separate `ttsEnabled` preference + Settings toggle
+
+**When to use:** before any child playtest session.
+
+---
+
 ## 🆕 Read this first (2026-05-01)
 
 ### [AGENT_HANDOFF-2026-05-01.md](AGENT_HANDOFF-2026-05-01.md) — NEXT-AGENT GUIDANCE
