@@ -30,7 +30,7 @@ Total effort: ~15–20 hours, sequenced into 8 dated branches. Estimated session
 
 This plan responds to seven concrete pain points observed across the merge sessions of 2026-05-01. Every phase ties back to at least one.
 
-1. **PRs auto-close within ~30 s of creation** (PR #21, PR #24). Each occurrence cost ~3 k tokens in narration + recovery. Root cause unconfirmed: `.github/workflows/issue-to-copilot.yml` only fires on `issues: labeled` events with the `claude:implement` label, so it's not the culprit for PR auto-closes. The Copilot reviewer auto-close path or another workflow is. See Phase 5 + **Appendix A** (TBD).
+1. **PRs auto-close within ~30 s of creation when the title contains `phaser`/`dexie`/`vite` substrings** (PR #21, PR #24). Root cause **confirmed** (Phase 5 investigation): `.github/workflows/dependabot-auto-merge.yml` has a broken step-level author guard at lines 17–19 that uses `run: exit 0` — this exits the *step*, not the *job*, so the pin-check substring match at lines 32–52 runs for every PR author and closes any PR whose lowercased title contains a pinned-package name. PR #24's title was "wrap attempt+mastery in single Dexie transaction" → contained "dexie" → matched → closed. Fix is one line: lift the guard to job-level `if: github.actor == 'dependabot[bot]'`. Each occurrence cost ~3 k tokens in narration + recovery. See Phase 5 + Appendix A.
 
 2. **GitHub's `mergeable_state` lies briefly** after a base-branch update. Calling `merge_pull_request` 30 s after another merge returned `mergeable_state: unknown` then 405. Local `git merge` was clean. Workaround used twice: push merge commit to PR branch, retry. Pattern worth a learning entry.
 
@@ -81,7 +81,63 @@ The autonomous infrastructure is significantly more mature than the prior plan a
 - `docs/00-foundation/decision-log.md` — 29 entries, D-NN format, append-only newest-at-top.
 - `.claude/learnings.md` — 5 entries since 2026-04-30. Underused (Phase 6 fixes).
 
-**The implication for the rest of this plan:** every phase below assumes this surface is the baseline. "Create" verbs are reserved for things that genuinely don't exist (the two new subagents, the blast-radius router, the PR template); everything else is "refine," "extend," or "wire."
+**The implication for the rest of this plan:** every phase below assumes this surface is the baseline. "Create" verbs are reserved for things that genuinely don't exist (the two new subagents, the blast-radius router, the PR template, the LOC-budget enforcer); everything else is "refine," "extend," or "wire."
+
+---
+
+## Core principle: Proactive over reactive
+
+The four existing subagents (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`) are all **reactive** — they audit *after* a diff exists. That's how `Level01Scene.ts` reached 1727 LOC despite four scoped subagents existing: nothing prevented it; the auditors only commented on it after the fact, by which time the cost of unwinding exceeded the appetite to do so.
+
+This plan adopts a stricter model: **prevent the failure mode at the moment it would be introduced, not after.** Each phase below is graded on whether it adds proactive prevention (good) or just better reactive auditing (acceptable but not the goal).
+
+| Failure mode | Reactive (audit after) | Proactive (prevent at write-time) |
+|---|---|---|
+| God file (>budget LOC) | `bundle-watcher` reports it post-merge | PostToolUse Edit hook **blocks** writes that push a file past its LOC budget |
+| Cross-layer import (engine → scenes) | ESLint flag at lint time | PreToolUse Read warns when opening a file already at 80% of budget; scaffolder doesn't generate cross-layer imports in the first place |
+| New `localStorage` key outside C5 | `c1-c10-auditor` at PR open | PostToolUse hook warns inline at the edit |
+| Curriculum dual-file drift | `curriculum-byte-parity` at PR open | PostToolUse hook auto-runs `build:curriculum` on `pipeline/output/**`; direct edits to either bundle file are **blocked** with `exit 2` |
+| Branch-name drift | nightly review | `.husky/pre-push` regex rejects |
+| Decision-log D-NN collision | merge conflict at PR | numbering helper or write-lock convention (Appendix B open question) |
+| God-file *creation* (new monolith from scratch) | (none) | `npm run scaffold:scene <name>` generates `<name>Scene.ts` + `<name>Controller.ts` + `<name>State.ts` + tests; new scenes can't be born monolithic |
+
+### Per-directory LOC budgets (proactive enforcement)
+
+Enforced at three layers (write-time, lint-time, CI-time) so no single bypass loses the gate:
+
+| Path glob | Budget (LOC) | Rationale |
+|---|---|---|
+| `src/scenes/*Scene.ts` | 600 | Phaser scenes that exceed this become god files (see `Level01Scene.ts` at 1727) |
+| `src/components/*.ts` | 300 | UI components should be focused; >300 signals missed extraction |
+| `src/validators/*.ts` | 200 | One archetype per file by convention; >200 means logic belongs in a helper |
+| `src/engine/*.ts` | 400 | Engine modules should be small + composable |
+| `src/lib/*.ts` | 300 | Same logic as components |
+
+Enforced via:
+1. **ESLint `max-lines` rule** scoped to each file group in `.eslintrc.json` (compile-time).
+2. **PostToolUse Edit hook** that runs `wc -l` on the post-edit file and exits `2` (block) if the count exceeds budget — with a structured advisory pointing to the corresponding extraction pattern (Path A / controller pattern from D-27 for scenes; helper extraction for validators; etc.).
+3. **CI gate in `subagent-pr-audit.yml`** that fails on PR if any in-scope file exceeds budget (PR-time backstop).
+
+### Pre-existing god files: frozen, not grandfathered
+
+- `src/scenes/Level01Scene.ts` (1727 LOC) — already on D-27's deletion list (Phase 3 of `code-quality-2026-05-01.md`).
+- `src/scenes/LevelScene.ts` (also large) — sibling of the same Path-A migration.
+
+These pre-date the budget. They are **frozen**: the LOC-budget hook rejects any net-LOC-positive edit until extraction lands. Bug-fix edits that delete more than they add are allowed. This forces the deferred sunset (D-27) to either happen or be explicitly waived per-PR with `--no-verify` plus a one-line justification in the PR body. The freeze is the proactive layer that makes the deferred sunset costless to defer (no additional rot accumulates).
+
+### Scaffolding that enforces the split
+
+- `npm run scaffold:scene <name>` → creates `<name>Scene.ts` + `<name>Controller.ts` + `<name>State.ts` + matching test files from templates at `templates/scene/`.
+- `npm run scaffold:validator <archetype>` → creates `<archetype>.ts` + `<archetype>.test.ts` + parity fixture stub at `pipeline/fixtures/parity/`.
+- `npm run scaffold:component <name>` → creates `<name>.ts` + `__tests__/<name>.test.ts` + the matching `A11yLayer.addElement` stub.
+
+New work starts split. Existing god files don't replicate.
+
+### Why this matters for token economy
+
+A reactive audit on a 1727-LOC file consumes ~30 k tokens just to read the file. The same audit on three 600-LOC files consumes ~30 k tokens too — but the *editing* cost in subsequent sessions drops by ~3× because each file fits in a smaller context, and merge conflicts on parallel work drop because edits to different concerns no longer collide.
+
+Proactive prevention pays compounding dividends: every god file we *don't* create saves tokens for the rest of the project's lifetime.
 
 ---
 
