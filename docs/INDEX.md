@@ -64,6 +64,7 @@ Complete map of `/docs`. Read in the order shown for the first pass; jump around
 - [Hint Generation](./30-architecture/hint-system/HINT_GENERATION.md) — pipeline for authoring hints
 - [Hint System Files](./30-architecture/hint-system/HINT_SYSTEM_FILES.md) — file map for hint code paths
 - [Keyboard Bindings](./KEYBOARD_BINDINGS.md) — keyboard accessibility map
+- [Audio Assets — Provenance & Licensing](../assets/audio/README.md) — source URLs, download commands, curation policy for SFX
 
 ## Validation
 
