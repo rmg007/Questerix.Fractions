@@ -60,7 +60,7 @@ export class SettingsScene extends Phaser.Scene {
     // ── Section labels ─────────────────────────────────────────────────────
     this.sectionLabel(cx, 190, 'Preferences');
     this.sectionLabel(cx, 560, 'Data');
-    this.sectionLabel(cx, 920, 'Privacy');
+    this.sectionLabel(cx, 940, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     // Canvas top ~100px; section label at 190 canvas px.
@@ -124,8 +124,32 @@ export class SettingsScene extends Phaser.Scene {
     });
     this.createResetButton(cx, 820);
 
+    // ── Refresh Curriculum button (Phase 11.1) ─────────────────────────────
+    // Sits inside the Data section so a parent can force a curriculum
+    // re-download when the pipeline ships new question content. Deletes the
+    // service-worker cache (`curriculum-cache` per vite.config.ts) and
+    // reloads the page to trigger a fresh fetch.
+    TestHooks.mountInteractive(
+      'settings-refresh-curriculum-btn',
+      () => void this.doRefreshCurriculum(),
+      {
+        top: toViewport(880),
+        left: halfCanvas,
+        width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+        height: `${BTN_H * scaleY}px`,
+      }
+    );
+    this.createButton(
+      cx,
+      880,
+      'Refresh Curriculum',
+      CLR.primary,
+      HEX.neutral0,
+      () => void this.doRefreshCurriculum()
+    );
+
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 970);
+    this.createPrivacyLink(cx, 990);
 
     // ── Back button ────────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
@@ -316,6 +340,46 @@ export class SettingsScene extends Phaser.Scene {
       this.exportStatusText?.destroy();
       this.exportStatusText = null;
     });
+  }
+
+  // ── Refresh Curriculum (Phase 11.1) ────────────────────────────────────────
+  private refreshStatusText: Phaser.GameObjects.Text | null = null;
+
+  /**
+   * Drop the service-worker `curriculum-cache` and reload so the next boot
+   * fetches the latest `/curriculum/v1.json` from the network. Cache name
+   * must stay in sync with vite.config.ts. Failure is non-fatal — the
+   * reload still happens so the user sees a fresh boot.
+   */
+  private async doRefreshCurriculum(): Promise<void> {
+    let cacheCleared = false;
+    try {
+      if (typeof caches !== 'undefined') {
+        // Workbox uses the cacheName verbatim — no prefix.
+        cacheCleared = await caches.delete('curriculum-cache');
+      }
+    } catch (err) {
+      console.warn('[SettingsScene] curriculum-cache delete failed:', err);
+    }
+
+    this.showRefreshStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…');
+
+    // Allow the toast to paint before the reload tears down the page.
+    this.time.delayedCall(600, () => {
+      if (typeof location !== 'undefined') location.reload();
+    });
+  }
+
+  private showRefreshStatus(msg: string): void {
+    this.refreshStatusText?.destroy();
+    this.refreshStatusText = this.add
+      .text(CW / 2, 935, msg, {
+        fontSize: '16px',
+        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        color: '#059669',
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
   }
 
   // ── Restore ────────────────────────────────────────────────────────────────
