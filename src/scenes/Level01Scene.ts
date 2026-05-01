@@ -477,18 +477,19 @@ export class Level01Scene extends Phaser.Scene {
           } else {
             this.sessionId = lastSession.id as string;
 
-          // Restore prior attempt count
-          const { attemptRepo } = await import('../persistence/repositories/attempt');
-          const priorAttempts = await attemptRepo.listForSession(lastSession.id);
-          this.attemptCount = priorAttempts.length;
+            // Restore prior attempt count
+            const { attemptRepo } = await import('../persistence/repositories/attempt');
+            const priorAttempts = await attemptRepo.listForSession(lastSession.id);
+            this.attemptCount = priorAttempts.length;
 
-          // Update progressBar if it exists
-          if (this.progressBar) {
-            this.progressBar.setProgress(this.attemptCount);
+            // Update progressBar if it exists
+            if (this.progressBar) {
+              this.progressBar.setProgress(this.attemptCount);
+            }
+
+            log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
+            return;
           }
-
-          log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
-          return;
         }
       }
 
