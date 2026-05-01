@@ -851,7 +851,7 @@ If approved, this plan produces:
 
 ## 12. Forensic synthesis: the Original Sin, ripple effects, and Ideal State
 
-The v2 plan above is **tactical**: 60 findings, 16 phases, file:line precision. This section is **strategic**: it names the single foundational design choice that is producing the cascade of secondary issues, and contrasts the current architecture with an Ideal State.
+The v2 plan above is **tactical**: 56 actionable findings, 16 phases, file:line precision. This section is **strategic**: it names the single foundational design choice that is producing the cascade of secondary issues, and contrasts the current architecture with an Ideal State.
 
 This synthesis was added in v3 after a fourth audit pass (forensic / systemic). It includes substantive pushback against three of v2's own recommendations.
 
