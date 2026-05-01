@@ -2,240 +2,404 @@
 """
 Sanity checker for Questerix Fractions backup JSON exports.
 
-Validates that a JSON export from the app matches the expected schema
-and contains no obvious corruption or missing required fields.
+Validates that an export from the app (Settings → Backup my progress) matches
+the runtime envelope produced by `src/persistence/backup.ts` and contains no
+obvious corruption. Mirrors the shape enforced by `backupEnvelopeSchema` in
+`src/persistence/schemas.ts`.
 
 Usage:
-    python check.py <path-to-export.json>
+    python3 check.py <path-to-export.json> [--student-id <id>]
 
 Exit codes:
     0 = valid
-    1 = schema validation failed
-    2 = data integrity issue (resolves failed, duplicates, etc.)
+    2 = validation failed (schema, integrity, or cross-record mismatch)
     3 = file not found
 """
 
+import argparse
 import json
 import sys
 from pathlib import Path
-from collections import Counter, defaultdict
-from typing import Any, Dict, List, Tuple
+from collections import Counter
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+
+# Envelope schema version this checker understands. Must match
+# BACKUP_SCHEMA_VERSION in src/persistence/backup.ts.
+SUPPORTED_ENVELOPE_VERSION = 1
+
+# Allowed Attempt.outcome values (mirrors attemptSchema in schemas.ts).
+VALID_OUTCOMES = {"EXACT", "CLOSE", "WRONG", "ASSISTED", "ABANDONED"}
+
+# Outcomes counted as "correct" for accuracy checks.
+CORRECT_OUTCOMES = {"EXACT", "CLOSE"}
 
 
 class ValidationError(Exception):
     """Raised when validation fails."""
-    pass
 
 
 def load_export(filepath: str) -> Dict[str, Any]:
-    """Load and parse JSON export."""
     path = Path(filepath)
     if not path.exists():
         print(f"ERROR: File not found: {filepath}")
         sys.exit(3)
-
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError as e:
         raise ValidationError(f"Invalid JSON: {e}")
 
 
-def validate_schema(data: Dict[str, Any]) -> None:
-    """Validate top-level schema."""
-    required_keys = {
-        'schemaVersion', 'contentVersion', 'exportedAt',
-        'student', 'sessions', 'attempts', 'hintEvents',
-        'skillMastery', 'misconceptionFlags', 'progressionStat',
-        'deviceMeta'
-    }
+def validate_envelope(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate top-level envelope and return the `tables` dict."""
+    for key in ("version", "exportedAt", "tables"):
+        if key not in data:
+            raise ValidationError(f"Envelope missing required key: {key}")
 
-    missing = required_keys - set(data.keys())
-    if missing:
-        raise ValidationError(f"Missing required keys: {missing}")
+    if not isinstance(data["version"], int):
+        raise ValidationError(f"version must be int, got {type(data['version']).__name__}")
+    if data["version"] != SUPPORTED_ENVELOPE_VERSION:
+        raise ValidationError(
+            f"Unsupported envelope version {data['version']} "
+            f"(this checker supports {SUPPORTED_ENVELOPE_VERSION})"
+        )
+    if not isinstance(data["exportedAt"], (int, float)):
+        raise ValidationError("exportedAt must be a numeric epoch ms timestamp")
+    if not isinstance(data["tables"], dict):
+        raise ValidationError("tables must be an object")
 
-    # Type checks
-    if not isinstance(data['schemaVersion'], int):
-        raise ValidationError(f"schemaVersion must be int, got {type(data['schemaVersion'])}")
-    if not isinstance(data['contentVersion'], str):
-        raise ValidationError(f"contentVersion must be str, got {type(data['contentVersion'])}")
-    if not isinstance(data['exportedAt'], (int, float)):
-        raise ValidationError(f"exportedAt must be numeric timestamp")
-    if not isinstance(data['sessions'], list):
-        raise ValidationError(f"sessions must be array")
-    if not isinstance(data['attempts'], list):
-        raise ValidationError(f"attempts must be array")
+    tables = data["tables"]
+    for key in (
+        "students",
+        "sessions",
+        "attempts",
+        "skillMastery",
+        "deviceMeta",
+        "bookmarks",
+        "sessionTelemetry",
+        "hintEvents",
+        "misconceptionFlags",
+        "progressionStat",
+    ):
+        if key not in tables:
+            raise ValidationError(f"tables.{key} missing (expected array, even if empty)")
+        if not isinstance(tables[key], list):
+            raise ValidationError(
+                f"tables.{key} must be an array, got {type(tables[key]).__name__}"
+            )
 
-    print(f"✓ Schema structure valid (schemaVersion={data['schemaVersion']}, contentVersion={data['contentVersion']})")
+    content_version = "<unknown>"
+    if tables["deviceMeta"]:
+        meta = tables["deviceMeta"][0]
+        content_version = meta.get("contentVersion", "<missing>")
+
+    print(
+        f"OK envelope: version={data['version']}, "
+        f"contentVersion={content_version}, "
+        f"exportedAt={int(data['exportedAt'])}"
+    )
+    return tables
+
+
+def select_student(
+    students: List[Dict[str, Any]],
+    sessions: List[Dict[str, Any]],
+    requested_id: Optional[str],
+) -> Dict[str, Any]:
+    """Pick the active student record for this playtest export.
+
+    Cycle A protocol expects exactly one student per export. If the device has
+    multiple profiles, we pick the one referenced by the sessions in this file
+    (or accept --student-id to disambiguate).
+    """
+    if not students:
+        raise ValidationError("tables.students is empty (need at least one student)")
+
+    if requested_id:
+        for s in students:
+            if s.get("id") == requested_id:
+                return s
+        raise ValidationError(f"No student matches --student-id {requested_id!r}")
+
+    if len(students) == 1:
+        return students[0]
+
+    # Multiple students: pick the one referenced by sessions, error on mixed.
+    session_student_ids = {s.get("studentId") for s in sessions if s.get("studentId")}
+    if len(session_student_ids) == 0:
+        raise ValidationError(
+            f"Multiple students ({len(students)}) but no sessions to disambiguate; "
+            f"pass --student-id <id>"
+        )
+    if len(session_student_ids) > 1:
+        raise ValidationError(
+            f"Sessions reference multiple students: {sorted(session_student_ids)}; "
+            f"pass --student-id <id> to pick one"
+        )
+    sole_id = next(iter(session_student_ids))
+    for s in students:
+        if s.get("id") == sole_id:
+            return s
+    raise ValidationError(
+        f"Sessions reference studentId={sole_id!r} but no student record matches"
+    )
 
 
 def validate_student(student: Dict[str, Any]) -> None:
-    """Validate student record."""
-    required = {'id', 'displayName', 'gradeLevel', 'createdAt', 'lastActiveAt'}
-    missing = required - set(student.keys())
-    if missing:
-        raise ValidationError(f"Student missing keys: {missing}")
-
-    if not isinstance(student['id'], str) or not student['id'].startswith('stu_'):
-        raise ValidationError(f"Student id must be stu_<uuid>, got {student['id']}")
-    if not isinstance(student['displayName'], str) or len(student['displayName']) == 0:
-        raise ValidationError(f"Student displayName must be non-empty string")
-    if student['gradeLevel'] not in [0, 1, 2]:
-        raise ValidationError(f"Student gradeLevel must be 0, 1, or 2, got {student['gradeLevel']}")
-
-    print(f"✓ Student record valid: {student['displayName']} (grade {student['gradeLevel']})")
+    for key in ("id", "displayName", "gradeLevel", "createdAt", "lastActiveAt"):
+        if key not in student:
+            raise ValidationError(f"Student missing key: {key}")
+    if not isinstance(student["id"], str) or not student["id"]:
+        raise ValidationError(f"Student.id must be non-empty string, got {student['id']!r}")
+    if not isinstance(student["displayName"], str) or not student["displayName"]:
+        raise ValidationError("Student.displayName must be non-empty string")
+    if student["gradeLevel"] not in (0, 1, 2):
+        raise ValidationError(
+            f"Student.gradeLevel must be 0, 1, or 2 (got {student['gradeLevel']!r})"
+        )
+    print(f"OK student: {student['displayName']} (grade {student['gradeLevel']})")
 
 
-def validate_sessions(sessions: List[Dict[str, Any]]) -> None:
-    """Validate session records."""
-    if len(sessions) == 0:
-        raise ValidationError("No sessions found (empty array)")
+def validate_sessions(
+    sessions: List[Dict[str, Any]],
+    student_id: str,
+) -> Tuple[Set[str], int, int]:
+    """Validate sessions belonging to the active student.
 
-    session_ids = set()
-    for i, sess in enumerate(sessions):
-        required = {'id', 'studentId', 'activityId', 'levelNumber', 'startedAt', 'endedAt', 'totalAttempts', 'correctAttempts', 'accuracy', 'device'}
-        missing = required - set(sess.keys())
-        if missing:
-            raise ValidationError(f"Session {i} missing keys: {missing}")
+    Returns (session_ids, completed_count, in_progress_count).
+    """
+    if not sessions:
+        raise ValidationError("tables.sessions is empty (no playtest data to check)")
 
-        if not isinstance(sess['id'], str) or not sess['id'].startswith('sess_'):
-            raise ValidationError(f"Session {i} id must be sess_<uuid>, got {sess['id']}")
+    own_sessions = [s for s in sessions if s.get("studentId") == student_id]
+    if not own_sessions:
+        raise ValidationError(
+            f"No sessions found for student {student_id!r} "
+            f"(envelope has {len(sessions)} session(s) for other students)"
+        )
 
-        if sess['id'] in session_ids:
-            raise ValidationError(f"Duplicate session id: {sess['id']}")
-        session_ids.add(sess['id'])
+    session_ids: Set[str] = set()
+    completed = 0
+    in_progress = 0
 
-        if sess['startedAt'] > sess['endedAt']:
-            raise ValidationError(f"Session {i}: startedAt ({sess['startedAt']}) > endedAt ({sess['endedAt']})")
+    for i, sess in enumerate(own_sessions):
+        for key in (
+            "id",
+            "studentId",
+            "activityId",
+            "levelNumber",
+            "startedAt",
+            "endedAt",
+            "totalAttempts",
+            "correctAttempts",
+            "accuracy",
+        ):
+            if key not in sess:
+                raise ValidationError(f"Session #{i} missing key: {key}")
 
-        if not (0.0 <= sess['accuracy'] <= 1.0):
-            raise ValidationError(f"Session {i}: accuracy out of range: {sess['accuracy']}")
+        sid = sess["id"]
+        if not isinstance(sid, str) or not sid:
+            raise ValidationError(f"Session #{i}.id must be non-empty string, got {sid!r}")
+        if sid in session_ids:
+            raise ValidationError(f"Duplicate session id: {sid}")
+        session_ids.add(sid)
 
-        if sess['levelNumber'] < 1 or sess['levelNumber'] > 9:
-            raise ValidationError(f"Session {i}: levelNumber out of range: {sess['levelNumber']}")
-
-    print(f"✓ Sessions valid: {len(sessions)} sessions, all IDs unique")
-    return session_ids
-
-
-def validate_attempts(attempts: List[Dict[str, Any]], session_ids: set) -> None:
-    """Validate attempt records."""
-    if len(attempts) == 0:
-        raise ValidationError("No attempts found (empty array)")
-
-    for i, att in enumerate(attempts):
-        required = {'id', 'sessionId', 'questionId', 'studentAnswer', 'isCorrect', 'responseTimeMs', 'createdAt'}
-        missing = required - set(att.keys())
-        if missing:
-            raise ValidationError(f"Attempt {i} missing keys: {missing}")
-
-        if att['sessionId'] not in session_ids:
-            raise ValidationError(f"Attempt {i}: sessionId {att['sessionId']} does not resolve to a session")
-
-        if not isinstance(att['isCorrect'], bool):
-            raise ValidationError(f"Attempt {i}: isCorrect must be boolean, got {type(att['isCorrect'])}")
-
-        if att['responseTimeMs'] < 0:
-            raise ValidationError(f"Attempt {i}: responseTimeMs must be non-negative, got {att['responseTimeMs']}")
-
-    print(f"✓ Attempts valid: {len(attempts)} attempts, all sessionIds resolve")
-
-
-def validate_counts(sessions: List[Dict[str, Any]], attempts: List[Dict[str, Any]]) -> None:
-    """Validate that session.totalAttempts matches attempt counts."""
-    attempts_per_session = Counter(att['sessionId'] for att in attempts)
-
-    for sess in sessions:
-        reported = sess['totalAttempts']
-        actual = attempts_per_session.get(sess['id'], 0)
-
-        if reported != actual:
+        if not (1 <= sess["levelNumber"] <= 9):
             raise ValidationError(
-                f"Session {sess['id']}: reported totalAttempts={reported}, "
-                f"but found {actual} Attempt records"
+                f"Session {sid}: levelNumber {sess['levelNumber']} outside 1..9"
             )
 
-        # Validate accuracy calculation
-        correct = sum(1 for att in attempts if att['sessionId'] == sess['id'] and att['isCorrect'])
-        expected_accuracy = correct / actual if actual > 0 else 0.0
+        ended = sess["endedAt"]
+        if ended is None:
+            in_progress += 1
+        else:
+            if not isinstance(ended, (int, float)):
+                raise ValidationError(f"Session {sid}: endedAt must be number or null")
+            if sess["startedAt"] > ended:
+                raise ValidationError(
+                    f"Session {sid}: startedAt ({sess['startedAt']}) > endedAt ({ended})"
+                )
+            completed += 1
 
-        if abs(sess['accuracy'] - expected_accuracy) > 0.001:  # Allow floating point rounding
+        accuracy = sess["accuracy"]
+        if accuracy is not None:
+            if not isinstance(accuracy, (int, float)) or not (0.0 <= accuracy <= 1.0):
+                raise ValidationError(
+                    f"Session {sid}: accuracy {accuracy!r} outside [0, 1]"
+                )
+
+    levels = sorted({s["levelNumber"] for s in own_sessions})
+    print(
+        f"OK sessions: {len(own_sessions)} for this student "
+        f"({completed} completed, {in_progress} in-progress); levels touched: {levels}"
+    )
+    return session_ids, completed, in_progress
+
+
+def validate_attempts(
+    attempts: List[Dict[str, Any]],
+    session_ids: Set[str],
+    student_id: str,
+) -> List[Dict[str, Any]]:
+    """Validate attempts belonging to this student's sessions."""
+    own_attempts = [a for a in attempts if a.get("sessionId") in session_ids]
+    if not own_attempts:
+        raise ValidationError(
+            f"No attempts found for this student's sessions "
+            f"(envelope has {len(attempts)} total attempt rows)"
+        )
+
+    for i, att in enumerate(own_attempts):
+        for key in (
+            "sessionId",
+            "studentId",
+            "questionTemplateId",
+            "outcome",
+            "responseMs",
+            "submittedAt",
+        ):
+            if key not in att:
+                raise ValidationError(f"Attempt #{i} missing key: {key}")
+
+        if att["studentId"] != student_id:
             raise ValidationError(
-                f"Session {sess['id']}: reported accuracy={sess['accuracy']}, "
-                f"but calculated accuracy={expected_accuracy:.3f} from attempts"
+                f"Attempt #{i}: studentId {att['studentId']!r} does not match active "
+                f"student {student_id!r} (orphaned attempt)"
+            )
+        if att["outcome"] not in VALID_OUTCOMES:
+            raise ValidationError(
+                f"Attempt #{i}: outcome {att['outcome']!r} not in {sorted(VALID_OUTCOMES)}"
+            )
+        if not isinstance(att["responseMs"], (int, float)) or att["responseMs"] < 0:
+            raise ValidationError(
+                f"Attempt #{i}: responseMs must be non-negative number, "
+                f"got {att['responseMs']!r}"
             )
 
-    print(f"✓ Attempt counts match session records (accuracy calculations verified)")
+    correct = sum(1 for a in own_attempts if a["outcome"] in CORRECT_OUTCOMES)
+    print(
+        f"OK attempts: {len(own_attempts)} for this student "
+        f"({correct} correct via outcome ∈ {{EXACT, CLOSE}})"
+    )
+    return own_attempts
 
 
-def validate_optional_arrays(data: Dict[str, Any]) -> None:
-    """Validate optional arrays (hints, skill mastery, etc.)."""
-    optional_keys = ['hintEvents', 'skillMastery', 'misconceptionFlags', 'progressionStat']
+def validate_session_attempt_consistency(
+    sessions: List[Dict[str, Any]],
+    attempts: List[Dict[str, Any]],
+    student_id: str,
+) -> None:
+    """Cross-check that session.totalAttempts and accuracy match the attempt rows.
 
-    for key in optional_keys:
-        if key in data:
-            if not isinstance(data[key], list):
-                raise ValidationError(f"{key} must be array, got {type(data[key])}")
-            print(f"✓ {key}: {len(data[key])} records")
+    Skips in-progress sessions (endedAt is null) — counts there are still
+    settling and won't match until closeSession() runs.
+    """
+    own_sessions = [s for s in sessions if s.get("studentId") == student_id]
+    by_session: Counter = Counter(a["sessionId"] for a in attempts)
+    correct_by_session: Counter = Counter(
+        a["sessionId"] for a in attempts if a["outcome"] in CORRECT_OUTCOMES
+    )
+
+    for sess in own_sessions:
+        if sess["endedAt"] is None:
+            continue
+        sid = sess["id"]
+        actual = by_session.get(sid, 0)
+        if sess["totalAttempts"] != actual:
+            raise ValidationError(
+                f"Session {sid}: totalAttempts={sess['totalAttempts']} but "
+                f"{actual} attempt rows reference it"
+            )
+
+        # Accuracy can be null for sessions that ended with zero attempts;
+        # otherwise it should match correct/total within float tolerance.
+        accuracy = sess["accuracy"]
+        if actual == 0:
+            if accuracy not in (None, 0, 0.0):
+                raise ValidationError(
+                    f"Session {sid}: 0 attempts but accuracy={accuracy!r} (expected null or 0)"
+                )
+            continue
+        if accuracy is None:
+            raise ValidationError(
+                f"Session {sid}: ended with {actual} attempts but accuracy is null"
+            )
+        expected = correct_by_session.get(sid, 0) / actual
+        if abs(accuracy - expected) > 0.001:
+            raise ValidationError(
+                f"Session {sid}: stored accuracy={accuracy:.3f} disagrees with "
+                f"computed {expected:.3f} ({correct_by_session.get(sid, 0)}/{actual})"
+            )
+
+    print("OK consistency: session counts + accuracy match attempt rows")
 
 
-def summarize(data: Dict[str, Any]) -> None:
-    """Print summary statistics."""
-    print("\n" + "=" * 60)
+def summarize(
+    student: Dict[str, Any],
+    sessions: List[Dict[str, Any]],
+    attempts: List[Dict[str, Any]],
+    student_id: str,
+    tables: Dict[str, Any],
+) -> None:
+    own_sessions = [s for s in sessions if s.get("studentId") == student_id]
+    own_attempts = [a for a in attempts if a.get("studentId") == student_id]
+    correct = sum(1 for a in own_attempts if a["outcome"] in CORRECT_OUTCOMES)
+    levels = sorted({s["levelNumber"] for s in own_sessions})
+    activities = Counter(s["activityId"] for s in own_sessions)
+    hint_events = [
+        h
+        for h in tables.get("hintEvents", [])
+        if any(a["id"] == h.get("attemptId") for a in own_attempts)
+    ]
+
+    print()
+    print("=" * 60)
     print("EXPORT SUMMARY")
     print("=" * 60)
-
-    student = data['student']
-    sessions = data['sessions']
-    attempts = data['attempts']
-
-    print(f"Student: {student['displayName']} (grade {student['gradeLevel']})")
-    print(f"Sessions: {len(sessions)}")
-    print(f"Total attempts: {len(attempts)}")
-
-    if sessions:
-        total_correct = sum(s['correctAttempts'] for s in sessions)
-        overall_accuracy = total_correct / len(attempts) if attempts else 0
-        print(f"Overall accuracy: {overall_accuracy:.1%} ({total_correct}/{len(attempts)})")
-
-        min_level = min(s['levelNumber'] for s in sessions)
-        max_level = max(s['levelNumber'] for s in sessions)
-        print(f"Levels touched: {min_level}–{max_level}")
-
-        activity_counts = Counter(s['activityId'] for s in sessions)
-        print(f"Activities: {dict(activity_counts)}")
-
-    print("=" * 60 + "\n")
+    print(f"Student:       {student['displayName']} (grade {student['gradeLevel']})")
+    print(f"Sessions:      {len(own_sessions)}")
+    print(f"Attempts:      {len(own_attempts)} ({correct} correct)")
+    if own_attempts:
+        print(f"Accuracy:      {correct / len(own_attempts):.1%}")
+    print(f"Levels:        {levels}")
+    print(f"Activities:    {dict(activities)}")
+    print(f"Hint events:   {len(hint_events)}")
+    print(f"Mastery rows:  {sum(1 for m in tables.get('skillMastery', []) if m.get('studentId') == student_id)}")
+    print(f"Misconceptions:{sum(1 for m in tables.get('misconceptionFlags', []) if m.get('studentId') == student_id)}")
+    print("=" * 60)
 
 
-def main():
-    """Main entry point."""
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <path-to-export.json>")
-        sys.exit(1)
-
-    filepath = sys.argv[1]
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Validate a Questerix Fractions backup JSON export.")
+    parser.add_argument("path", help="Path to the exported JSON file")
+    parser.add_argument(
+        "--student-id",
+        dest="student_id",
+        default=None,
+        help="Pick a specific student when the device has multiple profiles",
+    )
+    args = parser.parse_args()
 
     try:
-        data = load_export(filepath)
-        validate_schema(data)
-        validate_student(data['student'])
-        session_ids = validate_sessions(data['sessions'])
-        validate_attempts(data['attempts'], session_ids)
-        validate_counts(data['sessions'], data['attempts'])
-        validate_optional_arrays(data)
-        summarize(data)
-
-        print("✓ EXPORT VALID\n")
+        data = load_export(args.path)
+        tables = validate_envelope(data)
+        student = select_student(tables["students"], tables["sessions"], args.student_id)
+        validate_student(student)
+        session_ids, _completed, _in_progress = validate_sessions(
+            tables["sessions"], student["id"]
+        )
+        validate_attempts(tables["attempts"], session_ids, student["id"])
+        validate_session_attempt_consistency(
+            tables["sessions"], tables["attempts"], student["id"]
+        )
+        summarize(student, tables["sessions"], tables["attempts"], student["id"], tables)
+        print("\nEXPORT VALID\n")
         sys.exit(0)
-
     except ValidationError as e:
-        print(f"\n✗ VALIDATION FAILED\n{e}\n")
-        sys.exit(2)
-    except Exception as e:
-        print(f"\n✗ UNEXPECTED ERROR\n{e}\n")
+        print(f"\nVALIDATION FAILED: {e}\n")
         sys.exit(2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
