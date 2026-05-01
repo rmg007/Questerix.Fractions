@@ -1609,7 +1609,7 @@ export class Level01Scene extends Phaser.Scene {
     if (!this.sessionId) return;
     try {
       const { updateStreak } = await import('../lib/streak');
-      updateStreak(this.studentId);
+      await updateStreak(this.studentId);
     } catch {
       // Non-critical
     }

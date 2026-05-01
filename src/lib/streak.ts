@@ -1,77 +1,39 @@
 /**
- * streak.ts — localStorage-based daily streak tracker.
- * Storage format per student: JSON { count: number, lastDate: string } (ISO date YYYY-MM-DD)
- * Key: `questerix.streak:${studentId || 'anon'}`
+ * streak.ts — daily play-streak helpers.
+ * Backed by the `streakRecord` Dexie table (per C5; v7 schema). All localStorage
+ * usage was migrated in 2026-05-01 — this module is now a thin async wrapper
+ * over `streakRecordRepo`.
+ *
+ * Storage format: one row per student keyed by `studentId`, with `count` and
+ * `lastDate` (ISO YYYY-MM-DD). Anonymous play (`studentId === null`) returns 0
+ * and does not persist — streak is a per-student concept.
  */
 
-interface StreakRecord {
-  count: number;
-  lastDate: string;
-}
+import { streakRecordRepo } from '../persistence/repositories/streakRecord';
+import type { StudentId } from '../types/branded';
 
-function storageKey(studentId: string | null): string {
-  return `questerix.streak:${studentId ?? 'anon'}`;
-}
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+function asStudentId(studentId: string | null): StudentId | null {
+  if (!studentId) return null;
+  return studentId as StudentId;
 }
 
 /**
- * Returns current streak count (0 if never played).
+ * Returns the current streak count (0 if never played or anonymous).
  */
-export function getStreak(studentId: string | null): number {
-  try {
-    const raw = localStorage.getItem(storageKey(studentId));
-    if (!raw) return 0;
-    const record = JSON.parse(raw) as StreakRecord;
-    return typeof record.count === 'number' ? record.count : 0;
-  } catch {
-    return 0;
-  }
+export async function getStreak(studentId: string | null): Promise<number> {
+  const id = asStudentId(studentId);
+  if (!id) return 0;
+  return streakRecordRepo.getCount(id);
 }
 
 /**
- * Call when a session closes. Increments if played today or yesterday
- * (consecutive), resets to 1 if gap > 1 day. Returns new count.
- * Wraps all localStorage operations in try/catch; returns 0 on any error.
+ * Call when a session closes. Increments if played today (no-op) or yesterday
+ * (consecutive), resets to 1 if gap > 1 day. Returns the new count.
+ *
+ * Anonymous play does not persist — returns 0.
  */
-export function updateStreak(studentId: string | null): number {
-  try {
-    const key = storageKey(studentId);
-    const today = todayISO();
-    const raw = localStorage.getItem(key);
-
-    let newCount = 1;
-
-    if (raw) {
-      const record = JSON.parse(raw) as StreakRecord;
-      const lastDate = record.lastDate;
-      const prevCount = typeof record.count === 'number' ? record.count : 0;
-
-      if (lastDate === today) {
-        // Already played today — keep existing count
-        newCount = prevCount;
-      } else {
-        // Check if yesterday
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayISO = yesterday.toISOString().slice(0, 10);
-
-        if (lastDate === yesterdayISO) {
-          // Consecutive day — increment
-          newCount = prevCount + 1;
-        } else {
-          // Gap > 1 day — reset
-          newCount = 1;
-        }
-      }
-    }
-
-    const updated: StreakRecord = { count: newCount, lastDate: today };
-    localStorage.setItem(key, JSON.stringify(updated));
-    return newCount;
-  } catch {
-    return 0;
-  }
+export async function updateStreak(studentId: string | null): Promise<number> {
+  const id = asStudentId(studentId);
+  if (!id) return 0;
+  return streakRecordRepo.update(id);
 }

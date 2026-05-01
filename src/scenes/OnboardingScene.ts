@@ -31,8 +31,10 @@ import { Mascot } from '../components/Mascot';
 import { tts } from '../audio/TTSService';
 import { fadeAndStart } from './utils/sceneTransition';
 
-// ── localStorage gate key ─────────────────────────────────────────────────────
-export const ONBOARDING_SEEN_KEY = 'questerix.onboardingSeen';
+// ── Onboarding completion gate ────────────────────────────────────────────────
+// Backed by `DeviceMeta.onboardingComplete` in IndexedDB (per C5; v7 schema).
+// The legacy `questerix.onboardingSeen` localStorage key is auto-migrated by
+// the v6→v7 upgrade callback in `src/persistence/db.ts`.
 
 // ── Canvas layout ─────────────────────────────────────────────────────────────
 const CW = 800;
@@ -411,11 +413,16 @@ export class OnboardingScene extends Phaser.Scene {
   // ── Completion ───────────────────────────────────────────────────────────
 
   private completeOnboarding(): void {
-    try {
-      localStorage.setItem(ONBOARDING_SEEN_KEY, '1');
-    } catch {
-      /* ignore storage errors */
-    }
+    // Persist completion through deviceMetaRepo (replaces localStorage per C5).
+    // Fire-and-forget — onboarding completes its UI transition regardless of DB success.
+    void (async () => {
+      try {
+        const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
+        await deviceMetaRepo.setOnboardingComplete(true);
+      } catch {
+        /* non-critical — onboarding gate is forward-looking; UI still proceeds */
+      }
+    })();
 
     tts.stop();
     A11yLayer.unmountAll();
