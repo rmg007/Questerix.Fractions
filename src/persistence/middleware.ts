@@ -1,5 +1,6 @@
 import type { DBCore, DBCoreTable, Middleware } from 'dexie';
 import { errorReporter, tracerService } from '../lib/observability';
+import { SPAN_NAMES } from '../lib/observability/span-names';
 
 /**
  * Dexie middleware to auto-instrument database operations.
@@ -16,9 +17,9 @@ export const observabilityMiddleware: Middleware<DBCore> = {
         return {
           ...downlevelTable,
           mutate: async (req) => {
-            const span = tracerService.startSpan(`db.${req.type}`, {
-              table: tableName,
-              type: req.type,
+            const span = tracerService.startSpan(SPAN_NAMES.DB.MUTATE, {
+              'db.table': tableName,
+              'db.operation': req.type,
             });
             const start = performance.now();
             try {
@@ -29,8 +30,8 @@ export const observabilityMiddleware: Middleware<DBCore> = {
               const duration = performance.now() - start;
               errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
                 category: 'DB',
-                table: tableName,
-                operation: req.type,
+                'db.table': tableName,
+                'db.operation': req.type,
                 durationMs: duration,
               });
               span.setStatus({ code: 1, message: String(err) });
@@ -39,7 +40,10 @@ export const observabilityMiddleware: Middleware<DBCore> = {
             }
           },
           get: async (req) => {
-            const span = tracerService.startSpan('db.get', { table: tableName });
+            const span = tracerService.startSpan(SPAN_NAMES.DB.GET, {
+              'db.table': tableName,
+              'db.operation': 'get',
+            });
             try {
               const res = await downlevelTable.get(req);
               span.end();
@@ -47,8 +51,8 @@ export const observabilityMiddleware: Middleware<DBCore> = {
             } catch (err) {
               errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
                 category: 'DB',
-                table: tableName,
-                operation: 'get',
+                'db.table': tableName,
+                'db.operation': 'get',
               });
               span.setStatus({ code: 1, message: String(err) });
               span.end();
@@ -56,7 +60,10 @@ export const observabilityMiddleware: Middleware<DBCore> = {
             }
           },
           query: async (req) => {
-            const span = tracerService.startSpan('db.query', { table: tableName });
+            const span = tracerService.startSpan(SPAN_NAMES.DB.QUERY, {
+              'db.table': tableName,
+              'db.operation': 'query',
+            });
             try {
               const res = await downlevelTable.query(req);
               span.end();
@@ -64,8 +71,8 @@ export const observabilityMiddleware: Middleware<DBCore> = {
             } catch (err) {
               errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
                 category: 'DB',
-                table: tableName,
-                operation: 'query',
+                'db.table': tableName,
+                'db.operation': 'query',
               });
               span.setStatus({ code: 1, message: String(err) });
               span.end();
