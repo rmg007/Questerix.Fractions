@@ -233,15 +233,13 @@ Full strategy: `docs/30-architecture/test-strategy.md`
 
 ## Active bugs (as of 2026-05-01)
 
-| ID     | Symptom | Located at | Effort |
-|--------|---------|------------|--------|
-| BUG-02 | Progress bar pre-increment vs counter post-increment — display lags state by one question | `Level01Scene.ts:1035` (read pre-increment) vs `:1082` (increment) | 30 min |
-| G-C7   | "Play Again" after L1 completion loops L1 instead of advancing to L2 | `Level01Scene.ts:1513-1517` (`onPlayAgain` hardcodes `Level01Scene` re-entry) | 30 min |
+**No active Sprint 0 bugs.** All 5 (BUG-01, BUG-02, BUG-04, G-E1, G-C7) verified fixed against the current `Level01Scene.ts`:
 
-**Recently fixed (verified 2026-05-01 — no longer active):**
 - BUG-01: filtered to partition archetype at `Level01Scene.ts:231` (`// Fix 1 (BUG-01)`)
+- BUG-02: progress increment + session-complete check land in correct order at `Level01Scene.ts:1058,1105-1106,1114`
 - BUG-04: hint tiers advance via `hintLadder.next()` at `Level01Scene.ts:1125-1135` (`// Fix 3 (BUG-04)`)
 - G-E1: `updateMastery()` is called at `Level01Scene.ts:1348-1369`
+- G-C7: "Play Again" routes through `LevelScene { levelNumber: ... }` at `Level01Scene.ts:1518,1542` — no longer re-enters `Level01Scene` directly
 
 Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab.
 
