@@ -24,13 +24,18 @@ export const NAVY_HEX = '#1E3A8A';
 export const ACTION_FILL = 0xfcd34d; // amber-300
 export const ACTION_HOVER = 0xf59e0b; // amber-500
 export const ACTION_BORDER = 0xb45309; // amber-700
-export const ACTION_TEXT = '#78350F'; // amber-900
+// WCAG R11: darkened from #78350F (amber-900) to #6D2900 to pass 4.5:1 on hover state
+// #78350F on amber-500 #F59E0B was 4.22:1 (FAIL); #6D2900 achieves 4.97:1 on hover, 7.40:1 on fill
+export const ACTION_TEXT = '#6D2900';
 
 // Hint button — blue, matching the Settings station
 export const HINT_FILL = 0x60a5fa; // blue-400
 export const HINT_HOVER = 0x3b82f6; // blue-500
 export const HINT_BORDER = 0x1e3a8a; // blue-900
-export const HINT_TEXT_CLR = '#1E3A8A'; // blue-900
+// WCAG R11: darkened from #1E3A8A (blue-900) to #101828 to pass 4.5:1 on both fill and hover
+// #1E3A8A on blue-400 #60A5FA was 4.07:1 (FAIL), on blue-500 #3B82F6 was 2.82:1 (FAIL)
+// #101828 achieves 6.98:1 on fill and 4.83:1 on hover
+export const HINT_TEXT_CLR = '#101828';
 
 // Secondary ("Back to menu") button — white pill with navy border
 export const SEC_FILL = WHITE;

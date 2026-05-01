@@ -37,7 +37,9 @@ const NAVY_HEX = '#1E3A8A';
 const PLAY_FILL = 0xfcd34d; // amber-300
 const PLAY_HOVER = 0xf59e0b; // amber-500
 const PLAY_BORDER = 0xb45309; // amber-700
-const PLAY_TEXT = '#78350F'; // amber-900
+// WCAG R11: darkened from #78350F (amber-900) to #6D2900
+// #78350F on amber-500 hover #F59E0B was 4.22:1 (FAIL); #6D2900 achieves 4.97:1 on hover, 7.40:1 on fill
+const PLAY_TEXT = '#6D2900';
 
 const CONT_FILL = 0x34d399; // emerald-400
 const CONT_HOVER = 0x10b981; // emerald-500
@@ -47,7 +49,10 @@ const CONT_TEXT = '#FFFFFF';
 const SET_FILL = 0x60a5fa; // blue-400
 const SET_HOVER = 0x3b82f6; // blue-500
 const SET_BORDER = 0x1e3a8a; // blue-900
-const SET_TEXT = '#1E3A8A';
+// WCAG R11: darkened from #1E3A8A (blue-900) to #101828
+// #1E3A8A on blue-400 #60A5FA was 4.07:1 (FAIL), on blue-500 #3B82F6 was 2.82:1 (FAIL)
+// #101828 achieves 6.98:1 on fill and 4.83:1 on hover
+const SET_TEXT = '#101828';
 
 const GLOW_EMERALD = 0x6ee7b7; // emerald-300
 const GLOW_BLUE = 0x93c5fd; // blue-300
@@ -440,7 +445,9 @@ export class MenuScene extends Phaser.Scene {
         .text(bx, by, isUnlocked ? `Level ${lvl}` : `🔒 ${lvl}`, {
           fontFamily: TITLE_FONT,
           fontSize: '20px',
-          color: isUnlocked ? PLAY_TEXT : '#6b7280',
+          // WCAG R11: locked text darkened from #6b7280 (gray-500) to #4B5563 (gray-600)
+          // #6b7280 on gray-300 #D1D5DB was 3.28:1 (FAIL); #4B5563 achieves 5.13:1 (PASS)
+          color: isUnlocked ? PLAY_TEXT : '#4B5563',
         })
         .setOrigin(0.5)
         .setDepth(63);

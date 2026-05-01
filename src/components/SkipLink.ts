@@ -7,6 +7,10 @@
  */
 
 const SKIP_LINK_ID = 'qf-skip-link';
+// R12 audit: CANVAS_ID matches the id set by labelCanvas() on the Phaser <canvas>.
+// MenuScene.create() calls labelCanvas() then injectSkipLink() in that order, so the
+// canvas id is present before any user interaction resolves the href anchor.
+// Covered by tests/a11y/wcag.spec.ts "skip link present and target canvas exists".
 const CANVAS_ID = 'qf-canvas';
 
 /**
