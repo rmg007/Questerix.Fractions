@@ -100,16 +100,26 @@ export const deviceMetaRepo = {
   async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
       return await db.transaction('rw', db.deviceMeta, async () => {
-        // Ensure the singleton exists
-        await deviceMetaRepo.get();
-
-        // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
-        const atomicPatch: Record<string, unknown> = {};
-        for (const [k, v] of Object.entries(prefPatch)) {
-          atomicPatch[`preferences.${k}`] = v;
+        // Atomically read-modify-write within the transaction
+        let existing = await db.deviceMeta.get(DEVICE_ID);
+        if (!existing) {
+          // Lazy create with defaults if absent
+          try {
+            await db.deviceMeta.add(DEFAULT_META);
+            existing = DEFAULT_META;
+          } catch (writeErr) {
+            if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
+              log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
+            }
+            // Either quota or duplicate-key (race): use defaults and attempt update anyway
+            existing = DEFAULT_META;
+          }
         }
 
-        const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
+        // Merge the patch into preferences and update
+        const updated = await db.deviceMeta.update(DEVICE_ID, {
+          preferences: { ...existing.preferences, ...prefPatch },
+        });
         return updated > 0;
       });
     } catch (err) {

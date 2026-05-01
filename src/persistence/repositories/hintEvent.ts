@@ -1,7 +1,7 @@
 /**
  * HintEvent repository — append-only with post-submission attempt linking.
  * per persistence-spec.md §4, data-schema.md §3.4
- * Note: HintEvent.id is now a nanoid string for type consistency.
+ * Note: HintEvent.id is now a UUID string for type consistency (R4).
  */
 
 import { db } from '../db';
@@ -10,7 +10,7 @@ import type { HintEvent, AttemptId } from '../../types';
 
 export const hintEventRepo = {
   async record(event: Omit<HintEvent, 'id'>): Promise<HintEvent | undefined> {
-    const id = crypto.randomUUID();
+    const id = crypto.randomUUID(); // RFC 4122 UUID string
     const toWrite: HintEvent = { ...event, id, syncState: 'local' as const };
     try {
       await db.hintEvents.add(toWrite);

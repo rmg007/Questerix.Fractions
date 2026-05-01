@@ -159,7 +159,7 @@ export interface Attempt {
 
 /** per data-schema.md §3.4 */
 export interface HintEvent {
-  /** nanoid string ID for type consistency with other entities. */
+  /** RFC 4122 UUID string for type consistency with other entities (R4). */
   id: string;
   attemptId: AttemptId;
   /** References HintTemplate.id */
