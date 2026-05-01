@@ -64,6 +64,49 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await expect(liveRegion).toContainText(/session complete|finished|problems/i);
   });
 
+  test('drag-handle reaches center and submit produces feedback', async ({ page }) => {
+    // Wait for the Level 1 scene and drag handle to be ready
+    const dragHandle = page.locator('[data-testid="drag-handle"]');
+    await expect(dragHandle).toBeVisible({ timeout: 10000 });
+
+    // Drag the handle to the center of its bounding box (correct halves answer)
+    const handleBox = await dragHandle.boundingBox();
+    if (handleBox) {
+      const canvasOrScene = page.locator('[data-testid="level01-scene"]');
+      const sceneBox = await canvasOrScene.boundingBox();
+      const targetX = sceneBox ? sceneBox.x + sceneBox.width / 2 : handleBox.x + handleBox.width / 2;
+      const targetY = handleBox.y + handleBox.height / 2;
+      await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(targetX, targetY, { steps: 10 });
+      await page.mouse.up();
+    }
+
+    // Submit the answer via the submit/check button
+    const submitBtn = page.locator('[data-testid="submit-btn"]');
+    const partitionTarget = page.locator('[data-testid="partition-target"]');
+    // Use whichever submit surface is present — some builds expose submit-btn,
+    // others trigger via partition-target click
+    if (await submitBtn.isVisible().catch(() => false)) {
+      await submitBtn.click();
+    } else {
+      await expect(partitionTarget).toBeVisible({ timeout: 3000 });
+      await partitionTarget.click();
+    }
+
+    // Feedback overlay must appear
+    const feedbackOverlay = page.locator('[data-testid="feedback-overlay"]');
+    await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
+
+    // ARIA-live region announces outcome
+    const liveRegion = page.locator('[aria-live="polite"]');
+    await expect(liveRegion).not.toBeEmpty({ timeout: 1000 });
+
+    // Progress bar reflects that one attempt was made
+    const progressBar = page.locator('[data-testid="progress-bar"]');
+    await expect(progressBar).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 });
+  });
+
   test('hint button is reachable and announces text via ARIA per accessibility.md §6', async ({
     page,
   }) => {

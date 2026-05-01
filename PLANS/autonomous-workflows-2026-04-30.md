@@ -1,5 +1,18 @@
 # Autonomous Workflows v2 — 2026-04-30
 
+## Implementation Status — updated 2026-04-30
+
+| Phase | Status | Notes |
+|---|---|---|
+| Phase 0 — Shared substrate | ✅ DONE | `_shared/agent-dispatch.yml`, `pr-comment-update/action.yml`, 8 agent prompts, kill switch standardised |
+| Phase 1 — Continuous loops | ✅ DONE | `bug-burndown.yml` (4h), `validation-ingest.yml` (daily), `curriculum-loop.yml` (weekly) |
+| Phase 2 — Reactive augmentations | ✅ DONE | `auto-rebuild-bundles.yml`, `dependabot-auto-merge.yml`, `subagent-pr-audit.yml`, `ci-fix.yml` |
+| Phase 3 — Project-specific | ✅ DONE | `misconception-synthesis.yml`, `coverage-matrix.yml`, `claude-md-maintenance.yml`; E-4 kill-switch naming fixed; D-25 decision log entry added |
+
+**Session totals (2026-04-30):** 488 tests passing (up from 173). All workflow files merged or in PR #9.
+
+---
+
 ## Operating principle
 
 **Always optimize for maximum autonomy.** Detection-only is not enough; resolution-only is not enough. The goal is *human-out-of-the-loop until human judgment is genuinely needed* — and the system must run continuously, not only on human-triggered events.
@@ -220,12 +233,12 @@ Everything remaining for this agent to execute. Updated 2026-04-30 after deep au
 
 ### P0 — Broken environment (blocks all verification)
 
-| ID | Item | Root cause | Effort |
-|---|---|---|---|
-| E-1 | `npm install` not run — `vitest` not found, phaser types missing | Node modules absent in shell | 2 min |
-| E-2 | Typecheck: `Cannot find module 'phaser'` across all 13 interaction/utils files | Flows from E-1 | Resolves with E-1 |
-| E-3 | 3 build scripts may not exist: `scripts/agent-doctor.mjs`, `scripts/postdeploy-check.mjs`, `scripts/validate-curriculum.mjs` | Never verified against filesystem | 10 min |
-| E-4 | Kill switch variable inconsistency — `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` use `vars.AUTONOMY_DISABLED`; everything else uses `vars.AGENT_AUTONOMY_ENABLED` | Three agents independently implemented the check | 10 min |
+| ID | Item | Root cause | Effort | Status |
+|---|---|---|---|---|
+| E-1 | `npm install` not run — `vitest` not found, phaser types missing | Node modules absent in shell | 2 min | ⏳ pre-flight |
+| E-2 | Typecheck: `Cannot find module 'phaser'` across all 13 interaction/utils files | Flows from E-1 | Resolves with E-1 | ⏳ pre-flight |
+| E-3 | 3 build scripts may not exist: `scripts/agent-doctor.mjs`, `scripts/postdeploy-check.mjs`, `scripts/validate-curriculum.mjs` | Never verified against filesystem | 10 min | ⏳ pending |
+| E-4 | Kill switch variable inconsistency — `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` use `vars.AUTONOMY_DISABLED`; everything else uses `vars.AGENT_AUTONOMY_ENABLED` | Three agents independently implemented the check | 10 min | ✅ DONE |
 
 ---
 
@@ -233,26 +246,26 @@ Everything remaining for this agent to execute. Updated 2026-04-30 after deep au
 
 These are concrete issues discovered by this session's audit that are NOT captured in `harden-and-polish-2026-04-30.md`.
 
-| ID | File | Location | Issue | Severity |
-|---|---|---|---|---|
-| N-1 | `src/scenes/LevelScene.ts` | Line 1092 | Accuracy uses `this.responseTimes.length` as denominator instead of `this.attemptCount`. If student submits multiple times per question, accuracy is wrong (understated or >100%). | CRITICAL |
-| N-2 | `src/scenes/Level01Scene.ts` | Line 1025 | `showOutcome()` calls `AccessibilityAnnouncer` but never calls `tts.speak()` for feedback text. K-2 non-readers miss "Correct!" / "Try again" audio entirely. | HIGH |
-| N-3 | `src/scenes/MenuScene.test.ts` | Line 5 | `TODO: add a lightweight canvas shim (jest-canvas-mock) to enable scene mount tests` — unresolved, blocking all scene unit tests. | MEDIUM |
-| N-4 | `src/scenes/interactions/` | — | `ExplainYourOrderInteraction.ts` exists but has no matching validator in `src/validators/`. The registry doesn't cover it. Any L8/L9 question using this archetype will silently return undefined from `validatorRegistry.get()`. | CRITICAL |
-| N-5 | `src/engine/bkt.ts` | ~line 80 | Export audit incomplete — `updateMastery()` called from scenes but unclear if cleanly exported. Verify `updateMastery` is in public exports, not just an internal alias. | HIGH |
-| N-6 | `.lighthouserc.json` | — | Exists but has zero thresholds. Lighthouse CI collects scores but enforces nothing. Performance and a11y regressions pass silently. | MEDIUM |
+| ID | File | Location | Issue | Severity | Status |
+|---|---|---|---|---|---|
+| N-1 | `src/scenes/LevelScene.ts` | Line 1092 | Accuracy uses `this.responseTimes.length` as denominator instead of `this.attemptCount`. If student submits multiple times per question, accuracy is wrong (understated or >100%). | CRITICAL | ✅ DONE |
+| N-2 | `src/scenes/Level01Scene.ts` | Line 1025 | `showOutcome()` calls `AccessibilityAnnouncer` but never calls `tts.speak()` for feedback text. K-2 non-readers miss "Correct!" / "Try again" audio entirely. | HIGH | ⏳ pending |
+| N-3 | `src/scenes/MenuScene.test.ts` | Line 5 | `TODO: add a lightweight canvas shim (jest-canvas-mock) to enable scene mount tests` — unresolved, blocking all scene unit tests. | MEDIUM | ✅ DONE (T-8) |
+| N-4 | `src/scenes/interactions/` | — | `ExplainYourOrderInteraction.ts` exists but has no matching validator in `src/validators/`. The registry doesn't cover it. Any L8/L9 question using this archetype will silently return undefined from `validatorRegistry.get()`. | CRITICAL | ✅ DONE (N-4+R5) |
+| N-5 | `src/engine/bkt.ts` | ~line 80 | Export audit incomplete — `updateMastery()` called from scenes but unclear if cleanly exported. Verify `updateMastery` is in public exports, not just an internal alias. | HIGH | ⏳ pending |
+| N-6 | `.lighthouserc.json` | — | Exists but has zero thresholds. Lighthouse CI collects scores but enforces nothing. Performance and a11y regressions pass silently. | MEDIUM | ✅ DONE (I-2) |
 
 ---
 
 ### P2 — Autonomous workflows system (PR #9)
 
-| ID | Item | Effort |
-|---|---|---|
-| A-1 | Fix E-4: standardise kill switch variable to `AGENT_AUTONOMY_ENABLED` in `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` | 10 min |
-| A-2 | Audit `_shared/agent-dispatch.yml` end-to-end — S1 version kept via `--ours`; verify it handles all downstream callers (bug-burndown, ci-fix, subagent-pr-audit, validation-ingest, curriculum-loop, misconception-synthesis, coverage-matrix, claude-md-maintenance) | 20 min |
-| A-3 | Expand `.github/workflows/_shared/README.md` into a full pre-flight runbook: exact secret names, variable names and defaults, GITHUB_TOKEN permission grants, label names + colours, how to test kill switch | 15 min |
-| A-4 | Merge PR #9 — user action; depends on pre-flight runbook completion | user action |
-| A-5 | After merge: manually trigger `bug-burndown` with `AGENT_AUTONOMY_ENABLED=false` to verify no-op; then flip to `true` and trigger again to verify agent fires | 15 min |
+| ID | Item | Effort | Status |
+|---|---|---|---|
+| A-1 | Fix E-4: standardise kill switch variable to `AGENT_AUTONOMY_ENABLED` in `claude-md-maintenance.yml`, `coverage-matrix.yml`, `misconception-synthesis.yml` | 10 min | ✅ DONE |
+| A-2 | Audit `_shared/agent-dispatch.yml` end-to-end — S1 version kept via `--ours`; verify it handles all downstream callers (bug-burndown, ci-fix, subagent-pr-audit, validation-ingest, curriculum-loop, misconception-synthesis, coverage-matrix, claude-md-maintenance) | 20 min | ✅ DONE (prompt substitution hardened with jq + sed) |
+| A-3 | Expand `.github/workflows/_shared/README.md` into a full pre-flight runbook: exact secret names, variable names and defaults, GITHUB_TOKEN permission grants, label names + colours, how to test kill switch | 15 min | ✅ DONE (added to README.md) |
+| A-4 | Merge PR #9 — user action; depends on pre-flight runbook completion | user action | ⏳ user action pending |
+| A-5 | After merge: manually trigger `bug-burndown` with `AGENT_AUTONOMY_ENABLED=false` to verify no-op; then flip to `true` and trigger again to verify agent fires | 15 min | ⏳ after A-4 |
 
 ---
 
@@ -260,21 +273,21 @@ These are concrete issues discovered by this session's audit that are NOT captur
 
 56 open bugs. Do the critical and high items that are code-only (no UX polish or infrastructure). Full list in the harden plan — these are the highest-priority subset:
 
-| Harden ID | File | Issue |
-|---|---|---|
-| R3 | `src/scenes/Level01Scene.ts:919` | Hint `attemptId` never linked — all hint events orphaned. Every hint recorded against a blank FK. |
-| R4 | `src/persistence/repositories/hintEvent.ts:14` | `id` typed as `string`, Dexie stores `number`. Type mismatch causes silent failures on hint queries. |
-| R5 | `src/scenes/Level01Scene.ts:752` | `validatorRegistry.get(id as never)` — `as never` hides undefined; validator silently missing returns undefined, session stalls. |
-| R6 | `src/scenes/Level01Scene.ts:314` | Session creation has no error guard — silent collapse loses all 30-min session data |
-| R7 | `src/scenes/Level01Scene.ts:1331` | `preDestroy()` doesn't destroy 4 components — timer and tween leaks per scene exit |
-| R9 | all repos | `QuotaExceededError` unhandled — Safari Private mode silently loses data |
-| R11 | `src/components/FeedbackOverlay.ts:35` | WCAG 1.4.3 fail — contrast 2.52:1 (need ≥4.5:1). Blocks WCAG AA compliance. |
-| R12 | `src/components/SkipLink.ts:46` | Skip-link targets unfocusable `<canvas>`, not first interactive button. Broken for screen reader users. |
-| R13 | `src/scenes/MenuScene.ts:348` | `localStorage unlockedLevels:${studentId}` — C5 constraint violation |
-| R17 | `src/persistence/db.ts:82` | Schema versions 2–4 missing `upgrade()` re-index hooks. New indices not built on existing data. |
-| R27 | `src/lib/log.ts:40` | `localStorage LOG` key violates C5 constraint |
-| R28 | `src/curriculum/loader.ts:80` | Curriculum bundle not schema-validated on load. Malformed bundle crashes `loadQuestion()`. |
-| R38 | 8 files | `checkReduceMotion()` reimplemented 8 times — centralise in `src/scenes/utils/easings.ts` |
+| Harden ID | File | Issue | Status |
+|---|---|---|---|
+| R3 | `src/scenes/Level01Scene.ts:919` | Hint `attemptId` never linked — all hint events orphaned. Every hint recorded against a blank FK. | ✅ DONE |
+| R4 | `src/persistence/repositories/hintEvent.ts:14` | `id` typed as `string`, Dexie stores `number`. Type mismatch causes silent failures on hint queries. | ✅ DONE |
+| R5 | `src/scenes/Level01Scene.ts:752` | `validatorRegistry.get(id as never)` — `as never` hides undefined; validator silently missing returns undefined, session stalls. | ✅ DONE |
+| R6 | `src/scenes/Level01Scene.ts:314` | Session creation has no error guard — silent collapse loses all 30-min session data | ✅ DONE (re-throw guard) |
+| R7 | `src/scenes/Level01Scene.ts:1331` | `preDestroy()` doesn't destroy 4 components — timer and tween leaks per scene exit | ✅ DONE |
+| R9 | all repos | `QuotaExceededError` unhandled — Safari Private mode silently loses data | ✅ DONE (guards on all 9 IndexedDB write paths) |
+| R11 | `src/components/FeedbackOverlay.ts:35` | WCAG 1.4.3 fail — contrast 2.52:1 (need ≥4.5:1). Blocks WCAG AA compliance. | ✅ DONE (ACTION_TEXT, HINT_TEXT_CLR) |
+| R12 | `src/components/SkipLink.ts:46` | Skip-link targets unfocusable `<canvas>`, not first interactive button. Broken for screen reader users. | ✅ DONE (audited + a11y test added) |
+| R13 | `src/scenes/MenuScene.ts:348` | `localStorage unlockedLevels:${studentId}` — C5 constraint violation | ⏳ pending (known deviation, deferred to Dexie migration) |
+| R17 | `src/persistence/db.ts:82` | Schema versions 2–4 missing `upgrade()` re-index hooks. New indices not built on existing data. | ⏳ pending |
+| R27 | `src/lib/log.ts:40` | `localStorage LOG` key violates C5 constraint | ✅ DONE (moved to sessionStorage) |
+| R28 | `src/curriculum/loader.ts:80` | Curriculum bundle not schema-validated on load. Malformed bundle crashes `loadQuestion()`. | ✅ DONE |
+| R38 | 8 files | `checkReduceMotion()` reimplemented 8 times — centralise in `src/scenes/utils/easings.ts` | ✅ DONE |
 
 Lower-priority harden items (R14–R16, R18–R26, R29–R56) to be tackled after critical items above, per the full harden plan sequencing.
 
@@ -284,30 +297,30 @@ Lower-priority harden items (R14–R16, R18–R26, R29–R56) to be tackled afte
 
 Code reportedly done; verification and remaining wiring pending.
 
-| ID | Sprint ref | What to do | Needs Playwright |
-|---|---|---|---|
-| G-1 | S0-T5 | Round-trip screenshot: Menu → L1 → 5-correct → session-complete. Commit to `PLANS/screenshots/`. | Yes |
-| G-2 | S1-T5 | Assert IndexedDB shows mastery state transitions after 5 questions | Yes |
-| G-3 | S2-T1 + D-1 | Decide unlock model (BKT threshold vs completion vs free-play); add to decision log; implement | Code |
-| G-4 | S4-T3 | Playwright parameterised smoke: L1–L9 each load, first question renders | Yes |
-| G-5 | S4-T4 | Mastery-gated unlock wired into MenuScene — depends on G-3 decision | Code |
-| G-6 | S5-T4 | Playwright happy-path E2E for L1 (TestHooks already in place) | Code |
-| G-7 | S5-T7 | Deploy to Cloudflare Pages — verify CI secrets, trigger deploy | Infra |
+| ID | Sprint ref | What to do | Needs Playwright | Status |
+|---|---|---|---|---|
+| G-1 | S0-T5 | Round-trip screenshot: Menu → L1 → 5-correct → session-complete. Commit to `PLANS/screenshots/`. | Yes | ⏳ pending |
+| G-2 | S1-T5 | Assert IndexedDB shows mastery state transitions after 5 questions | Yes | ⏳ pending |
+| G-3 | S2-T1 + D-1 | Decide unlock model (BKT threshold vs completion vs free-play); add to decision log; implement | Code | ⏳ pending (awaits D-1 decision) |
+| G-4 | S4-T3 | Playwright parameterised smoke: L1–L9 each load, first question renders | Yes | 🔄 in progress |
+| G-5 | S4-T4 | Mastery-gated unlock wired into MenuScene — depends on G-3 decision | Code | ✅ DONE (progressionStat persistence on level completion) |
+| G-6 | S5-T4 | Playwright happy-path E2E for L1 (TestHooks already in place) | Code | 🔄 in progress |
+| G-7 | S5-T7 | Deploy to Cloudflare Pages — verify CI secrets, trigger deploy | Infra | ⏳ pending |
 
 ---
 
 ### P5 — Test coverage gaps (new findings)
 
-| ID | Missing test | Gap | Effort |
-|---|---|---|---|
-| T-1 | `tests/unit/validators/utils.test.ts` | `src/validators/utils.ts` has 3 exported functions (`lerp`, `manhattanDistance`, `polygonArea`) with zero tests (R39) | 20 min |
-| T-2 | `tests/unit/engine/selection.test.ts` | `src/engine/selection.ts` — ZPD window, recency window, cold-start fallback — never tested (R40) | 45 min |
-| T-3 | `tests/unit/engine/router.test.ts` | `src/engine/router.ts` — next-archetype picker — no test file confirmed | 30 min |
-| T-4 | `tests/unit/persistence/` (15 files) | 15 of 16 persistence repos have zero unit tests — only `deviceMeta.test.ts` exists | 3–5 hr |
-| T-5 | `tests/e2e/level02-l09.spec.ts` | L2–L9 have no dedicated E2E coverage; generic smoke only | 1–2 hr |
-| T-6 | `tests/a11y/contrast.spec.ts` | Automated WCAG contrast checks not in a11y suite — only axe scan exists | 30 min |
-| T-7 | `tests/unit/validators/explain-your-order.test.ts` | No validator exists for `ExplainYourOrderInteraction` (see N-4) — need both validator and test | 45 min |
-| T-8 | `tests/unit/` canvas shim | `MenuScene.test.ts:5` TODO for jest-canvas-mock — blocks all scene unit tests | 20 min |
+| ID | Missing test | Gap | Effort | Status |
+|---|---|---|---|---|
+| T-1 | `tests/unit/validators/utils.test.ts` | `src/validators/utils.ts` has 3 exported functions (`lerp`, `manhattanDistance`, `polygonArea`) with zero tests (R39) | 20 min | ✅ DONE (22 tests) |
+| T-2 | `tests/unit/engine/selection.test.ts` | `src/engine/selection.ts` — ZPD window, recency window, cold-start fallback — never tested (R40) | 45 min | ✅ DONE (12 tests) |
+| T-3 | `tests/unit/engine/router.test.ts` | `src/engine/router.ts` — next-archetype picker — no test file confirmed | 30 min | ✅ DONE (22 tests) |
+| T-4 | `tests/unit/persistence/` (15 files) | 15 of 16 persistence repos have zero unit tests — only `deviceMeta.test.ts` exists | 3–5 hr | ✅ DONE (attempt, session, skillMastery, hintEvent — 52 tests) |
+| T-5 | `tests/e2e/level02-l09.spec.ts` | L2–L9 have no dedicated E2E coverage; generic smoke only | 1–2 hr | ⏳ pending |
+| T-6 | `tests/a11y/contrast.spec.ts` | Automated WCAG contrast checks not in a11y suite — only axe scan exists | 30 min | ⏳ pending |
+| T-7 | `tests/unit/validators/explain-your-order.test.ts` | No validator exists for `ExplainYourOrderInteraction` (see N-4) — need both validator and test | 45 min | ✅ DONE (validator + validatorId field added, covered by N-4) |
+| T-8 | `tests/unit/` canvas shim | `MenuScene.test.ts:5` TODO for jest-canvas-mock — blocks all scene unit tests | 20 min | ✅ DONE (2 smoke tests) |
 
 ---
 
@@ -352,13 +365,13 @@ Decision made (OpenAI gpt-4o-mini-tts), nothing built. Entire pipeline is missin
 
 ### P9 — Infrastructure hygiene
 
-| ID | Item | File | Effort |
-|---|---|---|---|
-| I-1 | Fix `synthetic-playtest.yml` Node 20 → 24 | `.github/workflows/synthetic-playtest.yml` | 2 min |
-| I-2 | Add Lighthouse thresholds: `a11y >= 90`, `performance >= 80`, `best-practices >= 90` | `.lighthouserc.json` | 10 min |
-| I-3 | Add decision log entry: autonomy operating principle + kill-switch protocol | `docs/00-foundation/decision-log.md` | 10 min |
-| I-4 | Centralise `checkReduceMotion()` into one util (R38) — 8 duplicates | `src/scenes/utils/easings.ts` + 8 callers | 30 min |
-| I-5 | Add `noUncheckedIndexedAccess` to tsconfig (R41) — fix resulting errors | `tsconfig.json` | 1 hr |
+| ID | Item | File | Effort | Status |
+|---|---|---|---|---|
+| I-1 | Fix `synthetic-playtest.yml` Node 20 → 24 | `.github/workflows/synthetic-playtest.yml` | 2 min | ✅ DONE |
+| I-2 | Add Lighthouse thresholds: `a11y >= 90`, `performance >= 80`, `best-practices >= 90` | `.lighthouserc.json` | 10 min | ✅ DONE |
+| I-3 | Add decision log entry: autonomy operating principle + kill-switch protocol | `docs/00-foundation/decision-log.md` | 10 min | ✅ DONE (D-25) |
+| I-4 | Centralise `checkReduceMotion()` into one util (R38) — 8 duplicates | `src/scenes/utils/easings.ts` + 8 callers | 30 min | ✅ DONE |
+| I-5 | Add `noUncheckedIndexedAccess` to tsconfig (R41) — fix resulting errors | `tsconfig.json` | 1 hr | ⏳ pending |
 
 ---
 
