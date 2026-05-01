@@ -140,7 +140,7 @@ function tryParsePlural(s: string, start: number): PluralBlock | null {
   let i = start + 1;
   // Read key
   const keyStart = i;
-  while (i < s.length && /[a-zA-Z0-9_]/.test(s[i])) i++;
+  while (i < s.length && /[a-zA-Z0-9_]/.test(s[i]!)) i++;
   const key = s.slice(keyStart, i);
   if (!key) return null;
   // Expect `, plural,`
@@ -170,7 +170,7 @@ function tryParsePlural(s: string, start: number): PluralBlock | null {
     // (We accept but don't use other plural categories for the K-2 surface.)
     i++; // skip '}'
     // Skip whitespace
-    while (i < s.length && /\s/.test(s[i])) i++;
+    while (i < s.length && /\s/.test(s[i]!)) i++;
   }
   if (s[i] !== '}') return null;
   return { key, branches, end: i + 1 };

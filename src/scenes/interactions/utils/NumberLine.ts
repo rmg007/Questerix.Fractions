@@ -132,7 +132,7 @@ export class NumberLine {
     this.marker!.on('dragend', () => {
       let snapped = this.currentValue;
       if (snapPositions!.length > 0) {
-        let best = snapPositions![0];
+        let best = snapPositions![0]!;
         let bestDist = Infinity;
         for (const sp of snapPositions!) {
           const spx = left + ((sp - minValue) / range) * length;

@@ -103,7 +103,7 @@ function getActiveLayer(): HTMLElement | null {
     // Auto-create base layer if none exists
     A11yLayer.pushLayer('base', 'Game controls');
   }
-  return layerStack[layerStack.length - 1];
+  return layerStack[layerStack.length - 1] ?? null;
 }
 
 export const A11yLayer = {
@@ -117,7 +117,7 @@ export const A11yLayer = {
 
     // Suppress previous layer
     if (layerStack.length > 0) {
-      const prev = layerStack[layerStack.length - 1];
+      const prev = layerStack[layerStack.length - 1]!;
       prev.setAttribute('aria-hidden', 'true');
       prev.setAttribute('inert', '');
     }
@@ -145,7 +145,7 @@ export const A11yLayer = {
     }
 
     if (layerStack.length > 0) {
-      const prev = layerStack[layerStack.length - 1];
+      const prev = layerStack[layerStack.length - 1]!;
       prev.removeAttribute('aria-hidden');
       prev.removeAttribute('inert');
     }

@@ -46,7 +46,7 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
   if (rate >= 0.6) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-WHB-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -101,7 +101,7 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
   if (rate >= 0.6) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-WHB-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -135,7 +135,7 @@ export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFl
   if (accuracy < 0.5 && avgError > 0.2) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-MAG-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -190,7 +190,7 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
   if (rate >= 0.5) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-PRX-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -241,7 +241,7 @@ export function detectEOL01(attempts: Attempt[], level: number): MisconceptionFl
   if (rate >= 0.5) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -286,7 +286,7 @@ export function detectNOM01(attempts: Attempt[], level: number): MisconceptionFl
   if (rate >= 0.6) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-NOM-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -326,7 +326,7 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
   if (evidenceIds.length / rotated.length >= 0.5) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -357,7 +357,7 @@ export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionF
   if (evidenceIds.length / eolAttempts.length >= 0.4) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-03' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -388,7 +388,7 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
   if (evidenceIds.length / eolAttempts.length >= 0.5) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-04' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -414,7 +414,7 @@ export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFl
   if (evidenceIds.length >= 3) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-MAG-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -453,7 +453,7 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
   if (evidenceIds.length / targetAboveHalf.length >= 0.6) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-PRX-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -485,7 +485,7 @@ export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFl
   if (evidenceIds.length >= 2) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-SHP-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -515,7 +515,7 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
   if (evidenceIds.length >= 2) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-SHP-02' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -539,7 +539,7 @@ export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionF
   if (evidenceIds.length >= 2) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-VOC-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -573,7 +573,7 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
   if (evidenceIds.length / thirdsAttempts.length >= 0.5) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-THIRDS-HALF-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -599,7 +599,7 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
   if (evidenceIds.length >= 1) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-FOURTHS-3CUTS-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -623,7 +623,7 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
   if (evidenceIds.length >= 3) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-DENSWITCH-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),
@@ -763,7 +763,7 @@ export function detectSTRAT01(attempts: Attempt[], level: number): Misconception
   if (rate >= 0.7) {
     return {
       id: crypto.randomUUID(),
-      studentId: attempts[0].studentId,
+      studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-STRAT-01' as MisconceptionId,
       firstObservedAt: Date.now(),
       lastObservedAt: Date.now(),

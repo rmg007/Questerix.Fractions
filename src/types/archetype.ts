@@ -15,6 +15,7 @@ export const ARCHETYPES = [
   'snap_match',
   'equal_or_not',
   'placement',
+  'explain_your_order',
 ] as const;
 
 export type ArchetypeId = (typeof ARCHETYPES)[number];

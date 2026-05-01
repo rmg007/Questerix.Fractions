@@ -84,7 +84,7 @@ export function createMotionBudget(surface: Surface, reduced = false): MotionBud
       let victimIndex = -1;
       let victimRank = requestedRank;
       for (let i = 0; i < slots.length; i++) {
-        const r = PRIORITY_RANK[slots[i].priority];
+        const r = PRIORITY_RANK[slots[i]!.priority]!;
         if (r < victimRank) {
           victimRank = r;
           victimIndex = i;
@@ -93,7 +93,7 @@ export function createMotionBudget(surface: Surface, reduced = false): MotionBud
       if (victimIndex < 0) {
         return null;
       }
-      const victim = slots[victimIndex];
+      const victim = slots[victimIndex]!; // victimIndex >= 0 guarded above
       slots.splice(victimIndex, 1);
       victim.onEvict?.();
     }

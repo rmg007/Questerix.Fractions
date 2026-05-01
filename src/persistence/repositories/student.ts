@@ -4,20 +4,29 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { Student, StudentId } from '../../types';
 
 export const studentRepo = {
   async create(
     input: Omit<Student, 'id' | 'createdAt' | 'syncState'> & { id: StudentId }
-  ): Promise<Student> {
+  ): Promise<Student | undefined> {
     const record: Student = {
       ...input,
       createdAt: Date.now(),
       lastActiveAt: Date.now(),
       syncState: 'local',
     };
-    await db.students.add(record);
-    return record;
+    try {
+      await db.students.add(record);
+      return record;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'students' });
+        return undefined;
+      }
+      throw err;
+    }
   },
 
   async get(id: StudentId): Promise<Student | undefined> {

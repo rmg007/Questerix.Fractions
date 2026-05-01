@@ -65,6 +65,7 @@ const INITIAL_HANDLE_OFFSET_PCT = 0.3;
 
 interface L01Question {
   id: string;
+  validatorId?: string;
   shapeType: 'rectangle' | 'circle';
   difficultyTier: 'easy' | 'medium' | 'hard';
   areaTolerance: number;
@@ -139,8 +140,8 @@ export class Level01Scene extends Phaser.Scene {
   private correctCount: number = 0;
   private totalQuestionsAttempted: number = 0;
 
-  // Fix 6 (G-E3): hint-event IDs accumulated per question
-  private currentQuestionHintIds: string[] = [];
+  // Fix 6 (G-E3): hint-event IDs accumulated per question (Dexie auto-increment numbers)
+  private currentQuestionHintIds: number[] = [];
 
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
@@ -250,19 +251,33 @@ export class Level01Scene extends Phaser.Scene {
 
     // ── Open session in persistence ────────────────────────────────────────
     // per runtime-architecture.md §8 step 4 — new Session row on scene load
-    // R6: Check return value; if session creation fails, show error and stop
-    const sessionOk = await this.openSession();
-    if (!sessionOk) {
+    // R6: catch session creation failures — show user-visible error, block play.
+    try {
+      await this.openSession();
+    } catch (err) {
+      log.error('SESS', 'create_fatal', { error: String(err) });
+      AccessibilityAnnouncer.announce(
+        'Sorry, we could not start your session. Please reload the page.'
+      );
       this.add
-        .text(CW / 2, CH / 2, 'Could not start session.\nPlease go back and try again.', {
-          fontSize: '28px',
-          fontFamily: BODY_FONT,
-          color: '#ef4444',
-          align: 'center',
-          wordWrap: { width: CW - 80 },
-        })
+        .text(
+          CW / 2,
+          CH / 2,
+          'Could not start session.\nPlease reload the page.',
+          {
+            fontSize: '24px',
+            fontFamily: BODY_FONT,
+            fontStyle: 'bold',
+            color: '#b91c1c',
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            padding: { x: 20, y: 14 },
+            align: 'center',
+            wordWrap: { width: 600 },
+          }
+        )
         .setOrigin(0.5)
         .setDepth(100);
+      // Block play — do not proceed with UI or question loading.
       return;
     }
 
@@ -405,8 +420,8 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session persistence ──────────────────────────────────────────────────
 
-  private async openSession(): Promise<boolean> {
-    if (!this.studentId) return true; // anonymous play is OK
+  private async openSession(): Promise<void> {
+    if (!this.studentId) return; // anonymous play is OK
     log.sess('open_start', { studentId: this.studentId, resume: this.resume });
     try {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
@@ -435,7 +450,7 @@ export class Level01Scene extends Phaser.Scene {
           }
 
           log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
-          return true;
+          return;
         }
       }
 
@@ -464,12 +479,17 @@ export class Level01Scene extends Phaser.Scene {
         },
         syncState: 'local',
       });
-      this.sessionId = session.id;
-      log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
-      return true;
+      if (session) {
+        this.sessionId = session.id;
+        log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
+      } else {
+        // Quota exceeded — volatile mode, session not persisted
+        log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
+      }
     } catch (err) {
-      log.warn('SESS', 'open_error', { error: String(err) });
-      return false;
+      // R6: re-throw so create() can show a user-visible error and block play.
+      log.error('SESS', 'open_error', { error: String(err) });
+      throw err;
     }
   }
 
@@ -653,6 +673,7 @@ export class Level01Scene extends Phaser.Scene {
 
     return {
       id: tmpl.id,
+      validatorId: tmpl.validatorId,
       shapeType: payload.shapeType ?? 'rectangle',
       difficultyTier: tmpl.difficultyTier,
       areaTolerance: tolerance,
@@ -912,7 +933,9 @@ export class Level01Scene extends Phaser.Scene {
         // Use validator registry with the template's validatorId
         // per runtime-architecture.md §4.2 (ValidatorRegistry)
         const { validatorRegistry } = await import('../validators/registry');
-        const reg = validatorRegistry.get(this.currentQuestion.id as never);
+        const reg = this.currentQuestion.validatorId
+          ? validatorRegistry.get(this.currentQuestion.validatorId)
+          : undefined;
         // Fall back to direct partition validator if ID not found in registry
         if (reg) {
           result = (reg as { fn: (i: unknown, p: unknown) => ValidatorResult }).fn(input, payload);
@@ -1183,8 +1206,12 @@ export class Level01Scene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
-        this.currentQuestionHintIds.push(event.id);
-        log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        if (event) {
+          this.currentQuestionHintIds.push(event.id);
+          log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        } else {
+          log.warn('HINT', 'record_quota', { hintId: `hint.partition.${tier}` });
+        }
       } catch (err) {
         log.warn('HINT', 'record_error', { error: String(err) });
       }
@@ -1326,19 +1353,16 @@ export class Level01Scene extends Phaser.Scene {
 
       log.atmp('record_ok', { attemptId, outcome, points: result.score });
 
-      // R3: Link hint events to this attempt (they were created with empty attemptId)
+      // R3: link orphan hint events to this attempt now that attemptId is known
       if (this.currentQuestionHintIds.length > 0) {
         try {
           const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
-          for (const hintId of this.currentQuestionHintIds) {
-            await hintEventRepo.update(hintId, { attemptId });
-          }
-          log.hint('linkage_ok', { attemptId, hintCount: this.currentQuestionHintIds.length });
-        } catch (err) {
-          log.warn('HINT', 'linkage_error', { error: String(err) });
+          await hintEventRepo.linkToAttempt(this.currentQuestionHintIds, attemptId);
+          log.hint('link_ok', { count: this.currentQuestionHintIds.length, attemptId });
+        } catch (linkErr) {
+          log.warn('HINT', 'link_error', { error: String(linkErr) });
         }
       }
-      this.currentQuestionHintIds = []; // Reset for next question
 
       // Fix 4 (G-E1): update BKT mastery after every attempt
       try {
@@ -1429,13 +1453,13 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
-  private _allLevelsComplete(): boolean {
+  private async _allLevelsComplete(): Promise<boolean> {
     try {
-      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (!raw) return false;
-      const arr = JSON.parse(raw) as number[];
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+      if (!this.studentId) return false;
+      const { levelProgressionRepo } = await import('../persistence/repositories/levelProgression');
+      const { StudentId: SID } = await import('../types/branded');
+      const completed = await levelProgressionRepo.getCompletedLevels(SID(this.studentId));
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => completed.has(n));
     } catch {
       return false;
     }
@@ -1461,6 +1485,9 @@ export class Level01Scene extends Phaser.Scene {
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
 
+    // G-5: unlock Level 2 in IndexedDB progressionStat
+    await this.persistLevelCompletion();
+
     // Adaptive router: write suggested next level (simplified for L1 — no mastery tracking)
     try {
       const { decideNextLevel } = await import('../engine/router');
@@ -1473,14 +1500,15 @@ export class Level01Scene extends Phaser.Scene {
         inCalibration,
         recentOutcomes: this.recentOutcomes.slice(-5),
       });
+      // sessionStorage is acceptable for this routing hint — it's not progress data (C5).
       const suggestKey = this.studentId ? `suggestedLevel:${this.studentId}` : 'suggestedLevel';
-      localStorage.setItem(suggestKey, String(suggestedLevel));
+      sessionStorage.setItem(suggestKey, String(suggestedLevel));
     } catch (err) {
       log.warn('ROUT', 'decision_error', { error: String(err) });
     }
 
     // Quest-complete check: if all 9 levels are now done, show grand overlay
-    const allDone = this._allLevelsComplete();
+    const allDone = await this._allLevelsComplete();
     if (allDone) {
       const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
       new QuestCompleteOverlay({
@@ -1532,6 +1560,48 @@ export class Level01Scene extends Phaser.Scene {
     }
 
     await this.closeSession();
+  }
+
+
+  /**
+   * G-5: Write (or update) a ProgressionStat row in IndexedDB marking Level 1 as
+   * completed and advancing to Level 2.
+   * Best-effort write — persistence failure never blocks gameplay.
+   */
+  private async persistLevelCompletion(): Promise<void> {
+    if (!this.studentId) return;
+    try {
+      const { progressionStatRepo } = await import(
+        '../persistence/repositories/progressionStat'
+      );
+      const { ActivityId } = await import('../types/branded');
+      const studentIdTyped = this.studentId as import('@/types').StudentId;
+      const activityId = ActivityId('level_1');
+
+      const existing = await progressionStatRepo.get(studentIdTyped, activityId);
+      const now = Date.now();
+      const updated: import('@/types').ProgressionStat = {
+        studentId: studentIdTyped,
+        activityId,
+        currentLevel: 2,
+        highestLevelReached: Math.max(2, existing?.highestLevelReached ?? 2),
+        sessionsAtCurrentLevel: 0,
+        totalSessions: (existing?.totalSessions ?? 0) + 1,
+        totalXp: (existing?.totalXp ?? 0) + this.correctCount * 10,
+        lastSessionAt: now,
+        consecutiveRegressEvents: existing?.consecutiveRegressEvents ?? 0,
+        syncState: 'local',
+      };
+      await progressionStatRepo.upsert(updated);
+      log.scene('progression_stat_upserted', {
+        level: 1,
+        nextLevel: 2,
+        activityId,
+        totalSessions: updated.totalSessions,
+      });
+    } catch (err) {
+      log.warn('PROG', 'progression_stat_error', { level: 1, error: String(err) });
+    }
   }
 
   private async closeSession(): Promise<void> {
@@ -1595,6 +1665,12 @@ export class Level01Scene extends Phaser.Scene {
   // Called by Phaser when scene is shut down
   preDestroy(): void {
     log.scene('destroy');
+    // R7: destroy all managed components to prevent memory leaks and dangling listeners.
+    // feedbackOverlay, dragHandle, progressBar all expose destroy() via Phaser base classes.
+    // hintLadder is a plain state-machine (no Phaser objects), so no destroy needed.
+    this.feedbackOverlay?.destroy();
+    this.dragHandle?.destroy();
+    this.progressBar?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();

@@ -1,0 +1,120 @@
+name: Issue → Copilot (R3)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  assign-to-copilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # ── Guard 1: only the claude:implement label ──────────────────────────
+      - name: Guard — correct label
+        if: github.event.label.name != 'claude:implement'
+        run: |
+          echo "::notice::Label '${{ github.event.label.name }}' is not 'claude:implement'. Nothing to do."
+          exit 0
+
+      # ── Guard 2: only the repo owner may trigger automation ──────────────
+      - name: Guard — owner only
+        id: owner-check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sender = context.payload.sender.login;
+            const owner  = context.repo.owner;
+            if (sender !== owner) {
+              // Remove the label
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'claude:implement'
+              });
+              // Post explanation
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: context.issue.number,
+                body: `Only the repository owner can trigger automated implementation. Label removed.`
+              });
+              core.setOutput('skip', 'true');
+            } else {
+              core.setOutput('skip', 'false');
+            }
+
+      - name: Exit if not owner
+        if: steps.owner-check.outputs.skip == 'true'
+        run: exit 0
+
+      # ── Post acknowledgement comment ─────────────────────────────────────
+      - name: Post acknowledgement
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 Received \`claude:implement\` label. Assigning to Copilot for implementation.\n\nCopilot will analyze this issue and open a pull request. This may take a few minutes.`
+            });
+
+      # ── Assign to Copilot ─────────────────────────────────────────────────
+      - name: Assign to Copilot
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.request('POST /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: ['copilot']
+            });
+
+      # ── Add copilot-assigned label (create if missing) ───────────────────
+      - name: Add copilot-assigned label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelName  = 'copilot-assigned';
+            const labelColor = '7057ff';
+
+            // Ensure label exists
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                name:  labelName
+              });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  name:  labelName,
+                  color: labelColor,
+                  description: 'Assigned to GitHub Copilot Coding Agent for implementation'
+                });
+              } else {
+                throw e;
+              }
+            }
+
+            // Apply label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [labelName]
+            });

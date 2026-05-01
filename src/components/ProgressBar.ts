@@ -11,6 +11,7 @@
 import * as Phaser from 'phaser';
 import { TITLE_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { checkReduceMotion } from '../lib/preferences';
 
 export interface ProgressBarConfig {
   scene: Phaser.Scene;
@@ -80,7 +81,7 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   setProgress(value: number): void {
     const prev = this.currentValue;
     this.currentValue = Math.min(Math.max(0, value), this.goal);
-    const reduceMotion = this.checkReduceMotion();
+    const reduceMotion = checkReduceMotion();
 
     this.stars.forEach((star, i) => {
       const filled = i < this.currentValue;
@@ -117,13 +118,5 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   }
   get isComplete(): boolean {
     return this.currentValue >= this.goal;
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 }

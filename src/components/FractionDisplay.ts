@@ -67,8 +67,8 @@ export function parseFraction(value: string): { num: number; den: number } | nul
   }
   const slash = v.match(/^(-?\d+)\s*\/\s*(\d+)$/);
   if (slash) {
-    const num = parseInt(slash[1], 10);
-    const den = parseInt(slash[2], 10);
+    const num = parseInt(slash[1]!, 10);
+    const den = parseInt(slash[2]!, 10);
     if (Number.isFinite(num) && Number.isFinite(den) && den > 0) return { num, den };
   }
   const whole = v.match(/^-?\d+$/);

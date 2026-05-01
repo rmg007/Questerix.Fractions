@@ -26,6 +26,7 @@ import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
+import { checkReduceMotion } from '../lib/preferences';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -127,7 +128,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    this.reduceMotion = this.checkReduceMotion();
+    this.reduceMotion = checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
     if (!this.reduceMotion) {
@@ -490,9 +491,9 @@ export class MenuScene extends Phaser.Scene {
     const suggestedLevel = unlockedMeta.find((m) => !completedLevels.has(m.number))?.number ?? null;
 
     for (let i = 0; i < unlockedMeta.length; i++) {
-      const meta = unlockedMeta[i];
-      const cx = colX[i % 3];
-      const cy = rowY[Math.floor(i / 3)];
+      const meta = unlockedMeta[i]!;
+      const cx = colX[i % 3]!;
+      const cy = rowY[Math.floor(i / 3)]!;
       const card = new LevelCard({
         scene: this,
         x: cx,
@@ -634,7 +635,7 @@ export class MenuScene extends Phaser.Scene {
       [STATION_X, CONT_Y, 600, CONT_Y - 100, 600, SET_Y + 100, STATION_X, SET_Y],
     ];
     const pts: { x: number; y: number }[] = [];
-    pts.push({ x: segments[0][0], y: segments[0][1] });
+    pts.push({ x: segments[0]![0]!, y: segments[0]![1]! });
     for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1] of segments) {
       const steps = 48;
       for (let i = 1; i <= steps; i++) {
@@ -653,13 +654,13 @@ export class MenuScene extends Phaser.Scene {
     const base = this.add.graphics().setDepth(2);
     base.lineStyle(28, PATH_BLUE, 1);
     base.beginPath();
-    base.moveTo(pathPts[0].x, pathPts[0].y);
-    for (let i = 1; i < pathPts.length; i++) base.lineTo(pathPts[i].x, pathPts[i].y);
+    base.moveTo(pathPts[0]!.x, pathPts[0]!.y);
+    for (let i = 1; i < pathPts.length; i++) base.lineTo(pathPts[i]!.x, pathPts[i]!.y);
     base.strokePath();
     // Round caps via filled circles at endpoints
     base.fillStyle(PATH_BLUE, 1);
-    base.fillCircle(pathPts[0].x, pathPts[0].y, 14);
-    base.fillCircle(pathPts[pathPts.length - 1].x, pathPts[pathPts.length - 1].y, 14);
+    base.fillCircle(pathPts[0]!.x, pathPts[0]!.y, 14);
+    base.fillCircle(pathPts[pathPts.length - 1]!.x, pathPts[pathPts.length - 1]!.y, 14);
 
     // Marching white dashes on top
     const dashG = this.add.graphics().setDepth(3);
@@ -672,8 +673,8 @@ export class MenuScene extends Phaser.Scene {
       dashG.lineStyle(10, WHITE, 1);
       let traveled = -offset;
       for (let i = 1; i < pathPts.length; i++) {
-        const a = pathPts[i - 1];
-        const b = pathPts[i];
+        const a = pathPts[i - 1]!;
+        const b = pathPts[i]!;
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const segLen = Math.hypot(dx, dy);
@@ -864,17 +865,6 @@ export class MenuScene extends Phaser.Scene {
       update();
       opts.onTap();
     });
-  }
-
-  // ── Reduced motion + font ready helpers ───────────────────────────────────
-
-  private checkReduceMotion(): boolean {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 
   /**

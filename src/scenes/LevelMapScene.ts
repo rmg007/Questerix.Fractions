@@ -129,8 +129,8 @@ export class LevelMapScene extends Phaser.Scene {
 
     // ── Level cards ────────────────────────────────────────────────────────
     for (let i = 0; i < LEVEL_META.length; i++) {
-      const meta = LEVEL_META[i];
-      const [nx, ny] = NODE_POSITIONS[i];
+      const meta = LEVEL_META[i]!;
+      const [nx, ny] = NODE_POSITIONS[i]!;
       const isUnlocked = unlocked.has(meta.number);
       const isCompleted = completedLevels.has(meta.number);
       const isSuggested = meta.number === suggestedLevel;
@@ -184,12 +184,12 @@ export class LevelMapScene extends Phaser.Scene {
     TestHooks.unmountAll();
     TestHooks.mountSentinel('level-map-scene');
     for (let i = 0; i < LEVEL_META.length; i++) {
-      const meta = LEVEL_META[i];
+      const meta = LEVEL_META[i]!;
       const lvl = meta.number;
       // Sentinel for every node — allows E2E tests to count all 9 nodes.
       TestHooks.mountSentinel(`map-node-${lvl}`);
       if (!unlocked.has(meta.number)) continue;
-      const [nx, ny] = NODE_POSITIONS[i];
+      const [nx, ny] = NODE_POSITIONS[i]!;
       const topPct = `${((ny / CH) * 100).toFixed(1)}%`;
       const leftPct = `${((nx / CW) * 100).toFixed(1)}%`;
       TestHooks.mountInteractive(`map-level-${lvl}`, () => this._startLevel(lvl), {
@@ -213,9 +213,9 @@ export class LevelMapScene extends Phaser.Scene {
     // Wide coloured track
     g.lineStyle(22, PATH_BLUE, 1);
     g.beginPath();
-    g.moveTo(NODE_POSITIONS[0][0], NODE_POSITIONS[0][1]);
+    g.moveTo(NODE_POSITIONS[0]![0]!, NODE_POSITIONS[0]![1]!);
     for (let i = 1; i < NODE_POSITIONS.length; i++) {
-      const [x, y] = NODE_POSITIONS[i];
+      const [x, y] = NODE_POSITIONS[i]!;
       g.lineTo(x, y);
     }
     g.strokePath();
@@ -236,8 +236,10 @@ export class LevelMapScene extends Phaser.Scene {
       dashG.clear();
       dashG.lineStyle(8, WHITE, 0.8);
       for (let seg = 0; seg < NODE_POSITIONS.length - 1; seg++) {
-        const [ax, ay] = NODE_POSITIONS[seg];
-        const [bx, by] = NODE_POSITIONS[seg + 1];
+        const posA = NODE_POSITIONS[seg] as [number, number];
+        const posB = NODE_POSITIONS[seg + 1] as [number, number];
+        const [ax, ay] = posA;
+        const [bx, by] = posB;
         const dx = bx - ax;
         const dy = by - ay;
         const len = Math.hypot(dx, dy);

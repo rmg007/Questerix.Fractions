@@ -24,7 +24,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
-## D-27 — 2026-05-01 — App ships English-only; multi-locale not on roadmap
+## D-29 — 2026-05-01 — App ships English-only; multi-locale not on roadmap
 
 **Decision:** The app is committed to English-only delivery. Multi-locale support is **not** on the roadmap and will not be revisited at v2 unless explicitly reopened.
 
@@ -36,7 +36,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
-## D-26 — 2026-05-01 — Pipeline parity re-architecture deferred (recommendation A2)
+## D-28 — 2026-05-01 — Pipeline parity re-architecture deferred (recommendation A2)
 
 **Decision:** Recommendation A2 (move pipeline validation step to TypeScript; eliminate `pipeline/validators_py.py` and parity fixtures) is **deferred** to a discovery spike. Phase 9 of `PLANS/code-quality-2026-05-01.md` does not start until the spike is complete and approved.
 
@@ -48,7 +48,7 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
-## D-25 — 2026-05-01 — Sunset Level01Scene.ts (Path A) over controller extraction (Path B)
+## D-27 — 2026-05-01 — Sunset Level01Scene.ts (Path A) over controller extraction (Path B)
 
 **Decision:** When the v2/v3 plan's Phase 3 executes, take **Path A**: migrate L1 into `LevelScene` via `LEVEL_META`, then delete `Level01Scene.ts` (1604 LOC). **Reject Path B** (extract a `QuestionLoopController` shared by both scenes).
 
@@ -59,6 +59,39 @@ The forensic deep-dive (`PLANS/forensic-deep-dive-2026-05-01.md` §1.2) confirms
 **Alternatives:** Path B (controller extraction, ~18 hr instead of Path A's 14 hr) — rejected as documented above. Defer indefinitely — rejected, the duplication compounds with every behavior change.
 
 **Source:** `PLANS/code-quality-2026-05-01.md` §6 Phase 3; `PLANS/forensic-deep-dive-2026-05-01.md` §1, §4
+
+---
+
+## D-26 — 2026-05-01 — Level unlock model: completion-based (not BKT-gated)
+
+**Date:** 2026-05-01
+**Status:** Accepted
+
+**Decision:** Completing a level (finishing a 5-question session) immediately unlocks the next level. BKT mastery estimates continue to run and are persisted to IndexedDB but have no effect on progression gates during validation pilots.
+
+**Why:** This is a validation research tool first (C10). Gating on BKT threshold (≥ 0.85 + 3 consecutive correct) risks students stalling on early levels, producing incomplete datasets across later levels. The primary research signal is the mastery trajectory data; collecting it across all 9 levels matters more than enforcing mastery before advancing. A completion gate also keeps the experience low-frustration for K-2 students, reducing validity threats from disengagement.
+
+**Alternatives considered:**
+- *BKT-threshold gate (masteryEstimate ≥ 0.85)*: Appropriate for a deployed learning product; rejected for this pilot because it risks missing-data across later levels.
+- *Free-play (all 9 levels open)*: Loses the linear progression narrative, which drives engagement for this age group.
+
+**Revisit when:** Post-pilot analysis shows students consistently advancing without mastery (i.e., high completion rate but flat BKT curves). At that point, a soft BKT nudge (not a hard gate) would be the first intervention.
+
+**Source:** `src/persistence/repositories/levelProgression.ts` (`complete()` unlocks next), `src/scenes/LevelScene.ts` (`persistLevelCompletion()`), `src/scenes/LevelMapScene.ts` (ribbon shows mastery independently of unlock).
+
+---
+
+## D-25 — 2026-04-30 — Autonomous Workflows Operating Principle
+**Date:** 2026-04-30
+**Status:** Accepted
+
+**Decision:** Optimise for maximum autonomy. All recurring mechanical work (bug fixes, curriculum refreshes, PR audits, CI recovery) is delegated to scheduled agent workflows. The solo developer acts as reviewer of agent work, not implementer of mechanical tasks.
+
+**Kill switch:** `AGENT_AUTONOMY_ENABLED` repo variable. Set to `false` to disable all agent dispatch instantly without modifying workflow files.
+
+**Budget:** `AGENT_DAILY_TOKEN_BUDGET` repo variable (informational, ~5M tokens/day initial cap).
+
+**Rationale:** Solo validation project. Agent infrastructure already exists (4 subagents, slash commands, prompt templates). Wiring it into CI maximises throughput without requiring ongoing manual invocation.
 
 ---
 

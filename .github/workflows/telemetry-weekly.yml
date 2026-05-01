@@ -1,0 +1,156 @@
+name: Weekly Agent Telemetry
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs every Sunday at 03:00 UTC and on manual dispatch.
+#
+# JSONL line schema written by agent-dispatching workflows:
+#   {
+#     "ts":              "<ISO-8601 timestamp>",
+#     "workflow":        "<workflow name>",
+#     "trigger":         "<github event name>",
+#     "prompt_template": "<template filename without extension>",
+#     "outcome":         "success|partial|failed|skipped",
+#     "tokens_used":     0,
+#     "duration_ms":     0,
+#     "pr_number":       0,
+#     "sha":             "<git sha>"
+#   }
+#
+# Each agent-dispatching workflow appends one line per run to a file under
+# .claude/agent-runs/<workflow-slug>.jsonl  (committed to the repo or stored
+# as a workflow artifact — either path is supported here).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # Every Sunday at 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  summarise:
+    name: Summarise agent telemetry
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ───────────────────────────────────────────────────────────
+      # Ensure the autonomy-report label exists (color #0075ca).
+      # Uses gh CLI — exits 0 whether or not the label already exists.
+      # ───────────────────────────────────────────────────────────
+      - name: Ensure autonomy-report label exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "autonomy-report" \
+            --color "0075ca" \
+            --description "Automated weekly agent telemetry report" \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+
+      # ───────────────────────────────────────────────────────────
+      # Check whether any JSONL telemetry files exist.
+      # ───────────────────────────────────────────────────────────
+      - name: Check for telemetry files
+        id: check
+        run: |
+          JSONL_FILES=$(find .claude/agent-runs -name '*.jsonl' 2>/dev/null | head -200)
+          if [ -z "$JSONL_FILES" ]; then
+            echo "has_data=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_data=true" >> "$GITHUB_OUTPUT"
+            # Store newline-safe list for the next step
+            printf '%s\n' $JSONL_FILES > /tmp/jsonl_file_list.txt
+          fi
+
+      # ───────────────────────────────────────────────────────────
+      # Post a notice issue when there is no data yet and exit.
+      # ───────────────────────────────────────────────────────────
+      - name: Post no-data notice
+        if: steps.check.outputs.has_data == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="[Autonomy] Weekly Agent Telemetry — $(date +%Y-%m-%d)"
+          BODY="## Weekly Agent Telemetry\n\nNo agent telemetry yet — no \`.jsonl\` files found under \`.claude/agent-runs/\`.\n\nAgent-dispatching workflows will append telemetry here once they run.\n\n> To disable agents: set repo variable \`AGENT_AUTONOMY_ENABLED\` to \`false\`"
+          gh issue create \
+            --title "$TITLE" \
+            --body "$(printf '%b' "$BODY")" \
+            --label "autonomy-report" \
+            --repo "${{ github.repository }}"
+
+      # ───────────────────────────────────────────────────────────
+      # Parse JSONL files and build a Markdown summary table.
+      # ───────────────────────────────────────────────────────────
+      - name: Parse telemetry and build summary
+        if: steps.check.outputs.has_data == 'true'
+        id: summary
+        run: |
+          # Merge all JSONL lines into one stream
+          cat $(cat /tmp/jsonl_file_list.txt) > /tmp/all_runs.jsonl
+
+          TOTAL=$(wc -l < /tmp/all_runs.jsonl | tr -d ' ')
+
+          # Build per-workflow stats using jq
+          # Produces a tab-separated table: workflow runs success partial failed skipped avg_duration_ms
+          STATS=$(jq -r '
+            .workflow // "unknown"
+          ' /tmp/all_runs.jsonl \
+          | sort -u \
+          | while read -r WF; do
+              jq -r --arg wf "$WF" '
+                select(.workflow == $wf)
+              ' /tmp/all_runs.jsonl \
+              | jq -rs --arg wf "$WF" '
+                {
+                  workflow:    $wf,
+                  runs:        length,
+                  success:     (map(select(.outcome=="success"))  | length),
+                  partial:     (map(select(.outcome=="partial"))  | length),
+                  failed:      (map(select(.outcome=="failed"))   | length),
+                  skipped:     (map(select(.outcome=="skipped"))  | length),
+                  avg_dur_ms:  (if length > 0 then (map(.duration_ms // 0) | add / length | floor) else 0 end)
+                } |
+                "\(.workflow)\t\(.runs)\t\(.success)\t\(.partial)\t\(.failed)\t\(.skipped)\t\(.avg_dur_ms)"
+              '
+            done)
+
+          # Build Markdown table rows
+          TABLE_ROWS=""
+          while IFS=$'\t' read -r WF RUNS SUCCESS PARTIAL FAILED SKIPPED AVG_MS; do
+            TABLE_ROWS="${TABLE_ROWS}| \`${WF}\` | ${RUNS} | ${SUCCESS} | ${PARTIAL} | ${FAILED} | ${SKIPPED} | ${AVG_MS} ms |\n"
+          done <<< "$STATS"
+
+          PERIOD_START=$(date -d 'last sunday - 7 days' +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
+          PERIOD_END=$(date +%Y-%m-%d)
+
+          SUMMARY="## Weekly Agent Telemetry\n\n"
+          SUMMARY+="**Period:** ${PERIOD_START} → ${PERIOD_END}  \n"
+          SUMMARY+="**Total runs:** ${TOTAL}\n\n"
+          SUMMARY+="| Workflow | Runs | Success | Partial | Failed | Skipped | Avg Duration |\n"
+          SUMMARY+="|---|---|---|---|---|---|---|\n"
+          SUMMARY+="${TABLE_ROWS}\n"
+          SUMMARY+="> To disable agents: set repo variable \`AGENT_AUTONOMY_ENABLED\` to \`false\`"
+
+          # Write to file to avoid shell quoting issues when passing to gh
+          printf '%b' "$SUMMARY" > /tmp/issue_body.md
+          echo "total=${TOTAL}" >> "$GITHUB_OUTPUT"
+
+      # ───────────────────────────────────────────────────────────
+      # Create the weekly issue with the summary table.
+      # ───────────────────────────────────────────────────────────
+      - name: Create weekly telemetry issue
+        if: steps.check.outputs.has_data == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="[Autonomy] Weekly Agent Telemetry — $(date +%Y-%m-%d)"
+          gh issue create \
+            --title "$TITLE" \
+            --body-file /tmp/issue_body.md \
+            --label "autonomy-report" \
+            --repo "${{ github.repository }}"

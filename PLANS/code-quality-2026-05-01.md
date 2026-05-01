@@ -49,7 +49,7 @@ These are the plan's load-bearing positions. The prior plans hedge on each; this
 
 - **A3 — Enforce engine dependency direction at lint level.** Adoption of `engine/ports.ts` is voluntary today. Make it mandatory: add an `eslint-plugin-import` rule (or a custom rule) that **fails the build if `src/engine/*` imports from `src/persistence/*`, `src/scenes/*`, or calls `Math.random` / `Date.now()` / `crypto.randomUUID` directly**. The lint rule is the architecture; without it, the architecture is a suggestion.
 
-- **A4 (NEW v3 · forensic): Delete or finish, never scaffold.** Multiple abstractions are in a "Phase 2 partial" state — `ports.ts` (0 injection sites despite 6 interfaces), `engine/adapters/*` (50 LOC of unused production adapters), the OpenTelemetry stack (3 spans across 10 packages, no consumer), the i18n ICU/tone-tag helpers (multi-locale infrastructure for an English-only app per D-27), the branded-ID smart constructors (0 callers vs. 126 `as` casts), and the misconception detectors (write-only — UI consumes 0 flags). **~1,500 LOC of speculative over-engineering.** Each Stage 1 PR must either complete an abstraction or delete it. The half-built state is worse than no abstraction because future readers assume it works.
+- **A4 (NEW v3 · forensic): Delete or finish, never scaffold.** Multiple abstractions are in a "Phase 2 partial" state — `ports.ts` (0 injection sites despite 6 interfaces), `engine/adapters/*` (50 LOC of unused production adapters), the OpenTelemetry stack (3 spans across 10 packages, no consumer), the i18n ICU/tone-tag helpers (multi-locale infrastructure for an English-only app per D-29), the branded-ID smart constructors (0 callers vs. 126 `as` casts), and the misconception detectors (write-only — UI consumes 0 flags). **~1,500 LOC of speculative over-engineering.** Each Stage 1 PR must either complete an abstraction or delete it. The half-built state is worse than no abstraction because future readers assume it works.
 
 > **§12 Forensic Synthesis (v3) names the deeper finding:** the Original Sin of this codebase is that the Phaser `Scene` became the application architecture. There is no Domain layer; scenes accreted ~77% non-rendering responsibility (state, persistence, business logic, lifecycle); duplication, untyped boundaries, scattered state, and 9 of 10 verified pathological scenarios all trace back to this single missing seam. The 16-phase plan above is now framed as **Stage 1 of a 4-stage architectural evolution** — see §12 for the Ideal State, the migration staging (Stages 1→4, ~245 hr total), and the substantive critique of recommendations A1–A3 from a structural rather than tactical lens.
 
@@ -363,9 +363,9 @@ These dimensions span multiple SOLID/SRP buckets but are coherent enough to surf
 - **MEDIUM: No update-available UI.** The service worker uses `registerType: 'autoUpdate'` with `skipWaiting`. When a new bundle ships, the old tab keeps running until the user closes it. No banner prompts a refresh at a safe checkpoint. **Remediation:** subscribe to `oncontrollerchange`; render a banner; let the user accept the reload at the menu (not mid-level).
 - **MEDIUM: TTS voice not locale-aware.** `src/audio/TTSService.ts:57-60` accepts an optional `opts.voice` but never sets it; defaults to system voice. **Remediation (Phase 11 + Phase 12 if i18n is on roadmap):** select voice from `speechSynthesis.getVoices()` matching the active locale.
 
-### 4.5.C i18n readiness — RESOLVED: English-only (D-27)
+### 4.5.C i18n readiness — RESOLVED: English-only (D-29)
 
-**Decision D-27 (2026-05-01): App ships English-only. Multi-locale is not on the roadmap and will not be revisited at v2 unless explicitly reopened.**
+**Decision D-29 (2026-05-01): App ships English-only. Multi-locale is not on the roadmap and will not be revisited at v2 unless explicitly reopened.**
 
 Implications:
 - Q47–Q50 (pipeline locale tagging, fraction formatting, RTL prep, locale persistence) **demoted to LOW · deferred indefinitely**.
@@ -374,7 +374,7 @@ Implications:
 - TTS voice locale-awareness (Q46) collapses to "use English voice if available, fall back to system default" — a 15-minute task absorbed into Phase 11.
 - The pipeline parity re-architecture (Phase 9 / recommendation A2) is now safe to execute without coordinating with i18n design.
 
-**Findings retained for documentation only** (in case the decision is reopened): pipeline output is English-only literal strings; fraction notation is hardcoded ("1/2"); ordinals at `src/lib/i18n/keys/quest.ts:113-158` are English-literal. None require remediation under D-27 = English-only.
+**Findings retained for documentation only** (in case the decision is reopened): pipeline output is English-only literal strings; fraction notation is hardcoded ("1/2"); ordinals at `src/lib/i18n/keys/quest.ts:113-158` are English-literal. None require remediation under D-29 = English-only.
 
 ### 4.5.D Observability conventions (HIGH instrumentation gap)
 
@@ -450,10 +450,10 @@ Cross-section table. `H&P` denotes an item already enumerated in `harden-and-pol
 | Q44 | MEDIUM   | 4.5.B | No offline error affordance for un-cached level                                            | `src/curriculum/loader.ts:80-121`               | 11    |
 | Q45 | MEDIUM   | 4.5.B | No update-available UI when SW receives new bundle                                        | service worker + UI                             | 11    |
 | Q46 | MEDIUM   | 4.5.B | TTS voice not locale-aware                                                                 | `src/audio/TTSService.ts:57-60`                 | 11,12 |
-| Q47 | LOW (deferred) | 4.5.C | Pipeline emits English-only prompts; no locale tagging — **deferred per D-27**            | `pipeline/output/level_NN/all.json`, schema     | (none) |
-| Q48 | LOW (deferred) | 4.5.C | Number/fraction formatting hardcoded — **deferred per D-27**                              | `src/lib/i18n/keys/quest.ts:113-158`, callsites | (none) |
-| Q49 | LOW (deferred) | 4.5.C | RTL layout not prepared — **deferred per D-27**                                            | CSS / scene layout                              | (none) |
-| Q50 | LOW (deferred) | 4.5.C | Locale not persisted; no UI selector — **deferred per D-27**                              | `levelProgression` schema, MenuScene            | (none) |
+| Q47 | LOW (deferred) | 4.5.C | Pipeline emits English-only prompts; no locale tagging — **deferred per D-29**            | `pipeline/output/level_NN/all.json`, schema     | (none) |
+| Q48 | LOW (deferred) | 4.5.C | Number/fraction formatting hardcoded — **deferred per D-29**                              | `src/lib/i18n/keys/quest.ts:113-158`, callsites | (none) |
+| Q49 | LOW (deferred) | 4.5.C | RTL layout not prepared — **deferred per D-29**                                            | CSS / scene layout                              | (none) |
+| Q50 | LOW (deferred) | 4.5.C | Locale not persisted; no UI selector — **deferred per D-29**                              | `levelProgression` schema, MenuScene            | (none) |
 | Q51 | HIGH     | 4.5.D | Only 3 spans emitted (all Dexie middleware); no scene/question/mastery instrumentation    | `src/persistence/middleware.ts:19,42,59`        | 12    |
 | Q52 | HIGH     | 4.5.D | Span names / attribute names scattered + untyped                                           | observability callsites                          | 12    |
 | Q53 | MEDIUM   | 4.5.D | No client-side OTel sampling                                                               | `src/lib/observability/tracer.ts:51-57`         | 12    |
@@ -465,7 +465,7 @@ Cross-section table. `H&P` denotes an item already enumerated in `harden-and-pol
 | Q59 | MEDIUM   | 4.5.E | Typed event bus incomplete; custom events risk string-literal scattering                  | `FeedbackOverlay.ts:51`                         | 8    |
 | Q60 | MEDIUM   | 4.5.E | Hardcoded particle colors bypass `levelTheme.ts`                                          | `FeedbackOverlay.ts:260`, `SessionCompleteOverlay.ts:357`, `QuestCompleteOverlay.ts:287` | 8 |
 
-**Severity rollup (v2, post cross-cutting, post D-27):** 10 CRITICAL, 14 HIGH, 23 MEDIUM, 9 LOW (4 of which are i18n-deferred) = **56 actionable issues**. `harden-and-polish-2026-04-30.md` independently lists 48; ~10 of those duplicate plan items and are sequenced via the H&P rollup in Phase 10. **Net unique scope of this plan: ~46 distinct findings (excluding the 4 deferred-i18n items).**
+**Severity rollup (v2, post cross-cutting, post D-29):** 10 CRITICAL, 14 HIGH, 23 MEDIUM, 9 LOW (4 of which are i18n-deferred) = **56 actionable issues**. `harden-and-polish-2026-04-30.md` independently lists 48; ~10 of those duplicate plan items and are sequenced via the H&P rollup in Phase 10. **Net unique scope of this plan: ~46 distinct findings (excluding the 4 deferred-i18n items).**
 
 
 ## 6. Phased remediation plan
@@ -476,13 +476,13 @@ Cross-section table. `H&P` denotes an item already enumerated in `harden-and-pol
 
 | #   | Task                                                                                                                       | File:line / artifact                                  | Effort  |
 | --- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
-| 0.1 | Resolve **D-4** (sunset Level01Scene). Default to **Path A** per recommendation A1. Document as **D-25** in decision log. | `docs/00-foundation/decision-log.md`                  | 30 min  |
+| 0.1 | Resolve **D-4** (sunset Level01Scene). Default to **Path A** per recommendation A1. Document as **D-27** in decision log. | `docs/00-foundation/decision-log.md`                  | 30 min  |
 | 0.2 | Wire parity tests in CI: add `pytest pipeline/parity_test.py` to `.github/workflows/ci.yml` after unit-test step.         | `.github/workflows/ci.yml`                            | 30 min  |
 | 0.3 | Update `CLAUDE.md` "Active bugs" table: delete BUG-04 + G-E1 (already fixed); annotate BUG-02/G-C7 with located lines.    | `CLAUDE.md`                                           | 15 min  |
 | 0.4 | Generate the 10 missing parity fixtures so the new CI gate has something to enforce.                                      | `pipeline/fixtures/parity/*.json`                     | 2 hr    |
 | 0.5 | Sequence harden CRITICALs that are pure prerequisites: R6, R7, R8 (one PR, one branch).                                   | `Level01Scene.ts`, `src/main.ts`                      | 1 hr    |
 
-**Acceptance:** D-25 written; CI fails on a deliberately broken parity fixture; `CLAUDE.md` reflects ground truth; 15 parity fixtures present; window.error handler installed; preDestroy cleanup present.
+**Acceptance:** D-27 written; CI fails on a deliberately broken parity fixture; `CLAUDE.md` reflects ground truth; 15 parity fixtures present; window.error handler installed; preDestroy cleanup present.
 
 ### Phase 0.6 — Immediate security hygiene (≈3 hr · ship first)
 
@@ -523,7 +523,7 @@ The **structural** fix for §1.5 and §3.8.
 
 **Acceptance:** A grep for `Math.random|Date.now|crypto.randomUUID` inside `src/engine/` returns zero unannotated occurrences; ESLint fails the build on a synthetic violation; `engine/ports.ts` covers the four side-effect axes (RNG, clock, IDs, persistence).
 
-### Phase 3 — Sunset Level01Scene (≈14 hr · gated by D-25 from Phase 0.1)
+### Phase 3 — Sunset Level01Scene (≈14 hr · gated by D-27 from Phase 0.1)
 
 The structural fix for Q1, Q17, and the bulk of §1.1 / §4.7.
 
@@ -539,7 +539,7 @@ The structural fix for Q1, Q17, and the bulk of §1.1 / §4.7.
 
 **Acceptance:** No file in `src/scenes/` exceeds 800 LOC (currently `LevelScene.ts` is 1155 LOC; some Phase 3 logic absorbed will land in extracted helpers per Phase 8). `Level01Scene.ts` is deleted. The synthetic playtest passes with L1–L9 routed through a single scene.
 
-**Fallback (Path B):** if D-25 resolves against sunset (e.g., for a known L1-specific accessibility reason that the audit missed), Phase 3 falls back to extracting `QuestionLoopController` per the interface drafted in the prior synthesis: `mount`, `validate`, `recordAttempt`, `updateMastery`, `onHintRequest`, `advance`, `summary`. Both scenes consume the controller. Effort: ≈18 hr (replaces Path A's 14 hr).
+**Fallback (Path B):** if D-27 resolves against sunset (e.g., for a known L1-specific accessibility reason that the audit missed), Phase 3 falls back to extracting `QuestionLoopController` per the interface drafted in the prior synthesis: `mount`, `validate`, `recordAttempt`, `updateMastery`, `onHintRequest`, `advance`, `summary`. Both scenes consume the controller. Effort: ≈18 hr (replaces Path A's 14 hr).
 
 
 ### Phase 4 — Engine: determinism + misconception data-ification (≈10 hr)
@@ -629,7 +629,7 @@ Structural fix for Q11, Q17. The single highest-leverage modularity win.
 
 | #   | Task                                                                                                                       | File:line / artifact                                  | Effort  |
 | --- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
-| 9.1 | Architectural decision (D-26): "Validation step of pipeline moves to TypeScript; content generation remains Python." Document trade-offs. | `docs/00-foundation/decision-log.md`                  | 1 hr    |
+| 9.1 | Architectural decision (D-28): "Validation step of pipeline moves to TypeScript; content generation remains Python." Document trade-offs. | `docs/00-foundation/decision-log.md`                  | 1 hr    |
 | 9.2 | Extract validator invocation to `pipeline/validate_step.ts`. Use `tsx` or `esbuild` to execute. Pipeline orchestration calls the TS step via subprocess. | new file; pipeline orchestrator                       | 4 hr    |
 | 9.3 | Delete `pipeline/validators_py.py`. Delete `pipeline/parity_test.py` (no longer needed). Remove the parity-fixture authoring step. | (deletions)                                           | 30 min  |
 | 9.4 | Update `.github/workflows/content-validation.yml` to invoke the TS validation step instead of Python parity. Keep schema validation Python-side (it is shape-only, not behavior-equivalent). | `.github/workflows/content-validation.yml`            | 1 hr    |
@@ -639,7 +639,7 @@ Structural fix for Q11, Q17. The single highest-leverage modularity win.
 
 **Acceptance:** No Python validator code in the repo. CI no longer needs a parity gate. Adding an archetype touches 3 files instead of 8.
 
-**Risk:** Phase 9 is the most invasive change in this plan. Sequence after Phases 0-8 are merged and stable. **If any concerns arise from D-26 review, defer Phase 9 indefinitely** — Phase 0.2 (parity tests in CI with full fixture coverage) is the conservative fallback that mitigates the same risk.
+**Risk:** Phase 9 is the most invasive change in this plan. Sequence after Phases 0-8 are merged and stable. **If any concerns arise from D-28 review, defer Phase 9 indefinitely** — Phase 0.2 (parity tests in CI with full fixture coverage) is the conservative fallback that mitigates the same risk.
 
 ### Phase 10 — `harden-and-polish-2026-04-30.md` rollup (≈14 hr)
 
@@ -663,7 +663,7 @@ Structural fix for Q43, Q44, Q45.
 | 11.1 | Reduce SW curriculum cache TTL from 30d to 7d. Add a "Refresh Curriculum" affordance in Settings that calls `caches.delete('curriculum-cache')` + reloads. | `vite.config.ts:36-46`, `src/scenes/SettingsScene.ts` | 1 hr    |
 | 11.2 | Wrap curriculum fetch in try/catch; render a user-facing "This level isn't available offline" toast; fall back to a safe state (menu or last cached level). | `src/curriculum/loader.ts:80-121`                     | 1 hr    |
 | 11.3 | Subscribe to `oncontrollerchange`; render a non-blocking "A new version is ready" banner; let the user accept the reload at a safe checkpoint (menu, never mid-level). | `src/main.ts`, new `UpdateBanner.ts` component        | 1 hr    |
-| 11.4 | TTS voice selection (absorbed from former Phase 14): pick an English voice from `speechSynthesis.getVoices()` (e.g., `lang.startsWith('en')`); fall back to system default. Skip locale-awareness per D-27. | `src/audio/TTSService.ts:57-60`                       | 15 min  |
+| 11.4 | TTS voice selection (absorbed from former Phase 14): pick an English voice from `speechSynthesis.getVoices()` (e.g., `lang.startsWith('en')`); fall back to system default. Skip locale-awareness per D-29. | `src/audio/TTSService.ts:57-60`                       | 15 min  |
 
 **Acceptance:** Playwright spec — turn off network mid-session, attempt to load an un-cached level, assert the toast surfaces. Second spec — simulate SW update event, assert the banner appears, accept it, assert reload happens at menu only. TTS plays a sample line on iOS Safari with an English voice if one is enumerated.
 
@@ -694,9 +694,9 @@ Structural fix for Q40, Q42 (the v1 plan's Phase 7.4 already covers Q14/Q15 Zod 
 
 **Acceptance:** CSP report-only in CI shows zero violations on the styles surface; restoring a malicious backup file is blocked at confirmation; `npm audit` step (added Phase 0.6.2) gates HIGH+ vulnerabilities on every push.
 
-### Phase 14 — i18n preparedness · DEFERRED (D-27 = English-only)
+### Phase 14 — i18n preparedness · DEFERRED (D-29 = English-only)
 
-**Decision D-27 confirms the app is English-only.** Phase 14 is removed from the plan's effort total. The entire phase is documented here for traceability only.
+**Decision D-29 confirms the app is English-only.** Phase 14 is removed from the plan's effort total. The entire phase is documented here for traceability only.
 
 If a future product decision reopens multi-locale, the deferred work (≈8 hr) is: pipeline locale-keyed prompts; `Intl.NumberFormat` for fractions; RTL CSS path; locale selector + persistence; locale-aware TTS voice. None of it has to ship before v2.
 
@@ -707,7 +707,7 @@ If a future product decision reopens multi-locale, the deferred work (≈8 hr) i
 ## 7. Sequencing & branching
 
 ```
-Phase 0   (unblock — D-25, parity CI, doc cleanup, harden CRITs)
+Phase 0   (unblock — D-27, parity CI, doc cleanup, harden CRITs)
 Phase 0.6 (security hygiene — npm audit fix, sentry scrub, sourcemap gate) ── ship FIRST
               ↓
   ┌──── parallel-safe band ────────────────────────────────────┐
@@ -719,7 +719,7 @@ Phase 0.6 (security hygiene — npm audit fix, sentry scrub, sourcemap gate) ─
   │  Phase 13  (security hardening — CSP nonce + backup UX)     │
   └─────────────────────────────────────────────────────────────┘
               ↓
-              Phase 3   (sunset Level01Scene)         ← gated by D-25 from Phase 0.1
+              Phase 3   (sunset Level01Scene)         ← gated by D-27 from Phase 0.1
               ↓
               Phase 4   (engine determinism + misconception rules) ← needs Phase 2 lint
               ↓
@@ -733,10 +733,10 @@ Phase 0.6 (security hygiene — npm audit fix, sentry scrub, sourcemap gate) ─
               ↓
               Phase 10  (harden-and-polish rollup)
 
-Phase 14  (i18n)  · DEFERRED per D-27 (English-only)
+Phase 14  (i18n)  · DEFERRED per D-29 (English-only)
 ```
 
-Phases 0, 0.6, 1, 2, 5, 7, 11, 13 are **parallel-safe** and can ship in any order. Phase 3 gates on D-25. Phase 4 gates on Phase 2's lint enforcement. Phase 12 (observability instrumentation) sits late because it benefits from the cleaner scene/engine boundaries delivered by Phases 3, 4, and 8. Phase 9 is **deferrable** — the conservative fallback is Phase 0.2 with full fixture coverage.
+Phases 0, 0.6, 1, 2, 5, 7, 11, 13 are **parallel-safe** and can ship in any order. Phase 3 gates on D-27. Phase 4 gates on Phase 2's lint enforcement. Phase 12 (observability instrumentation) sits late because it benefits from the cleaner scene/engine boundaries delivered by Phases 3, 4, and 8. Phase 9 is **deferrable** — the conservative fallback is Phase 0.2 with full fixture coverage.
 
 Each phase is its own dated branch:
 - `fix/2026-05-01-bug02-gc7` (Phase 1)
@@ -762,7 +762,7 @@ Total effort estimate (v2, post cross-cutting findings, Path A, English-only):
 | Phase 11 (PWA hardening — incl. English TTS voice)                          | 3.25   |
 | Phase 12 (observability conventions + instrumentation)                      | 7      |
 | Phase 13 (security hardening — CSP + backup UX)                             | 4      |
-| Phase 14 (i18n) — DEFERRED per D-27                                         | 0      |
+| Phase 14 (i18n) — DEFERRED per D-29                                         | 0      |
 | **Total (all phases except deferred Phase 14)**                              | **~115 hr** |
 
 Effort by sub-scope:
@@ -788,7 +788,7 @@ This plan is complete when:
 6. **Tests are gated.** 80% line coverage on `engine/`, `validators/`, `persistence/`. Full-level happy-path E2E parameterized for L1, L5, L9. Unit tests ≥ 450.
 7. **Bundle is gated.** Main entry ≤ 560 KB gzipped; CI assertion enforces; no `dist/**/*.map` ships.
 8. **Pipeline parity is eliminated** (Phase 9, optional) **or fully gated in CI** (Phase 0.2 fallback).
-9. **`CLAUDE.md` reflects ground truth.** Active bug list is empty. Source map is accurate. C5 exception list is current. Decision log includes D-25, D-27 (English-only confirmation), and D-26 if Phase 9 lands.
+9. **`CLAUDE.md` reflects ground truth.** Active bug list is empty. Source map is accurate. C5 exception list is current. Decision log includes D-27, D-29 (English-only confirmation), and D-28 if Phase 9 lands.
 10. **All 48 items in `harden-and-polish-2026-04-30.md` are closed or explicitly deferred with reason.**
 11. **Security baseline is current.** `npm audit --audit-level=high` returns clean; Sentry user-context contains no raw studentId; `SECURITY.md` exists and documents policy; CSP drops `'unsafe-inline'` for styles via build-time nonce.
 12. **PWA degrades gracefully.** Offline access to un-cached level surfaces a user-facing toast; SW update emits a banner the user accepts at menu only; curriculum cache TTL is 7 days.
@@ -835,9 +835,9 @@ Explicitly **not** in this plan:
 If approved, this plan produces:
 
 1. `docs/00-foundation/decision-log.md` entries:
-   - **D-25** — Level01Scene sunset (Phase 3 / recommendation A1)
-   - **D-26** — Pipeline parity re-architecture (Phase 9 / recommendation A2; optional)
-   - **D-27** — English-only commitment (resolves §4.5.C; defers Phase 14)
+   - **D-27** — Level01Scene sunset (Phase 3 / recommendation A1)
+   - **D-28** — Pipeline parity re-architecture (Phase 9 / recommendation A2; optional)
+   - **D-29** — English-only commitment (resolves §4.5.C; defers Phase 14)
 2. ~14 dated branches and PRs per the sequencing diagram in §7.
 3. Updated `CLAUDE.md` (active bugs cleared; source map accurate; C5 exception list current; pre-deploy security checklist linked).
 4. Updated `PLANS/INDEX.md` referencing this plan.
@@ -978,7 +978,7 @@ This is direct **pushback on the v2 plan**, which assumed all eight abstractions
 | **`engine/ports.ts`** (DIP interfaces)       | 85   | **0** injected; 114 direct global calls bypass it | **HALF-BUILT**   | Either complete the port-injection refactor (Phase 2, 4, 12) or **delete** until ready. Current state creates false confidence of an abstraction that doesn't exist. |
 | **OpenTelemetry stack** (10 npm packages)    | ~80  | **3 spans** (all Dexie middleware). Zero traces consumed. `VITE_OTLP_URL` never set. | **DORMANT**      | **Delete the 10 packages and `tracer.ts`.** Re-introduce when there is an actual consumer. The dormant build cost is real even with lazy imports (~50 KB API ships). |
 | **Sentry (`errorReporter.ts`)**              | 91   | 21 emission sites; lazy-loaded; gated by `VITE_SENTRY_DSN` | **EARNING**      | Keep. Only observability primitive earning its cost. |
-| **i18n catalog + format helpers**            | 572  | Centralized strings used (good); ICU plurals, tone tags, copyLinter all unused | **HALF-BUILT**   | Keep the catalog (centralized strings still earn). **Strip ICU/tone-tag/linter complexity** — saves ~150 LOC. Re-add when multi-locale ships (per D-27, never). |
+| **i18n catalog + format helpers**            | 572  | Centralized strings used (good); ICU plurals, tone tags, copyLinter all unused | **HALF-BUILT**   | Keep the catalog (centralized strings still earn). **Strip ICU/tone-tag/linter complexity** — saves ~150 LOC. Re-add when multi-locale ships (per D-29, never). |
 | **BKT (`engine/bkt.ts`)**                    | 137  | 2 call sites; **K-2 sessions feed 5-10 observations**, BKT converges at ~20+ | **EARNING but OVER-SPEC** | Keep. Document priors as placeholder. **Add a convergence test** for K-2 skill ladders. If it fails, replace with `recentAccuracy > 0.8 ∧ consecutiveCorrect ≥ 2` heuristic. |
 | **Misconception detectors** (16 functions)   | 849  | runAllDetectors called per submit, **but UI consumes 0 flags** (no hint adjustment, no mastery boost, no UX surfacing) | **DORMANT (write-only)** | **Lazy-import behind a flag.** Stop writing flags to Dexie until the consumer exists. Reclaim the 849 LOC when the hint-adjustment feature ships. |
 | **Branded-ID system** (`types/branded.ts`)   | 55   | 0 smart-constructor calls; 126 `as` casts bypass | **OVER-SPEC**    | **Delete the smart-constructor functions.** Keep the type definitions (cheap nominal-typing). The brand was a compile-time guardrail; the casts are everywhere. The illusion is worse than no brand. |
