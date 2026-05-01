@@ -1071,13 +1071,13 @@ export class Level01Scene extends Phaser.Scene {
       if (this.templatePool.length > 0) {
         // Use validator registry with the template's validatorId
         // per runtime-architecture.md §4.2 (ValidatorRegistry)
-        const { validatorRegistry } = await import('../validators/registry');
+        const { getValidatorEntry } = await import('../validators/registry');
         const reg = this.currentQuestion.validatorId
-          ? validatorRegistry.get(this.currentQuestion.validatorId)
+          ? getValidatorEntry(this.currentQuestion.validatorId)
           : undefined;
         // Fall back to direct partition validator if ID not found in registry
         if (reg) {
-          result = (reg as { fn: (i: unknown, p: unknown) => ValidatorResult }).fn(input, payload);
+          result = reg.fn(input, payload);
         } else {
           const { partitionEqualAreas } = await import('../validators/partition');
           result = partitionEqualAreas.fn(input, payload);

@@ -26,7 +26,10 @@ export const questionTemplateRepo = {
       ...t,
       levelGroup: deriveLevelGroup(t.id),
     }));
-    await db.questionTemplates.bulkPut(stored as unknown as QuestionTemplate[]);
+    // Explicitly strip levelGroup before persisting to match DB schema.
+    // levelGroup is derived on read; not part of QuestionTemplate's base type.
+    const sanitized = stored.map(({ levelGroup: _lg, ...rest }) => rest);
+    await db.questionTemplates.bulkPut(sanitized);
   },
 
   /**

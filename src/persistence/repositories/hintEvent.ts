@@ -1,7 +1,7 @@
 /**
  * HintEvent repository — append-only with post-submission attempt linking.
  * per persistence-spec.md §4, data-schema.md §3.4
- * Note: table uses ++id (auto-increment number); HintEvent.id is number, not string.
+ * Note: HintEvent.id is now a nanoid string for type consistency.
  */
 
 import { db } from '../db';
@@ -10,10 +10,11 @@ import type { HintEvent, AttemptId } from '../../types';
 
 export const hintEventRepo = {
   async record(event: Omit<HintEvent, 'id'>): Promise<HintEvent | undefined> {
-    const toWrite = { ...event, syncState: 'local' as const };
+    const id = crypto.randomUUID();
+    const toWrite: HintEvent = { ...event, id, syncState: 'local' as const };
     try {
-      const key = await db.hintEvents.add(toWrite as HintEvent);
-      return { ...toWrite, id: key as number };
+      await db.hintEvents.add(toWrite);
+      return toWrite;
     } catch (err) {
       if (err instanceof DOMException && err.name === 'QuotaExceededError') {
         log.warn('DB', 'quota_exceeded', { table: 'hintEvents' });
@@ -24,7 +25,7 @@ export const hintEventRepo = {
   },
 
   /** Link a batch of hint events to an attempt after the attempt is persisted. */
-  async linkToAttempt(ids: number[], attemptId: AttemptId): Promise<void> {
+  async linkToAttempt(ids: string[], attemptId: AttemptId): Promise<void> {
     await db.transaction('rw', db.hintEvents, async () => {
       for (const id of ids) {
         await db.hintEvents.update(id, { attemptId });
@@ -41,8 +42,6 @@ export const hintEventRepo = {
   },
 
   async update(id: string, patch: Partial<HintEvent>): Promise<void> {
-    const key = parseInt(id, 10);
-    if (isNaN(key)) return;
-    await db.hintEvents.update(key, patch);
+    await db.hintEvents.update(id, patch);
   },
 };

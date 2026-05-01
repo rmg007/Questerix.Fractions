@@ -52,7 +52,7 @@ export class QuesterixDB extends Dexie {
   deviceMeta!: Table<DeviceMeta, string>;
   bookmarks!: Table<Bookmark, string>;
   sessionTelemetry!: Table<SessionTelemetry, string>;
-  hintEvents!: Table<HintEvent, number>;
+  hintEvents!: Table<HintEvent, string>;
   misconceptionFlags!: Table<MisconceptionFlag, string>;
   progressionStat!: Table<ProgressionStat, [string, string]>;
   levelProgression!: Table<LevelProgression, string>;
@@ -288,6 +288,44 @@ export class QuesterixDB extends Dexie {
         } catch {
           // Migration is best-effort; failures must not block the schema upgrade.
         }
+      });
+
+    // Schema version 8 — changes hintEvents.id from Dexie auto-increment (++id, number)
+    // to client-generated UUID strings (string) for type consistency with other entities.
+    // Wipes hintEvents table since it's append-only and used only for telemetry/analysis.
+    this.version(8)
+      .stores({
+        // Carry all v7 stores forward unchanged (except hintEvents)
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        // Changed: hintEvents now uses string primary key instead of auto-increment
+        hintEvents: 'id, attemptId',
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+        telemetryEvents: '++id, timestamp, event, severity, syncState',
+        levelProgression: '&studentId',
+        streakRecord: '&studentId',
+      })
+      .upgrade(async (tx) => {
+        // Wipe hintEvents since it's append-only telemetry data with no user-facing state.
+        // Any hint events recorded with the old schema will be lost, but new events will
+        // use the correct UUID-based IDs going forward.
+        await tx.table('hintEvents').clear();
       });
   }
 }

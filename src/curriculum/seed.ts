@@ -183,8 +183,10 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
         total += bundle.fractionBank.length;
       }
       if (templatesWithGroup.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await db.questionTemplates.bulkPut(templatesWithGroup as any);
+        // Explicitly strip levelGroup before persisting to match DB schema.
+        // levelGroup is derived on read; not part of QuestionTemplate's base type.
+        const sanitized = templatesWithGroup.map(({ levelGroup: _lg, ...rest }) => rest);
+        await db.questionTemplates.bulkPut(sanitized);
         total += templatesWithGroup.length;
       }
       if (bundle.misconceptions.length > 0) {

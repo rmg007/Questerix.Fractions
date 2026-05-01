@@ -92,22 +92,26 @@ export const deviceMetaRepo = {
   },
 
   /**
-   * Updates specific preference fields atomically using Dexie dot-notation.
-   * Prevents race conditions where concurrent updates overwrite each other's preference merges.
+   * Updates specific preference fields atomically via Dexie transaction.
+   * Wraps the entire read-modify-write sequence in a transaction to ensure
+   * concurrent updates from multiple callers (e.g., BootScene + Level01Scene)
+   * don't lose updates (R16).
    */
   async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
-      // Ensure the singleton exists
-      await deviceMetaRepo.get();
+      return await db.transaction('rw', db.deviceMeta, async () => {
+        // Ensure the singleton exists
+        await deviceMetaRepo.get();
 
-      // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
-      const atomicPatch: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(prefPatch)) {
-        atomicPatch[`preferences.${k}`] = v;
-      }
+        // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
+        const atomicPatch: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(prefPatch)) {
+          atomicPatch[`preferences.${k}`] = v;
+        }
 
-      const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
-      return updated > 0;
+        const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
+        return updated > 0;
+      });
     } catch (err) {
       console.error('[deviceMetaRepo] updatePreferences failed:', err);
       return false;
