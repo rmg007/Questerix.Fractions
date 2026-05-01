@@ -49,9 +49,9 @@ const perfThreshold = getLastGreenPerformance();
 module.exports = {
   ci: {
     collect: {
-      url: ['http://localhost:5000/'],
+      staticDistDir: 'dist',
+      url: ['http://localhost/'],
       numberOfRuns: 3,
-      chromePath: '/usr/bin/google-chrome',
     },
     assert: {
       assertions: {

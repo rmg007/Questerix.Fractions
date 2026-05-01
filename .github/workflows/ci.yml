@@ -25,7 +25,7 @@ jobs:
       - name: Regenerate workflows and check for drift
         run: |
           npm run gen:workflows
-          git diff --exit-code .github/workflows/ci.yml .github/workflows/synthetic-playtest.yml || (echo "ERROR: Workflow drift detected. Run 'npm run gen:workflows' and commit the result." && exit 1)
+          git diff --exit-code .github/workflows || (echo "ERROR: Workflow drift detected. Run 'npm run gen:workflows' and commit the result." && exit 1)
       - name: Residual lint (timeout consistency + bundle budget)
         run: npm run lint:ci
 
