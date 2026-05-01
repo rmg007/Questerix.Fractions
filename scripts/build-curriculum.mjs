@@ -11,6 +11,7 @@
  * Wired as "build:curriculum" npm script; called by "prebuild".
  */
 
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -100,6 +101,27 @@ function buildBundle() {
     }
   }
 
+  // Compare content hash against existing files — skip writes when nothing changed.
+  const contentHash = createHash('sha256').update(JSON.stringify({ version: 1, contentVersion: '1.0.0', levels })).digest('hex');
+
+  const outDir = join(ROOT, 'public', 'curriculum');
+  const outPath = join(outDir, 'v1.json');
+
+  if (existsSync(outPath)) {
+    try {
+      const existing = JSON.parse(readFileSync(outPath, 'utf8'));
+      const existingHash = createHash('sha256')
+        .update(JSON.stringify({ version: existing.version, contentVersion: existing.contentVersion, levels: existing.levels }))
+        .digest('hex');
+      if (existingHash === contentHash) {
+        console.log(`\n[build-curriculum] Content unchanged — skipping write (${totalIncluded} templates already current)`);
+        return totalIncluded;
+      }
+    } catch {
+      // unreadable — fall through and write fresh
+    }
+  }
+
   const bundle = {
     version: 1,
     contentVersion: '1.0.0',
@@ -107,10 +129,8 @@ function buildBundle() {
     levels,
   };
 
-  const outDir = join(ROOT, 'public', 'curriculum');
   mkdirSync(outDir, { recursive: true });
 
-  const outPath = join(outDir, 'v1.json');
   const bundleJson = JSON.stringify(bundle);
   writeFileSync(outPath, bundleJson);
 

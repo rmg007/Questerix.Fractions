@@ -25,6 +25,7 @@ Work phases in order. Do not start a later phase unless the gate for the earlier
 
 ## Phase 0 — Validate (do this first, before any code)
 
+**Status:** ✅ DONE — verified 2026-05-01.  
 **Status:** Not yet verified after the 2026-05-01 merge train (17 PRs).  
 **Effort:** 30–60 min
 
@@ -54,6 +55,11 @@ Checklist:
 
 ---
 
+## Phase 1 — Fix Critical Bugs ✅ DONE
+
+All three bugs fixed and verified 2026-05-01. Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
+
+### B1 — Skip button blocked during Step 1 (T9 depth regression) ✅
 ## Phase 1 — Fix Critical Bugs
 
 Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
@@ -71,6 +77,7 @@ Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
 
 ---
 
+### B2 — Misleading copy: "Let's try an easier one →" on Level 1 ✅
 ### B2 — Misleading copy: "Let's try an easier one →" on Level 1
 
 **Severity:** 🔴 High — promise the child can't redeem  
@@ -84,6 +91,7 @@ Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
 
 ---
 
+### B3 — FPS drops in OnboardingScene (3–6 FPS sustained) ✅
 ### B3 — FPS drops in OnboardingScene (3–6 FPS sustained)
 
 **Severity:** 🟡 Medium — bad on constrained devices  

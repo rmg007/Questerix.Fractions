@@ -13,3 +13,6 @@ if ! git diff --exit-code CLAUDE.md >/dev/null 2>&1; then
   echo "ERROR: CLAUDE.md drift — run 'npm run sync:claude-md' and re-stage CLAUDE.md before committing." >&2
   exit 1
 fi
+
+# Auto-format staged .ts files — eliminates Prettier drift before push gate.
+npx lint-staged
