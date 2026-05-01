@@ -19,7 +19,7 @@
 - [ ] iPad tested: app loads, plays, exports data, no crashes (15+ min trial)
 - [ ] Desktop/Chromebook tested: same as iPad (15+ min trial)
 - [ ] Both devices fully charged or plugged in
-- [ ] WiFi tested at intended venue (if not using offline mode)
+- [ ] WiFi tested at intended venue, or each device pre-cached: load the app URL once on each device while connected to WiFi (the service worker pre-caches assets); subsequent loads work without a network
 - [ ] App deployed to staging or production URL (parent-accessible)
 - [ ] App URL bookmarked on both devices
 

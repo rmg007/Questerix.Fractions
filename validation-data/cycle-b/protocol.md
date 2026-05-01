@@ -154,7 +154,7 @@ Use the template email in `recruitment-email-template.txt`. Key points:
    - Session 3: Level 3 (or next appropriate level based on Session 2 performance)
 3. Device has:
    - Full battery or plugged in
-   - WiFi connected (or offline mode enabled)
+   - WiFi connected (or the app URL was already loaded once on this device while online so the service worker has cached assets)
    - Notifications muted
    - Other apps closed
 
@@ -213,7 +213,7 @@ Use the template email in `recruitment-email-template.txt`. Key points:
 |-------|--------|
 | **App crashes** | Restart device, reload app, resume play. Note in observer log: "Crash at [time]; restarted." |
 | **Child loses interest** | Honor their request to stop. Note "withdrew at [time]" but still export available data. |
-| **WiFi drops** | Reload page if offline mode is not enabled; check device settings. Note downtime in observer log. |
+| **WiFi drops** | If the device loaded the app while online earlier, the service worker should keep it running; reload the page to confirm. If it was never loaded online on this device, switch to a backup device. Note downtime in observer log. |
 | **Child asks for hints** | Redirect: "What do you think?" or "Try tapping/dragging." |
 | **Child asks to use bathroom** | Pause the game, restart timer when they return. Note break time. |
 | **Parent interrupts** | Gently ask parent to step back. Continue session. |

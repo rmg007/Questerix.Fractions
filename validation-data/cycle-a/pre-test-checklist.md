@@ -23,7 +23,7 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 ### Devices & Connectivity
 - [ ] Test device #1 (iPad): charge battery to 100%
 - [ ] Test device #2 (Chromebook or desktop): charge battery or ensure plugged in
-- [ ] Test WiFi connectivity at venue (or confirm offline mode works)
+- [ ] Test WiFi connectivity at venue, or pre-cache for offline use: load the app URL once on each device while connected to WiFi (the service worker pre-caches assets); subsequent loads work without a network
   - Load app on device in test mode: does it load within 3 seconds?
   - Try a mock 15-minute session: no crashes?
 - [ ] Test audio on both devices:
@@ -76,7 +76,7 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 ### 30 Minutes Before Start Time
 
 **Device Check (5 min)**
-- [ ] Device #1 battery is full; WiFi is connected (or offline mode confirmed)
+- [ ] Device #1 battery is full; WiFi is connected (or the app URL was already loaded once on this device while online so the service worker has cached assets)
 - [ ] Device #2 battery is full; WiFi is connected
 - [ ] Open app on both devices; confirm they load without errors
 - [ ] Audio test on Device #1: play a sound from the app (mute if necessary)
@@ -228,7 +228,7 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 - [ ] Check WiFi connectivity
 - [ ] Refresh the browser (pull-down on iPad; F5 on desktop)
 - [ ] Close the browser completely and reopen
-- [ ] If offline: confirm offline mode is enabled in the app
+- [ ] If offline: confirm this device loaded the app URL at least once while online before the test (the service worker auto-caches on first load; there is no in-app toggle). If it was never loaded online, switch to a backup device that was, or reconnect to WiFi.
 - [ ] If still broken: use a backup device (if available) or reschedule
 
 ### "The child is confused by the game"
