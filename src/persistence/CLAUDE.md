@@ -16,6 +16,7 @@ All progression data lives here. localStorage is **not** an option (C5).
 - **No `Math.random` for IDs.** Use `crypto.randomUUID()` (see existing repos).
 - **Schema changes require a version bump in `db.ts`.** Add an `upgrade(tx => ...)` for any non-additive change. Test with `fake-indexeddb` (already a devDep).
 - **Repositories return plain objects, not Dexie `Table` references.** Callers should not need to know about Dexie.
+- **Never strip an indexed field before `bulkPut`.** `db.ts` is the source of truth for indexes — if the schema string lists a field (e.g. `'id, archetype, levelGroup'`), that field MUST be present at write time or `where('field').equals(...)` returns 0 rows silently. Derived index fields (e.g. `levelGroup` from question id) belong on the persisted row, not just on the in-memory shape. Cross-reference `db.ts` before adding any `({ field: _, ...rest })` strip step.
 - **No Phaser imports here.** This layer must be testable in Node.
 
 ## Adding a new entity
