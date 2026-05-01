@@ -1063,57 +1063,202 @@ Paste under the `<!-- Append new lines below this marker. -->` marker in `.claud
 
 ---
 
-## Phase 7 — PR template + branch enforcement
+## Phase 7 — PR template + branch enforcement (concrete artifacts)
 
-**Goal:** PR quality without the "lucky author" dependency. Branch-name compliance enforced, not aspirational.
+**Goal:** PR quality without the "lucky author" dependency. Branch-name compliance enforced, not aspirational. (Branch-name check already lives in Phase 2's husky update; this phase adds the template.)
 
-### Actions
+### 7.1 `.github/pull_request_template.md` — full content
 
-1. **Add `.github/pull_request_template.md`** with the structure recent PRs already follow:
-   ```
-   ## Summary
-   ## Test plan
-   - [ ] typecheck
-   - [ ] lint
-   - [ ] test:unit
-   - [ ] test:integration (if persistence/engine touched)
-   - [ ] manual session at localhost:5000 (if scene UI touched)
-   ## Conflict warning (if applicable)
-   ## Decision-log impact (if D-NN added or affected)
-   ## Bundle delta (if dependencies changed)
-   ```
+```markdown
+## Summary
 
-2. **Pre-push branch-name check** in `.husky/pre-push`:
-   ```sh
-   BRANCH=$(git branch --show-current)
-   echo "$BRANCH" | grep -E '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$' || {
-     echo "✗ Branch name '$BRANCH' violates <type>/YYYY-MM-DD-<slug> rule (CLAUDE.md). Rename before pushing."
-     exit 1
-   }
-   ```
-   Exempt `main`, `claude/*` (harness branches), `worktree-agent-*`.
+<!-- What does this PR do, and why? One or two sentences. Lead with intent, not files touched. -->
 
-**Acceptance:** A branch named `quick-fix` cannot be pushed without renaming. New PRs land with the structured body.
+## Test plan
+
+<!-- Check all that apply. Anything skipped should be justified one line below the box. -->
+
+- [ ] `npm run typecheck` clean
+- [ ] `npm run lint` clean (0 warnings)
+- [ ] `npm run test:unit` green
+- [ ] `npm run test:integration` green (required if `src/persistence/**` or `src/engine/**` touched)
+- [ ] `npm run test:e2e` green (required if scene UI touched)
+- [ ] `npm run build` succeeds
+- [ ] `npm run measure-bundle` ≤ 1.0 MB gzipped JS
+- [ ] Manual session at `localhost:5000` (required if scene UI or interaction touched)
+- [ ] `npm run validate:curriculum` clean (required if curriculum bundle changed)
+
+## Conflict warning
+
+<!-- Fill in if this branch is likely to collide with another open PR — e.g. shared decision-log slot,
+     overlapping LEVEL_META edits, both branches touching the same scene. Otherwise write "none". -->
+
+## Decision-log impact
+
+<!-- Does this PR add or alter a `D-NN` entry in docs/00-foundation/decision-log.md?
+     If yes: which number, and is it the next free slot at time of writing this PR? -->
+
+## Constraint references
+
+<!-- Which of C1–C10 does this PR touch or verify? Constraints in docs/00-foundation/constraints.md.
+     Mark each as: not affected / verified / known deviation (link the docs that bless it). -->
+
+| Constraint | Status |
+| --- | --- |
+| C1 — no backend | not affected / verified |
+| C4 — Phaser+TS+Vite+Dexie only | not affected / verified |
+| C5 — localStorage only `lastUsedStudentId` | not affected / verified |
+
+## Bundle delta
+
+<!-- Required if any change touches dependencies, dynamic imports, or assets.
+     Run `npm run measure-bundle` before and after. -->
+
+|        | Gzipped JS (bytes) |
+| ------ | ------------------ |
+| Before |                    |
+| After  |                    |
+| Delta  |                    |
+
+If delta > 10% of any single budget slice, justify here. Per `docs/30-architecture/performance-budget.md §5`.
+```
+
+### 7.2 Branch-name check in `.husky/pre-push`
+
+Already specified in Phase 2.2 above; reproduced here for completeness:
+
+```sh
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  main|claude/*|worktree-agent-*) ;;
+  *)
+    if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+      echo "✗ Branch '$BRANCH' violates the <type>/YYYY-MM-DD-<slug> rule (CLAUDE.md → Git workflow)."
+      echo "  Rename: git branch -m <type>/$(date +%Y-%m-%d)-<slug>"
+      echo "  Bypass: git push --no-verify (only when justified)."
+      exit 1
+    fi ;;
+esac
+```
+
+### 7.3 CLAUDE.md amendment — make the rule enforceable
+
+In root `CLAUDE.md` under the existing `### Git workflow` section, append:
+
+```diff
+ - **Branch names must include a date.** Format: `<type>/YYYY-MM-DD-<slug>` — e.g. `feat/2026-04-30-hint-ladder`, `fix/2026-04-30-nan-guard`, `plans/2026-04-30-sprint-1`.
+ - **Types:** `feat` (new behaviour), `fix` (bug), `refactor`, `plans` (doc/plan only), `chore` (tooling/infra).
++- **Enforced by `.husky/pre-push` regex:** `^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$`. Exempt: `main`, `claude/*`, `worktree-agent-*`. Bypass with `--no-verify` only when justified.
+ - **No bare slugs, no random suffixes.** A branch without a date is non-compliant and must be renamed before pushing.
+```
+
+### 7.4 Acceptance for Phase 7
+
+- `.github/pull_request_template.md` exists with all six sections.
+- `git push` from a branch named `quick-fix` exits with status 1.
+- `git push` from `main`, `claude/foo`, or `worktree-agent-bar` succeeds.
+- CLAUDE.md "Git workflow" section contains the regex literal and exemption list.
 
 **Effort:** 1 hr.
 
 ---
 
-## Phase 8 — Token telemetry
+## Phase 8 — Token telemetry (gated by verification spike)
 
-**Goal:** Optimize what you measure.
+**Goal:** Optimize what you measure. Phase 8 is gated by a verification spike: we don't yet know which env vars Claude Code surfaces in hook contexts.
 
-### Actions
+### 8.1 `PreCompact` hook extension
 
-1. **Extend `PreCompact` hook** to log the conversation token count if Claude Code surfaces it via env (`$CLAUDE_CONTEXT_TOKENS` or similar — verify in current build).
+Replace the existing `PreCompact` stanza in `.claude/settings.json`:
 
-2. **Roll up daily** in `.claude/_session-log.md` so a weekly `/retro` can spot patterns ("merge-and-resolve-conflicts sessions consistently hit 60% context — split into smaller scopes").
+```json
+"PreCompact": [
+  {
+    "hooks": [
+      {
+        "type": "command",
+        "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_SESSION_ID:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
+      }
+    ]
+  }
+]
+```
 
-3. **Add `/economy` slash command** (or skill if available) that prints "biggest context cost so far this session" — file reads vs tool output vs assistant prose.
+**Env-var status:**
+- `$CLAUDE_CONTEXT_TOKENS` — **speculative.** Not confirmed in Claude Code's hook env contract as of 2026-05-01. The hook records `unknown` until verified.
+- `$CLAUDE_SESSION_ID` — **speculative.** Same caveat. If absent, replace with `$(date +%s)` so each line has a stable correlator.
+- `$(date '+%F %H:%M')`, `$(git ...)` — **confirmed**, already in use.
 
-**Acceptance:** After 1 week of telemetry, the user has data to answer "which session shape burns the most?" — and can target Phase 1/2 cuts at the right thing.
+### 8.2 `/economy` slash command — `.claude/commands/economy.md`
 
-**Effort:** 2 hr.
+```markdown
+---
+description: Summarize this session's token cost — file reads vs tool output vs assistant prose
+---
+
+Estimate where this session's tokens went. **Do not call any tools that aren't strictly needed** — every tool call adds to the count you're trying to measure.
+
+## Steps
+
+1. **Self-introspection (preferred):** if you can recall the rough shape of this session, produce a four-line breakdown:
+   - Files read (count + biggest 3 by line count)
+   - Tool outputs returned (count + biggest 3 by char length)
+   - Assistant prose written (rough word count)
+   - Skill / subagent invocations (count + names)
+
+2. **Fallback:** read `.claude/_session-log.md` and report the most recent `pre-compact` line — its `tokens:` field is the harness's own count.
+
+3. Output:
+
+\`\`\`
+## Token economy — this session
+
+- File reads: <N> files, ~<M> lines total. Largest: <path> (<lines>).
+- Tool outputs: <N> calls. Heaviest: <tool name> @ <approx-chars>.
+- Assistant prose: ~<words> words across <turns> turns.
+- Skill / subagent: <list, or "none">.
+
+Most recent harness telemetry: <copy line from _session-log.md, or "no token field">.
+\`\`\`
+
+4. End with: "Run `/retro` if this session is closing." Do not auto-run anything.
+```
+
+### 8.3 Weekly rollup — `/retro-weekly`
+
+```markdown
+---
+description: Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
+---
+
+Read `.claude/_session-log.md`, group entries by date, report token-usage patterns over 7 days. **Read-only.**
+
+## Steps
+
+1. `tail -200 .claude/_session-log.md` — last ~7 days of pre-compact lines.
+2. Parse format: `[YYYY-MM-DD HH:MM] pre-compact | session: <id> | tokens: <N|unknown> | branch: <b> | ...`
+3. For each day with ≥1 numeric `tokens:`: count, p50, p90, max, branches generating p90+.
+4. **Outlier:** session whose tokens ≥ 1.5× the 7-day p90, OR ≥3 pre-compacts on the same branch in a day.
+5. Output a markdown table.
+6. End: "Outliers worth a `/retro` post-mortem: <list>." or "No outliers — token budget healthy."
+```
+
+### 8.4 Open question — verification spike before implementation
+
+Phase 8 carries a hard prerequisite: **we don't yet know whether Claude Code exposes a per-session token count to hook scripts**. Until that's confirmed, the `tokens:` field will record `unknown` and the rollup degrades gracefully — but the value of the phase is gated on it being confirmed.
+
+**Spike (≤30 min):** add a one-shot `PreCompact` hook that runs `env | grep -i claude > .claude/_env-probe.log`, run a substantive session, inspect the log. If no token-related var appears, file an issue with Anthropic asking for the env contract, or fall back to estimating from `_session-log.md` line count alone.
+
+**Phase 8 should not block Phases 6 or 7.**
+
+### 8.5 Acceptance for Phase 8
+
+- `.claude/_session-log.md` last line has a `tokens:` field (numeric or `unknown`).
+- `.claude/commands/economy.md` exists.
+- `.claude/commands/retro-weekly.md` exists.
+- The verification spike has been run; result recorded.
+
+**Effort:** 2 hr (after the spike).
 
 ---
 
