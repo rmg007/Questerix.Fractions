@@ -174,8 +174,8 @@ AFTER CYCLE B:
 FILES READY TO SHARE WITH FAMILIES
 ================================================================================
 
-- consent-form-phase1.pdf (print for parents to sign)
-- pre-post-test-instrument.pdf (print for test administration)
+- consent-form-phase1.md (render to PDF, then print for parents to sign)
+- pre-post-test-instrument.md (render to PDF, then print for test administration)
 - recruitment-email-template.txt (send to prospective families)
 - Cycle B protocol FAQ (optional, for parent questions)
 

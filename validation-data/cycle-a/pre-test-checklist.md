@@ -11,10 +11,10 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 ### Setup & Materials
 - [ ] Confirm venue is booked and accessible (home, library, or quiet classroom space)
 - [ ] Print **consent form** (1 copy per family + 1 extra)
-  - Source: `docs/40-validation/consent-form-phase1.pdf`
+  - Source: `docs/40-validation/consent-form-phase1.md` (open in any markdown viewer or render to PDF before printing)
   - Ensure text is dark and legible (test print one copy)
 - [ ] Print **pre-test instrument** (1 copy per child + 2 extras for practice)
-  - Source: `docs/40-validation/pre-post-test-instrument.pdf`
+  - Source: `docs/40-validation/pre-post-test-instrument.md` (open in any markdown viewer or render to PDF before printing)
   - Verify images are large and clear (test print one copy)
 - [ ] Print **observer form** (1 copy per session; for Cycle A = 1 copy per child)
   - Source: `validation-data/cycle-a/observer-form.md`
@@ -47,7 +47,10 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 - [ ] Back up app on both devices:
   - [ ] Verify latest version is deployed to staging
   - [ ] Confirm URL is correctly bookmarked or pinned on each device
-  - [ ] Test deep link to Level 1 (if applicable)
+- [ ] Confirm the in-app navigation route to Level 1 (no deep links exist):
+  - From the menu, tap **Play** → **Choose Level** to open the level chooser overlay
+  - On a fresh device only **Level 1** is unlocked; L2 unlocks after L1 completes, L3 after L2
+  - To reach L2 or L3 directly during a test, use the same Choose Level overlay (the Adventure Map is decorative)
 
 ### Consent & Privacy
 - [ ] Review consent form with parent/guardian **before** the test
@@ -141,9 +144,9 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 
 ### Post-Session Data Export (~2 min)
 
-- [ ] On the app, look for "Export Data" button (usually bottom of screen or in menu)
-- [ ] Tap "Export Data"
-- [ ] App will generate a JSON file
+- [ ] In the app, tap the Settings gear (top-right of the menu screen) to open SettingsScene
+- [ ] Tap the **"Export My Backup"** button
+- [ ] App will generate a JSON file (saved to the device's downloads folder; status text confirms "Saved! Check your downloads.")
 - [ ] Save the file to your computer with the name: `session-1-<pseudonym>-<date>.json`
   - Example: `session-1-alex-2026-05-15.json`
 - [ ] Confirm file is saved: check file size (should be 50–500 KB)
@@ -241,7 +244,7 @@ Estimated time: ~2 hours total (1.5 hours prep + 0.5 hours cleanup)
 - [ ] Contact parent: "Thanks for participating. We know it's new, and that's okay. Let us know if you'd like to try again."
 
 ### "The JSON export fails"
-- [ ] Try clicking "Export Data" again
+- [ ] Try tapping Settings → "Export My Backup" again
 - [ ] If still fails: note "export failed" in observer notes
 - [ ] Ask parent for contact info to follow up (if data recovery is needed)
 - [ ] Continue with the test; data may be recoverable from in-app logs

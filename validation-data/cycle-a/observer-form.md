@@ -73,7 +73,7 @@
 
 ### After the Session
 
-1. Click "Export Data" on the device (or manually save the session JSON)
+1. On the device, tap Settings (gear icon, top-right of the menu) → **"Export My Backup"**
 2. Save the exported file as: `session-<number>-<pseudonym>-<date>.json`
 3. Have the tester take a 5-min break
 4. Ask the debrief questions (see Debrief section below)
@@ -165,7 +165,7 @@ Briefly note anything else relevant:
 
 After the session:
 
-1. **Export JSON:** Click "Export Data" button in app
+1. **Export JSON:** Tap Settings gear → **"Export My Backup"** in the app
 2. **File location:** Save to `validation-data/cycle-a/<pseudonym>/`
 3. **File name:** `session-<number>-<pseudonym>-<date>.json`
    - Example: `session-1-alex-2026-05-15.json`

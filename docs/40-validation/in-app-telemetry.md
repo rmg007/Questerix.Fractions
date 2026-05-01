@@ -28,7 +28,7 @@ The MVP records **everything client-side**. Per **C1** there is no backend; per 
 2. **Append-only.** Records are never edited or deleted. A wrong answer is preserved; a retry creates a new record.
 3. **No remote logging.** Per C1, nothing is `fetch`-ed to a server. The export is a manual, button-triggered JSON download, kept by the observer.
 4. **No PII.** Display name only. No email, no school, no real name, no birthday.
-5. **Consent-gated.** The "Backup My Progress" / "Export for Playtest" buttons are visible at all times. Nothing about telemetry is hidden.
+5. **Consent-gated.** The "Export My Backup" button (in SettingsScene) is visible at all times. Nothing about telemetry is hidden.
 
 ---
 
@@ -164,7 +164,7 @@ If a future research collaboration wants any of these, that requires a formal IR
 
 ### 5.1 The Backup Button
 
-The app's settings screen has a single button: **"Backup My Progress"**. Clicking it:
+The app's settings screen has a single button: **"Export My Backup"** (see `src/scenes/SettingsScene.ts`). Tapping it:
 
 1. Reads all dynamic-store records for the current `studentId`.
 2. Serializes them to a single JSON object.

@@ -99,7 +99,7 @@ Use the template email in `recruitment-email-template.txt`. Key points:
 ### 3.2 Procedure
 
 **Materials:**
-- Printed pre-test instrument: `docs/40-validation/pre-post-test-instrument.pdf`
+- Printed pre-test instrument: `docs/40-validation/pre-post-test-instrument.md` (render to PDF before printing)
 - Pencil or pen
 - Optional: bar-model flashcards for visual reference
 
@@ -177,7 +177,7 @@ Use the template email in `recruitment-email-template.txt`. Key points:
 5. Record actual duration (should be ~15 min, ±2 min is acceptable)
 
 **Data Export (~2 minutes):**
-1. Child clicks "Export Data" button (or you assist if needed)
+1. Tap Settings (gear icon) → "Export My Backup" (assist the child if needed)
 2. App generates a JSON file with session telemetry
 3. Save file with naming: `session-<number>-<pseudonym>-<date>.json`
    - Example: `session-1-alex-2026-06-01.json`

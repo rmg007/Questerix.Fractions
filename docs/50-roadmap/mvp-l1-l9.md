@@ -118,7 +118,7 @@ No external review needed. The owner self-reviews against the exit criteria and 
 - [ ] Hint cascade UI (3-tier escalation; pointCost applied).
 - [ ] Session orchestration: starts, runs 5–10 problems, ends, computes session aggregates.
 - [ ] Persistence: every Attempt write hits Dexie. App relaunch resumes session state.
-- [ ] "Backup My Progress" button (per `in-app-telemetry.md §5`).
+- [ ] "Export My Backup" button in Settings (per `in-app-telemetry.md §5`).
 
 #### Curriculum content
 

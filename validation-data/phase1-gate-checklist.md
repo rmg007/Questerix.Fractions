@@ -28,7 +28,7 @@
 - [ ] Visual assets render correctly: no blurry or missing images
 - [ ] Game can complete a full 15-minute session without crashing
 - [ ] Audio plays (if enabled): no silence, no distortion
-- [ ] Session can be exported to JSON via "Export Data" button
+- [ ] Session can be exported to JSON via Settings → "Export My Backup" button
 - [ ] Exported JSON file is valid and contains session telemetry (see `in-app-telemetry.md`)
 
 **Notes:**  
@@ -79,8 +79,8 @@ Run a single complete test cycle with a volunteer (friend, family member, or you
 
 ### 2.2 Pre-Test Administration
 
-- [ ] Print consent form (docs/40-validation/consent-form-phase1.pdf)
-- [ ] Print pre-test instrument (docs/40-validation/pre-post-test-instrument.pdf)
+- [ ] Print consent form (`docs/40-validation/consent-form-phase1.md` — render to PDF first)
+- [ ] Print pre-test instrument (`docs/40-validation/pre-post-test-instrument.md` — render to PDF first)
 - [ ] Tester signs consent form (or simulates signing)
 - [ ] Administer pre-test (5 min): tester completes all 8 items on paper
 - [ ] Tester's pre-test score: \_\_\_\_\_ / 8 points
@@ -93,7 +93,7 @@ Run a single complete test cycle with a volunteer (friend, family member, or you
 - [ ] Tester plays Level 1 for exactly 15 minutes
   - [ ] Time the session with a stopwatch; note start and end times
   - [ ] Observe and take notes on any glitches, confusing interactions, or moments of joy/frustration
-- [ ] At session end, tester clicks "Export Data"
+- [ ] At session end, tester taps Settings → "Export My Backup"
 - [ ] Export completes successfully; file size is reasonable (~50–500 KB)
 - [ ] Exported JSON can be validated with `validation-data/scripts/check.py` (see Gate 4)
 - [ ] Save exported JSON to: `validation-data/cycle-a/<pseudonym>/session-1.json`

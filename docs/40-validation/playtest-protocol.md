@@ -144,7 +144,7 @@ The observer **may**:
 
 ### 4.5 End of Session
 
-- Click the in-app **Backup My Progress** button. Save the JSON file to the observer's folder named `<pseudonym>_session<N>_<date>.json`.
+- Tap Settings (gear icon, top-right of the menu) → **"Export My Backup"**. Save the JSON file to the observer's folder named `<pseudonym>_session<N>_<date>.json`.
 - The observer files the notes form in the same folder.
 - Brief debrief with the child (≤ 60 seconds): "What was your favorite part?" "What was tricky?" — recorded as direct quotes if possible.
 

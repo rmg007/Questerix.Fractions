@@ -7,8 +7,8 @@
 ## Pre-Cycle A Readiness (Before First Informal Test)
 
 ### Documentation & Forms
-- [ ] Consent form printed and ready (`docs/40-validation/consent-form-phase1.pdf`)
-- [ ] Pre-test instrument printed in large, clear format (`docs/40-validation/pre-post-test-instrument.pdf`)
+- [ ] Consent form printed and ready (`docs/40-validation/consent-form-phase1.md` — render to PDF before printing)
+- [ ] Pre-test instrument printed in large, clear format (`docs/40-validation/pre-post-test-instrument.md` — render to PDF before printing)
 - [ ] Observer form printed (`validation-data/cycle-a/observer-form.md`)
 - [ ] Pre-test checklist ready (`validation-data/cycle-a/pre-test-checklist.md`)
 - [ ] Phase 1 gate checklist printed and ready (`validation-data/phase1-gate-checklist.md`)
@@ -84,8 +84,8 @@
 - [ ] Recruitment templates ready (`validation-data/recruitment-template.md`)
 - [ ] Schedule template created (`validation-data/cycle-b/schedule.csv`)
 - [ ] All forms and instruments finalized:
-  - [ ] Consent form (`docs/40-validation/consent-form-phase1.pdf`)
-  - [ ] Pre-test instrument (`docs/40-validation/pre-post-test-instrument.pdf`)
+  - [ ] Consent form (`docs/40-validation/consent-form-phase1.md` — render to PDF before printing)
+  - [ ] Pre-test instrument (`docs/40-validation/pre-post-test-instrument.md` — render to PDF before printing)
   - [ ] Observer form (cycle-a version can be reused)
   - [ ] Cycle B protocol overview (1-pager for parent FAQ)
 
