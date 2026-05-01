@@ -10,16 +10,78 @@
 
 ## TL;DR
 
-The native Claude Code primitives (`.claude/agents/`, `.claude/commands/`, `.claude/settings.json` hooks, nested CLAUDE.mds) are the right foundation. The improvements are:
+The native Claude Code primitives (subagents, slash commands, hooks, nested CLAUDE.mds) plus the autonomous CI workflows (`subagent-pr-audit`, `coverage-matrix`, `claude-md-maintenance`, etc., all gated by `AGENT_AUTONOMY_ENABLED`) are the right foundation. **Most of what an enterprise multi-agent protocol would propose to build, this repo already has.** The plan is to refine, not rebuild:
 
-1. **Eliminate dead weight** (Roadie's parallel system, `_archive/` noise) — Phase 0, in progress on this branch.
-2. **Auto-invoke commands and skills** so the user never types a slash — Phases 1, 5, 7.
-3. **Sharpen triggers by blast-radius** so doc PRs don't run full preflight — Phases 2, 4.
-4. **Add the two missing specialist subagents** that recent PRs revealed gaps in — Phase 3.
-5. **Capture the auto-close-PR gotcha** so it stops costing tokens to re-discover — Phase 6.
-6. **Telemetry** so future cuts are data-driven, not vibes — Phase 8.
+1. **Phase 0 — Cleanup** (this branch). Roadie removed (16 files; never auto-loaded, contained wrong agent role names). `_archive/` moved out of `.claude/` discovery.
+2. **Phase 1 — Auto-invoke layer.** Hooks for mechanical things (curriculum sync, c5-check, sibling-test); skills via CLAUDE.md rule for judgment things (`simplify`, `security-review`, `review`). User stops typing slashes.
+3. **Phase 2 — Blast-radius preflight.** Branch-prefix routes to gate level. Doc PRs stop running full preflight.
+4. **Phase 3 — Two missing subagents** (`engine-determinism-auditor`, `curriculum-byte-parity`). Cover gaps recent PRs revealed.
+5. **Phase 4 — Refine existing `subagent-pr-audit.yml`.** Add path filters for engine + curriculum; tune token budgets. Not a new workflow.
+6. **Phase 5 — Auto-close PR runbook.** PRs close themselves within 30s in two of three sessions (#21, #24). Document, recover, find root cause.
+7. **Phase 6 — `learnings.md` discipline.** Surface inline at SessionStart; prompt for entry on `fix(...)` commits.
+8. **Phase 7 — PR template + branch enforcement.** Codify the structure recent PRs already follow.
+9. **Phase 8 — Token telemetry.** Measure first, then cut.
 
-Total effort: ~15–20 hours. Sequenced into 8 dated branches. Token cost per typical session drops ~30–60%.
+Total effort: ~15–20 hours, sequenced into 8 dated branches. Estimated session-token cost reduction: 30–60% depending on session shape.
+
+---
+
+## Lessons from this session that drive the plan
+
+This plan responds to seven concrete pain points observed across the merge sessions of 2026-05-01. Every phase ties back to at least one.
+
+1. **PRs auto-close within ~30 s of creation** (PR #21, PR #24). Each occurrence cost ~3 k tokens in narration + recovery. Root cause unconfirmed: `.github/workflows/issue-to-copilot.yml` only fires on `issues: labeled` events with the `claude:implement` label, so it's not the culprit for PR auto-closes. The Copilot reviewer auto-close path or another workflow is. See Phase 5 + **Appendix A** (TBD).
+
+2. **GitHub's `mergeable_state` lies briefly** after a base-branch update. Calling `merge_pull_request` 30 s after another merge returned `mergeable_state: unknown` then 405. Local `git merge` was clean. Workaround used twice: push merge commit to PR branch, retry. Pattern worth a learning entry.
+
+3. **D-NN decision renumbering** is a recurring merge conflict. PR #10 collided with main on D-25/D-26 because both branches added decisions in parallel. The plan needs a write-lock convention or a numbering helper.
+
+4. **Curriculum dual-file byte-equality** (`public/curriculum/v1.json` ≡ `src/curriculum/bundle.json`) is enforced only by author discipline. No subagent or hook checks it. Phase 3 adds the subagent.
+
+5. **Engine determinism is ESLint-enforced but not explained in-context.** When `Math.random` lands in `src/engine/`, the failure is a cryptic ESLint message, not a structured "inject the Rng port at line N per `src/engine/ports.ts`" advisory. PR #16 caught it only because the human author noticed. Phase 3 adds the subagent that explains.
+
+6. **`/preflight` is one-size-fits-all.** Doc-only PRs (#10, #11, #23) ran the full typecheck + lint + unit + integration + build + bundle pipeline at ~90 s each. The blast-radius router in Phase 2 cuts this to ~5 s for `chore/`/`docs/` prefixes.
+
+7. **MCP `github` server token expired mid-session** during the final verification of the PR-merge batch. The retry path was unclear and cost ~2 k tokens to reorient. Phase 5 adds a runbook entry.
+
+---
+
+## What already exists (do NOT recreate)
+
+The autonomous infrastructure is significantly more mature than the prior plan acknowledged. The phases below assume this surface and refine it.
+
+**Subagents** (`.claude/agents/`, 4 files, frontmatter `name`/`description`/`tools`):
+- `c1-c10-auditor` — locked-constraints C1–C10 audit
+- `bundle-watcher` — 1 MB gzipped JS budget enforcement
+- `validator-parity-checker` — TS ↔ Python parity for `src/validators/*.ts`
+- `a11y-auditor` — WCAG 2.1 AA across new interactive elements
+
+**Slash commands** (`.claude/commands/`, 9 files, frontmatter `description`):
+- `/preflight`, `/sync-curriculum`, `/diag`, `/learn`, `/retro`, `/sprint-status`, `/c5-check`, `/test-changed`, `/decision`
+
+**Hooks in `.claude/settings.json`**:
+- `SessionStart` → orientation banner (branch, dirty count, slash command list, subagent list, sprint pointer)
+- `PreCompact` → appends `branch/dirty/last-commit` line to `.claude/_session-log.md`
+- `PostToolUse(Bash)` → nudges to `/retro` when a `git commit` touches `src/` without `CHANGELOG`/`PLANS/`/`learnings.md` in the same commit
+- `PostToolUse(Edit|Write)` → runs `npm run gen:workflows` and warns on drift, but only for a hardcoded file list (`vite.config.ts`, `playwright.config.ts`, `src/config/shared.ts`, `scripts/workflows/generator.mjs`)
+
+**Husky git hooks** (`.husky/`):
+- `pre-commit` → `npm run typecheck` (~3 s, lightweight)
+- `pre-push` → `npm run gen:workflows` + drift check + `npm run lint:ci`
+
+**GitHub Actions workflows** (`.github/workflows/`, 18 files, all autonomy-gated):
+- `ci.yml` — typecheck + lint + tests + build + bundle on every PR
+- **`subagent-pr-audit.yml`** — already exists; computes path filters and dispatches subagent runs (Phase 4 refines, doesn't create)
+- `coverage-matrix.yml`, `claude-md-maintenance.yml`, `auto-rebuild-bundles.yml`, `bug-burndown.yml`, `ci-fix.yml`, `content-validation.yml`, `curriculum-loop.yml`, `dependabot-auto-merge.yml`, `deploy.yml`, `issue-to-copilot.yml`, `lighthouse.yml`, `misconception-synthesis.yml`, `synthetic-playtest.yml`, `telemetry-weekly.yml`, `validation-ingest.yml`
+- All gated by `AGENT_AUTONOMY_ENABLED` repo variable per **D-25**.
+
+**Tooling**:
+- `scripts/agent-doctor.mjs` — validates that every `CLAUDE.md`, `.claude/agents/*.md`, and `.claude/commands/*.md` has the required structure. Phase 1 leans on this.
+- 11 nested `CLAUDE.md` files (`src/components/`, `src/persistence/`, `src/engine/`, `src/validators/`, `src/lib/`, `src/scenes/interactions/`, `tests/`, `pipeline/`, `install/.claude/`, root) — auto-loaded by directory.
+- `docs/00-foundation/decision-log.md` — 29 entries, D-NN format, append-only newest-at-top.
+- `.claude/learnings.md` — 5 entries since 2026-04-30. Underused (Phase 6 fixes).
+
+**The implication for the rest of this plan:** every phase below assumes this surface is the baseline. "Create" verbs are reserved for things that genuinely don't exist (the two new subagents, the blast-radius router, the PR template); everything else is "refine," "extend," or "wire."
 
 ---
 
