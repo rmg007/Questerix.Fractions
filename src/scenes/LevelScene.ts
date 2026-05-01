@@ -41,6 +41,7 @@ import { Mascot } from '../components/Mascot';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
+import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -139,6 +140,21 @@ export class LevelScene extends Phaser.Scene {
     // Load templates
     await this.loadTemplates();
 
+    // Phase 11.2 — offline-curriculum affordance.
+    // If the boot-time curriculum fetch failed AND we have no usable templates,
+    // surface a user-facing toast and fall back to MenuScene rather than
+    // entering the synthetic-fallback path silently.
+    const loadFailure = getLastCurriculumLoadFailure();
+    if (loadFailure && this.templatePool.length === 0) {
+      log.warn('TMPL', 'offline_uncached', {
+        level: this.levelNumber,
+        reason: loadFailure.reason,
+      });
+      clearLastCurriculumLoadFailure();
+      this.showOfflineCurriculumToast();
+      return;
+    }
+
     // Open session record
     await this.openSession();
 
@@ -209,6 +225,51 @@ export class LevelScene extends Phaser.Scene {
     }
 
     this.loadQuestion(0);
+  }
+
+  // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
+
+  /**
+   * Render a non-blocking toast informing the player that this level isn't
+   * available offline. Auto-dismisses to MenuScene after ~3.5s. No existing
+   * toast component lives in `src/components/` yet, so we paint the panel
+   * directly with Phaser primitives — keeps the diff small while still
+   * giving a clear, kid-friendly affordance.
+   */
+  private showOfflineCurriculumToast(): void {
+    const cx = CW / 2;
+    const cy = CH / 2;
+    const TOAST_DEPTH = 2000;
+    const message = "This level isn't available offline yet — please connect to download";
+
+    const panel = this.add
+      .rectangle(cx, cy, CW - 80, 220, NAVY, 0.94)
+      .setDepth(TOAST_DEPTH)
+      .setStrokeStyle(3, PATH_BLUE, 1);
+
+    const text = this.add
+      .text(cx, cy, message, {
+        fontSize: '24px',
+        fontFamily: BODY_FONT,
+        color: '#FFFFFF',
+        align: 'center',
+        wordWrap: { width: CW - 140 },
+      })
+      .setOrigin(0.5)
+      .setDepth(TOAST_DEPTH + 1);
+
+    // Test sentinel + a11y mirror so screen readers and Playwright pick it up.
+    TestHooks.mountSentinel('offline-curriculum-toast');
+    TestHooks.setText('offline-curriculum-toast', message);
+
+    const dismiss = (): void => {
+      panel.destroy();
+      text.destroy();
+      TestHooks.unmount('offline-curriculum-toast');
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+    };
+
+    this.time.delayedCall(3500, dismiss);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────

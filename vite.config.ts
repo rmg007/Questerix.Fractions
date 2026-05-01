@@ -37,11 +37,16 @@ export default defineConfig(async () => {
             {
               // Curriculum JSON fetched at runtime — cache-first so offline
               // sessions still load the curriculum after the first online visit.
+              // Phase 11.1: TTL reduced from 30d → 7d so curriculum updates
+              // shipped via the pipeline reach students within a week even
+              // without an explicit "Refresh Curriculum" tap.
+              // Cache name `curriculum-cache` is referenced by SettingsScene's
+              // "Refresh Curriculum" affordance — keep the strings in sync.
               urlPattern: /\/curriculum\/v\d+\.json/,
               handler: 'CacheFirst',
               options: {
-                cacheName: 'curriculum',
-                expiration: { maxAgeSeconds: 30 * 86400 }, // 30 days
+                cacheName: 'curriculum-cache',
+                expiration: { maxAgeSeconds: 7 * 86400 }, // 7 days (Phase 11.1)
               },
             },
             {

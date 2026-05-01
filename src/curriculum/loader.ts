@@ -10,6 +10,13 @@
  *     the request). This does NOT activate for non-TypeError errors so test mocks that
  *     throw `new Error(...)` still receive a graceful empty result, preserving the
  *     existing test contract.
+ *
+ * Phase 11.2: when fetch fails AND the bundled fallback can't recover the data
+ * (e.g. service-worker cache miss while offline), the loader emits
+ * `curriculumLoadFailed` on `loaderEvents` and stores the detail on a
+ * module-level slot so scenes that mount after boot can still discover the
+ * failure. The exported function signature is unchanged — callers that don't
+ * subscribe still receive the same empty bundle as before.
  */
 
 import type {
@@ -26,6 +33,53 @@ import type {
 import bundledData from './bundle.json';
 import { safeParseQuestionTemplate } from './schemas';
 import { log } from '../lib/log';
+
+// ── Phase 11.2 — failure-signal channel ─────────────────────────────────────
+
+export type CurriculumLoadFailureReason = 'network' | 'fallback_parse' | 'http_error';
+
+export interface CurriculumLoadFailedDetail {
+  reason: CurriculumLoadFailureReason;
+  url: string;
+  message: string;
+}
+
+/**
+ * Lightweight EventTarget rather than a Phaser emitter so this module remains
+ * Phaser-free (the loader also runs in Node/Vitest). Scenes subscribe with
+ * `loaderEvents.addEventListener('curriculumLoadFailed', …)` and unsubscribe
+ * in `shutdown()` to avoid leaks.
+ */
+export const loaderEvents: EventTarget =
+  typeof EventTarget !== 'undefined' ? new EventTarget() : ({} as EventTarget);
+
+let lastFailure: CurriculumLoadFailedDetail | null = null;
+
+/**
+ * Most recent boot-time failure detail, or `null` if the last load succeeded
+ * or hasn't run. Boot-time failures fire before scene listeners exist, so
+ * scenes also poll this on mount.
+ */
+export function getLastCurriculumLoadFailure(): CurriculumLoadFailedDetail | null {
+  return lastFailure;
+}
+
+/** Reset the cached failure (e.g. after the toast has been shown). */
+export function clearLastCurriculumLoadFailure(): void {
+  lastFailure = null;
+}
+
+function emitFailure(detail: CurriculumLoadFailedDetail): void {
+  lastFailure = detail;
+  if (typeof CustomEvent === 'undefined' || typeof loaderEvents.dispatchEvent !== 'function') {
+    return;
+  }
+  try {
+    loaderEvents.dispatchEvent(new CustomEvent('curriculumLoadFailed', { detail }));
+  } catch {
+    /* dispatch failure is non-fatal — `lastFailure` still records it */
+  }
+}
 
 export interface CurriculumBundle {
   version: number;
@@ -192,6 +246,12 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
       console.warn(
         `[loadCurriculumBundle] Fetch returned ${response.status} for ${url} — skipping seed`
       );
+      // Phase 11.2: signal the HTTP error so scenes can render a toast.
+      emitFailure({
+        reason: 'http_error',
+        url,
+        message: `HTTP ${response.status}`,
+      });
       return empty;
     }
 
@@ -212,11 +272,26 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
         return parseBundle(bundledData as CurriculumBundle, empty);
       } catch (parseErr) {
         console.warn('[loadCurriculumBundle] Bundled curriculum parse failed:', parseErr);
+        // Phase 11.2: only emit when the static fallback is also unusable —
+        // i.e. the level genuinely isn't available offline. The TypeError +
+        // valid bundled-fallback path stays silent because the player can
+        // still play.
+        emitFailure({
+          reason: 'fallback_parse',
+          url,
+          message: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        });
       }
     } else {
       // Non-TypeError (e.g., explicit Error thrown by test mocks, JSON parse errors).
       // Degrade gracefully without falling back — preserves test contract.
       console.warn('[loadCurriculumBundle] Failed to load curriculum bundle:', err);
+      // Phase 11.2: still emit so any subscriber can react.
+      emitFailure({
+        reason: 'network',
+        url,
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
     return empty;
   }

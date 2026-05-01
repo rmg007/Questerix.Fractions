@@ -122,6 +122,57 @@ async function boot(): Promise<void> {
       console.warn('[main] Persistent storage not granted');
     });
   }
+
+  // Phase 11.3 — Update-available banner.
+  // `vite-plugin-pwa` is configured with `registerType: 'autoUpdate'`, so a
+  // new bundle activates automatically; the running tab keeps executing the
+  // stale code until it reloads. We listen for `controllerchange` (which
+  // fires the moment the new SW takes over) and mount an `UpdateBanner` —
+  // but only at safe checkpoints. Showing the banner mid-level would yank
+  // the player out of an answer, so we wait until MenuScene becomes active.
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    let updatePending = false;
+    let bannerMounted = false;
+
+    const mountBanner = (menu: import('phaser').Scene): void => {
+      if (bannerMounted) return;
+      bannerMounted = true;
+      void import('./components/UpdateBanner')
+        .then(({ UpdateBanner }) => {
+          new UpdateBanner({ scene: menu });
+        })
+        .catch((err) => {
+          console.warn('[main] UpdateBanner mount failed:', err);
+        });
+    };
+
+    const tryMountIfMenuActive = (): void => {
+      if (!updatePending || bannerMounted) return;
+      const menu = game.scene.getScene('MenuScene');
+      // Only mount when the player is actively on MenuScene — never mid-level.
+      if (!menu || !game.scene.isActive('MenuScene')) return;
+      mountBanner(menu);
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      updatePending = true;
+      tryMountIfMenuActive();
+    });
+
+    // Re-check whenever MenuScene becomes active, so an update that arrived
+    // mid-level surfaces the banner the next time the player returns to it.
+    // We hook the scene's `create` event directly (single emitter, fires on
+    // each MenuScene mount) rather than the global per-frame `step` tick.
+    const hookMenu = (): void => {
+      const menu = game.scene.getScene('MenuScene');
+      if (!menu) return;
+      menu.events.on('create', () => {
+        if (updatePending && !bannerMounted) mountBanner(menu);
+      });
+    };
+    if (game.scene.getScene('MenuScene')) hookMenu();
+    else game.events.once('ready', hookMenu);
+  }
 }
 
 boot().catch((err: unknown) => {
