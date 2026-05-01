@@ -152,6 +152,137 @@ Full task specs in `PLANS/_archive/feedback-and-ux-2026-05-01.md`.
 
 ---
 
+## UI — Layout, Ergonomics & Visual Design
+
+Items ordered by severity. The two 🔴 items are pre-playtest blockers alongside B1/B2 — fix them before putting a child in front of the app.
+
+---
+
+### UI-1 — Drag handle has zero affordance 🔴 Critical
+
+**File:** `src/scenes/Level01Scene.ts`, `src/scenes/interactions/PartitionInteraction.ts`  
+**Problem:** The partition line is an 8 px thin rectangle with no grip indicator, no arrows, no "touch me" pulse. A 5-year-old has no idea it's draggable. Onboarding T9 fixes the pointer for Step 1, but during actual gameplay the handle is invisible as an interactive object.  
+**Fix:**
+- Draw a circular pill/gripper centered at `(handlePos, SHAPE_CY)`: filled circle ~28 px radius, navy border 3 px, white fill.
+- Add ← → chevrons (small, 14 px, navy) left and right of the circle.
+- On question load, play a short pulse tween (scale 1.0 → 1.15 → 1.0, 600 ms yoyo × 2) that stops the moment the child starts dragging (`pointerdown`).
+
+**Done when:** The drag handle is unmistakably interactive on first glance, and the pulse stops on first touch.
+
+---
+
+### UI-2 — Shape is too small for a child's hand 🔴 Critical
+
+**File:** `src/scenes/Level01Scene.ts`, `src/scenes/interactions/PartitionInteraction.ts`  
+**Problem:** `SHAPE_W = 340`, `SHAPE_H = 260` on an 800×1280 canvas = 42% wide, 20% tall. A 5–7-year-old's thumb is 25–35 px of contact area. Dragging across a 340 px shape with an 8 px handle leaves almost no forgiveness margin. This is a physical ergonomics failure.  
+**Fix:** Increase to at least `SHAPE_W = 520` (65% of canvas), `SHAPE_H = 340`. Update any downstream math that depends on these constants (clamp bounds, midpoint calculation, ghost guide position from B3/T8).  
+**Note:** Verify no overlap with FeedbackOverlay or hint button after resize.
+
+**Done when:** The drag shape fills ≥ 65% canvas width and passes a thumb-tap test on a real tablet.
+
+---
+
+### UI-3 — Snap color fill is too faint 🟠 High
+
+**File:** `src/scenes/interactions/PartitionInteraction.ts`, `src/scenes/Level01Scene.ts` (T13 implementation)  
+**Problem:** The two halves fill with `ACTION_FILL` (amber) and `SKY_BG` (blue) at 0.45 alpha — a washed-out pastel. The pedagogical point of the snap is the "aha!" that the shape is now two equal halves. Faint pastels don't land.  
+**Fix:** Raise alpha to 0.85. Use two strongly contrasting, saturated colors — e.g. vivid mint `0x22C55E` (green-500) for the left half and vivid coral `0xF97316` (orange-500) for the right. The contrast between the halves is what makes the concept click.
+
+**Done when:** The two halves are clearly distinct and visually "pop" on correct snap.
+
+---
+
+### UI-4 — Menu is radically bottom-heavy 🟠 High
+
+**File:** `src/scenes/MenuScene.ts`  
+**Problem:** Title at y=140, Quest at y=980, Play! at y=1100, streak at y=1255. Everything worth seeing is crammed into the bottom 23% of the 1280 px canvas. The top 77% is empty sky with a title.  
+**Fix:** Reposition Quest to y=620–680 (canvas center), Play! button to y=860. This distributes the visual weight evenly and gives Quest room to animate without being crowded by buttons.
+
+**Done when:** Quest occupies the vertical center of the menu and the layout feels balanced.
+
+---
+
+### UI-5 — Quest is not the hero on the menu 🟠 High
+
+**File:** `src/scenes/MenuScene.ts`  
+**Problem:** Quest is tucked bottom-right at (680, 980) — a supporting actor, not the emotional anchor. For K-2, the mascot is what children attach to.  
+**Fix:** Center Quest horizontally (canvas center x ≈ 400 on an 800 px canvas), scale up 1.3–1.5× from the current menu size. Place the Play! button below Quest's feet. Quest should make "eye contact" with the child — i.e. face forward, at mid-screen.  
+**Note:** Coordinate with UI-4 (reposition) — these are the same scene, best done in one pass.
+
+**Done when:** Quest is centered, large, and visually dominant on the menu.
+
+---
+
+### UI-6 — Progress stars are too subtle 🟡 Medium
+
+**File:** `src/components/SessionCompleteOverlay.ts` (or wherever stars are rendered)  
+**Problem:** Five ☆/★ emoji at 36 px. Filled vs empty relies on gold vs pale-gold — a small perceptual difference for young children, especially under 40 px.  
+**Fix:** Increase to 48 px. Change empty stars to a hollow outline only (no color fill) so the before/after contrast is maximum. Keep the bounce-in tween (scale 1.4×) — it's good.
+
+**Done when:** A child can tell instantly which stars are filled and which are empty from arm's length on a tablet.
+
+---
+
+### UI-7 — Fraction labels are too abstract for K-1 readers 🟡 Medium
+
+**File:** `src/scenes/interactions/PartitionInteraction.ts`, `src/scenes/Level01Scene.ts` (T13 snap labels)  
+**Problem:** When the partition snaps, "1/2" appears in each half. Most K-1 students (ages 5–6) cannot read the symbolic fraction — that's a late-K or Grade 1+ skill. The label leads with the symbol, not the word.  
+**Fix:** Show "half" in bold 48 px TITLE_FONT as the primary label. Below it, show "1/2" in 24 px as the secondary label. Word leads; symbol follows. For thirds: "third" / "1/3". For fourths: "quarter" / "1/4".
+
+**Done when:** Both the word and the symbol appear, word visually dominant.
+
+---
+
+### UI-8 — Hint button is not unmissable 🟡 Medium
+
+**File:** `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts`  
+**Problem:** If the hint button is small or ambiguous, a stuck child won't find it. T7 auto-hint fires on the 3rd wrong answer — but the button should be findable before that.  
+**Fix:** Ensure the hint button is at least 100×60 px, amber fill, with "💡 Help!" label in 20 px TITLE_FONT. Position it bottom-left (opposite the mascot). After 2 wrong answers on the same question, add a pulse tween (scale 1.0 → 1.1 → 1.0, 800 ms yoyo) to draw the eye before the auto-trigger on the 3rd.
+
+**Done when:** A first-time user can locate the hint button without being told where it is.
+
+---
+
+### UI-9 — Loading screen is dead air 🟡 Medium
+
+**File:** `src/scenes/PreloadScene.ts`  
+**Problem:** PreloadScene shows "Loading" in small muted text on a gradient background. A child watching this has no feedback that anything is happening.  
+**Fix:**
+- Add a bouncing Quest: scale tween ±0.05, 500 ms yoyo, loops until load complete.
+- Animated loading dots: cycle "Loading .", "Loading ..", "Loading ..." at 400 ms intervals.
+
+**Done when:** The loading screen shows Quest moving and text animating — no dead air.
+
+---
+
+### UI-10 — No drag sound during interaction 🟡 Medium
+
+**File:** `src/audio/SFXService.ts`, `src/scenes/Level01Scene.ts`, `src/scenes/interactions/PartitionInteraction.ts`  
+**Problem:** There's a snap SFX on correct partition (T13) and playback on Check, but nothing during the drag itself. No tactile audio feedback as the child moves the handle.  
+**Fix:** Add `playScrub()` to `SFXService`: a quiet slide tone (sine wave, 200–400 Hz glide, gain 0.06, 80 ms). Fire on `pointermove` while dragging, throttled to once per 50 ms. Pitch can rise as the handle approaches center (optional enhancement: map handle delta from 0→50% to 200→400 Hz).
+
+**Done when:** Moving the drag handle produces a continuous, subtle sliding sound.
+
+---
+
+### UI-11 — Adventure map may be too complex for K-2 🟢 Low / Nice-to-have
+
+**File:** `src/scenes/LevelMapScene.ts`  
+**Problem:** A winding path with 9 level cards is cognitively demanding for a 5-year-old navigating after a session. The map is great for older kids; for K-2 it may cause navigation anxiety.  
+**Possible simplification (discuss with user before acting):** Show only the current level prominently (big card, center), previous levels as small receding cards behind, next levels as locked ahead. Or reduce to a "Next Level / Replay / Menu" 3-button layout that appears post-session.  
+**Status:** Flag for user decision — do not implement without explicit approval.
+
+---
+
+### UI-12 — Fraction labels should animate in on snap 🟢 Low / Nice-to-have
+
+**File:** `src/scenes/interactions/PartitionInteraction.ts`, `src/scenes/Level01Scene.ts`  
+**Problem:** When the snap labels appear (T13 + UI-7 fix), they currently appear instantly. A pop-in makes the "aha!" moment feel earned.  
+**Fix:** Scale-bounce the label from 0 → 1.3 → 1.0 over 200 ms with `Back.easeOut`. Fire 200 ms after the color fill starts (stagger so fill lands first, then labels appear).  
+**Dependency:** Implement after UI-7 (the word+symbol label).
+
+---
+
 ## P6 — Harden: Critical & High Risk Items
 
 **Status:** Pending.  
