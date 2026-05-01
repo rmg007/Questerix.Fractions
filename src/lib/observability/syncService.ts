@@ -1,8 +1,29 @@
 import { db } from '../../persistence/db';
 
 /**
+ * Stable per-input pseudonymization. FNV-1a 32-bit → 8 hex chars.
+ * Mirrors the helper in errorReporter.ts; kept local to avoid an internal
+ * cross-import. The goal is correlation pseudonymity for the X-Install-ID
+ * header so downstream telemetry can group by install without storing the
+ * raw UUID.
+ */
+function pseudonymize(s: string | undefined): string {
+  if (!s) return 'unknown';
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
  * Service for periodically flushing buffered telemetry events to the server.
  * Handles network awareness and batching.
+ *
+ * Privacy: events are buffered by `logger` only when telemetryConsent is true,
+ * so the buffer itself is the consent gate. We additionally pseudonymize the
+ * X-Install-ID header so the network endpoint never sees the raw UUID.
  */
 class TelemetrySyncService {
   private intervalId: number | undefined;
@@ -75,7 +96,8 @@ class TelemetrySyncService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Install-ID': deviceMeta?.installId || 'unknown',
+          // Pseudonymized — see comment on `pseudonymize()` above.
+          'X-Install-ID': pseudonymize(deviceMeta?.installId),
         },
         body: JSON.stringify({
           events,
