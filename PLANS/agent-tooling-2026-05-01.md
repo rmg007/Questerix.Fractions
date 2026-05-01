@@ -956,21 +956,108 @@ Open a controlled test PR titled `test: dexie poke (delete me)` from a non-depen
 
 ---
 
-## Phase 6 — `learnings.md` discipline
+## Phase 6 — `learnings.md` discipline (concrete artifacts)
 
-**Goal:** Make the learnings log actually accumulate context, not just exist.
+**Goal:** Make the learnings log actually accumulate context, not just exist. 5 entries since 2026-04-30 — most recurring gotchas from the 2026-05-01 sessions are still unrecorded.
 
-**Current state:** 5 entries since 2026-04-30. Many recent gotchas (auto-close PRs, conflict resolution patterns, curriculum dual-file mechanics, mascot.setState rule, OpenTelemetry env-gating) are not all there.
+### 6.1 `SessionStart` hook patch — print 3 most-recent learnings inline
 
-### Actions
+Drop-in replacement for the `SessionStart` hook in `.claude/settings.json`. The new tail (`grep -E ... | head -3`) costs <200 tokens at session open and surfaces gotchas the user would otherwise rediscover.
 
-1. **Strengthen `SessionStart` hook** to print the *3 most recent* learnings inline, not just "Skim it." Surface the long tail at near-zero cost (<200 tokens).
+Updated `command` value (paste-ready, JSON-escaped):
 
-2. **`PostToolUse` hook on `git commit`** that, when the diff message contains `fix(` or `bug` keywords, prompts via stderr: `▶ Bug fix committed — consider /learn to capture the gotcha.`
+```
+BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /learn /retro /sprint-status /c5-check /decision /recreate-pr\"; echo \"├─ Subagents: c1-c10-auditor bundle-watcher validator-parity-checker a11y-auditor engine-determinism-auditor curriculum-byte-parity\"; echo \"├─ Active sprint: PLANS/master-plan-2026-04-26.md\"; echo \"├─ Recent learnings (3 newest):\"; grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} ' .claude/learnings.md 2>/dev/null | head -3 | sed 's/^/│   • /'; echo \"└─ /learn <text> appends a new one\"
+```
 
-3. **Enhance `/retro`** so it explicitly proposes a `learnings.md` entry as part of standard output (currently optional; make it a section header so it's hard to skip).
+### 6.2 `PostToolUse(Bash)` — nudge on bug-fix commits
 
-**Acceptance:** Learnings.md grows by ≥2 entries/week during active development. Recurring gotchas (auto-close, byte-parity, mascot.setState) all captured within one week of Phase 6 landing.
+Add a stanza to the existing `PostToolUse(Bash)` hook in `.claude/settings.json`:
+
+```json
+{
+  "matcher": "Bash",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) MSG=$(git log -1 --pretty=%B 2>/dev/null); if echo \"$MSG\" | grep -qE '(^|[^a-z])fix\\(|\\bbug\\b'; then echo '▶ Bug fix committed — consider /learn to capture the gotcha.' >&2; fi ;; esac; exit 0"
+    }
+  ]
+}
+```
+
+The regex `(^|[^a-z])fix\(|\bbug\b` matches `fix(scope):` Conventional-Commit prefixes and the word `bug` as a token, while ignoring substrings like `prefix(` or `bugfix-runtime`. Always `exit 0` so a missed nudge never blocks a commit.
+
+### 6.3 `/retro` enhancement — propose a candidate learnings.md entry every time
+
+Replace `.claude/commands/retro.md` with the version below. The single behavioural change: the `### .claude/learnings.md` section is **mandatory** — agent must propose at least one candidate or write `*(no candidate this session — confirm none qualify)*`.
+
+```markdown
+---
+description: End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+---
+
+Review what happened in this session and propose targeted documentation updates. **Do not edit any docs in this command** — only propose. The user decides what to apply.
+
+## Steps
+
+1. Run in parallel:
+   - `git diff --stat $(git merge-base HEAD origin/main 2>/dev/null || git log --oneline -20 | tail -1 | awk '{print $1}')..HEAD`
+   - `git log --oneline -10`
+   - `head -30 .claude/learnings.md`
+
+2. Cross-reference what changed against:
+   - **`CLAUDE.md`** (root + nested) — does any architectural rule or pattern in the diff belong here?
+   - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **You must propose at least one candidate entry.** If nothing qualifies, say so explicitly with reasoning — do not omit the section.
+   - **`PLANS/master-plan-2026-04-26.md`** — were any active blockers resolved?
+   - **`CHANGELOG.md`** `[Unreleased]` — any user-visible change missing?
+   - **`docs/00-foundation/decision-log.md`** — was a new architectural decision made? Needs a `D-NN` entry?
+
+3. Output a structured proposal in this exact shape. The `### .claude/learnings.md` section is **required** — never omit it.
+
+\`\`\`
+## Retro proposal
+
+### CLAUDE.md / nested CLAUDE.md
+- [path:section] proposed change — one-line reason
+
+### .claude/learnings.md   (REQUIRED — propose ≥1 candidate or explain why none qualify)
+- YYYY-MM-DD <area>: <one-line gotcha> [#commit-or-branch]
+  rationale: cost N min of debugging / contradicted CLAUDE.md / hidden invariant
+
+### PLANS/master-plan-2026-04-26.md
+- ✅ mark <bug-id> done — reason
+
+### CHANGELOG.md [Unreleased]
+- "Added/Changed/Fixed: <line>"
+
+### docs/00-foundation/decision-log.md
+- proposed D-NN entry — title only
+\`\`\`
+
+Skip any section other than `### .claude/learnings.md` that has nothing. Be concise — propose only updates that materially improve future agent context.
+
+4. End with: "Apply any of these? Reply with the section names to apply (e.g. 'CLAUDE.md and learnings')."
+```
+
+### 6.4 Five learnings to seed immediately
+
+Paste under the `<!-- Append new lines below this marker. -->` marker in `.claude/learnings.md`:
+
+```
+2026-05-01 github-pr: PRs auto-close in <30 s when title contains substrings `phaser`/`dexie`/`vite` — `.github/workflows/dependabot-auto-merge.yml` author guard at lines 17-19 uses `run: exit 0` which exits the step, not the job, so the pin-check step (32-52) runs for every author. Fix: lift guard to job-level `if: github.actor == 'dependabot[bot]'`. Use `/recreate-pr <N>` to recover.
+2026-05-01 github-api: GitHub `mergeable_state` lies briefly after a base-branch update — calling `merge_pull_request` within ~30 s of another merge can return `unknown` then 405 even when local `git merge` is clean. Workaround: push the merge commit to the PR branch and retry the MCP merge.
+2026-05-01 decision-log: D-NN renumbering is a recurring merge-conflict surface (PR #10 collided on D-25/D-26 because two branches added decisions in parallel). Until a numbering helper exists, treat D-NN slots as write-locked: rebase before adding, and bump the number on conflict rather than re-using.
+2026-05-01 mcp: The `github` MCP server token can expire mid-session with no warning — symptom is opaque 401s on read calls that worked minutes earlier. Fix: re-auth the MCP server; do not retry the same call in a loop.
+2026-05-01 god-files: New scenes must be created via `npm run scaffold:scene <name>` which generates Scene + Controller + State as separate files. Direct creation of monolithic *Scene.ts files is blocked by the LOC-budget hook (Phase 1.4). Pre-existing god files (`Level01Scene.ts`, `LevelScene.ts`) are frozen — only net-LOC-negative edits accepted until D-27 sunset lands.
+```
+
+### 6.5 Acceptance for Phase 6
+
+- `SessionStart` banner prints exactly 3 learnings lines under "Recent learnings".
+- A commit with message `fix(persistence): correct schema version bump` produces the stderr nudge.
+- `.claude/commands/retro.md` has the `(REQUIRED — propose ≥1 candidate)` annotation.
+- Five seed entries are in `.claude/learnings.md` at the top.
 
 **Effort:** 1 hr.
 
