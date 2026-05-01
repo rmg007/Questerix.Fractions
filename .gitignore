@@ -31,6 +31,10 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 
+# Linter / formatter caches
+.eslintcache
+.prettiercache
+
 # OS / editor
 .DS_Store
 Thumbs.db

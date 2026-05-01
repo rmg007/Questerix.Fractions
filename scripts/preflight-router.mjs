@@ -24,7 +24,7 @@ import { execSync, spawnSync } from 'node:child_process';
 
 const TIERS = {
   light: ['typecheck', 'lint'],
-  medium: ['typecheck', 'lint', 'test:unit'],
+  medium: ['typecheck', 'lint', 'test:unit:changed'],
   full: ['typecheck', 'lint', 'test:unit', 'test:integration', 'build', 'measure-bundle'],
 };
 
