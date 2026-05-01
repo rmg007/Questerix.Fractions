@@ -382,3 +382,175 @@ describe('Transition Logic and Mastery Thresholds', () => {
     expect(m.state).not.toBe('MASTERED');
   });
 });
+
+// ── Edge Cases: Extreme Priors (Phase 6.5) ─────────────────────────────────
+// Verify BKT update remains finite and bounded when pSlip / pGuess approach
+// the open-interval boundaries (0, 1). Today only mid-range priors (~0.1)
+// are property-tested.
+
+describe('Extreme priors — pSlip / pGuess near 0 or 1', () => {
+  // Open-interval extremes — validateBktParams rejects exact 0 and 1.
+  const extremeProb = fc.constantFrom(0.01, 0.05, 0.5, 0.9, 0.99);
+  // Avoid exact 0 / 1 priors so the formula divisor cannot collapse to zero
+  // for unrelated reasons; keep them at the edge but inside the open range.
+  const priorArb = fc.double({
+    min: 0.001,
+    max: 0.999,
+    noNaN: true,
+    noDefaultInfinity: true,
+  });
+  const transitArb = fc.constantFrom(0.01, 0.1, 0.5);
+  const initArb = fc.constantFrom(0.01, 0.1, 0.5);
+
+  it('updatePKnown stays finite and in [0, 1] for any extreme prior — correct', () => {
+    fc.assert(
+      fc.property(
+        priorArb,
+        extremeProb,
+        extremeProb,
+        transitArb,
+        initArb,
+        (prior, pSlip, pGuess, pTransit, pInit) => {
+          const params: BktParams = { pInit, pTransit, pSlip, pGuess };
+          const result = updatePKnown(prior, true, params);
+          expect(Number.isFinite(result)).toBe(true);
+          expect(Number.isNaN(result)).toBe(false);
+          expect(result).toBeGreaterThanOrEqual(0);
+          expect(result).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('updatePKnown stays finite and in [0, 1] for any extreme prior — incorrect', () => {
+    fc.assert(
+      fc.property(
+        priorArb,
+        extremeProb,
+        extremeProb,
+        transitArb,
+        initArb,
+        (prior, pSlip, pGuess, pTransit, pInit) => {
+          const params: BktParams = { pInit, pTransit, pSlip, pGuess };
+          const result = updatePKnown(prior, false, params);
+          expect(Number.isFinite(result)).toBe(true);
+          expect(Number.isNaN(result)).toBe(false);
+          expect(result).toBeGreaterThanOrEqual(0);
+          expect(result).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('updateMastery returns finite estimate ∈ [0, 1] under extreme priors — correct', () => {
+    fc.assert(
+      fc.property(
+        priorArb,
+        extremeProb,
+        extremeProb,
+        transitArb,
+        initArb,
+        (prior, pSlip, pGuess, pTransit, pInit) => {
+          const params: BktParams = { pInit, pTransit, pSlip, pGuess };
+          const m = makeSkillMastery(prior);
+          const updated = updateMastery(m, true, params);
+          expect(Number.isFinite(updated.masteryEstimate)).toBe(true);
+          expect(Number.isNaN(updated.masteryEstimate)).toBe(false);
+          expect(updated.masteryEstimate).toBeGreaterThanOrEqual(0);
+          expect(updated.masteryEstimate).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('updateMastery returns finite estimate ∈ [0, 1] under extreme priors — incorrect', () => {
+    fc.assert(
+      fc.property(
+        priorArb,
+        extremeProb,
+        extremeProb,
+        transitArb,
+        initArb,
+        (prior, pSlip, pGuess, pTransit, pInit) => {
+          const params: BktParams = { pInit, pTransit, pSlip, pGuess };
+          const m = makeSkillMastery(prior);
+          const updated = updateMastery(m, false, params);
+          expect(Number.isFinite(updated.masteryEstimate)).toBe(true);
+          expect(Number.isNaN(updated.masteryEstimate)).toBe(false);
+          expect(updated.masteryEstimate).toBeGreaterThanOrEqual(0);
+          expect(updated.masteryEstimate).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('predictCorrect stays in [0, 1] for any extreme prior', () => {
+    fc.assert(
+      fc.property(priorArb, extremeProb, extremeProb, (prior, pSlip, pGuess) => {
+        const params: BktParams = {
+          pInit: 0.1,
+          pTransit: 0.1,
+          pSlip,
+          pGuess,
+        };
+        const result = predictCorrect(prior, params);
+        expect(Number.isFinite(result)).toBe(true);
+        expect(result).toBeGreaterThanOrEqual(0);
+        expect(result).toBeLessThanOrEqual(1);
+      })
+    );
+  });
+});
+
+// ── Edge Cases: Threshold Boundary Behavior (Phase 6.5) ────────────────────
+// deriveState transitions at 0.65 (LEARNING → APPROACHING) and
+// 0.85 (APPROACHING → MASTERED). Both checks are inclusive (`>=`).
+// Verify the exact transition points so any future off-by-one regresses loudly.
+
+describe('deriveState — threshold boundary (Phase 6.5)', () => {
+  // Below the 0.65 boundary — LEARNING regardless of streak
+  it('estimate = 0.6499 → LEARNING (just below APPROACHING threshold)', () => {
+    expect(deriveState(0.6499, 0)).toBe('LEARNING');
+    expect(deriveState(0.6499, 5)).toBe('LEARNING');
+  });
+
+  // At the 0.65 boundary — inclusive transition into APPROACHING
+  it('estimate = 0.65 → APPROACHING (at-or-above transition is inclusive)', () => {
+    expect(deriveState(0.65, 0)).toBe('APPROACHING');
+    expect(deriveState(0.65, 5)).toBe('APPROACHING');
+  });
+
+  // Just above 0.65 — solidly APPROACHING
+  it('estimate = 0.6501 → APPROACHING (just above LEARNING threshold)', () => {
+    expect(deriveState(0.6501, 0)).toBe('APPROACHING');
+    expect(deriveState(0.6501, 5)).toBe('APPROACHING');
+  });
+
+  // Below the 0.85 boundary — APPROACHING regardless of streak
+  it('estimate = 0.8499 → APPROACHING (just below MASTERED threshold)', () => {
+    expect(deriveState(0.8499, 0)).toBe('APPROACHING');
+    expect(deriveState(0.8499, 10)).toBe('APPROACHING');
+  });
+
+  // At the 0.85 boundary — MASTERED requires consecutiveCorrect >= 3
+  it('estimate = 0.85 → MASTERED when consecutiveCorrect >= 3 (inclusive)', () => {
+    expect(deriveState(0.85, 3)).toBe('MASTERED');
+    expect(deriveState(0.85, 4)).toBe('MASTERED');
+  });
+
+  it('estimate = 0.85 → APPROACHING when consecutiveCorrect < 3', () => {
+    expect(deriveState(0.85, 0)).toBe('APPROACHING');
+    expect(deriveState(0.85, 2)).toBe('APPROACHING');
+  });
+
+  // Just above 0.85 — solidly MASTERED with sufficient streak
+  it('estimate = 0.8501 → MASTERED when consecutiveCorrect >= 3', () => {
+    expect(deriveState(0.8501, 3)).toBe('MASTERED');
+    expect(deriveState(0.8501, 10)).toBe('MASTERED');
+  });
+
+  it('estimate = 0.8501 → APPROACHING when consecutiveCorrect < 3', () => {
+    expect(deriveState(0.8501, 0)).toBe('APPROACHING');
+    expect(deriveState(0.8501, 2)).toBe('APPROACHING');
+  });
+});
