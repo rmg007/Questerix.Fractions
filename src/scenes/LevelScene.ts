@@ -886,12 +886,17 @@ export class LevelScene extends Phaser.Scene {
         },
         syncState: 'local',
       });
-      this.sessionId = session.id;
-      log.sess('open_ok', {
-        sessionId: this.sessionId,
-        level: this.levelNumber,
-        activityId: `level_${this.levelNumber}`,
-      });
+      if (session) {
+        this.sessionId = session.id;
+        log.sess('open_ok', {
+          sessionId: this.sessionId,
+          level: this.levelNumber,
+          activityId: `level_${this.levelNumber}`,
+        });
+      } else {
+        // Quota exceeded — volatile mode, session not persisted
+        log.warn('SESS', 'open_quota', { level: this.levelNumber });
+      }
     } catch (err) {
       log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
     }

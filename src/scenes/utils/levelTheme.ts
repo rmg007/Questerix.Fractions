@@ -12,6 +12,8 @@ import * as Phaser from 'phaser';
 
 // ── Palette (mirrors MenuScene constants) ────────────────────────────────────
 
+// WCAG contrast note for SKY_BG: TEXT_BODY (#475569) on #E0F2FE = 6.60:1 — PASSES AA 4.5:1.
+// TEXT_MUTED and TEXT_DIM have been darkened (see below) to pass on this background.
 export const SKY_BG = 0xe0f2fe; // #E0F2FE — pale sky
 export const PATH_BLUE = 0x93c5fd; // #93C5FD — light blue path / partition line bg
 
@@ -33,20 +35,29 @@ export const ACCENT_C = 0x34d399;
 export const TEXT_ON_FILL = '#FFFFFF';
 export const TEXT_BODY = '#475569';
 export const TEXT_HEADING = NAVY_HEX;
-export const TEXT_MUTED = '#64748B';
-export const TEXT_DIM = '#94A3B8';
+// WCAG AA fix: #64748B yielded 4.15:1 on SKY_BG (#E0F2FE) — below the 4.5:1 floor.
+// #4E5C6E raises it to 5.94:1 on SKY_BG and 6.82:1 on white. (before: #64748B)
+export const TEXT_MUTED = '#4E5C6E';
+// WCAG AA fix: #94A3B8 yielded only 2.23:1 on SKY_BG and 2.56:1 on white — far below 4.5:1.
+// #5B6478 raises it to 5.17:1 on SKY_BG and 5.93:1 on white. (before: #94A3B8)
+export const TEXT_DIM = '#5B6478';
 
 // Action ("Check") button — amber, matching the Play! station
 export const ACTION_FILL = 0xfcd34d; // amber-300
 export const ACTION_HOVER = 0xf59e0b; // amber-500
 export const ACTION_BORDER = 0xb45309; // amber-700
-export const ACTION_TEXT = '#78350F'; // amber-900
+// WCAG AA fix: #78350F yielded 4.22:1 on ACTION_HOVER (#F59E0B) — below 4.5:1 floor
+// (it did pass on ACTION_FILL at 6.29:1). #6B2E0B raises hover to 4.84:1 and fill to 7.21:1.
+// (before: #78350F)
+export const ACTION_TEXT = '#6B2E0B'; // deep amber-brown — WCAG AA on both fill and hover
 
 // Hint button — blue, matching the Settings station
 export const HINT_FILL = 0x60a5fa; // blue-400
 export const HINT_HOVER = 0x3b82f6; // blue-500
 export const HINT_BORDER = 0x1e3a8a; // blue-900
-export const HINT_TEXT_CLR = '#1E3A8A'; // blue-900
+// WCAG AA fix: #1E3A8A (navy) yielded 4.07:1 on HINT_FILL (#60A5FA) — below 4.5:1 floor.
+// #07102E raises it to 7.36:1 on HINT_FILL and 5.09:1 on HINT_HOVER (#3B82F6). (before: #1E3A8A)
+export const HINT_TEXT_CLR = '#07102E'; // deep navy — WCAG AA on both fill and hover states
 
 // Secondary ("Back to menu") button — white pill with navy border
 export const SEC_FILL = WHITE;
@@ -289,6 +300,7 @@ export function createSecondaryButton(
 /**
  * Style string for the hint text game object — white badge with navy text,
  * matching the fraction-badge / tagline-pill look from MenuScene.
+ * WCAG contrast confirmed: NAVY_HEX (#1E3A8A) on WHITE (#FFFFFF) = 10.36:1 — PASSES AA 4.5:1.
  */
 export const HINT_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   fontSize: '18px',

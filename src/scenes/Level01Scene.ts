@@ -420,8 +420,8 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session persistence ──────────────────────────────────────────────────
 
-  private async openSession(): Promise<boolean> {
-    if (!this.studentId) return true; // anonymous play is OK
+  private async openSession(): Promise<void> {
+    if (!this.studentId) return; // anonymous play is OK
     log.sess('open_start', { studentId: this.studentId, resume: this.resume });
     try {
       // C7.5-C7.6: Record lastUsedStudentId for session resumption
@@ -450,7 +450,7 @@ export class Level01Scene extends Phaser.Scene {
           }
 
           log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
-          return true;
+          return;
         }
       }
 
@@ -479,9 +479,13 @@ export class Level01Scene extends Phaser.Scene {
         },
         syncState: 'local',
       });
-      this.sessionId = session.id;
-      log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
-      return true;
+      if (session) {
+        this.sessionId = session.id;
+        log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
+      } else {
+        // Quota exceeded — volatile mode, session not persisted
+        log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
+      }
     } catch (err) {
       // R6: re-throw so create() can show a user-visible error and block play.
       log.error('SESS', 'open_error', { error: String(err) });
@@ -1202,8 +1206,12 @@ export class Level01Scene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
-        this.currentQuestionHintIds.push(event.id);
-        log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        if (event) {
+          this.currentQuestionHintIds.push(event.id);
+          log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        } else {
+          log.warn('HINT', 'record_quota', { hintId: `hint.partition.${tier}` });
+        }
       } catch (err) {
         log.warn('HINT', 'record_error', { error: String(err) });
       }

@@ -5,13 +5,22 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { HintEvent, AttemptId } from '../../types';
 
 export const hintEventRepo = {
-  async record(event: Omit<HintEvent, 'id'>): Promise<HintEvent> {
+  async record(event: Omit<HintEvent, 'id'>): Promise<HintEvent | undefined> {
     const toWrite = { ...event, syncState: 'local' as const };
-    const key = await db.hintEvents.add(toWrite as HintEvent);
-    return { ...toWrite, id: key as number };
+    try {
+      const key = await db.hintEvents.add(toWrite as HintEvent);
+      return { ...toWrite, id: key as number };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'hintEvents' });
+        return undefined;
+      }
+      throw err;
+    }
   },
 
   /** Link a batch of hint events to an attempt after the attempt is persisted. */
