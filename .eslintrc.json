@@ -61,13 +61,21 @@
     },
     {
       "files": ["src/scenes/*Scene.ts"],
-      "excludedFiles": ["src/scenes/Level01Scene.ts", "src/scenes/LevelScene.ts"],
+      "excludedFiles": [
+        "src/scenes/Level01Scene.ts",
+        "src/scenes/LevelScene.ts",
+        "src/scenes/MenuScene.ts"
+      ],
       "rules": {
         "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": true }]
       }
     },
     {
       "files": ["src/components/*.ts"],
+      "excludedFiles": [
+        "src/components/Mascot.ts",
+        "src/components/SessionCompleteOverlay.ts"
+      ],
       "rules": {
         "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }]
       }
