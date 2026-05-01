@@ -6,7 +6,14 @@
  * graceful-failure surface (fromString, invalid denominator).
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('phaser', () => ({
+  GameObjects: { Graphics: class {}, Text: class {}, Container: class {} },
+  Scene: class {},
+  default: {},
+}));
+
 import { parseFraction } from '@/components/FractionDisplay';
 
 describe('parseFraction', () => {
