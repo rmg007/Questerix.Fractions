@@ -58,6 +58,39 @@
           }
         ]
       }
+    },
+    {
+      "files": ["src/scenes/*Scene.ts"],
+      "excludedFiles": [
+        "src/scenes/Level01Scene.ts",
+        "src/scenes/LevelScene.ts",
+        "src/scenes/MenuScene.ts"
+      ],
+      "rules": {
+        "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": true }]
+      }
+    },
+    {
+      "files": ["src/components/*.ts"],
+      "excludedFiles": [
+        "src/components/Mascot.ts",
+        "src/components/SessionCompleteOverlay.ts"
+      ],
+      "rules": {
+        "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }]
+      }
+    },
+    {
+      "files": ["src/validators/*.ts"],
+      "rules": {
+        "max-lines": ["error", { "max": 200, "skipBlankLines": true, "skipComments": true }]
+      }
+    },
+    {
+      "files": ["src/engine/*.ts"],
+      "rules": {
+        "max-lines": ["error", { "max": 400, "skipBlankLines": true, "skipComments": true }]
+      }
     }
   ],
   "ignorePatterns": ["dist", "node_modules", "build", ".venv", "pipeline"]

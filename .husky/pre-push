@@ -1,8 +1,28 @@
 #!/usr/bin/env sh
-# Pre-push guard: regenerate workflows from config and fail if they drift.
-# Catches port/browser mismatches before they hit the CI cascade.
+# Pre-push guard:
+#   1. Branch-name compliance (per CLAUDE.md git-workflow rule)
+#   2. Workflow regen drift check
+#   3. Tiered preflight router (see scripts/preflight-router.mjs)
 # Bypass with: git push --no-verify (CI consistency gate is backstop)
 
+# 1. Branch-name compliance ---------------------------------------------------
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  main|claude/*|worktree-agent-*) ;;
+  *)
+    if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+      echo ""
+      echo "ERROR: branch name '$BRANCH' is non-compliant."
+      echo "Required shape: <type>/YYYY-MM-DD-<slug>"
+      echo "  type ∈ {feat, fix, refactor, plans, chore, docs, test}"
+      echo "  slug: lowercase, kebab-case"
+      echo "See docs/00-foundation/git-workflow.md and CLAUDE.md → 'Git workflow'."
+      exit 1
+    fi
+    ;;
+esac
+
+# 2. Workflow drift -----------------------------------------------------------
 echo "▶ pre-push: checking workflow consistency..."
 npm run gen:workflows
 if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then
@@ -11,7 +31,7 @@ if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then
   exit 1
 fi
 
-echo "▶ pre-push: residual lint..."
-npm run lint:ci
+# 3. Tiered preflight ---------------------------------------------------------
+node scripts/preflight-router.mjs || exit 1
 
 echo "✓ pre-push checks passed"

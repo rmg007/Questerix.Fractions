@@ -1670,8 +1670,14 @@ export class Level01Scene extends Phaser.Scene {
           : null;
 
       // BKT-derived scaffold recommendation: tells the router what to do next session.
-      const scaffoldRecommendation: 'advance' | 'stay' =
-        this.currentMasteryEstimate >= 0.85 ? 'advance' : 'stay';
+      const scaffoldRecommendation: 'advance' | 'stay' | 'regress' =
+        this.currentMasteryEstimate >= 0.85
+          ? 'advance'
+          : this.currentMasteryEstimate > 0 &&
+              this.responseTimes.length >= 5 &&
+              this.correctCount / this.responseTimes.length < 0.4
+            ? 'regress'
+            : 'stay';
 
       const summary = {
         endedAt: Date.now(),
@@ -1710,6 +1716,7 @@ export class Level01Scene extends Phaser.Scene {
 
   // Called by Phaser when scene is shut down
   preDestroy(): void {
+    this.time.removeAllEvents();
     log.scene('destroy');
     // R7: destroy all managed components to prevent memory leaks and dangling listeners.
     // Phaser auto-destroys child display objects, but custom classes that hold tweens,

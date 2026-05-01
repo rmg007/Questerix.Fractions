@@ -26,6 +26,11 @@ on:
         required: false
         type: number
         default: 25
+      max_tokens:
+        description: "Per-invocation token budget for the Anthropic call (caps runaway agents)"
+        required: false
+        type: number
+        default: 15000
       skip_if_bot_author:
         description: "If the triggering commit is from github-actions[bot], skip"
         required: false
@@ -135,6 +140,8 @@ jobs:
         id: run-agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Per-invocation token budget — caps runaway agents on the monthly key.
+          CLAUDE_CODE_MAX_OUTPUT_TOKENS: ${{ inputs.max_tokens }}
         run: |
           claude --dangerously-skip-permissions -p "$ASSEMBLED_PROMPT" \
             --output-format text \

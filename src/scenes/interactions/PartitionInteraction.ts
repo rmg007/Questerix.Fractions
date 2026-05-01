@@ -122,6 +122,12 @@ export class PartitionInteraction implements Interaction {
       { width: '120px', height: '120px', top: '50%', left: '50%' }
     );
 
+    // Seed lastPayload at mount so the Check button has something to submit
+    // even if the kid hits Check before dragging or using a keyboard nudge.
+    // Without this seed, lastPayload stays null and the Check button is dead
+    // until the first drag-end fires onCommit. (origin/main behavior)
+    ctx.onCommit(buildInput());
+
     // ── A11y: keyboard nudges mirror canvas drag (parity with Level01Scene). ──
     // Stable IDs scoped to this interaction; mountAction re-binds on re-mount.
     const nudge = (delta: number): void => {

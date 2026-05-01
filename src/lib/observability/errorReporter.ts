@@ -1,8 +1,9 @@
 import { logger } from './logger';
 import type { StudentId, SessionId } from '../../types';
 
-// @sentry/browser is dynamically imported inside init() so it is excluded from
-// the main bundle when no DSN is configured (the default MVP build).
+// @sentry/browser is dynamically imported inside init() and gated on the
+// build-time `VITE_SENTRY_DSN` env var so Rolldown can dead-code-eliminate
+// the entire Sentry chunk (~140 KB gzipped) from default MVP builds.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SentryModule = any;
@@ -73,6 +74,12 @@ class ErrorReporter {
     if (this.initialized) return;
     this.consentGranted = config.telemetryConsent === true;
     if (!config.dsn) return;
+
+    // Build-time gate: when VITE_SENTRY_DSN is unset at build time the dynamic
+    // import below is statically unreachable and Rolldown DCEs the chunk. The
+    // runtime DSN already comes from VITE_SENTRY_DSN (see main.ts), so this
+    // does not change observable behavior.
+    if (!import.meta.env.VITE_SENTRY_DSN) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Sentry = await import('@sentry/browser' as any);

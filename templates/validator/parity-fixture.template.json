@@ -1,0 +1,8 @@
+[
+  {
+    "validatorId": "validator.__ARCHETYPE__.basic",
+    "input": { "value": null },
+    "expected": { "target": null },
+    "outcome": "incorrect"
+  }
+]

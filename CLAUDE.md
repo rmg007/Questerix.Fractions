@@ -8,15 +8,22 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 
 ## Slash commands (in `.claude/commands/`)
 
-- `/preflight` — full pre-merge gate (typecheck, lint, unit, integration, build, bundle guard)
-- `/sync-curriculum` — rebuild + validate curriculum bundles after pipeline output changes
-- `/diag` — one-screen repo state (branch, dirty files, recent commits, bundle size, test count)
-- `/learn <text>` — append a one-line gotcha to `.claude/learnings.md`
-- `/retro` — end-of-session retro; proposes CLAUDE.md / learnings / PLANS / CHANGELOG updates
-- `/sprint-status` — compact table of active blockers vs. codebase reality
-- `/c5-check` — grep localStorage for constraint drift outside documented exceptions
-- `/test-changed` — run Vitest only on tests for files changed since main (faster inner loop)
-- `/decision <title>` — append a new D-NN entry to `docs/00-foundation/decision-log.md`
+Many slash commands are now harness skills that auto-discover by intent — typing them is rarely necessary. Project-specific commands (those not covered by skills) live in `.claude/commands/`:
+
+<!-- AUTO:slash-commands-list:start -->
+- `/c5-check` — Grep for localStorage usage outside documented C5 exceptions — catches constraint drift
+- `/decision` — Append a new architectural decision entry to docs/00-foundation/decision-log.md
+- `/economy` — Summarize this session's token cost — file reads vs tool output vs assistant prose
+- `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
+- `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
+- `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
+- `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+- `/sprint-status` — Print active sprint blockers and their current status in compact form
+<!-- AUTO:slash-commands-list:end -->
+
+> The list above is auto-generated from `.claude/commands/*.md` frontmatter by `npm run sync:claude-md`. Edit the source files, not this section.
+
+Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-changed` (these replaced the previous project slash commands of the same names — auto-fired by hooks where possible, otherwise invoked by intent).
 
 ## Continuous self-improvement
 
@@ -26,12 +33,31 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 
 ## Specialist subagents (in `.claude/agents/`)
 
-Delegate to these via the Agent tool when scope warrants:
+Delegate to these via the Agent tool when scope warrants. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`. The table body below is auto-generated from `.claude/agents/*.md` frontmatter by `npm run sync:claude-md`.
 
-- `c1-c10-auditor` — audits a diff/branch for constraint violations. Use after dependency changes, persistence edits, or new UI surfaces.
-- `bundle-watcher` — audits gzipped JS against the 1 MB budget. Use after dep changes or large feature merges.
-- `validator-parity-checker` — confirms a changed TS validator has a matching Python clone and parity fixtures pass. Use after any change to `src/validators/*.ts`.
-- `a11y-auditor` — checks new interactions/components for ARIA labels, touch targets, reduced-motion gating, keyboard parity.
+| Subagent | Description |
+|---|---|
+<!-- AUTO:subagents-table:start -->
+| `a11y-auditor` | Audits new or changed interactions and components for WCAG 2.1 AA compliance — ARIA labels, touch target sizes, reduced-motion gating, keyboard parity via A11yLayer. Use after adding or modifying interactive elements. |
+| `bundle-watcher` | Audits production bundle size against the 1.0 MB gzipped JS budget. Use after dependency changes, large feature merges, or whenever the build looks heavier than expected. |
+| `c1-c10-auditor` | Audits a diff or branch for violations of the locked C1–C10 constraints. Use proactively when significant code changes touch persistence, networking, UI surface area, dependencies, or device targets. |
+| `curriculum-byte-parity` | Confirms public/curriculum/v1.json and src/curriculum/bundle.json are byte-identical (sha256 match). Use whenever a diff touches either curriculum bundle file or pipeline output. |
+| `engine-determinism-auditor` | Audits diffs touching src/engine/** for direct host-global calls (Math.random, Date.now, crypto.randomUUID) and points to the correct port in src/engine/ports.ts. Use proactively whenever engine code changes. |
+| `validator-parity-checker` | Confirms that a changed TypeScript validator has a matching Python clone in pipeline/validators_py.py and that parity fixtures still pass. Use after any change to src/validators/*.ts. |
+<!-- AUTO:subagents-table:end -->
+
+## Auto-invoke skills
+
+The harness exposes user-invocable skills that overlap our slash commands. Hooks cover *mechanical* triggers (file paths). The triggers below are *semantic* and live with me — when the condition is met I invoke the skill via the Skill tool **before** finalizing a response, without waiting to be asked.
+
+| Skill | Auto-invoke when… |
+|---|---|
+| `simplify` | I just wrote >40 net new LOC to a single file under `src/`, or my change touched ≥3 files in `src/scenes/interactions/`, `src/validators/`, or `src/engine/`. |
+| `security-review` | The diff touches `src/persistence/**`, `src/lib/observability/**`, `src/lib/i18n/**`, anything that reads `import.meta.env`, or adds a `WebFetch` / `fetch(` call. |
+| `review` | I am about to ask the user to open a PR, or the working tree contains a commit on a `feat/`, `fix/`, or `refactor/` branch with no review yet. |
+| `fewer-permission-prompts` | A session has hit ≥3 permission prompts for read-only Bash/Grep/Read invocations not yet in `.claude/settings.json`. |
+
+**Recursion guard:** auto-invoke fires once per skill per turn; never auto-invoke from inside a skill response. Any skill response can write `[no-auto-followup]` to suppress the next auto-invocation.
 
 ## Autonomous mode
 
@@ -159,6 +185,7 @@ src/curriculum/bundle.json       # static import fallback ┘ always run build:c
 ### Git workflow
 - **Branch names must include a date.** Format: `<type>/YYYY-MM-DD-<slug>` — e.g. `feat/2026-04-30-hint-ladder`, `fix/2026-04-30-nan-guard`, `plans/2026-04-30-sprint-1`.
 - **Types:** `feat` (new behaviour), `fix` (bug), `refactor`, `plans` (doc/plan only), `chore` (tooling/infra).
+- **Enforced by `.husky/pre-push` regex:** `^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$`. Exempt: `main`, `claude/*`, `worktree-agent-*`. Bypass with `--no-verify` only when justified.
 - **No bare slugs, no random suffixes.** A branch without a date is non-compliant and must be renamed before pushing.
 - **One concern per branch.** Don't mix feature work with plan-doc updates.
 - **Before opening a PR:** rebase onto current `main` — never let a branch sit stale long enough to conflict.
