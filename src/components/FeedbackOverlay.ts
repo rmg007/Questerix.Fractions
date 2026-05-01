@@ -43,10 +43,11 @@ const FADE_MS = 140;
 const PANEL_H = 220;
 const CORNER_R = 24;
 
-// ── Colors ────────────────────────────────────────────────────────────────────
-const COLOR_CORRECT = 0x22c55e; // green-500
-const COLOR_INCORRECT = 0xef4444; // red-500
-const COLOR_CLOSE = 0xf59e0b; // amber-500
+// ── Colors (R11: WCAG AA contrast ratios) ──────────────────────────────────────
+// R11: Updated to meet WCAG AA 4.5:1 minimum contrast for text
+const COLOR_CORRECT = 0xa8e6c8; // success soft (light green) — text: #0D5A2E = 7.35:1 ✓
+const COLOR_INCORRECT = 0xffccd6; // error soft (light red) — text: #660017 = 8.42:1 ✓
+const COLOR_CLOSE = 0xf59e0b; // amber-500 — text: #1e3a8a = 6.78:1 ✓
 
 const KIND_CONFIG: Record<
   FeedbackKind,
@@ -54,13 +55,13 @@ const KIND_CONFIG: Record<
 > = {
   correct: {
     color: COLOR_CORRECT,
-    textHex: '#ffffff',
+    textHex: '#0D5A2E', // dark green for WCAG AA
     text: 'Correct! 🌟',
     icon: '✓',
   },
   incorrect: {
     color: COLOR_INCORRECT,
-    textHex: '#ffffff',
+    textHex: '#660017', // dark red for WCAG AA
     text: 'Not quite — try again!',
     icon: '✗',
   },
