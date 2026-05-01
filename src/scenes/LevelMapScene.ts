@@ -336,7 +336,10 @@ export class LevelMapScene extends Phaser.Scene {
   private async _renderStreakPill(): Promise<void> {
     const streak = await getStreak(this.studentId);
 
-    const label = streak >= 2 ? `🔥 ${streak}` : '🔥 1';
+    // Only show if streak > 0 (no pill for first-time players with 0 streak)
+    if (streak <= 0) return;
+
+    const label = `🔥 ${streak}`;
     const PILL_H = 40,
       PILL_PAD = 16;
 
