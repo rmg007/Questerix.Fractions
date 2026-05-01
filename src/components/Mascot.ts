@@ -479,7 +479,11 @@ export class Mascot extends Phaser.GameObjects.Container {
 
     // Measure text to size the bubble
     const measurer = this.scene.add
-      .text(0, 0, text, { fontSize: '18px', fontFamily: BODY_FONT, wordWrap: { width: MAX_W - PAD * 2 } })
+      .text(0, 0, text, {
+        fontSize: '18px',
+        fontFamily: BODY_FONT,
+        wordWrap: { width: MAX_W - PAD * 2 },
+      })
       .setAlpha(0);
     const tw = Math.min(measurer.width + PAD * 2, MAX_W);
     const th = measurer.height + PAD;
@@ -567,7 +571,9 @@ export class Mascot extends Phaser.GameObjects.Container {
   startIdleTimer(): void {
     this.resetIdleTimer();
     const add = (delay: number, fn: () => void) =>
-      this.idleTimerEvents.push(this.scene.time.addEvent({ delay, callback: fn, callbackScope: this }));
+      this.idleTimerEvents.push(
+        this.scene.time.addEvent({ delay, callback: fn, callbackScope: this })
+      );
 
     add(10_000, () => {
       this.setState('think');

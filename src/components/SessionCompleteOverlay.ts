@@ -133,7 +133,7 @@ export class SessionCompleteOverlay {
     // T15: Extra "ALL 5 correct!" line for perfect sessions
     if (isPerfect) {
       const perfectT = scene.add
-        .text(cx, 620, 'ALL 5 correct! You\'re a star! ⭐', {
+        .text(cx, 620, "ALL 5 correct! You're a star! ⭐", {
           fontSize: '20px',
           fontFamily: BODY_FONT,
           fontStyle: 'bold',
@@ -160,11 +160,16 @@ export class SessionCompleteOverlay {
 
     // Accuracy detail
     const accT = scene.add
-      .text(cx, isPerfect ? 710 : 690, `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`, {
-        fontSize: '19px',
-        fontFamily: BODY_FONT,
-        color: isPerfect ? '#ffffff' : NAVY_HEX,
-      })
+      .text(
+        cx,
+        isPerfect ? 710 : 690,
+        `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`,
+        {
+          fontSize: '19px',
+          fontFamily: BODY_FONT,
+          color: isPerfect ? '#ffffff' : NAVY_HEX,
+        }
+      )
       .setOrigin(0.5);
     this.container.add(accT);
 
@@ -178,14 +183,28 @@ export class SessionCompleteOverlay {
             : 'Great job! →'
           : scaffoldRecommendation === 'stay'
             ? 'Keep practising →'
-            : 'Let\'s try an easier one →';
+            : "Let's try an easier one →";
 
-      const BANN_W = 440, BANN_H = 64, BANN_R = 32;
+      const BANN_W = 440,
+        BANN_H = 64,
+        BANN_R = 32;
       const bannerBg = scene.add.graphics().setAlpha(0);
       bannerBg.fillStyle(ACTION_FILL, 1);
-      bannerBg.fillRoundedRect(cx - BANN_W / 2, scaffoldBannerY - BANN_H / 2, BANN_W, BANN_H, BANN_R);
+      bannerBg.fillRoundedRect(
+        cx - BANN_W / 2,
+        scaffoldBannerY - BANN_H / 2,
+        BANN_W,
+        BANN_H,
+        BANN_R
+      );
       bannerBg.lineStyle(3, NAVY, 0.4);
-      bannerBg.strokeRoundedRect(cx - BANN_W / 2, scaffoldBannerY - BANN_H / 2, BANN_W, BANN_H, BANN_R);
+      bannerBg.strokeRoundedRect(
+        cx - BANN_W / 2,
+        scaffoldBannerY - BANN_H / 2,
+        BANN_W,
+        BANN_H,
+        BANN_R
+      );
 
       const bannerTxt = scene.add
         .text(cx, scaffoldBannerY, bannerText, {
@@ -264,9 +283,16 @@ export class SessionCompleteOverlay {
           // Glow sync — start repeating alpha pulse on heading after wave.
           this.startGlowSync(scene, headingT);
           // Animate stars after trophy wave lands.
-          this.animateStars(scene, cx, 530, depth, () => {
-            this.announce(levelNumber, starCount);
-          }, isPerfect ? 80 : 40);
+          this.animateStars(
+            scene,
+            cx,
+            530,
+            depth,
+            () => {
+              this.announce(levelNumber, starCount);
+            },
+            isPerfect ? 80 : 40
+          );
         });
       },
     });
@@ -446,7 +472,13 @@ export class SessionCompleteOverlay {
     if (this.starTexts.length === 0) onDone();
   }
 
-  private burstConfetti(scene: Phaser.Scene, x: number, y: number, depth: number, totalCount = 40): void {
+  private burstConfetti(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    depth: number,
+    totalCount = 40
+  ): void {
     if (!scene.textures.exists('clr-accentA')) return;
 
     const colors = [0xfcd34d, 0x34d399, 0x60a5fa, 0xfb7185, 0xa78bfa, 0xf97316];
