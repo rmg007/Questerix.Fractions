@@ -91,7 +91,10 @@ export class QuesterixDB extends Dexie {
       })
       .upgrade(async (tx) => {
         // Force re-indexing of new questionTemplates table (R17)
-        await tx.table('questionTemplates').toCollection().modify(() => {});
+        await tx
+          .table('questionTemplates')
+          .toCollection()
+          .modify(() => {});
       });
 
     // Schema version 3 — adds full curriculum pack and new dynamic stores. per data-schema.md §6
@@ -124,11 +127,26 @@ export class QuesterixDB extends Dexie {
       .upgrade(async (tx) => {
         // Force re-indexing of curriculum and new dynamic stores (R17)
         await Promise.all([
-          tx.table('activities').toCollection().modify(() => {}),
-          tx.table('skills').toCollection().modify(() => {}),
-          tx.table('hints').toCollection().modify(() => {}),
-          tx.table('misconceptionFlags').toCollection().modify(() => {}),
-          tx.table('progressionStat').toCollection().modify(() => {}),
+          tx
+            .table('activities')
+            .toCollection()
+            .modify(() => {}),
+          tx
+            .table('skills')
+            .toCollection()
+            .modify(() => {}),
+          tx
+            .table('hints')
+            .toCollection()
+            .modify(() => {}),
+          tx
+            .table('misconceptionFlags')
+            .toCollection()
+            .modify(() => {}),
+          tx
+            .table('progressionStat')
+            .toCollection()
+            .modify(() => {}),
         ]);
       });
 
@@ -165,8 +183,14 @@ export class QuesterixDB extends Dexie {
       .upgrade(async (tx) => {
         // Force re-indexing for new compound indexes (R17)
         await Promise.all([
-          tx.table('attempts').toCollection().modify(() => {}),
-          tx.table('questionTemplates').toCollection().modify(() => {}),
+          tx
+            .table('attempts')
+            .toCollection()
+            .modify(() => {}),
+          tx
+            .table('questionTemplates')
+            .toCollection()
+            .modify(() => {}),
         ]);
       });
 

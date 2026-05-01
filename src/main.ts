@@ -14,7 +14,8 @@ import './lib/i18n/keys/quest';
 
 // R8: Catch synchronous errors (e.g., in scene callbacks) that could freeze the canvas.
 window.addEventListener('error', (event) => {
-  const error = event.error instanceof Error ? event.error : new Error(String(event.error ?? event.message));
+  const error =
+    event.error instanceof Error ? event.error : new Error(String(event.error ?? event.message));
   console.error('[main] Uncaught error:', error.message);
   errorReporter.report(error, { source: 'uncaught_error' });
   // Show fatal error UI (but Phaser may have crashed, so use pure DOM)
