@@ -95,3 +95,34 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
     );
   });
 });
+
+test.describe('Skip link — WCAG 2.4.1 Bypass Blocks', () => {
+  /**
+   * Verifies that after game load:
+   * 1. The skip link element is present in the DOM.
+   * 2. The skip link href points to a target element that exists in the DOM.
+   * 3. The target element (canvas) has a tabindex so focus can land on it.
+   * per SkipLink.ts — CANVAS_ID = 'qf-canvas', SKIP_LINK_ID = 'qf-skip-link'
+   */
+  test('Menu scene — skip link present and target canvas exists', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[data-testid="boot-start-btn"]').click();
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+
+    // 1. Skip link element must be in DOM.
+    const skipLink = page.locator('#qf-skip-link');
+    await expect(skipLink).toBeAttached();
+
+    // 2. Skip link href must target #qf-canvas.
+    const href = await skipLink.getAttribute('href');
+    expect(href).toBe('#qf-canvas');
+
+    // 3. The canvas with id="qf-canvas" must exist in DOM so the anchor resolves.
+    const canvas = page.locator('#qf-canvas');
+    await expect(canvas).toBeAttached();
+
+    // 4. Canvas must have tabindex so focus can programmatically land on it.
+    const tabindex = await canvas.getAttribute('tabindex');
+    expect(tabindex).not.toBeNull();
+  });
+});

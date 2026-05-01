@@ -40,6 +40,7 @@ import { Mascot } from '../components/Mascot';
 // stays consistent and localizable without scene-side string literals.
 import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
+import { checkReduceMotion } from '../lib/preferences';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -74,8 +75,8 @@ export class LevelScene extends Phaser.Scene {
   private questionStartTime: number = 0;
   private currentRoundEvents: import('@/types').ProgressionEvent[] = [];
 
-  // Fix G-E3: hint events linked to attempt records
-  private currentQuestionHintIds: string[] = [];
+  // Fix G-E3: hint events linked to attempt records (Dexie auto-increment numbers)
+  private currentQuestionHintIds: number[] = [];
 
   // Template pool
   private templatePool: QuestionTemplate[] = [];
@@ -131,7 +132,7 @@ export class LevelScene extends Phaser.Scene {
     drawAdventureBackground(this, CW, CH);
 
     // Fade in from black on arrival
-    if (!this.checkReduceMotion()) {
+    if (!checkReduceMotion()) {
       this.cameras.main.fadeIn(300, 0, 0, 0);
     }
 
@@ -292,7 +293,7 @@ export class LevelScene extends Phaser.Scene {
 
     // S3-T1: speak prompt aloud via TTS (preference already loaded in create())
     // Gate by prefers-reduced-motion for users who don't want auto-speech
-    if (!this.checkReduceMotion()) {
+    if (!checkReduceMotion()) {
       tts.speak(this.currentTemplate.prompt.text);
     }
 
@@ -822,7 +823,7 @@ export class LevelScene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
-        if (ev?.id) this.currentQuestionHintIds.push(ev.id as string);
+        if (ev?.id) this.currentQuestionHintIds.push(ev.id);
       } catch (err) {
         console.warn('[LevelScene] Could not record hint event:', err);
       }
@@ -830,7 +831,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private pulseHintButton(): void {
-    if (this.checkReduceMotion()) return;
+    if (checkReduceMotion()) return;
     this.tweens.add({
       targets: this.hintButton,
       scaleX: 1.1,
@@ -885,12 +886,17 @@ export class LevelScene extends Phaser.Scene {
         },
         syncState: 'local',
       });
-      this.sessionId = session.id;
-      log.sess('open_ok', {
-        sessionId: this.sessionId,
-        level: this.levelNumber,
-        activityId: `level_${this.levelNumber}`,
-      });
+      if (session) {
+        this.sessionId = session.id;
+        log.sess('open_ok', {
+          sessionId: this.sessionId,
+          level: this.levelNumber,
+          activityId: `level_${this.levelNumber}`,
+        });
+      } else {
+        // Quota exceeded — volatile mode, session not persisted
+        log.warn('SESS', 'open_quota', { level: this.levelNumber });
+      }
     } catch (err) {
       log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
     }
@@ -1039,6 +1045,9 @@ export class LevelScene extends Phaser.Scene {
     // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(this.levelNumber, this.studentId);
 
+    // G-5: unlock next level in IndexedDB progressionStat
+    void this.persistLevelCompletion();
+
     const nextLevel =
       this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
 
@@ -1083,6 +1092,48 @@ export class LevelScene extends Phaser.Scene {
     void this.closeSession();
   }
 
+  /**
+   * G-5: Write (or update) a ProgressionStat row in IndexedDB marking this level
+   * as completed and advancing highestLevelReached to levelNumber + 1.
+   * This is a best-effort write — persistence failure never blocks gameplay.
+   */
+  private async persistLevelCompletion(): Promise<void> {
+    if (!this.studentId) return;
+    try {
+      const { progressionStatRepo } = await import(
+        '../persistence/repositories/progressionStat'
+      );
+      const { ActivityId } = await import('../types/branded');
+      const studentIdTyped = this.studentId as import('@/types').StudentId;
+      const activityId = ActivityId(`level_${this.levelNumber}`);
+      const nextLevel = Math.min(this.levelNumber + 1, 9);
+
+      const existing = await progressionStatRepo.get(studentIdTyped, activityId);
+      const now = Date.now();
+      const updated: import('@/types').ProgressionStat = {
+        studentId: studentIdTyped,
+        activityId,
+        currentLevel: nextLevel,
+        highestLevelReached: Math.max(nextLevel, existing?.highestLevelReached ?? nextLevel),
+        sessionsAtCurrentLevel: 0,
+        totalSessions: (existing?.totalSessions ?? 0) + 1,
+        totalXp: (existing?.totalXp ?? 0) + this.correctCount * 10,
+        lastSessionAt: now,
+        consecutiveRegressEvents: existing?.consecutiveRegressEvents ?? 0,
+        syncState: 'local',
+      };
+      await progressionStatRepo.upsert(updated);
+      log.scene('progression_stat_upserted', {
+        level: this.levelNumber,
+        nextLevel,
+        activityId,
+        totalSessions: updated.totalSessions,
+      });
+    } catch (err) {
+      log.warn('PROG', 'progression_stat_error', { level: this.levelNumber, error: String(err) });
+    }
+  }
+
   private async closeSession(): Promise<void> {
     if (!this.sessionId) return;
     try {
@@ -1090,7 +1141,7 @@ export class LevelScene extends Phaser.Scene {
 
       // Fix G-E4: compute real accuracy and avg response time
       const accuracy =
-        this.responseTimes.length > 0 ? this.correctCount / this.responseTimes.length : 1;
+        this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1121,7 +1172,7 @@ export class LevelScene extends Phaser.Scene {
    * reports prefers-reduced-motion.
    */
   private animateCounterBadge(): void {
-    if (this.checkReduceMotion()) return;
+    if (checkReduceMotion()) return;
     const badge = this.questionCounterText;
     badge.setScale(1);
     this.tweens.add({
@@ -1135,14 +1186,6 @@ export class LevelScene extends Phaser.Scene {
         badge.setScale(1);
       },
     });
-  }
-
-  private checkReduceMotion(): boolean {
-    try {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (err) {
-      return false;
-    }
   }
 
   preDestroy(): void {

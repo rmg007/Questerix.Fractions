@@ -55,4 +55,4 @@ validation-data/cycle-*/raw/
 # Replit/roadie runtime state — transient, never commit
 .roadie/
 install/
-.lighthouseci/
+.claude/worktrees/

@@ -128,8 +128,8 @@ export interface Attempt {
   outcome: AttemptOutcome;
   errorMagnitude: number | null;
   pointsEarned: number;
-  /** IDs of HintEvent rows used during this attempt. */
-  hintsUsedIds: string[];
+  /** IDs of HintEvent rows used during this attempt (Dexie auto-increment numbers). */
+  hintsUsedIds: number[];
   /** HintTier array for quick per-attempt hint analysis. */
   hintsUsed: HintTier[];
   flaggedMisconceptionIds: MisconceptionId[];
@@ -159,7 +159,8 @@ export interface Attempt {
 
 /** per data-schema.md §3.4 */
 export interface HintEvent {
-  id: string;
+  /** Auto-incremented by Dexie (++id); matches hintEvents table key type number. */
+  id: number;
   attemptId: AttemptId;
   /** References HintTemplate.id */
   hintId: string;
@@ -307,6 +308,23 @@ export interface Bookmark {
   levelNumber: number;
   /** Epoch ms. */
   savedAt: number;
+  syncState: SyncState;
+}
+
+// ── §3.7a LevelProgression ────────────────────────────────────────────────
+/**
+ * Per-student level unlock/completion tracking (replaces localStorage).
+ * Single row per student tracking which levels are unlocked and completed.
+ * per C5 and R13 Dexie migration.
+ */
+export interface LevelProgression {
+  studentId: StudentId;
+  /** Array of unlocked level numbers (1–9). */
+  unlockedLevels: number[];
+  /** Array of completed level numbers (1–9). */
+  completedLevels: number[];
+  /** Epoch ms; updated whenever unlocked/completed changes. */
+  lastUpdatedAt: number;
   syncState: SyncState;
 }
 

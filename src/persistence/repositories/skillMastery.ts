@@ -5,6 +5,7 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { SkillMastery, StudentId, SkillId } from '../../types';
 
 export const skillMasteryRepo = {
@@ -24,7 +25,11 @@ export const skillMasteryRepo = {
     try {
       await db.skillMastery.put(mastery);
     } catch (err) {
-      // swallow write errors; BKT will retry on next attempt
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'skillMastery' });
+        return;
+      }
+      // swallow non-quota write errors; BKT will retry on next attempt
     }
   },
 

@@ -31,7 +31,9 @@ interface SnapMatchPayload {
 }
 
 function parseFrac(s: string): { n: number; d: number } {
-  const [n, d] = s.split('/').map(Number);
+  const parts = s.split('/').map(Number);
+  const n = parts[0] ?? NaN;
+  const d = parts[1] ?? NaN;
   return { n: isNaN(n) ? 1 : n, d: isNaN(d) ? 1 : d };
 }
 

@@ -231,19 +231,19 @@ Full strategy: `docs/30-architecture/test-strategy.md`
 
 ---
 
-## Active bugs (as of 2026-04-27)
+## Active bugs (as of 2026-04-30)
 
-All in `Level01Scene.ts` unless noted:
+All 5 Sprint 0 bugs confirmed fixed in `Level01Scene.ts` (see inline `Fix N (BUG-XX)` comments):
 
-| ID     | Symptom | Effort |
+| ID     | Symptom | Status |
 |--------|---------|--------|
-| BUG-01 | Wrong prompt — "identify" archetype shown on a "partition" scene | 2 min |
-| BUG-02 | Validation never passes — progress stuck at 0/5 | ~30 min |
-| BUG-04 | Hint tiers never advance past Tier 1 | 15 min |
-| G-E1   | `updateMastery()` never called — BKT built but wired to nothing | Sprint 1 |
-| G-C7   | "Keep going" loops L1 instead of advancing to L2 (`LevelScene.ts`) | 30 min |
+| BUG-01 | Wrong prompt — "identify" archetype shown on a "partition" scene | **FIXED** — filter enforces `archetype === 'partition'` |
+| BUG-02 | Validation never passes — progress stuck at 0/5 | **FIXED** — validator registry wired via `validatorId` |
+| BUG-04 | Hint tiers never advance past Tier 1 | **FIXED** — `hintLadder.next()` called on each wrong attempt |
+| G-E1   | `updateMastery()` never called — BKT built but wired to nothing | **FIXED** — called after every attempt commit |
+| G-C7   | "Keep going" loops L1 instead of advancing to L2 (`LevelScene.ts`) | **FIXED** — `fadeAndStart` to `LevelScene { levelNumber: 2 }` |
 
-Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab.
+Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab. **Met.**
 
 ---
 

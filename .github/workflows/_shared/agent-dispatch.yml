@@ -1,0 +1,169 @@
+name: Agent Dispatch (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      prompt_template:
+        description: "Name of file under .github/agent-prompts/ (without .md extension)"
+        required: true
+        type: string
+      context_json:
+        description: "JSON string of key/value pairs injected into the prompt via ${{VAR}} substitution"
+        required: false
+        type: string
+        default: "{}"
+      working_branch:
+        description: "Branch the agent should commit to"
+        required: false
+        type: string
+        default: ${{ github.head_ref }}
+      pr_number:
+        description: "PR to post results on (optional)"
+        required: false
+        type: number
+      timeout_minutes:
+        description: "Hard ceiling for the agent job"
+        required: false
+        type: number
+        default: 25
+      skip_if_bot_author:
+        description: "If the triggering commit is from github-actions[bot], skip"
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+      GH_TOKEN:
+        required: true
+    outputs:
+      outcome:
+        description: "success, partial, skipped, or failed"
+        value: ${{ jobs.agent.outputs.outcome }}
+      summary:
+        description: "First 500 chars of agent stdout"
+        value: ${{ jobs.agent.outputs.summary }}
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      outcome: ${{ steps.set-outcome.outputs.outcome }}
+      summary: ${{ steps.set-outcome.outputs.summary }}
+    steps:
+      - name: Check AGENT_AUTONOMY_ENABLED
+        id: autonomy-check
+        run: |
+          if [ "${{ vars.AGENT_AUTONOMY_ENABLED }}" = "false" ]; then
+            echo "::notice::Agent autonomy is disabled (AGENT_AUTONOMY_ENABLED=false). Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check bot author
+        id: bot-check
+        if: steps.autonomy-check.outputs.skip != 'true' && inputs.skip_if_bot_author == 'true'
+        run: |
+          if [ "${{ github.actor }}" = "github-actions[bot]" ]; then
+            echo "::notice::Triggering actor is github-actions[bot]. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Resolve skip
+        id: resolve-skip
+        run: |
+          AUTONOMY_SKIP="${{ steps.autonomy-check.outputs.skip }}"
+          BOT_SKIP="${{ steps.bot-check.outputs.skip }}"
+          if [ "$AUTONOMY_SKIP" = "true" ] || [ "$BOT_SKIP" = "true" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout
+        if: steps.resolve-skip.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.working_branch || github.ref }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Setup Node 24
+        if: steps.resolve-skip.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install Claude Code CLI
+        if: steps.resolve-skip.outputs.skip != 'true'
+        run: npm install -g @anthropic-ai/claude-code@latest
+
+      - name: Load and assemble prompt
+        if: steps.resolve-skip.outputs.skip != 'true'
+        id: assemble-prompt
+        env:
+          CONTEXT_JSON: ${{ inputs.context_json }}
+        run: |
+          TEMPLATE_PATH=".github/agent-prompts/${{ inputs.prompt_template }}.md"
+          if [ ! -f "$TEMPLATE_PATH" ]; then
+            echo "ERROR: Template not found: $TEMPLATE_PATH"
+            exit 1
+          fi
+          PROMPT=$(cat "$TEMPLATE_PATH")
+          # Use jq for safe value extraction — handles spaces, quotes, and
+          # special characters that would break naive bash string replacement.
+          while IFS= read -r key; do
+            value=$(printf '%s' "$CONTEXT_JSON" | jq -r --arg k "$key" '.[$k] // ""')
+            # Escape the value for use as a sed replacement string
+            escaped_value=$(printf '%s' "$value" | sed 's/[&/\]/\\&/g; s/$/\\n/; $s/\\n$//')
+            PROMPT=$(printf '%s' "$PROMPT" | sed "s/\\\${{${key}}}/${escaped_value}/g")
+          done < <(printf '%s' "$CONTEXT_JSON" | jq -r 'keys[]')
+          echo "ASSEMBLED_PROMPT<<__PROMPT_EOF__" >> $GITHUB_ENV
+          printf '%s\n' "$PROMPT" >> $GITHUB_ENV
+          echo "__PROMPT_EOF__" >> $GITHUB_ENV
+
+      - name: Run agent
+        if: steps.resolve-skip.outputs.skip != 'true'
+        id: run-agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --dangerously-skip-permissions -p "$ASSEMBLED_PROMPT" \
+            --output-format text \
+            2>&1 | tee agent-output.txt
+          AGENT_EXIT=${PIPESTATUS[0]}
+          echo "agent_exit=$AGENT_EXIT" >> $GITHUB_OUTPUT
+
+      - name: Set outcome
+        if: always()
+        id: set-outcome
+        run: |
+          if [ "${{ steps.resolve-skip.outputs.skip }}" = "true" ]; then
+            echo "outcome=skipped" >> $GITHUB_OUTPUT
+            echo "summary=Skipped" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.run-agent.outputs.agent_exit }}" = "0" ]; then
+            echo "outcome=success" >> $GITHUB_OUTPUT
+            echo "summary=$(head -c 500 agent-output.txt 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
+          elif [ -s agent-output.txt ]; then
+            echo "outcome=partial" >> $GITHUB_OUTPUT
+            echo "summary=$(head -c 500 agent-output.txt)" >> $GITHUB_OUTPUT
+          else
+            echo "outcome=failed" >> $GITHUB_OUTPUT
+            echo "summary=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload agent output
+        if: steps.resolve-skip.outputs.skip != 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-output-${{ github.run_id }}
+          path: agent-output.txt
+          retention-days: 7

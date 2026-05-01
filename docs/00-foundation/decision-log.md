@@ -24,6 +24,39 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-26 — 2026-05-01 — Level unlock model: completion-based (not BKT-gated)
+
+**Date:** 2026-05-01
+**Status:** Accepted
+
+**Decision:** Completing a level (finishing a 5-question session) immediately unlocks the next level. BKT mastery estimates continue to run and are persisted to IndexedDB but have no effect on progression gates during validation pilots.
+
+**Why:** This is a validation research tool first (C10). Gating on BKT threshold (≥ 0.85 + 3 consecutive correct) risks students stalling on early levels, producing incomplete datasets across later levels. The primary research signal is the mastery trajectory data; collecting it across all 9 levels matters more than enforcing mastery before advancing. A completion gate also keeps the experience low-frustration for K-2 students, reducing validity threats from disengagement.
+
+**Alternatives considered:**
+- *BKT-threshold gate (masteryEstimate ≥ 0.85)*: Appropriate for a deployed learning product; rejected for this pilot because it risks missing-data across later levels.
+- *Free-play (all 9 levels open)*: Loses the linear progression narrative, which drives engagement for this age group.
+
+**Revisit when:** Post-pilot analysis shows students consistently advancing without mastery (i.e., high completion rate but flat BKT curves). At that point, a soft BKT nudge (not a hard gate) would be the first intervention.
+
+**Source:** `src/persistence/repositories/levelProgression.ts` (`complete()` unlocks next), `src/scenes/LevelScene.ts` (`persistLevelCompletion()`), `src/scenes/LevelMapScene.ts` (ribbon shows mastery independently of unlock).
+
+---
+
+## D-25 — 2026-04-30 — Autonomous Workflows Operating Principle
+**Date:** 2026-04-30
+**Status:** Accepted
+
+**Decision:** Optimise for maximum autonomy. All recurring mechanical work (bug fixes, curriculum refreshes, PR audits, CI recovery) is delegated to scheduled agent workflows. The solo developer acts as reviewer of agent work, not implementer of mechanical tasks.
+
+**Kill switch:** `AGENT_AUTONOMY_ENABLED` repo variable. Set to `false` to disable all agent dispatch instantly without modifying workflow files.
+
+**Budget:** `AGENT_DAILY_TOKEN_BUDGET` repo variable (informational, ~5M tokens/day initial cap).
+
+**Rationale:** Solo validation project. Agent infrastructure already exists (4 subagents, slash commands, prompt templates). Wiring it into CI maximises throughput without requiring ongoing manual invocation.
+
+---
+
 ## D-24 — 2026-04-30 — Committed Claude Code agent harness as canonical onboarding mechanism
 
 **Decision:** The autonomous agent system — `CLAUDE.md` (root + 8 nested subtree guides), `.claude/settings.json` with pre-approved allow/ask/deny tiers, SessionStart/PreCompact/PostToolUse hooks, 9 slash commands, 4 specialist subagents, and `scripts/agent-doctor.mjs` — is the canonical onboarding mechanism for all coding agents working on this repo.
