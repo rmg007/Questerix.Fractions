@@ -206,7 +206,7 @@ export class MenuScene extends Phaser.Scene {
       () => {
         fadeAndStart(this, 'SettingsScene');
       },
-      { width: '100px', height: '100px', top: toViewport(SET_Y) + '%', left: '50%' }
+      { width: '100px', height: '100px', top: '32.8%', left: '50%' }
     );
 
     // ── Background: pale sky + soft glow circles ──────────────────────────
