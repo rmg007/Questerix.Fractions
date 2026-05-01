@@ -9,16 +9,16 @@ Review what happened in this session and propose targeted documentation updates.
 1. Run in parallel:
    - `git diff --stat $(git merge-base HEAD origin/main 2>/dev/null || git log --oneline -20 | tail -1 | awk '{print $1}')..HEAD`
    - `git log --oneline -10`
-   - `cat .claude/learnings.md | tail -20`
+   - `head -30 .claude/learnings.md`
 
 2. Cross-reference what changed against:
-   - **`CLAUDE.md`** (root + nested under `src/scenes/interactions`, `src/validators`, `src/persistence`, `src/engine`, `pipeline`) — does any architectural rule or pattern in the diff belong in one of these files?
-   - **`.claude/learnings.md`** — was there a non-obvious gotcha that future agents would benefit from?
-   - **`PLANS/master-plan-2026-04-26.md`** — were any active blockers (BUG-01, BUG-02, BUG-04, G-C7, G-E1) resolved? Do they need to be marked done?
+   - **`CLAUDE.md`** (root + nested) — does any architectural rule or pattern in the diff belong here?
+   - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **You must propose at least one candidate entry.** If nothing qualifies, say so explicitly with reasoning — do not omit the section.
+   - **`PLANS/master-plan-2026-04-26.md`** — were any active blockers resolved?
    - **`CHANGELOG.md`** `[Unreleased]` — any user-visible change missing?
    - **`docs/00-foundation/decision-log.md`** — was a new architectural decision made? Needs a `D-NN` entry?
 
-3. Output a structured proposal in this exact shape:
+3. Output a structured proposal in this exact shape. The `### .claude/learnings.md` section is **required** — never omit it.
 
 ```
 ## Retro proposal
@@ -26,8 +26,9 @@ Review what happened in this session and propose targeted documentation updates.
 ### CLAUDE.md / nested CLAUDE.md
 - [path:section] proposed change — one-line reason
 
-### .claude/learnings.md
-- new entry text — one-line reason
+### .claude/learnings.md   (REQUIRED — propose ≥1 candidate or explain why none qualify)
+- YYYY-MM-DD <area>: <one-line gotcha> [#commit-or-branch]
+  rationale: cost N min of debugging / contradicted CLAUDE.md / hidden invariant
 
 ### PLANS/master-plan-2026-04-26.md
 - ✅ mark <bug-id> done — reason
@@ -39,6 +40,6 @@ Review what happened in this session and propose targeted documentation updates.
 - proposed D-NN entry — title only
 ```
 
-Skip any section that has nothing. Be concise — propose only updates that materially improve future agent context.
+Skip any section other than `### .claude/learnings.md` that has nothing. Be concise — propose only updates that materially improve future agent context.
 
 4. End with: "Apply any of these? Reply with the section names to apply (e.g. 'CLAUDE.md and learnings')."

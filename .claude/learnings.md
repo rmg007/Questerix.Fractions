@@ -18,6 +18,12 @@ YYYY-MM-DD <area>: <gotcha or shortcut> [#commit-or-branch]
 
 <!-- Append new lines below this marker. /learn handles the date prefix. -->
 
+2026-05-01 god-files: New scenes must be created via `npm run scaffold:scene <name>` which generates Scene + Controller + State as separate files. Direct creation of monolithic *Scene.ts files is blocked by the LOC-budget hook. Pre-existing god files (`Level01Scene.ts`, `LevelScene.ts`) frozen — only net-LOC-negative edits accepted until D-27 sunset lands.
+2026-05-01 mcp: The `github` MCP server token can expire mid-session with no warning — symptom is opaque 401s on read calls that worked minutes earlier. Fix: re-auth the MCP server; do not retry the same call in a loop.
+2026-05-01 decision-log: D-NN renumbering is a recurring merge-conflict surface (PR #10 collided on D-25/D-26 because two branches added decisions in parallel). Until a numbering helper exists, treat D-NN slots as write-locked: rebase before adding, and bump the number on conflict rather than re-using.
+2026-05-01 github-api: GitHub `mergeable_state` lies briefly after a base-branch update — calling `merge_pull_request` within ~30 s of another merge can return `unknown` then 405 even when local `git merge` is clean. Workaround: push the merge commit to the PR branch and retry the MCP merge.
+2026-05-01 github-pr: PRs auto-close in <30 s when title contains substrings `phaser`/`dexie`/`vite` — `.github/workflows/dependabot-auto-merge.yml` author guard at lines 17-19 used `run: exit 0` which exited the step, not the job. Fixed in PR #36 (lifted guard to job-level `if: github.actor == 'dependabot[bot]'`). Use `/recreate-pr <N>` to recover stragglers.
+
 2026-05-01 bkt: BKT actually has THREE intermediate states, not two as plan prose implied — `> 0` LEARNING, `≥ 0.65` APPROACHING, `≥ 0.85 + consecutive≥3` MASTERED. Both transitions inclusive. [#809e5ca]
 2026-05-01 worktree: Agent worktrees write absolute paths like `/home/user/Questerix.Fractions/...` which silently leak into the main worktree. Sanity-check `git status` after each agent return; stash leaks are common. Tell agents to use relative paths.
 2026-05-01 vitest: `vi.mock` factories are hoisted; top-level `vi.fn()` references inside the factory cause `ReferenceError: Cannot access X before initialization`. Use a non-mock state object that survives hoisting. [#withSpan-test]
