@@ -1453,13 +1453,13 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
-  private _allLevelsComplete(): boolean {
+  private async _allLevelsComplete(): Promise<boolean> {
     try {
-      const key = this.studentId ? `completedLevels:${this.studentId}` : 'completedLevels';
-      const raw = localStorage.getItem(key);
-      if (!raw) return false;
-      const arr = JSON.parse(raw) as number[];
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => arr.includes(n));
+      if (!this.studentId) return false;
+      const { levelProgressionRepo } = await import('../persistence/repositories/levelProgression');
+      const { StudentId: SID } = await import('../types/branded');
+      const completed = await levelProgressionRepo.getCompletedLevels(SID(this.studentId));
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9].every((n) => completed.has(n));
     } catch {
       return false;
     }
@@ -1500,14 +1500,15 @@ export class Level01Scene extends Phaser.Scene {
         inCalibration,
         recentOutcomes: this.recentOutcomes.slice(-5),
       });
+      // sessionStorage is acceptable for this routing hint — it's not progress data (C5).
       const suggestKey = this.studentId ? `suggestedLevel:${this.studentId}` : 'suggestedLevel';
-      localStorage.setItem(suggestKey, String(suggestedLevel));
+      sessionStorage.setItem(suggestKey, String(suggestedLevel));
     } catch (err) {
       log.warn('ROUT', 'decision_error', { error: String(err) });
     }
 
     // Quest-complete check: if all 9 levels are now done, show grand overlay
-    const allDone = this._allLevelsComplete();
+    const allDone = await this._allLevelsComplete();
     if (allDone) {
       const { QuestCompleteOverlay } = await import('../components/QuestCompleteOverlay');
       new QuestCompleteOverlay({
