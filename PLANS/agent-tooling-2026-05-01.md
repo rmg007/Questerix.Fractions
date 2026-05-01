@@ -157,51 +157,141 @@ Proactive prevention pays compounding dividends: every god file we *don't* creat
 
 ---
 
-## Phase 1 — Auto-invoke layer
+## Phase 1 — Auto-invoke layer (concrete artifacts)
 
-**Goal:** Stop requiring the user to type slash commands. Mechanical things via hooks; judgment things via skills invoked by behavior rules.
+**Goal:** Stop requiring the user to type slash commands. Mechanical things via hooks; judgment things via skills invoked by behavior rules. The LOC-budget hook (1.4) is the proactive piece — it blocks god-file growth at write-time, not post-merge.
 
-### 1a. Hooks — mechanical auto-fires
+### 1.1 `.claude/settings.json` — extended `PostToolUse(Edit|Write|MultiEdit)` hook
 
-Extend `.claude/settings.json`:
+Replace the existing `Edit|Write|MultiEdit` matcher block (currently at `.claude/settings.json:135-143`) with the entry below. The single existing concern (workflow-config drift) is preserved as the first `case` arm; new arms are appended. Each arm is a single `case` pattern in one bash one-liner so the hook stays under one process spawn.
 
-| Trigger | Action | Cost |
+```json
+{
+  "matcher": "Edit|Write|MultiEdit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] && exit 0; case \"$FILE\" in *public/curriculum/v1.json|*src/curriculum/bundle.json) echo 'BLOCKED: curriculum bundles are generated artifacts. Edit pipeline/output/level_*/all.json then run: npm run build:curriculum' >&2; exit 2 ;; *vite.config.ts|*playwright.config.ts|*src/config/shared.ts|*scripts/workflows/generator.mjs) echo '▶ config touched — checking workflow drift...'; npm run gen:workflows >/dev/null 2>&1 || true; git diff --exit-code .github/workflows >/dev/null 2>&1 || echo 'WARNING: workflow drift — run npm run gen:workflows && git add .github/workflows' >&2 ;; *pipeline/output/*) echo '▶ pipeline output changed — syncing curriculum bundles...'; npm run build:curriculum 2>&1 | tail -n 8 >&2 || true ;; *src/persistence/db.ts) echo '◇ db.ts edited — Dexie schema-version bump? Add a new .version(N).stores({...}).upgrade(tx => ...) block; never mutate an existing version. See src/persistence/CLAUDE.md.' >&2 ;; *src/persistence/*|*src/scenes/*|*src/lib/*) HITS=$(grep -nE 'localStorage\\.(get|set|remove)Item\\(' \"$FILE\" 2>/dev/null | grep -vE \"['\\\"](lastUsedStudentId|unlockedLevels:|completedLevels:)\" || true); [ -n \"$HITS\" ] && { echo '◇ C5 advisory: new localStorage usage in this file — only lastUsedStudentId is permitted (unlockedLevels:/completedLevels: are grandfathered in MenuScene/LevelMapScene only). Run /c5-check to verify.' >&2; echo \"$HITS\" >&2; } ;; esac; case \"$FILE\" in *.test.ts|*.test.tsx|*__tests__/*|*.spec.ts) : ;; *src/*.ts|*src/*.tsx) DIR=$(dirname \"$FILE\"); BASE=$(basename \"$FILE\" | sed 's/\\.tsx\\?$//'); SIBLING=\"$DIR/$BASE.test.ts\"; NESTED=\"$DIR/__tests__/$BASE.test.ts\"; TEST=''; [ -f \"$SIBLING\" ] && TEST=\"$SIBLING\"; [ -z \"$TEST\" ] && [ -f \"$NESTED\" ] && TEST=\"$NESTED\"; [ -n \"$TEST\" ] && { echo \"▶ running sibling test: $TEST\"; npx vitest run \"$TEST\" --reporter=basic 2>&1 | tail -n 10 >&2 || true; } ;; esac; exit 0"
+    }
+  ]
+}
+```
+
+Behavior summary (in evaluation order):
+
+| Trigger glob | Action | Exit |
 |---|---|---|
-| Edit `src/persistence/**`, `src/scenes/**`, `src/lib/**` | grep for new `localStorage` uses outside `lastUsedStudentId` | <100 ms, advisory to stderr |
-| Edit `pipeline/output/**` | run `npm run build:curriculum` | ~5 s (one-time per pipeline change) |
-| Edit `src/**/*.ts` (non-test) | find sibling test, run only it via `npm run test:unit -- <path>` | ~1–3 s |
-| Edit `src/persistence/db.ts` | print reminder: "Schema-version bump? (Dexie v6→v7 pattern)" | <50 ms |
-| Edit `src/engine/ports.ts` | print reminder: "Run `validator-parity-checker` if validators change" | <50 ms |
-| Edit `public/curriculum/v1.json` or `src/curriculum/bundle.json` directly | block edit, print: "Use `npm run build:curriculum` — these files must stay byte-identical" | <50 ms |
+| `public/curriculum/v1.json`, `src/curriculum/bundle.json` | **Hard block** — generated artifacts; route through `build:curriculum` | `2` |
+| `vite.config.ts`, `playwright.config.ts`, `src/config/shared.ts`, `scripts/workflows/generator.mjs` | Run `gen:workflows`, warn if `.github/workflows` drifts (preserved from current hook) | `0` |
+| `pipeline/output/**` | Auto-run `npm run build:curriculum`, tail 8 lines (enforces dual-file byte-equality) | `0` |
+| `src/persistence/db.ts` | Reminder about additive Dexie `.version(N)` bump pattern | `0` |
+| `src/persistence/**`, `src/scenes/**`, `src/lib/**` | Grep for non-allowlisted `localStorage` calls; print advisory | `0` |
+| Any `src/**/*.ts(x)` non-test edit | Find `<base>.test.ts` sibling or `__tests__/<base>.test.ts`, run it, tail 10 lines | `0` |
 
-### 1b. Husky git hooks — heavy gates at natural boundaries
+**Properties:** fail-soft (every internal failure suffixed `|| true`; only the dual-file write uses `exit 2`); idempotent (pure read/diff except for `build:curriculum`, which is itself idempotent); fast for advisories (C5 grep, schema reminder, drift check each <50 ms; the heavier `build:curriculum` and per-file `vitest` only fire on narrow paths).
 
-| Trigger | Action |
-|---|---|
-| `.husky/pre-commit` | typecheck + lint (lint-staged so only changed files) |
-| `.husky/pre-push` | full `/preflight` (typecheck + lint + unit + integration + build + bundle) |
+### 1.2 CLAUDE.md "Auto-invoke skills" section
 
-### 1c. Skills — judgment-call auto-invocation via root CLAUDE.md rule
+Insert immediately after the existing **Specialist subagents** section in root CLAUDE.md:
 
-Add to root `CLAUDE.md` under a new section "Auto-invoke skills":
+```markdown
+## Auto-invoke skills
 
-> **Before any non-trivial `git commit` (>10 lines or any `src/**/*.ts` edit):** invoke `simplify` skill.
-> **Before any `mcp__github__create_pull_request` if changed paths include `src/persistence/**`, `src/lib/observability/**`, `pipeline/**`, or `*.config.*`:** invoke `security-review` skill.
-> **After `mcp__github__create_pull_request` succeeds:** invoke `review` skill on the PR I just opened.
-> **When a session has hit ≥5 permission prompts:** invoke `fewer-permission-prompts` skill at end of session.
+The harness exposes user-invocable skills that overlap our slash commands. The hooks above cover *mechanical* triggers (file paths). The triggers below are *semantic* and live with me — when the condition is met I invoke the skill via the Skill tool **before** finalizing a response, without waiting to be asked.
 
-These are gates Claude (the agent) honors based on rules I read in CLAUDE.md, not events the harness can detect. That's the right level — they need judgment.
+| Skill | Auto-invoke when… | Rationale |
+|---|---|---|
+| `simplify` | I just wrote >40 net new LOC to a single file under `src/` (any path), or my change touched ≥3 files in `src/scenes/interactions/`, `src/validators/`, or `src/engine/`. | God-file drift is empirically validated (Level01Scene 1604→1727 in one session). A pre-flight simplify pass catches duplication before it lands. |
+| `security-review` | The diff touches `src/persistence/**`, `src/lib/observability/**`, `src/lib/i18n/**`, anything that reads `import.meta.env`, or adds a `WebFetch` / `fetch(` call. | C1 (no egress), C5 (localStorage scope), and the env-gated OTel/Sentry contract all live in these surfaces. |
+| `review` | I am about to ask the user to open a PR, or the working tree contains a commit on a `feat/`, `fix/`, or `refactor/` branch with no review yet. | Catches issues that the husky pre-push gate can't (semantic regressions, missing tests, scope creep). |
+| `fewer-permission-prompts` | A session has hit ≥3 permission prompts for read-only `Bash`/`Grep`/`Read` invocations not yet in `.claude/settings.json`. | Friction-reduction; expands `permissions.allow` for the patterns I keep retyping. |
 
-### 1d. Delete duplicate slash commands now that skills cover them
+**Recursion guard:** auto-invoke fires once per skill per turn; never auto-invoke from inside a skill response. Any skill response can write `[no-auto-followup]` to suppress the next auto-invocation.
 
-The skills listed in the harness (`diag`, `preflight`, `retro`, `learn`, `sprint-status`, `decision`, `sync-curriculum`, `test-changed`, `c5-check`) duplicate the project files in `.claude/commands/`. Drop the `.claude/commands/` versions where the skill is identical — one source of truth, no drift.
+If a skill fires, I cite it in the final response (`▶ ran simplify on src/scenes/Level01Scene.ts — 0 findings`) so the user sees the audit trail.
+```
 
-**Acceptance:**
-- User never types `/preflight`, `/test-changed`, `/c5-check`, `/sync-curriculum` again — they fire via hook on the relevant edit/commit/push.
-- User never types `simplify`, `security-review`, `review` — Claude invokes them per the CLAUDE.md rule.
-- A doc-only commit is fast (<1 s of overhead), a `src/persistence/**` commit triggers the right gates.
+### 1.3 Slash commands — keep vs. delete
 
-**Effort:** 2 hr.
+Every project slash command in `.claude/commands/` listed in CLAUDE.md has a same-named harness skill. Recommendation:
+
+| Command file | Recommendation | Reason |
+|---|---|---|
+| `.claude/commands/preflight.md` | **Delete** | Replaced by Phase 2 router invoked from husky + the `preflight` skill. |
+| `.claude/commands/sync-curriculum.md` | **Delete** | The PostToolUse hook auto-runs `build:curriculum` on `pipeline/output/**` writes. |
+| `.claude/commands/diag.md` | **Delete** | SessionStart hook prints the same; the `diag` skill covers ad-hoc need. |
+| `.claude/commands/test-changed.md` | **Delete** | The PostToolUse hook now runs sibling tests automatically on every Edit. |
+| `.claude/commands/learn.md` | **Keep** | Project-specific entry format (`YYYY-MM-DD <area>: …`, newest below the marker at `.claude/learnings.md:19`) isn't in the generic skill. |
+| `.claude/commands/retro.md` | **Keep** | Project-specific update targets (CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, decision-log) — generic skill won't know the right files. Phase 6 enhances it. |
+| `.claude/commands/sprint-status.md` | **Keep** | Pulls from `PLANS/master-plan-2026-04-26.md` and the bug table in CLAUDE.md; project-specific. |
+| `.claude/commands/c5-check.md` | **Keep** | Permitted-key allowlist is project-specific; the hook above uses the same list. |
+| `.claude/commands/decision.md` | **Keep** | Targets `docs/00-foundation/decision-log.md` with project-specific D-NN format. |
+
+Net: delete 4, keep 5. Surface area shrinks ~45% with no capability loss.
+
+### 1.4 Proactive LOC-budget hook (the keystone proactive piece)
+
+This is the gate that prevents god files from forming. Adds a second `PostToolUse(Edit|Write|MultiEdit)` stanza after 1.1:
+
+```json
+{
+  "matcher": "Edit|Write|MultiEdit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ] && exit 0; LOC=$(wc -l < \"$FILE\" 2>/dev/null | tr -d ' '); BUDGET=0; case \"$FILE\" in *src/scenes/*Scene.ts) BUDGET=600 ;; *src/components/*.ts) BUDGET=300 ;; *src/validators/*.ts) BUDGET=200 ;; *src/engine/*.ts) BUDGET=400 ;; *src/lib/*.ts) BUDGET=300 ;; esac; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt \"$BUDGET\" ]; then case \"$FILE\" in *Level01Scene.ts|*LevelScene.ts) PRE=$(git show HEAD:\"$FILE\" 2>/dev/null | wc -l | tr -d ' ' || echo 0); if [ \"$LOC\" -gt \"$PRE\" ]; then echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. This is a frozen god file (D-27 deferred sunset) — net-LOC-positive edits are rejected until extraction lands. Bug-fix edits that delete more than they add are allowed. To bypass with justification: git commit --no-verify with a one-line rationale in the PR body.\" >&2; exit 2; fi ;; *) echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. Extract before adding more. See PLANS/agent-tooling-2026-05-01.md → Core principle: Proactive over reactive.\" >&2; exit 2 ;; esac; fi; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt $((BUDGET * 8 / 10)) ]; then echo \"◇ LOC advisory: $FILE is at $LOC/$BUDGET (>80%). Consider extracting before next addition.\" >&2; fi; exit 0"
+    }
+  ]
+}
+```
+
+Behavior:
+- Files in budgeted globs that exceed the budget after the edit → **block** (`exit 2`) with extraction guidance.
+- Pre-existing god files (`Level01Scene.ts`, `LevelScene.ts`) are **frozen** — only net-LOC-negative edits allowed (compares post-edit `wc -l` to `git show HEAD`'s line count). Bug fixes that delete more than they add are accepted.
+- Files at 80–100% of budget print an advisory but don't block.
+- Non-budgeted paths (tests, docs, configs) are untouched.
+
+### 1.5 ESLint `max-lines` rule (compile-time backstop)
+
+Add per-file-group rules in `.eslintrc.json`:
+
+```json
+{
+  "overrides": [
+    {
+      "files": ["src/scenes/*Scene.ts"],
+      "excludedFiles": ["src/scenes/Level01Scene.ts", "src/scenes/LevelScene.ts"],
+      "rules": { "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/components/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/validators/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 200, "skipBlankLines": true, "skipComments": true }] }
+    },
+    {
+      "files": ["src/engine/*.ts"],
+      "rules": { "max-lines": ["error", { "max": 400, "skipBlankLines": true, "skipComments": true }] }
+    }
+  ]
+}
+```
+
+The two pre-existing god files are exempted (the hook handles them with the freeze policy). All new scenes inherit the budget at the lint layer too — three independent gates (write-time hook, lint-time eslint, PR-time CI) so no single bypass loses the protection.
+
+### 1.6 Acceptance for Phase 1
+
+- Editing `pipeline/output/level_3/all.json` triggers `build:curriculum` automatically.
+- Editing `public/curriculum/v1.json` directly is blocked with a clear remediation message.
+- Editing `src/scenes/MenuScene.ts` adding `localStorage.setItem('foo', ...)` prints a C5 advisory.
+- Editing `src/engine/bkt.ts` runs `src/engine/bkt.test.ts` and tails 10 lines.
+- Adding LOC to a 1727-LOC `Level01Scene.ts` is **blocked** unless the diff is net-negative.
+- Creating a 700-LOC `MenuScene.ts` is **blocked** at write-time, not at PR-time.
+- Root CLAUDE.md contains an "Auto-invoke skills" section with at least 4 rules and a recursion guard.
+
+**Effort:** 3 hr (was 2 hr; the LOC-budget hook adds ~1 hr).
 
 ---
 
