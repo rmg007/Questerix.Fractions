@@ -11,19 +11,26 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
+    # Job-level guard: skip entirely for non-dependabot PRs.
+    # Fixes the auto-close-on-substring bug where a step-level `exit 0`
+    # only stopped the author-guard step, letting the pin-check step
+    # close any human PR whose title contained "phaser"/"dexie"/"vite".
+    if: github.actor == 'dependabot[bot]'
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Author guard — only run for dependabot
-        if: github.actor != 'dependabot[bot]'
-        run: exit 0
-
       - name: Handle pinned packages and determine bump type
         uses: actions/github-script@v7
         id: bump-check
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const author = context.payload.pull_request.user.login;
+            if (author !== 'dependabot[bot]') {
+              core.notice(`PR #${context.payload.pull_request.number} author is ${author}, not dependabot. Skipping pin check.`);
+              return;
+            }
+
             const title = context.payload.pull_request.title;
             const prNumber = context.payload.pull_request.number;
             const owner = context.repo.owner;
