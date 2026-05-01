@@ -58,6 +58,12 @@
       "Bash(git mv:*)",
       "Bash(git rm:*)",
       "Bash(git commit:*)",
+      "Bash(git push:*)",
+
+      "mcp__github__create_pull_request",
+      "mcp__github__merge_pull_request",
+      "mcp__github__update_pull_request",
+      "mcp__github__update_pull_request_branch",
 
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -81,7 +87,6 @@
     ],
 
     "ask": [
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(npx wrangler:*)",
       "Bash(npm run deploy:*)",
