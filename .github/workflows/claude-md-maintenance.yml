@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 3 1 * *'  # 1st of every month, 03:00 UTC
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.claude/agents/**'
+      - '.claude/commands/**'
+      - 'CLAUDE.md'
+      - 'scripts/sync-claude-md.mjs'
 
 permissions:
   contents: write
@@ -136,3 +142,37 @@ EOF
           git add "$LOG_FILE"
           git commit -m "chore(autonomy): log claude-md-maintenance run" || true
           git push origin main || true
+
+  # -------------------------------------------------------------------
+  # PR drift gate — runs on every PR that touches the auto-synced
+  # sources. Regenerates CLAUDE.md from .claude/agents/*.md and
+  # .claude/commands/*.md, then fails if there's a drift.
+  # Gated by AGENT_AUTONOMY_ENABLED to stay consistent with other
+  # autonomy-gated workflows; the kill-switch disables it cleanly.
+  # -------------------------------------------------------------------
+  drift-check:
+    if: github.event_name == 'pull_request' && vars.AGENT_AUTONOMY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sync:claude-md
+        run: npm run sync:claude-md
+
+      - name: Fail if CLAUDE.md drifted
+        run: |
+          if ! git diff --exit-code CLAUDE.md; then
+            echo "::error::CLAUDE.md drift detected — run 'npm run sync:claude-md' locally and commit the result."
+            exit 1
+          fi
