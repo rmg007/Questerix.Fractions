@@ -28,15 +28,31 @@ export interface SeedResult {
   wiped: boolean;
 }
 
+// ── Concurrency guard (R1) ────────────────────────────────────────────────
+
+let _seeding: Promise<SeedResult> | null = null;
+
 // ── Seed entrypoint ────────────────────────────────────────────────────────
 
 /**
  * Bootstrap curriculum on every app load.
  * per persistence-spec.md §5 (bootstrap sequence)
- * Safe to call on every boot — idempotent.
+ * Safe to call on every boot — idempotent. Uses mutex to prevent concurrent reseeding (R1).
  * Never throws: failure logs warnings and returns degraded state.
  */
 export async function seedIfEmpty(): Promise<SeedResult> {
+  if (!_seeding)
+    _seeding = _doSeed().finally(() => {
+      _seeding = null;
+    });
+  return _seeding;
+}
+
+/**
+ * Internal seed implementation (actual logic, guarded by mutex).
+ * Never called directly — always called through seedIfEmpty().
+ */
+async function _doSeed(): Promise<SeedResult> {
   try {
     // ── Step 2: Read or create deviceMeta ──────────────────────────────────
     // per persistence-spec.md §5 step 2
@@ -49,15 +65,6 @@ export async function seedIfEmpty(): Promise<SeedResult> {
 
     const versionMatch = deviceMeta.contentVersion === APP_CONTENT_VERSION;
     let wiped = false;
-
-    if (!versionMatch && !isFirstBoot) {
-      // Version mismatch → wipe all static stores
-      console.info(
-        `[seedIfEmpty] Content version mismatch: ${deviceMeta.contentVersion} → ${APP_CONTENT_VERSION} (wiping static stores)`
-      );
-      await wipeStaticStores();
-      wiped = true;
-    }
 
     // Early return if no seeding needed (already seeded with correct version)
     if (versionMatch && !isFirstBoot) {
@@ -76,7 +83,16 @@ export async function seedIfEmpty(): Promise<SeedResult> {
     // per persistence-spec.md §5 step 4
 
     const bundle = await loadCurriculumBundle();
-    const seeded = await seedAllStores(bundle);
+
+    // If version mismatch, wipe and reseed atomically within transaction (R2)
+    if (!versionMatch && !isFirstBoot) {
+      console.info(
+        `[seedIfEmpty] Content version mismatch: ${deviceMeta.contentVersion} → ${APP_CONTENT_VERSION} (wiping & reseeding atomically)`
+      );
+      wiped = true;
+    }
+
+    const seeded = await seedAllStores(bundle, wiped);
 
     // Update deviceMeta with new version
     if (seeded > 0 || bundle.contentVersion !== deviceMeta.contentVersion) {
@@ -110,31 +126,11 @@ export async function seedIfEmpty(): Promise<SeedResult> {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /**
- * Wipe all static (curriculum) stores.
- * Safe to call — will be re-seeded immediately after.
- */
-async function wipeStaticStores(): Promise<void> {
-  const stores = [
-    db.curriculumPacks,
-    db.standards,
-    db.skills,
-    db.activities,
-    db.activityLevels,
-    db.fractionBank,
-    db.questionTemplates,
-    db.misconceptions,
-    db.hints,
-  ];
-
-  await Promise.all(stores.map((store) => store.clear()));
-  console.info('[seedIfEmpty] Wiped all static stores');
-}
-
-/**
  * Bulk seed all static stores from the curriculum bundle.
+ * Optionally wipes stores first (atomically, within transaction) on version mismatch (R2).
  * Returns total record count seeded.
  */
-async function seedAllStores(bundle: ParsedBundle): Promise<number> {
+async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false): Promise<number> {
   let total = 0;
 
   // Pre-transform questionTemplates to add levelGroup before transaction
@@ -143,7 +139,7 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
     levelGroup: deriveLevelGroup(t.id) satisfies LevelGroup,
   }));
 
-  // Transaction wraps all seeds in one atomic operation per persistence-spec.md §5
+  // Transaction wraps all seeds (and optional wipe) in one atomic operation per persistence-spec.md §5 (R2)
   await db.transaction(
     'rw',
     [
@@ -158,6 +154,22 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
       db.hints,
     ],
     async () => {
+      // Wipe atomically before reseeding if needed (R2)
+      if (shouldWipe) {
+        await Promise.all([
+          db.curriculumPacks.clear(),
+          db.standards.clear(),
+          db.skills.clear(),
+          db.activities.clear(),
+          db.activityLevels.clear(),
+          db.fractionBank.clear(),
+          db.questionTemplates.clear(),
+          db.misconceptions.clear(),
+          db.hints.clear(),
+        ]);
+        console.info('[seedAllStores] Wiped all static stores within transaction');
+      }
+
       if (bundle.curriculumPacks.length > 0) {
         await db.curriculumPacks.bulkPut(bundle.curriculumPacks);
         total += bundle.curriculumPacks.length;
@@ -183,6 +195,9 @@ async function seedAllStores(bundle: ParsedBundle): Promise<number> {
         total += bundle.fractionBank.length;
       }
       if (templatesWithGroup.length > 0) {
+        // levelGroup is an indexed field in the questionTemplates store
+        // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
+        // it MUST be persisted, not stripped. Without it, getByLevel() returns 0 rows.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await db.questionTemplates.bulkPut(templatesWithGroup as any);
         total += templatesWithGroup.length;

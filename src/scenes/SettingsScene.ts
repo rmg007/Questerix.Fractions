@@ -11,6 +11,7 @@ import { BODY_FONT } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
+import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
@@ -307,6 +308,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private async executeReset(): Promise<void> {
+    AccessibilityAnnouncer.announce('Resetting device. Please wait.');
     try {
       await db.delete();
     } catch (err) {
@@ -329,8 +331,10 @@ export class SettingsScene extends Phaser.Scene {
     try {
       await backupToFile();
       this.showExportStatus('Saved! Check your downloads.');
+      AccessibilityAnnouncer.announce('Backup downloaded successfully.');
     } catch (err) {
       this.showExportStatus('Export failed — please try again.');
+      AccessibilityAnnouncer.announce('Export failed. Please try again.');
     }
   }
 
@@ -420,6 +424,7 @@ export class SettingsScene extends Phaser.Scene {
     try {
       const result = await restoreFromFile(file);
       this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      AccessibilityAnnouncer.announce(`Restored ${result.added} records successfully. Reloading…`);
       this.time.delayedCall(3000, () => {
         if (typeof location !== 'undefined') location.reload();
       });
@@ -427,10 +432,13 @@ export class SettingsScene extends Phaser.Scene {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
         this.showRestoreStatus('Error: incompatible backup file', true);
+        AccessibilityAnnouncer.announce('Error: incompatible backup file.');
       } else if (msg.includes('invalid JSON')) {
         this.showRestoreStatus('Error: not a valid backup file', true);
+        AccessibilityAnnouncer.announce('Error: not a valid backup file.');
       } else {
         this.showRestoreStatus('Restore failed — please try again', true);
+        AccessibilityAnnouncer.announce('Restore failed. Please try again.');
       }
     }
   }

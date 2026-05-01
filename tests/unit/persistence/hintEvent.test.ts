@@ -2,10 +2,9 @@
  * Unit tests for hintEventRepo.
  * Uses fake-indexeddb (imported in tests/setup.ts) for a real Dexie instance in Node.
  *
- * NOTE: hintEvent.ts currently has a merge conflict marker in the worktree.
- * These tests target the HEAD (merged) version which uses:
- *   record() → returns HintEvent with numeric id
- *   linkToAttempt() → bulk-updates attemptId on given hint event ids
+ * Per R4 (Harden & Polish): HintEvent.id is now a UUID string for type consistency.
+ * record() → returns HintEvent with crypto.randomUUID() string id
+ * linkToAttempt() → bulk-updates attemptId on given hint event ids
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -40,19 +39,19 @@ describe('hintEventRepo', () => {
   });
 
   describe('record()', () => {
-    it('returns a HintEvent with a numeric auto-increment id', async () => {
+    it('returns a HintEvent with a UUID string id', async () => {
       const result = await hintEventRepo.record(makeHintEventInput());
 
       expect(result).toBeDefined();
-      expect(typeof result.id).toBe('number');
-      expect(result.id).toBeGreaterThan(0);
+      expect(typeof result.id).toBe('string');
+      expect(result.id).toMatch(/^[\w-]{21}$|^[0-9a-f\-]{36}$/); // nanoid or UUID format
     });
 
-    it('assigns incrementing ids for successive records', async () => {
+    it('assigns unique ids for successive records', async () => {
       const r1 = await hintEventRepo.record(makeHintEventInput({ tier: 1 }));
       const r2 = await hintEventRepo.record(makeHintEventInput({ tier: 2 }));
 
-      expect(r1.id).toBeLessThan(r2.id);
+      expect(r1.id).not.toBe(r2.id);
     });
 
     it('persists the event with the correct fields', async () => {

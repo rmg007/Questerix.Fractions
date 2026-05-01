@@ -26,6 +26,9 @@ export const questionTemplateRepo = {
       ...t,
       levelGroup: deriveLevelGroup(t.id),
     }));
+    // levelGroup is an indexed field in the questionTemplates store
+    // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
+    // it MUST be persisted, not stripped. getByLevel() queries via this index.
     await db.questionTemplates.bulkPut(stored as unknown as QuestionTemplate[]);
   },
 

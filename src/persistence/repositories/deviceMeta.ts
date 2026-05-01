@@ -92,22 +92,36 @@ export const deviceMetaRepo = {
   },
 
   /**
-   * Updates specific preference fields atomically using Dexie dot-notation.
-   * Prevents race conditions where concurrent updates overwrite each other's preference merges.
+   * Updates specific preference fields atomically via Dexie transaction.
+   * Wraps the entire read-modify-write sequence in a transaction to ensure
+   * concurrent updates from multiple callers (e.g., BootScene + Level01Scene)
+   * don't lose updates (R16).
    */
   async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
-      // Ensure the singleton exists
-      await deviceMetaRepo.get();
+      return await db.transaction('rw', db.deviceMeta, async () => {
+        // Atomically read-modify-write within the transaction
+        let existing = await db.deviceMeta.get(DEVICE_ID);
+        if (!existing) {
+          // Lazy create with defaults if absent
+          try {
+            await db.deviceMeta.add(DEFAULT_META);
+            existing = DEFAULT_META;
+          } catch (writeErr) {
+            if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
+              log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
+            }
+            // Either quota or duplicate-key (race): use defaults and attempt update anyway
+            existing = DEFAULT_META;
+          }
+        }
 
-      // Transform { audio: true } into { 'preferences.audio': true } for Dexie atomic update
-      const atomicPatch: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(prefPatch)) {
-        atomicPatch[`preferences.${k}`] = v;
-      }
-
-      const updated = await db.deviceMeta.update(DEVICE_ID, atomicPatch);
-      return updated > 0;
+        // Merge the patch into preferences and update
+        const updated = await db.deviceMeta.update(DEVICE_ID, {
+          preferences: { ...existing.preferences, ...prefPatch },
+        });
+        return updated > 0;
+      });
     } catch (err) {
       console.error('[deviceMetaRepo] updatePreferences failed:', err);
       return false;

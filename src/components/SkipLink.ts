@@ -47,9 +47,8 @@ export function injectSkipLink(): void {
   try {
     if (document.getElementById(SKIP_LINK_ID)) return;
 
-    const link = document.createElement('a');
+    const link = document.createElement('button');
     link.id = SKIP_LINK_ID;
-    link.href = `#${CANVAS_ID}`;
     link.textContent = 'Skip to game';
 
     // Visually hidden until focused — standard clip-pattern skip link technique.
@@ -65,8 +64,9 @@ export function injectSkipLink(): void {
       fontSize: '16px',
       fontWeight: 'bold',
       borderRadius: '4px',
-      textDecoration: 'none',
       outline: '3px solid #6c47ff',
+      border: 'none',
+      cursor: 'pointer',
     });
 
     link.addEventListener('focus', () => {
@@ -77,6 +77,15 @@ export function injectSkipLink(): void {
     link.addEventListener('blur', () => {
       link.style.top = '-9999px';
       link.style.left = '-9999px';
+    });
+
+    // R12: Focus the first interactive A11yLayer element when skip link is activated (R12)
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const firstButton = document.querySelector<HTMLElement>('[data-a11y-id]');
+      if (firstButton) {
+        requestAnimationFrame(() => firstButton.focus());
+      }
     });
 
     document.body.insertBefore(link, document.body.firstChild);

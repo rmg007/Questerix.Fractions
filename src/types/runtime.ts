@@ -128,8 +128,8 @@ export interface Attempt {
   outcome: AttemptOutcome;
   errorMagnitude: number | null;
   pointsEarned: number;
-  /** IDs of HintEvent rows used during this attempt (Dexie auto-increment numbers). */
-  hintsUsedIds: number[];
+  /** IDs of HintEvent rows used during this attempt (UUID strings). */
+  hintsUsedIds: string[];
   /** HintTier array for quick per-attempt hint analysis. */
   hintsUsed: HintTier[];
   flaggedMisconceptionIds: MisconceptionId[];
@@ -159,8 +159,8 @@ export interface Attempt {
 
 /** per data-schema.md §3.4 */
 export interface HintEvent {
-  /** Auto-incremented by Dexie (++id); matches hintEvents table key type number. */
-  id: number;
+  /** RFC 4122 UUID string for type consistency with other entities (R4). */
+  id: string;
   attemptId: AttemptId;
   /** References HintTemplate.id */
   hintId: string;

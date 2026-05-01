@@ -154,6 +154,16 @@ export class PreferenceToggle {
     this.wrapper.appendChild(this.valueEl);
     container.appendChild(this.wrapper);
 
+    // R21: Add focus outline for keyboard navigation
+    this.btn.addEventListener('focus', () => {
+      this.btn.style.outline = '3px solid #2563eb';
+      this.btn.style.outlineOffset = '2px';
+    });
+
+    this.btn.addEventListener('blur', () => {
+      this.btn.style.outline = 'none';
+    });
+
     // Wire click
     if (!this.readOnly) {
       this.clickHandler = () => void this.toggle();

@@ -82,8 +82,8 @@ export class LevelScene extends Phaser.Scene {
   private questionStartTime: number = 0;
   private currentRoundEvents: import('@/types').ProgressionEvent[] = [];
 
-  // Fix G-E3: hint events linked to attempt records (Dexie auto-increment numbers)
-  private currentQuestionHintIds: number[] = [];
+  // R3: hint events linked to attempt records via hintEventRepo.linkToAttempt() (UUID strings)
+  private currentQuestionHintIds: string[] = [];
 
   // Template pool
   private templatePool: QuestionTemplate[] = [];

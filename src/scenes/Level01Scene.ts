@@ -145,7 +145,7 @@ export class Level01Scene extends Phaser.Scene {
   private correctStreak: number = 0;
 
   // Fix 6 (G-E3): hint-event IDs accumulated per question (Dexie auto-increment numbers)
-  private currentQuestionHintIds: number[] = [];
+  private currentQuestionHintIds: string[] = []; // Hint event IDs (UUIDs) for linking after attempt creation (R3)
 
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
@@ -450,6 +450,16 @@ export class Level01Scene extends Phaser.Scene {
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
 
+      // R20: Verify student exists before resuming
+      const { studentRepo } = await import('../persistence/repositories/student');
+      const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+      if (!student) {
+        log.warn('SESS', 'student_not_found', { studentId: this.studentId });
+        // Student was deleted — boot back to BootScene to re-create
+        this.scene.start('BootScene');
+        return;
+      }
+
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
         const { sessionRepo } = await import('../persistence/repositories/session');
@@ -459,20 +469,29 @@ export class Level01Scene extends Phaser.Scene {
 
         if (sessions.length > 0) {
           const lastSession = sessions[0]!;
-          this.sessionId = lastSession.id as string;
+          // R20: Verify session still exists and is open (not ended)
+          if (lastSession.endedAt) {
+            log.warn('SESS', 'session_already_ended', { sessionId: lastSession.id });
+            // Fall through to create a new session
+          } else {
+            this.sessionId = lastSession.id as string;
 
-          // Restore prior attempt count
-          const { attemptRepo } = await import('../persistence/repositories/attempt');
-          const priorAttempts = await attemptRepo.listForSession(lastSession.id);
-          this.attemptCount = priorAttempts.length;
+            // Restore prior attempt count
+            const { attemptRepo } = await import('../persistence/repositories/attempt');
+            const priorAttempts = await attemptRepo.listForSession(lastSession.id);
+            this.attemptCount = priorAttempts.length;
 
-          // Update progressBar if it exists
-          if (this.progressBar) {
-            this.progressBar.setProgress(this.attemptCount);
+            // Update progressBar if it exists
+            if (this.progressBar) {
+              this.progressBar.setProgress(this.attemptCount);
+            }
+
+            log.sess('open_resumed', {
+              sessionId: this.sessionId,
+              priorAttempts: this.attemptCount,
+            });
+            return;
           }
-
-          log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
-          return;
         }
       }
 
@@ -509,9 +528,40 @@ export class Level01Scene extends Phaser.Scene {
         log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
       }
     } catch (err) {
-      // R6: re-throw so create() can show a user-visible error and block play.
-      log.error('SESS', 'open_error', { error: String(err) });
-      throw err;
+      log.error('SESS', 'open_error_initial', { error: String(err) });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const { sessionRepo } = await import('../persistence/repositories/session');
+        const id = crypto.randomUUID() as import('@/types').SessionId;
+        const session = await sessionRepo.create({
+          id,
+          studentId: this.studentId as import('@/types').StudentId,
+          activityId: 'partition_halves' as import('@/types').ActivityId,
+          levelNumber: 1,
+          scaffoldLevel: 1,
+          startedAt: Date.now(),
+          endedAt: null,
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracy: null,
+          avgResponseMs: null,
+          xpEarned: 0,
+          scaffoldRecommendation: null,
+          endLevel: 1,
+          device: {
+            type: 'unknown',
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+          },
+          syncState: 'local',
+        });
+        if (session) {
+          this.sessionId = session.id;
+          log.sess('open_retry_ok', { sessionId: this.sessionId });
+          return;
+        }
+      } catch (retryErr) {
+        log.error('SESS', 'open_retry_failed', { error: String(retryErr) });
+      }
     }
   }
 
@@ -1071,13 +1121,13 @@ export class Level01Scene extends Phaser.Scene {
       if (this.templatePool.length > 0) {
         // Use validator registry with the template's validatorId
         // per runtime-architecture.md §4.2 (ValidatorRegistry)
-        const { validatorRegistry } = await import('../validators/registry');
+        const { getValidatorEntry } = await import('../validators/registry');
         const reg = this.currentQuestion.validatorId
-          ? validatorRegistry.get(this.currentQuestion.validatorId)
+          ? getValidatorEntry(this.currentQuestion.validatorId)
           : undefined;
         // Fall back to direct partition validator if ID not found in registry
         if (reg) {
-          result = (reg as { fn: (i: unknown, p: unknown) => ValidatorResult }).fn(input, payload);
+          result = reg.fn(input, payload);
         } else {
           const { partitionEqualAreas } = await import('../validators/partition');
           result = partitionEqualAreas.fn(input, payload);
@@ -1087,7 +1137,10 @@ export class Level01Scene extends Phaser.Scene {
         result = partitionEqualAreas.fn(input, payload);
       }
     } catch (err) {
-      console.error('[Level01Scene] Validator error — marking ABANDONED:', err);
+      // R18: Surface validator errors visibly for debugging
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('[Level01Scene] Validator threw:', errorMsg);
+      log.error('VALID', 'crash', { err: errorMsg, templateId: this.currentQuestion.id });
       result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
     }
 
@@ -1452,13 +1505,15 @@ export class Level01Scene extends Phaser.Scene {
     // Mirror hint text to DOM sentinel for tests
     TestHooks.setText('hint-text', hintMessage);
 
-    // Fix 6 (G-E3): persist hint event and collect ID for the current attempt
+    // R3: Persist hint event and collect ID for linking after attempt is created.
+    // The attemptId is added later via hintEventRepo.linkToAttempt() in recordAttempt().
     if (this.sessionId) {
       try {
         const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
         const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
         const event = await hintEventRepo.record({
-          attemptId: '' as unknown as import('@/types').AttemptId, // linked post-submission
+          // Note: attemptId will be filled in by linkToAttempt() after attempt persists (R3)
+          attemptId: '' as unknown as import('@/types').AttemptId,
           hintId: `hint.partition.${tier}`,
           tier,
           shownAt: Date.now(),
@@ -1972,6 +2027,7 @@ export class Level01Scene extends Phaser.Scene {
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();
+    this.hintLadder?.reset?.();
     this.mascot?.destroy();
     this.hintButton?.destroy();
     this.submitButtonContainer?.destroy();
