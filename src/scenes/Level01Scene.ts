@@ -1123,6 +1123,11 @@ export class Level01Scene extends Phaser.Scene {
     // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
     MenuScene.markLevelComplete(1, this.studentId);
 
+    // G-5: Also unlock Level 2 in IndexedDB progressionStat so
+    // LevelMapScene / any future Dexie-backed chooser can read it without
+    // relying on the C5-deviated localStorage key.
+    await this.persistLevelCompletion();
+
     // "Keep going" — amber action button
     // G-C7/G-UX6: advance to Level 2 (LevelScene) rather than looping within Level 1.
     void createActionButton(
@@ -1193,6 +1198,47 @@ export class Level01Scene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setDepth(depth + 2)
       .on('pointerup', onTap);
+  }
+
+  /**
+   * G-5: Write (or update) a ProgressionStat row in IndexedDB marking Level 1 as
+   * completed and advancing to Level 2.
+   * Best-effort write — persistence failure never blocks gameplay.
+   */
+  private async persistLevelCompletion(): Promise<void> {
+    if (!this.studentId) return;
+    try {
+      const { progressionStatRepo } = await import(
+        '../persistence/repositories/progressionStat'
+      );
+      const { ActivityId } = await import('../types/branded');
+      const studentIdTyped = this.studentId as import('@/types').StudentId;
+      const activityId = ActivityId('level_1');
+
+      const existing = await progressionStatRepo.get(studentIdTyped, activityId);
+      const now = Date.now();
+      const updated: import('@/types').ProgressionStat = {
+        studentId: studentIdTyped,
+        activityId,
+        currentLevel: 2, // advance to Level 2
+        highestLevelReached: Math.max(2, existing?.highestLevelReached ?? 2),
+        sessionsAtCurrentLevel: 0,
+        totalSessions: (existing?.totalSessions ?? 0) + 1,
+        totalXp: (existing?.totalXp ?? 0) + this.correctCount * 10,
+        lastSessionAt: now,
+        consecutiveRegressEvents: existing?.consecutiveRegressEvents ?? 0,
+        syncState: 'local',
+      };
+      await progressionStatRepo.upsert(updated);
+      log.scene('progression_stat_upserted', {
+        level: 1,
+        nextLevel: 2,
+        activityId,
+        totalSessions: updated.totalSessions,
+      });
+    } catch (err) {
+      log.warn('PROG', 'progression_stat_error', { level: 1, error: String(err) });
+    }
   }
 
   private async closeSession(): Promise<void> {
