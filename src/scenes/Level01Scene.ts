@@ -802,9 +802,11 @@ export class Level01Scene extends Phaser.Scene {
 
     // T16: Quest microcopy at question-load moments
     if (index === 0) {
-      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble('Ready? Let\'s go! 🚀', 2000));
+      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble("Ready? Let's go! 🚀", 2000));
     } else if (index === SESSION_GOAL - 1) {
-      this.time.delayedCall(400, () => this.mascot?.showSpeechBubble('Last one! You\'ve got this!', 2000));
+      this.time.delayedCall(400, () =>
+        this.mascot?.showSpeechBubble("Last one! You've got this!", 2000)
+      );
     }
   }
 
@@ -1268,7 +1270,13 @@ export class Level01Scene extends Phaser.Scene {
     // T16: Quest streak microcopy (shown after FeedbackOverlay fades, ~1600ms delay)
     const streak = this.correctStreak;
     const streakLine =
-      streak === 1 ? 'Nice one!' : streak === 2 ? "You've got this!" : streak >= 3 ? 'On fire! 🔥' : null;
+      streak === 1
+        ? 'Nice one!'
+        : streak === 2
+          ? "You've got this!"
+          : streak >= 3
+            ? 'On fire! 🔥'
+            : null;
     if (streakLine) {
       this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
     }
@@ -1291,7 +1299,9 @@ export class Level01Scene extends Phaser.Scene {
     const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
     const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
 
-    const PILL_W = 520, PILL_H = 88, PILL_R = 44;
+    const PILL_W = 520,
+      PILL_H = 88,
+      PILL_R = 44;
     const cx = CW / 2;
     const startY = -PILL_H;
     const landY = 140;
@@ -1408,7 +1418,7 @@ export class Level01Scene extends Phaser.Scene {
 
     // T16: Quest hint microcopy (only once per question — on first hint shown)
     if (this.wrongCount <= 2) {
-      this.mascot?.showSpeechBubble('Here\'s a secret... 🤫', 2000);
+      this.mascot?.showSpeechBubble("Here's a secret... 🤫", 2000);
     }
 
     // Quest-voiced hint per ux-elevation §9 T28. Each tier shows a distinct
@@ -1804,7 +1814,8 @@ export class Level01Scene extends Phaser.Scene {
     const scaffoldRec: 'advance' | 'stay' = sessionAccuracy >= 0.8 ? 'advance' : 'stay';
 
     // T15: Perfect session — all 5 correct, no extra attempts (totalQuestionsAttempted === SESSION_GOAL)
-    const isPerfect = this.correctCount >= SESSION_GOAL && this.totalQuestionsAttempted === SESSION_GOAL;
+    const isPerfect =
+      this.correctCount >= SESSION_GOAL && this.totalQuestionsAttempted === SESSION_GOAL;
 
     new SessionCompleteOverlay({
       scene: this,

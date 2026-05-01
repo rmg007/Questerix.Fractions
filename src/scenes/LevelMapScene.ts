@@ -215,7 +215,8 @@ export class LevelMapScene extends Phaser.Scene {
     const streak = await getStreak(this.studentId);
 
     const label = streak >= 2 ? `🔥 ${streak}` : '🔥 1';
-    const PILL_H = 40, PILL_PAD = 16;
+    const PILL_H = 40,
+      PILL_PAD = 16;
 
     // Measure text width
     const probe = this.add

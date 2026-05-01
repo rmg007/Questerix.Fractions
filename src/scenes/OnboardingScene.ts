@@ -288,7 +288,10 @@ export class OnboardingScene extends Phaser.Scene {
     }
 
     // Tap-to-advance: any tap during the demo skips straight to the try step
-    const skipHit = this.add.rectangle(SHAPE_CX, CH / 2, CW, CH, 0, 0).setInteractive().setDepth(29);
+    const skipHit = this.add
+      .rectangle(SHAPE_CX, CH / 2, CW, CH, 0, 0)
+      .setInteractive()
+      .setDepth(29);
     skipHit.once('pointerup', () => {
       for (const t of this.watchTimers) t.destroy();
       this.watchTimers = [];
