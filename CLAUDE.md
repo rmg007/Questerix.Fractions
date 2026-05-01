@@ -284,4 +284,5 @@ Sprint 0 exit criteria: student completes a 5-question session at `localhost:500
 | Misconception catalog (MC-*) | `docs/10-curriculum/misconceptions.md` |
 | Skill registry (SK-*) | `docs/10-curriculum/skills.md` |
 | Roadmap + sprint plan | `PLANS/PLAN.md` |
+| UI/UX design principles | `docs/00-foundation/ui-design-principles.md` |
 | Git branch + PR process | `docs/00-foundation/git-workflow.md` |
