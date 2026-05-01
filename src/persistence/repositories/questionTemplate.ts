@@ -26,10 +26,10 @@ export const questionTemplateRepo = {
       ...t,
       levelGroup: deriveLevelGroup(t.id),
     }));
-    // Explicitly strip levelGroup before persisting to match DB schema.
-    // levelGroup is derived on read; not part of QuestionTemplate's base type.
-    const sanitized = stored.map(({ levelGroup: _lg, ...rest }) => rest);
-    await db.questionTemplates.bulkPut(sanitized);
+    // levelGroup is an indexed field in the questionTemplates store
+    // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
+    // it MUST be persisted, not stripped. getByLevel() queries via this index.
+    await db.questionTemplates.bulkPut(stored as unknown as QuestionTemplate[]);
   },
 
   /**
