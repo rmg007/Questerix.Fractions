@@ -451,7 +451,8 @@ export class Level01Scene extends Phaser.Scene {
 
   private async openSession(): Promise<void> {
     const sid = this.studentId as import('@/types').StudentId | null;
-    this.sessionId = await openSessionOrResume(sid, this.resume) ?? undefined;
+    const result = await openSessionOrResume(sid, this.resume);
+    this.sessionId = result ? String(result) : null;
   }
 
   // ── UI construction ──────────────────────────────────────────────────────
