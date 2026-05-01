@@ -47,9 +47,18 @@ import { TestHooks } from '@/scenes/utils/TestHooks';
 function makeGameObject() {
   const go: Record<string, unknown> = { x: 400, y: 640, depth: 100, alpha: 1, scale: 1 };
   for (const m of [
-    'setDepth', 'setVisible', 'setOrigin', 'setScale', 'setAlpha',
-    'setX', 'setY', 'setFillStyle', 'setText', 'setColor',
-    'setInteractive', 'on',
+    'setDepth',
+    'setVisible',
+    'setOrigin',
+    'setScale',
+    'setAlpha',
+    'setX',
+    'setY',
+    'setFillStyle',
+    'setText',
+    'setColor',
+    'setInteractive',
+    'on',
   ]) {
     go[m] = vi.fn().mockReturnValue(go);
   }
@@ -69,7 +78,17 @@ function makeSceneStub(textureExists: boolean) {
       text: vi.fn().mockImplementation(() => makeGameObject()),
       graphics: vi.fn().mockImplementation(() => {
         const g: Record<string, unknown> = {};
-        for (const m of ['fillStyle', 'fillRoundedRect', 'lineStyle', 'strokeRoundedRect', 'setDepth']) {
+        for (const m of [
+          'fillStyle',
+          'fillRoundedRect',
+          'lineStyle',
+          'strokeRoundedRect',
+          'setDepth',
+          'setVisible',
+          'setAlpha',
+          'setX',
+          'clear',
+        ]) {
           g[m] = vi.fn().mockReturnValue(g);
         }
         g['destroy'] = vi.fn();
@@ -78,7 +97,12 @@ function makeSceneStub(textureExists: boolean) {
       particles: vi.fn().mockReturnValue(emitter),
     },
     time: { delayedCall: vi.fn() },
-    tweens: { add: vi.fn() },
+    tweens: {
+      add: vi.fn().mockImplementation((cfg: Record<string, unknown>) => {
+        if (typeof cfg.onComplete === 'function') (cfg.onComplete as () => void)();
+      }),
+      chain: vi.fn(),
+    },
     textures: { exists: vi.fn().mockReturnValue(textureExists) },
   };
 }
