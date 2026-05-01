@@ -5,7 +5,6 @@
  * Ensures browser list, port, and test params are always in sync across:
  *  - ci.yml (playwright install --with-deps <BROWSERS>)
  *  - synthetic-playtest.yml (wait-on http://localhost:<PORT>)
- *  - lighthouse.yml (Chrome installation for LHCI)
  *
  * These constants must match src/config/shared.ts.
  */
@@ -172,37 +171,10 @@ jobs:
   return yaml
 }
 
-/**
- * Generate lighthouse.yml — Lighthouse CI workflow
- */
-function generateLighthouseWorkflow() {
-  const yaml = `name: Lighthouse
-on: [pull_request, push]
-jobs:
-  lhci:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '24', cache: 'npm' }
-      - run: npm ci
-      - run: npm run build
-      - run: npm install -g @lhci/cli@0.14.x
-      - uses: browser-actions/setup-chrome@latest
-      - name: Start dev server
-        run: npm run dev:app &
-      - name: Wait for server
-        run: npx wait-on http://localhost:5000 --timeout 30000
-      - run: lhci autorun
-`
-  return yaml
-}
-
 // Write generated workflows
 const workflows = {
   'ci.yml': generateCiWorkflow(),
   'synthetic-playtest.yml': generateSyntheticPlaytestWorkflow(),
-  'lighthouse.yml': generateLighthouseWorkflow(),
 }
 
 for (const [filename, content] of Object.entries(workflows)) {
