@@ -283,6 +283,5 @@ Sprint 0 exit criteria: student completes a 5-question session at `localhost:500
 | Performance budget breakdown | `docs/30-architecture/performance-budget.md` |
 | Misconception catalog (MC-*) | `docs/10-curriculum/misconceptions.md` |
 | Skill registry (SK-*) | `docs/10-curriculum/skills.md` |
-| Roadmap + sprint plan | `PLANS/master-plan-2026-04-26.md` |
+| Roadmap + sprint plan | `PLANS/PLAN.md` |
 | Git branch + PR process | `docs/00-foundation/git-workflow.md` |
-| Planning docs index | `PLANS/INDEX.md` |
