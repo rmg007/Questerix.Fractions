@@ -67,11 +67,14 @@ export class SFXService {
   }
 
   /**
-   * Play a short click-pop sound when the partition snaps to the correct position.
-   * Tone: C6 (1047 Hz), triangle wave, 40 ms — crisp tactile snap feel.
+   * Play a brief ascending glissando when the partition snaps to the correct position.
+   * Simulates a 200ms glissando from ~80 Hz to ~200 Hz using a four-note ascending pattern.
+   * Triangle wave for crisp tactile feel, gain 0.15.
+   * T13: Enhanced snap feedback for visual celebration.
    */
   playSnap(): void {
-    this.playNotes([1047], 0.04, 'triangle', 0.12 * this.volume);
+    // Use ascending tones to simulate upward glissando effect
+    this.playNotes([82, 110, 165, 196], 0.05, 'triangle', 0.15 * this.volume);
   }
 
   setEnabled(on: boolean): void {

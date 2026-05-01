@@ -966,12 +966,8 @@ export class Level01Scene extends Phaser.Scene {
     const top = SHAPE_CY - SHAPE_H / 2 - 20;
     const bottom = SHAPE_CY + SHAPE_H / 2 + 20;
 
-    // Thick navy line
-    g.lineStyle(6, NAVY, 1);
-    g.lineBetween(handleX, top, handleX, bottom);
-
-    // Thin white centre highlight for depth
-    g.lineStyle(2, 0xffffff, 0.7);
+    // T3 fix: solid navy line, 10px thick for clarity
+    g.lineStyle(10, NAVY, 1);
     g.lineBetween(handleX, top, handleX, bottom);
   }
 

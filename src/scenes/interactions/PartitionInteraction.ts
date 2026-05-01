@@ -334,7 +334,8 @@ export class PartitionInteraction implements Interaction {
 
   private updatePartitionLine(handleX: number, cy: number): void {
     this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, NAVY, 1);
+    // T3 fix: solid navy line, 10px thick for clarity
+    this.partitionLine.lineStyle(10, NAVY, 1);
     const top = cy - SHAPE_H / 2;
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
