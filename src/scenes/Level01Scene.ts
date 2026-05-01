@@ -2012,7 +2012,7 @@ export class Level01Scene extends Phaser.Scene {
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();
-    this.hintLadder?.destroy?.();
+    this.hintLadder?.reset?.();
     this.mascot?.destroy();
     this.hintButton?.destroy();
     this.submitButtonContainer?.destroy();
