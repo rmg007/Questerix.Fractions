@@ -393,6 +393,255 @@ The session complete screen shows trophy + accuracy stars + confetti. It's well-
 
 ---
 
+## T12 — "3 in a Row!" streak milestone celebration
+
+### Why this matters
+The BKT engine (`src/engine/bkt.ts`) already tracks `consecutiveCorrectUnassisted` and treats ≥ 3 as the **mastery threshold** — the single most important milestone in the entire scoring system. Right now this moment is completely invisible to the child. A five-year-old who just achieved what the engine considers mastery has no idea anything happened.
+
+Celebrating the 3-in-a-row milestone is not just feel-good decoration — it directly reinforces the behavior that earns mastery, closing the loop between effort and reward.
+
+### Spec
+
+**Mid-session "3 IN A ROW! 🔥" banner:**
+- A pill-shaped banner (TITLE_FONT, 32px, amber background `ACTION_FILL`, navy text) slides in from the top edge of the screen 400ms after the 3rd consecutive correct answer is confirmed (after `FeedbackOverlay` finishes its exit).
+- Banner text: `"3 in a row! 🔥"`
+- Stays on screen for 1600ms then slides back up and destroys.
+- Quest simultaneously plays `cheer-big` (already defined in `Mascot.ts`).
+- SFX: a 5-note ascending jingle, distinct from `playCorrect()` — add `playStreak()` to `SFXService.ts`.
+
+**5-in-a-row escalation:**
+- If `consecutiveCorrectUnassisted` hits 5 (SESSION_GOAL, all correct), the banner instead reads `"UNSTOPPABLE! ⭐"` and uses a gold background (`0xFFD700`).
+- This escalation only fires if it hasn't already been shown as a perfect session via T15.
+
+**Where to hook it:**
+- `Level01Scene.ts`: in `onSubmit()` correct branch, read `consecutiveCorrectUnassisted` from the `SkillMastery` object returned by `updateMastery()` (or track a local `sessionStreak` counter that resets on wrong answer). Show the banner when it equals exactly 3 or 5.
+- `LevelScene.ts`: same pattern.
+
+**Reset:** `consecutiveCorrectUnassisted` already resets to 0 on wrong answer — no additional reset logic needed.
+
+### Files to change
+- `src/audio/SFXService.ts` — add `playStreak()` (5-note ascending jingle).
+- `src/scenes/Level01Scene.ts` — detect streak hits 3 and 5, show banner.
+- `src/scenes/LevelScene.ts` — same.
+
+### Acceptance
+- 3 consecutive unassisted correct answers: banner slides in from top, Quest cheers big, 5-note jingle plays.
+- 4th correct in a row: no new banner (only fires on exact hit of 3 and 5).
+- Wrong answer breaks the streak — next 3-in-a-row fires again.
+- `npm run typecheck` clean.
+
+---
+
+## T13 — Partition snap "juice" — color fill + fraction labels
+
+### Why this matters
+The partition interaction is the core mechanic of the game. Right now, when a child nails the midpoint, absolutely nothing happens to the shape itself. Quest jumps and `FeedbackOverlay` slides in, but the shape — the thing the child is looking at — just sits there unchanged. For a 5-year-old, the cause-and-effect connection between "I dragged here" and "that was correct" is broken.
+
+The shape should visually split and label itself the instant the correct answer is confirmed. This turns an abstract judgement ("correct") into a concrete visual ("look, I cut it in half, and each piece says 1/2").
+
+### Spec
+
+**On correct partition confirmation, animate the shape:**
+
+1. **Color fill the two halves** (400ms, overlapping with feedback):
+   - Left/top half: semi-transparent amber (`ACTION_FILL`, alpha 0.35) fills via a rectangle mask that expands from the partition line outward.
+   - Right/bottom half: semi-transparent sky-blue (`SKY_BG`, alpha 0.35) fills the same way.
+   - Duration: 350ms, ease `Sine.easeOut`.
+
+2. **Fraction label on each half** (appears 200ms after fill starts):
+   - Centered in each half: the fraction label text in TITLE_FONT, 28px, navy.
+   - For a 1/2 partition: `"1/2"` in each half. For 1/3: `"1/3"` and `"2/3"`. For 1/4: etc.
+   - Labels scale in from 0.5 → 1.0 with `Back.easeOut`, duration 300ms.
+
+3. **Snap "pop" sound** (synthesized, instant on snap):
+   - Add `playSnap()` to `SFXService.ts`: a short click-pop (triangle wave, C6, 40ms, gain 0.12). Fires the moment the drag handle snaps to the correct zone — separate from `playCorrect()` which fires on feedback.
+
+4. **Cleanup**: all fill graphics and labels are destroyed in `loadQuestion()` when the next question starts.
+
+**Scope:**
+- Implement in `PartitionInteraction.ts` for `LevelScene`.
+- Implement the equivalent in `Level01Scene.ts` (which draws the partition shape directly).
+
+### Files to change
+- `src/audio/SFXService.ts` — add `playSnap()`.
+- `src/scenes/interactions/PartitionInteraction.ts` — color fill + fraction labels on correct.
+- `src/scenes/Level01Scene.ts` — same for direct-draw partition shape.
+
+### Acceptance
+- Correct partition: shape halves fill with amber/blue tint, fraction labels pop in.
+- Snap sound fires immediately on hitting the correct zone, before `FeedbackOverlay` shows.
+- Labels and fills are gone when next question loads.
+- Incorrect partition: no fill or labels.
+- `npm run typecheck` clean.
+
+---
+
+## T14 — Quest idle / boredom timeout
+
+### Why this matters
+K-2 children are distracted constantly. A child who loses focus during a question stares at a static screen with no cue to re-engage. The current `idle()` animation is a gentle float loop — nice, but invisible from across the room. After 10–15 seconds of no input, Quest needs to actively recruit the child's attention back.
+
+This is a standard pattern in every successful K-2 app (Endless Alphabet, Toca Boca, Khan Academy Kids) and a primary driver of session completion rates.
+
+### Spec
+
+**Idle detection — three escalating stages:**
+
+**Stage 1 (10 seconds of no pointer input):**
+- Quest plays `think` (head wobble) and a small `"?"` speech bubble appears above Quest's head.
+- The speech bubble is a rounded rect with 18px BODY_FONT text: `"Hmm... 🤔"`.
+- Duration: speech bubble stays for 3s then fades.
+
+**Stage 2 (18 seconds of no input):**
+- Quest plays `wave`.
+- Speech bubble: `"Psst! Over here! 👋"` (20px TITLE_FONT, same rounded rect).
+- Stays for 3s.
+
+**Stage 3 (28 seconds of no input):**
+- Quest plays `cheer` to try to get attention.
+- Speech bubble: `"Let's go, I believe in you! ⭐"` (18px BODY_FONT).
+- After stage 3, the idle timer stops escalating (no infinite harassment).
+
+**Reset:** Any `pointerdown` anywhere on the canvas resets all stage timers back to zero and destroys any visible speech bubble.
+
+**Speech bubble component:** A simple reusable `showSpeechBubble(text, duration)` method on `Mascot` (or a standalone `SpeechBubble` class) — a rounded rect (`0xFFFFFF` fill, 2px navy border, 12px corner radius) with the text inside, positioned above Quest's head, auto-sized to text width + 24px padding.
+
+**Where:** Only active during active gameplay scenes (`Level01Scene`, `LevelScene`). Not in menus, onboarding, or session complete.
+
+### Files to change
+- `src/components/Mascot.ts` — add `showSpeechBubble(text, duration)` + idle timer logic (or a `SpeechBubble.ts` component).
+- `src/scenes/Level01Scene.ts` — start idle timer after each question loads; reset on any pointer input.
+- `src/scenes/LevelScene.ts` — same.
+
+### Acceptance
+- 10s no input: Quest wobbles + "Hmm..." bubble.
+- 18s no input: Quest waves + "Psst!" bubble.
+- 28s no input: Quest cheers + motivating bubble.
+- Any tap: all timers reset, bubble disappears immediately.
+- `npm run typecheck` clean.
+
+---
+
+## T15 — Perfect session (5/5) special variant
+
+### Why this matters
+Getting every question right in a session is a meaningful achievement. Currently a 5/5 perfect session shows the exact same `SessionCompleteOverlay` as a 4/5 or 3/5 session — same sky-blue card, same "Level N Complete!" heading, same three stars. Perfection has no extra recognition.
+
+For K-2 children, the *size* of the celebration is the reward. A perfect session should feel dramatically different — something worth talking about at dinner.
+
+### Spec
+
+**Trigger:** `correctCount === SESSION_GOAL && wrongCount === 0` at the time `SessionCompleteOverlay` is shown.
+
+**Special overlay variant (passes `isPerfect: boolean` prop to `SessionCompleteOverlay`):**
+
+1. **Background:** Gradient from gold `0xFFD700` (top) to amber `0xFF9500` (bottom), instead of sky-blue.
+2. **Heading:** `"PERFECT! 🌟"` in TITLE_FONT 42px (larger than standard 34px), white text with a gold drop-shadow.
+3. **Stars:** All three stars show simultaneously with a bigger bounce (scale 0 → 1.5 → 1.0 instead of 0 → 1.2 → 1.0), and they are gold-colored (`0xFFD700`) instead of the standard amber.
+4. **Confetti:** Full-screen confetti burst — 80 particles (doubled from standard 40), gold + white + amber color scheme, wider spread.
+5. **Quest animation:** `cheer-big` plays, then after 800ms Quest plays `celebrate` (double hops) — a two-phase celebration not shown in any other context.
+6. **SFX:** `playComplete()` plays, then 600ms later a second higher-pitch `playComplete()` at 1.25x frequency (implement as a variant parameter in `SFXService.playComplete(pitchMultiplier?: number)`).
+7. **Banner text:** `"ALL 5 correct! You're a star! ⭐"` in 20px BODY_FONT below the stars.
+
+**Standard overlay (not perfect):** unchanged from current behavior + T11 enhancements.
+
+### Files to change
+- `src/components/SessionCompleteOverlay.ts` — add `isPerfect` prop and special rendering branch.
+- `src/scenes/Level01Scene.ts` — pass `isPerfect: correctCount === SESSION_GOAL && sessionWrong === 0`.
+- `src/scenes/LevelScene.ts` — same.
+- `src/audio/SFXService.ts` — optional `pitchMultiplier` param on `playComplete()`.
+
+### Acceptance
+- 5/5 correct with no wrong answers: gold overlay, "PERFECT! 🌟", doubled confetti, two-phase Quest animation.
+- 4/5 or any wrong answers: standard overlay.
+- `npm run typecheck` clean.
+
+---
+
+## T16 — Quest microcopy — personality speech bubbles
+
+### Why this matters
+Quest currently speaks only via TTS reading the question text aloud. That's functional, not warm. The most beloved K-2 apps have characters with *personality* — little asides, encouragement, and comments that make the character feel alive. These are short lines Quest says in his own voice (displayed text, not TTS), completely separate from the question narration.
+
+This is one of the lowest-effort highest-warmth additions possible — no new animations needed, just the `showSpeechBubble` component from T14 plus a mapping of context → line.
+
+### Spec
+
+**Quest speech lines (display only, no TTS):**
+
+| Trigger | Quest says |
+|---|---|
+| First question of session loads | `"Ready? Let's go! 🚀"` |
+| Correct answer, streak = 1 | `"Nice one!"` |
+| Correct answer, streak = 2 | `"You've got this!"` |
+| Correct answer, streak = 3 | `"On fire! 🔥"` (T12 banner fires separately) |
+| Wrong answer (first time on question) | `"Oops! Try again 💪"` |
+| Wrong answer (second time) | `"Almost... I'll give you a hint!"` |
+| Hint is shown | `"Here's a secret... 🤫"` |
+| 5th (last) question loads | `"Last one! You've got this!"` |
+| Session complete (advance) | `"I knew you could do it! ⭐"` |
+| Session complete (stay) | `"Great practice! Keep going!"` |
+
+**Implementation:**
+- Lines are displayed using the `showSpeechBubble(text, duration)` method from T14.
+- Duration: 2000ms, then fades out over 300ms.
+- Only one bubble visible at a time — if a new line fires while one is showing, the old one dismisses instantly and the new one starts.
+- Lines are stored as a simple const map in `Level01Scene.ts`/`LevelScene.ts`, not in a separate config file.
+- Speech bubbles use Quest's position from `Mascot.ts`.
+
+**Language:** Lines are written at Grade K–1 reading level (short, concrete, exclamation-forward). No multi-syllable words except "almost" and "secret."
+
+### Files to change
+- `src/components/Mascot.ts` — `showSpeechBubble()` (from T14; if T14 is done first, T16 just calls the existing method).
+- `src/scenes/Level01Scene.ts` — add speech line triggers at the correct event points.
+- `src/scenes/LevelScene.ts` — same.
+
+### Acceptance
+- First question: "Ready? Let's go! 🚀" appears above Quest for 2s.
+- Correct streak 2: "You've got this!" appears.
+- Wrong answer: "Oops! Try again 💪" appears.
+- Bubbles never stack — only one at a time.
+- `npm run typecheck` clean.
+
+---
+
+## T17 — Daily streak display in Menu / LevelMap
+
+### Why this matters
+`src/lib/streak.ts` and `src/persistence/repositories/streakRecord.ts` already track consecutive days played per student — this system is fully built and never shown. A daily streak counter is the single most powerful retention mechanic in children's apps. Every day a child comes back to see their flame count go up is a day they play.
+
+The data exists. It just needs to be surfaced.
+
+### Spec
+
+**In `MenuScene`** — below the Play button, show:
+- A flame emoji 🔥 followed by `"N day streak!"` in 22px TITLE_FONT, amber.
+- If streak is 0 or 1: `"Start your streak!"` (motivates first return).
+- If streak is 7+: `"🏆 N day legend streak!"` in gold (`0xFFD700`).
+- If the child returns after a gap > 1 day (streak reset): `"Welcome back! Quest missed you 👋"` for 3s, then the display shows `"1 day streak — let's rebuild!"`.
+
+**In `LevelMapScene`** — a persistent small flame pill in the top-right corner:
+- Same flame + count, 18px BODY_FONT, white text on amber rounded rect pill, 8px padding.
+- Updates when the scene is created (read from repository on `create()`).
+
+**Read the streak:**
+- Call `getStreakRecord(studentId)` (from `streakRecord.ts` repository) in both scenes' `create()` methods.
+- Use `streakRecord.currentStreak` for the display.
+
+**Do NOT update the streak here** — that is already handled by the existing streak logic on session start. This task is display-only.
+
+### Files to change
+- `src/scenes/MenuScene.ts` — streak text below Play button; welcome-back message.
+- `src/scenes/LevelMapScene.ts` — persistent flame pill top-right.
+
+### Acceptance
+- MenuScene shows "N day streak!" or "Start your streak!" based on persisted data.
+- LevelMap shows flame pill with current count.
+- Streak display updates correctly after a session (scene re-created on re-entry).
+- `npm run typecheck` clean.
+
+---
+
 ## Updated problem summary
 
 | # | Issue | Where | Severity |
@@ -411,6 +660,12 @@ The session complete screen shows trophy + accuracy stars + confetti. It's well-
 | F12 | Onboarding Step 1 cannot be tapped to advance | `OnboardingScene.ts` | 🟡 Medium |
 | F13 | Prompt text 22px — too small for early readers | `Level01Scene.ts`, `LevelScene.ts` | 🟡 Medium |
 | F14 | Session complete shows no "what's next" — children stall | `SessionCompleteOverlay.ts` | 🟠 High |
+| F15 | Mastery milestone (3-in-a-row) fires silently — invisible to child | `Level01Scene.ts`, `LevelScene.ts` | 🟠 High |
+| F16 | Correct partition snap has no visual juice on the shape | `PartitionInteraction.ts`, `Level01Scene.ts` | 🟠 High |
+| F17 | No idle timeout — distracted children get no re-engagement cue | `Mascot.ts`, `Level01Scene.ts` | 🟡 Medium |
+| F18 | Perfect session (5/5) looks identical to 3/5 — no recognition | `SessionCompleteOverlay.ts` | 🟠 High |
+| F19 | Quest has no personality voice — TTS only reads question text | `Mascot.ts`, `Level01Scene.ts` | 🟡 Medium |
+| F20 | Daily streak tracked in code but never shown in any UI | `MenuScene.ts`, `LevelMapScene.ts` | 🟠 High |
 
 ---
 
@@ -419,7 +674,11 @@ The session complete screen shows trophy + accuracy stars + confetti. It's well-
 All tasks are independent. Suggested grouping for parallel execution:
 
 **Group A (FeedbackOverlay):** T1, T5 — both touch `FeedbackOverlay.ts`; run together.  
-**Group B (Quest):** T2, T9-fix3 — both touch `Mascot.ts`; run together after T2 lands.  
-**Group C (Partition):** T3, T8 — both touch partition drawing code; run together.  
+**Group B (Quest expressions):** T2, T9-fix3 — both touch `Mascot.ts`; run together after T2 lands.  
+**Group C (Partition):** T3, T8, T13 — all touch partition drawing code; run together.  
 **Group D (Small isolates):** T4, T6, T7, T10 — fully isolated, run in parallel with everything.  
-**Group E (Session complete):** T11 — medium effort, run last (depends on T1 being done so the flow makes sense end-to-end).
+**Group E (Session complete):** T11, T15 — both touch `SessionCompleteOverlay.ts`; run together.  
+**Group F (Quest personality):** T14 first (builds `showSpeechBubble`), then T16 (uses it) — T14 → T16 in sequence.  
+**Group G (Streaks + map):** T12, T17 — T12 fires mid-session; T17 displays in menus. Independent, run in parallel.
+
+**Dependency chain:** T14 must complete before T16 begins (T16 uses the speech bubble method T14 creates).
