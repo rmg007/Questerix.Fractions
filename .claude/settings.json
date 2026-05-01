@@ -118,16 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_SESSION_ID:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
-          }
-        ]
-      },
-      {
-        "_comment": "Spike: probe Claude Code env contract — remove after the result is captured in learnings.md",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "mkdir -p .claude && { echo \"[$(date '+%F %H:%M')] pre-compact env probe (Phase 8.4 spike)\"; env | grep -i claude || echo '(no CLAUDE_* env vars present)'; echo '---'; } >> .claude/_env-probe.log 2>/dev/null; exit 0"
+            "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_CODE_SESSION_ID:-unknown}\"; VERSION=\"${CLAUDE_CODE_VERSION:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | version: $VERSION | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
           }
         ]
       }
