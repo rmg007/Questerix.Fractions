@@ -1800,8 +1800,8 @@ export class Level01Scene extends Phaser.Scene {
     // T11: Compute scaffold recommendation from session accuracy
     const sessionAccuracy =
       this.totalQuestionsAttempted > 0 ? this.correctCount / this.totalQuestionsAttempted : 0;
-    const scaffoldRec: 'advance' | 'stay' | 'regress' =
-      sessionAccuracy >= 0.8 ? 'advance' : sessionAccuracy < 0.4 ? 'regress' : 'stay';
+    // B2: no Level 0 exists — cap at 'stay' so regress never fires on L1.
+    const scaffoldRec: 'advance' | 'stay' = sessionAccuracy >= 0.8 ? 'advance' : 'stay';
 
     // T15: Perfect session — all 5 correct, no extra attempts (totalQuestionsAttempted === SESSION_GOAL)
     const isPerfect = this.correctCount >= SESSION_GOAL && this.totalQuestionsAttempted === SESSION_GOAL;

@@ -2,7 +2,7 @@
 description: Print active sprint blockers and their current status in compact form
 ---
 
-Read `PLANS/master-plan-2026-04-26.md` and extract the active blockers table. Cross-reference each bug ID against the codebase to see if it's been addressed.
+Read `PLANS/PLAN.md` and extract the active blockers/priority items. Cross-reference each item against the codebase to see if it's been addressed.
 
 ```bash
 # Quick grep for each known blocker ID

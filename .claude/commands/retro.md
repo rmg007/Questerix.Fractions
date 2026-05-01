@@ -14,7 +14,7 @@ Review what happened in this session and propose targeted documentation updates.
 2. Cross-reference what changed against:
    - **`CLAUDE.md`** (root + nested) — does any architectural rule or pattern in the diff belong here?
    - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **You must propose at least one candidate entry.** If nothing qualifies, say so explicitly with reasoning — do not omit the section.
-   - **`PLANS/master-plan-2026-04-26.md`** — were any active blockers resolved?
+   - **`PLANS/PLAN.md`** — were any active blockers resolved?
    - **`CHANGELOG.md`** `[Unreleased]` — any user-visible change missing?
    - **`docs/00-foundation/decision-log.md`** — was a new architectural decision made? Needs a `D-NN` entry?
 
@@ -30,7 +30,7 @@ Review what happened in this session and propose targeted documentation updates.
 - YYYY-MM-DD <area>: <one-line gotcha> [#commit-or-branch]
   rationale: cost N min of debugging / contradicted CLAUDE.md / hidden invariant
 
-### PLANS/master-plan-2026-04-26.md
+### PLANS/PLAN.md
 - ✅ mark <bug-id> done — reason
 
 ### CHANGELOG.md [Unreleased]

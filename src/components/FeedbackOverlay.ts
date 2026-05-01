@@ -81,8 +81,8 @@ export class FeedbackOverlay {
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
   private readonly cx: number;
-  private readonly showY: number;   // center Y when panel is fully visible
-  private readonly hideY: number;   // center Y when panel is off-screen below
+  private readonly showY: number; // center Y when panel is fully visible
+  private readonly hideY: number; // center Y when panel is off-screen below
   private readonly panelW: number;
   private readonly depth: number;
   private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
@@ -193,13 +193,7 @@ export class FeedbackOverlay {
         this.hide();
       } else {
         this.scene.tweens.add({
-          targets: [this.iconGO, this.label],
-          alpha: 0,
-          duration: FADE_MS,
-          ease: 'Cubic.easeIn',
-        });
-        this.scene.tweens.add({
-          targets: this.panel,
+          targets: [this.iconGO, this.label, this.panel],
           alpha: 0,
           duration: FADE_MS,
           ease: 'Cubic.easeIn',
@@ -214,7 +208,9 @@ export class FeedbackOverlay {
 
     if (reduceMotion) {
       // Instant show at final position, no animation
-      this.repositionToShow();
+      this.redrawPanel(this.showY, 1);
+      this.iconGO.setY(this.showY - 65);
+      this.label.setY(this.showY + 10);
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS[kind], dismiss);
       return;
     }
@@ -224,14 +220,10 @@ export class FeedbackOverlay {
       targets: this.panel,
       duration: SLIDE_MS,
       ease: 'Back.easeOut',
-      onUpdate: (_tween: Phaser.Tweens.Tween, _target: unknown, _key: string, _current: number) => {
-        const progress = _tween.progress;
-        const panelY = this.hideY + (this.showY - this.hideY) * progress;
-        this.redrawPanel(panelY, 1);
+      onUpdate: (tween: Phaser.Tweens.Tween) => {
+        this.redrawPanel(this.hideY + (this.showY - this.hideY) * tween.progress, 1);
       },
-      onComplete: () => {
-        this.redrawPanel(this.showY, 1);
-      },
+      onComplete: () => this.redrawPanel(this.showY, 1),
     });
 
     this.scene.tweens.add({
@@ -273,7 +265,6 @@ export class FeedbackOverlay {
       duration: 150,
       ease: 'Back.easeOut',
       yoyo: true,
-      repeat: 0,
     });
   }
 
@@ -281,45 +272,25 @@ export class FeedbackOverlay {
   private animateShake(): void {
     const amplitude = 22;
     const halfCycle = 80;
-    const origX = this.cx;
-
+    const shake = { offset: 0 };
     this.scene.tweens.chain({
-      targets: [this.iconGO, this.label],
+      targets: shake,
       tweens: [
-        { x: origX + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: -amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: -amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
         {
-          x: origX,
+          offset: 0,
           duration: halfCycle,
           ease: 'Sine.easeOut',
-        },
-      ],
-    });
-
-    // Shake the panel graphics too — update redrawPanel during shake
-    const panelShake = { x: this.cx };
-    this.scene.tweens.chain({
-      targets: panelShake,
-      tweens: [
-        { x: this.cx + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        {
-          x: this.cx,
-          duration: halfCycle,
-          ease: 'Sine.easeOut',
-          onComplete: () => {
-            this.redrawPanel(this.showY, 1);
-          },
+          onComplete: () => this.redrawPanel(this.showY, 1),
         },
       ],
       onUpdate: () => {
-        // Offset the panel by the shake amount
-        const offsetX = panelShake.x - this.cx;
-        this.panel.setX(offsetX);
+        this.iconGO.setX(this.cx + shake.offset);
+        this.label.setX(this.cx + shake.offset);
+        this.panel.setX(shake.offset);
       },
     });
   }
@@ -333,7 +304,6 @@ export class FeedbackOverlay {
       duration: 125,
       ease: 'Sine.easeInOut',
       yoyo: true,
-      repeat: 0,
     });
   }
 
@@ -343,9 +313,8 @@ export class FeedbackOverlay {
     TestHooks.mountSentinel('sparkle-burst');
 
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
-    const maxParticles = 14;
+    const perColor = 3; // Math.ceil(14 / starColors.length)
     for (const tint of starColors) {
-      const perColor = Math.ceil(maxParticles / starColors.length);
       const emitter = this.scene.add.particles(this.cx, this.showY - 65, 'clr-accentA', {
         lifespan: 700,
         speed: { min: 40, max: 160 },
@@ -353,19 +322,14 @@ export class FeedbackOverlay {
         alpha: { start: 1, end: 0 },
         tint,
         angle: { min: -180, max: 0 },
-        gravityY: 0,
-        quantity: perColor,
         emitting: false,
       });
       emitter.setDepth(this.depth + 5);
       emitter.explode(perColor);
       this.activeParticleEmitters.push(emitter);
       this.scene.time.delayedCall(900, () => {
-        const idx = this.activeParticleEmitters.indexOf(emitter);
-        if (idx !== -1) {
-          this.activeParticleEmitters.splice(idx, 1);
-          emitter.destroy();
-        }
+        this.activeParticleEmitters = this.activeParticleEmitters.filter((e) => e !== emitter);
+        emitter.destroy();
       });
     }
   }
@@ -384,17 +348,21 @@ export class FeedbackOverlay {
     this.panel.strokeRoundedRect(0, centerY - PANEL_H / 2, this.panelW, PANEL_H, CORNER_R);
   }
 
-  private repositionToShow(): void {
-    this.redrawPanel(this.showY, 1);
-    this.iconGO.setY(this.showY - 65);
-    this.label.setY(this.showY + 10);
-  }
-
   private hide(): void {
     this.panel.setVisible(false).setAlpha(1).setX(0);
     this.panel.clear();
-    this.iconGO.setVisible(false).setAlpha(1).setScale(1).setY(this.hideY - 65).setX(this.cx);
-    this.label.setVisible(false).setAlpha(1).setScale(1).setY(this.hideY + 10).setX(this.cx);
+    this.iconGO
+      .setVisible(false)
+      .setAlpha(1)
+      .setScale(1)
+      .setY(this.hideY - 65)
+      .setX(this.cx);
+    this.label
+      .setVisible(false)
+      .setAlpha(1)
+      .setScale(1)
+      .setY(this.hideY + 10)
+      .setX(this.cx);
     for (const e of this.activeParticleEmitters) e.destroy();
     this.activeParticleEmitters = [];
     TestHooks.unmount('sparkle-burst');

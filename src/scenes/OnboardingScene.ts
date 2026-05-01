@@ -185,7 +185,7 @@ export class OnboardingScene extends Phaser.Scene {
         padding: { x: 12, y: 12 },
       })
       .setOrigin(0.5)
-      .setDepth(5)
+      .setDepth(35)
       .setInteractive({ useHandCursor: true });
 
     // Subtle navy underline/border
@@ -244,21 +244,13 @@ export class OnboardingScene extends Phaser.Scene {
     g.clear();
     const top = SHAPE_CY - SHAPE_H / 2 - 20;
     const bottom = SHAPE_CY + SHAPE_H / 2 + 20;
-    const len = bottom - top;
 
+    // B3 fix: single solid line replaces per-frame dashed-loop (~15 segments).
+    // The light-blue center stripe gives the same visual intent without the FPS hit.
     g.lineStyle(12, PATH_BLUE, 1);
     g.lineBetween(x, top, x, bottom);
-
-    const dashLen = 14;
-    const gapLen = 10;
-    const cycle = dashLen + gapLen;
-    g.lineStyle(6, 0xffffff, 1);
-    let pos = 0;
-    while (pos < len) {
-      const segEnd = Math.min(len, pos + dashLen);
-      g.lineBetween(x, top + pos, x, top + segEnd);
-      pos += cycle;
-    }
+    g.lineStyle(4, 0xffffff, 0.6);
+    g.lineBetween(x, top, x, bottom);
   }
 
   // ── Step 1: WATCH — animated drag demonstration ───────────────────────────
