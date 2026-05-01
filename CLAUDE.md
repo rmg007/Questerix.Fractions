@@ -148,7 +148,7 @@ src/curriculum/bundle.json       # static import fallback ┘ always run build:c
 
 ### Persistence
 - All progression data → IndexedDB via Dexie (`src/persistence/`).
-- localStorage: `lastUsedStudentId` only per C5. **Known deviation:** `MenuScene.ts` and `LevelMapScene.ts` also read/write `unlockedLevels:<studentId>` and `completedLevels:<studentId>`. Don't extend further; pending move to a Dexie `progressionStat` row.
+- localStorage: `lastUsedStudentId` only per C5. All other progression keys have been migrated to Dexie (`levelProgression` v6 replaced `unlockedLevels`/`completedLevels`; `streakRecord` + `DeviceMeta.onboardingComplete` v7 replaced `questerix.streak:*` / `questerix.onboardingSeen`). See `src/persistence/CLAUDE.md` for the authoritative status; run `/c5-check` to verify.
 - No external HTTP calls except static asset CDN.
 
 ### Observability (env-gated, off by default)

@@ -527,7 +527,8 @@ export class Level01Scene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({
-        hitArea: new Phaser.Geom.Rectangle(-28, -20, 56, 40),
+        // ≥ 44×44 CSS px per a11y rule (CLAUDE.md § Accessibility).
+        hitArea: new Phaser.Geom.Rectangle(-32, -22, 64, 44),
         hitAreaCallback: Phaser.Geom.Rectangle.Contains,
         useHandCursor: true,
       });

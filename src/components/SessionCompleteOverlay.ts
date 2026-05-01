@@ -16,6 +16,7 @@ import {
   ACTION_BORDER,
   ACTION_TEXT,
 } from '../scenes/utils/levelTheme';
+import { A11yLayer } from './A11yLayer';
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
@@ -134,6 +135,12 @@ export class SessionCompleteOverlay {
       .setOrigin(0.5);
     this.container.add(accT);
 
+    // Push a modal A11y layer so the underlying scene becomes inert; popped
+    // in destroy(). Mounts each action button as an SR-only DOM mirror so
+    // VoiceOver / keyboard users can advance past this screen — the canvas
+    // buttons are unreachable to assistive tech otherwise.
+    A11yLayer.pushLayer('session-complete', `Level ${levelNumber} complete`);
+
     // Buttons — "Next Level" (primary) when available, then "Play Again", then Menu
     if (onNextLevel) {
       this.addNextLevelButton(scene, cx, 780, onNextLevel);
@@ -208,6 +215,8 @@ export class SessionCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    A11yLayer.mountAction('session-complete-play-again', 'Play Again', onTap);
+
     this.container.add([shadow, face, txt, hit]);
   }
 
@@ -248,6 +257,8 @@ export class SessionCompleteOverlay {
       left: '50%',
     });
 
+    A11yLayer.mountAction('session-complete-next-level', 'Next Level', onTap);
+
     this.container.add([shadow, face, txt, hit]);
   }
 
@@ -275,6 +286,8 @@ export class SessionCompleteOverlay {
       .rectangle(x, y, W, H, 0, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
+
+    A11yLayer.mountAction('session-complete-menu', 'Back to Menu', onTap);
 
     this.container.add([bg, txt, hit]);
   }
@@ -389,6 +402,7 @@ export class SessionCompleteOverlay {
       this.glowTween.stop();
       this.glowTween = null;
     }
+    A11yLayer.popLayer();
     this.container.destroy(true);
     this.starTexts.length = 0;
   }

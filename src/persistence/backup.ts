@@ -56,6 +56,12 @@ function todayISO(): string {
  * per persistence-spec.md §6 + Phase 8 chunking
  */
 export async function backupToFile(): Promise<Blob> {
+  // Ensure the deviceMeta singleton exists before snapshotting — on a freshly
+  // installed device the row is created lazily on first read, and a backup
+  // taken before any other code path has touched it would otherwise ship an
+  // empty `deviceMeta` array (no installId, no contentVersion).
+  await deviceMetaRepo.get();
+
   const students = await db.students.toArray();
   const skillMastery = await db.skillMastery.toArray();
   const deviceMeta = await db.deviceMeta.toArray();

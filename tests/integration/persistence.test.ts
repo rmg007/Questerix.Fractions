@@ -492,10 +492,13 @@ describe('backup and restore', () => {
     await db.open();
     const r1 = await restoreFromFile(file);
 
-    // Second restore — all existing records should be skipped
+    // Second restore — every conflict-skip table (students, sessions, etc.)
+    // should report skipped, not added. deviceMeta is the one exception: its
+    // restore branch is an idempotent upsert (`db.deviceMeta.update`) and
+    // always counts as added, so r2.added can be up to 1.
     const r2 = await restoreFromFile(file);
-    expect(r2.skipped).toBeGreaterThanOrEqual(r1.added);
-    expect(r2.added).toBe(0);
+    expect(r2.skipped).toBeGreaterThanOrEqual(r1.added - 1);
+    expect(r2.added).toBeLessThanOrEqual(1);
   });
 
   it('throws on invalid JSON', async () => {
@@ -507,5 +510,164 @@ describe('backup and restore', () => {
     const envelope = JSON.stringify({ version: 99, exportedAt: Date.now(), tables: {} });
     const file = new File([envelope], 'old.json', { type: 'application/json' });
     await expect(restoreFromFile(file)).rejects.toThrow('unsupported schema version');
+  });
+});
+
+// ── Backup envelope shape — the contract validation-data/scripts/check.py reads ──
+//
+// `check.py` is the playtest pre-flight validator. If its expectations drift
+// from the runtime envelope, the playtest day is wasted on a debug session.
+// Every assertion here mirrors a check the script makes; if you change the
+// envelope, update both sides at once.
+describe('backup envelope shape (check.py contract)', () => {
+  const VALID_OUTCOMES = new Set(['EXACT', 'CLOSE', 'WRONG', 'ASSISTED', 'ABANDONED']);
+  const CORRECT_OUTCOMES = new Set(['EXACT', 'CLOSE']);
+
+  async function seedAndExport(): Promise<Record<string, unknown>> {
+    const { id: studentId } = await studentRepo.create(makeStudent('Playtester'));
+    const session = makeSession(studentId, 1);
+    await sessionRepo.create(session);
+    const outcomes: Array<'EXACT' | 'CLOSE' | 'WRONG'> = [
+      'EXACT',
+      'EXACT',
+      'WRONG',
+      'CLOSE',
+      'EXACT',
+    ];
+    for (let i = 0; i < outcomes.length; i++) {
+      const att = { ...makeAttempt(studentId, session.id, i), outcome: outcomes[i]! };
+      await attemptRepo.record(att);
+    }
+    const correctCount = outcomes.filter((o) => CORRECT_OUTCOMES.has(o)).length;
+    await sessionRepo.close(session.id, {
+      endedAt: Date.now() + 1000,
+      totalAttempts: outcomes.length,
+      correctAttempts: correctCount,
+      accuracy: correctCount / outcomes.length,
+      avgResponseMs: 3000,
+      xpEarned: correctCount * 10,
+      scaffoldRecommendation: 'hold',
+      endLevel: 1,
+    });
+    const blob = await backupToFile();
+    return JSON.parse(await blob.text()) as Record<string, unknown>;
+  }
+
+  it('writes the top-level keys check.py reads', async () => {
+    const env = await seedAndExport();
+    expect(env).toHaveProperty('version');
+    expect(env.version).toBe(1);
+    expect(typeof env.exportedAt).toBe('number');
+    expect(env).toHaveProperty('tables');
+    expect(typeof env.tables).toBe('object');
+  });
+
+  it('writes every table check.py iterates over (even when empty)', async () => {
+    const env = await seedAndExport();
+    const tables = env.tables as Record<string, unknown>;
+    for (const key of [
+      'students',
+      'sessions',
+      'attempts',
+      'skillMastery',
+      'deviceMeta',
+      'bookmarks',
+      'sessionTelemetry',
+      'hintEvents',
+      'misconceptionFlags',
+      'progressionStat',
+    ]) {
+      expect(tables).toHaveProperty(key);
+      expect(Array.isArray(tables[key])).toBe(true);
+    }
+  });
+
+  it('exposes contentVersion via deviceMeta[0] (where check.py reads it)', async () => {
+    const env = await seedAndExport();
+    const meta = (env.tables as Record<string, unknown[]>).deviceMeta[0] as Record<string, unknown>;
+    expect(meta).toBeDefined();
+    expect(typeof meta.contentVersion).toBe('string');
+    expect((meta.contentVersion as string).length).toBeGreaterThan(0);
+    expect(typeof meta.installId).toBe('string');
+  });
+
+  it('students carry every key validate_student() requires', async () => {
+    const env = await seedAndExport();
+    const students = (env.tables as Record<string, unknown[]>).students as Array<
+      Record<string, unknown>
+    >;
+    expect(students.length).toBeGreaterThanOrEqual(1);
+    const s = students[0]!;
+    for (const key of ['id', 'displayName', 'gradeLevel', 'createdAt', 'lastActiveAt']) {
+      expect(s).toHaveProperty(key);
+    }
+    expect(typeof s.id).toBe('string');
+    expect((s.id as string).length).toBeGreaterThan(0);
+    expect([0, 1, 2]).toContain(s.gradeLevel);
+  });
+
+  it('sessions carry every key validate_sessions() requires (with endedAt and accuracy after close)', async () => {
+    const env = await seedAndExport();
+    const sessions = (env.tables as Record<string, unknown[]>).sessions as Array<
+      Record<string, unknown>
+    >;
+    expect(sessions.length).toBe(1);
+    const s = sessions[0]!;
+    for (const key of [
+      'id',
+      'studentId',
+      'activityId',
+      'levelNumber',
+      'startedAt',
+      'endedAt',
+      'totalAttempts',
+      'correctAttempts',
+      'accuracy',
+    ]) {
+      expect(s).toHaveProperty(key);
+    }
+    expect(s.levelNumber).toBeGreaterThanOrEqual(1);
+    expect(s.levelNumber).toBeLessThanOrEqual(9);
+    expect(typeof s.endedAt).toBe('number');
+    expect(typeof s.accuracy).toBe('number');
+    expect(s.accuracy as number).toBeGreaterThanOrEqual(0);
+    expect(s.accuracy as number).toBeLessThanOrEqual(1);
+    expect(s.startedAt as number).toBeLessThanOrEqual(s.endedAt as number);
+  });
+
+  it('attempts carry every key validate_attempts() requires (with valid outcome enum)', async () => {
+    const env = await seedAndExport();
+    const attempts = (env.tables as Record<string, unknown[]>).attempts as Array<
+      Record<string, unknown>
+    >;
+    expect(attempts.length).toBe(5);
+    for (const a of attempts) {
+      for (const key of [
+        'sessionId',
+        'studentId',
+        'questionTemplateId',
+        'outcome',
+        'responseMs',
+        'submittedAt',
+      ]) {
+        expect(a).toHaveProperty(key);
+      }
+      expect(VALID_OUTCOMES.has(a.outcome as string)).toBe(true);
+      expect(a.responseMs as number).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('session.totalAttempts agrees with attempt rows (the cross-check that catches data corruption)', async () => {
+    const env = await seedAndExport();
+    const tables = env.tables as Record<string, unknown[]>;
+    const sessions = tables.sessions as Array<Record<string, unknown>>;
+    const attempts = tables.attempts as Array<Record<string, unknown>>;
+    for (const sess of sessions) {
+      const own = attempts.filter((a) => a.sessionId === sess.id);
+      expect(sess.totalAttempts).toBe(own.length);
+      const correct = own.filter((a) => CORRECT_OUTCOMES.has(a.outcome as string)).length;
+      const expectedAccuracy = own.length > 0 ? correct / own.length : 0;
+      expect(Math.abs((sess.accuracy as number) - expectedAccuracy)).toBeLessThan(0.001);
+    }
   });
 });
