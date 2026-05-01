@@ -14,7 +14,6 @@ import {
   NAVY_HEX,
   NAVY,
   SKY_BG,
-  ACTION_FILL,
 } from './utils/levelTheme';
 import type { Scene } from 'phaser';
 
@@ -97,8 +96,7 @@ export function createPromptArea(scene: Scene, promptText: string): void {
 }
 
 export function createHintArea(scene: Scene): Phaser.GameObjects.Text {
-  const hintText = scene.add.text(CW / 2, 200, '', HINT_TEXT_STYLE).setOrigin(0.5).setDepth(2);
-  return hintText;
+  return scene.add.text(CW / 2, 200, '', HINT_TEXT_STYLE).setOrigin(0.5).setDepth(2);
 }
 
 export function createHintButton(scene: Scene, onRequest: () => void): Phaser.GameObjects.Container {
@@ -112,7 +110,6 @@ export function createSubmitButton(scene: Scene, onSubmit: () => void): Phaser.G
 }
 
 export function drawShapeBackground(
-  scene: Scene,
   g: Phaser.GameObjects.Graphics,
   shapeType: 'rectangle' | 'circle'
 ): void {
@@ -150,7 +147,6 @@ export function drawPartitionLine(
 }
 
 export function showGhostGuide(
-  scene: Scene,
   g: Phaser.GameObjects.Graphics,
   shapeType: 'rectangle' | 'circle'
 ): void {
@@ -168,7 +164,7 @@ export function showGhostGuide(
   }
 }
 
-export function drawCenterOverlay(scene: Scene, g: Phaser.GameObjects.Graphics): void {
+export function drawCenterOverlay(g: Phaser.GameObjects.Graphics): void {
   g.clear();
   g.fillStyle(0x000000, 0.3);
   g.fillRect(0, 0, CW, CH);
