@@ -1,7 +1,8 @@
 import { trace, type Tracer } from '@opentelemetry/api';
 
-// Heavy OTel SDK packages are dynamically imported inside init() so they are
-// excluded from the main bundle when VITE_OTLP_URL is not set at build time.
+// Heavy OTel SDK packages are dynamically imported inside _doInit() and gated
+// on `import.meta.env.VITE_OTLP_URL` / `import.meta.env.DEV` so Rolldown can
+// dead-code-eliminate the SDK chunks (~30 KB gzipped) from default MVP builds.
 
 /** Default fraction of traces to sample if `VITE_SAMPLING_RATE` is unset. */
 const DEFAULT_SAMPLING_RATE = 0.1;
@@ -34,6 +35,11 @@ class TracerService {
   }
 
   private async _doInit(otlpUrl: string | undefined, isDev: boolean): Promise<void> {
+    // Build-time gate: when neither flag is enabled at build time the dynamic
+    // imports below are statically unreachable and Rolldown DCEs the SDK
+    // chunks. Runtime values for both flags come from the same env vars.
+    if (!import.meta.env.VITE_OTLP_URL && !import.meta.env.DEV) return;
+
     const [
       { WebTracerProvider, StackContextManager, BatchSpanProcessor },
       { SimpleSpanProcessor, ConsoleSpanExporter, TraceIdRatioBasedSampler },
