@@ -299,7 +299,7 @@ Full specs: `PLANS/ui-audit.md`.
 
 ## Phase 4 — Harden
 
-**Status:** Pending. Start after Phase 1 is green; can overlap with Phase 3.  
+**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). Refactor sub-phases 4.1–4.8 now active — see **`PLANS/refactor-god-objects-2026-05-01.md`** for the per-file extraction plan and gate criteria. Items still pending hardening: R10 (iOS TTS), R13 (MenuScene localStorage), R27 (LOG localStorage), R36 (ambient motion).
 **Source:** `PLANS/_archive/harden-and-polish-2026-04-30.md` (full file:line specs)
 
 | ID | Severity | Item | File:Line |
