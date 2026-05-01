@@ -32,22 +32,6 @@
     "difficultyTier": "easy"
   },
   {
-    "id": "q:pt:L1:0003",
-    "archetype": "partition",
-    "prompt": { "text": "Split this shape into 4 equal parts.", "ttsKey": "q_pt_l1_0003" },
-    "payload": {
-      "shapeType": "rectangle",
-      "snapMode": "free",
-      "targetPartitions": 4,
-      "areaTolerance": 0.1
-    },
-    "correctAnswer": { "targetPartitions": 4 },
-    "validatorId": "validator.partition.equalAreas",
-    "skillIds": ["skill:partition:fourths"],
-    "misconceptionTraps": [],
-    "difficultyTier": "medium"
-  },
-  {
     "id": "q:id:L1:0001",
     "archetype": "identify",
     "prompt": { "text": "Which picture shows one half?", "ttsKey": "q_id_l1_0001" },
