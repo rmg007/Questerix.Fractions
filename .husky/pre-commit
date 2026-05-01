@@ -1,3 +1,6 @@
 #!/usr/bin/env sh
-# Quick pre-commit check — typecheck only (fast, ~3s)
+# Quick pre-commit check — typecheck only (~3s).
+# Heavy gates (lint, unit, integration, build, bundle) run on pre-push via
+# scripts/preflight-router.mjs. Do NOT add work here — it slows every commit
+# and an aborted commit loses the staged diff. Push-time is the right tier.
 npm run typecheck
