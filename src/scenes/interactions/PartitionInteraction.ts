@@ -15,8 +15,8 @@ import { sfx } from '../../audio/SFXService';
 
 const OPTION_BORDER = NAVY;
 
-const SHAPE_W = 340;
-const SHAPE_H = 260;
+const SHAPE_W = 400;
+const SHAPE_H = 520;
 const SNAP_PCT = 0.05;
 // Handle starts off-centre so the divider is clearly unequal on load —
 // otherwise the centre is already the correct halves answer and a stray
@@ -334,7 +334,8 @@ export class PartitionInteraction implements Interaction {
 
   private updatePartitionLine(handleX: number, cy: number): void {
     this.partitionLine.clear();
-    this.partitionLine.lineStyle(4, NAVY, 1);
+    // T3 fix: solid navy line, 10px thick for clarity
+    this.partitionLine.lineStyle(10, NAVY, 1);
     const top = cy - SHAPE_H / 2;
     const bottom = cy + SHAPE_H / 2;
     this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);

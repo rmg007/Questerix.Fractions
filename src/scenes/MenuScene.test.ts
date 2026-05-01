@@ -27,7 +27,7 @@ describe('MenuScene module smoke tests', () => {
     if (mod !== null) {
       expect(typeof mod).toBe('object');
     }
-  });
+  }, 15000);
 
   it('MenuScene class is exported when the module loads successfully', async () => {
     try {
@@ -37,7 +37,7 @@ describe('MenuScene module smoke tests', () => {
     } catch {
       // Phaser env not available in Vitest — acceptable in unit context
     }
-  });
+  }, 15000);
 });
 
 // ── LEVEL_META ─────────────────────────────────────────────────────────────

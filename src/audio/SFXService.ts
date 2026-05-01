@@ -58,6 +58,16 @@ export class SFXService {
   }
 
   /**
+   * T15: Play a special 4-note ascending fanfare for perfect 5/5 sessions.
+   * Tones: C4 (262 Hz) → E4 (330 Hz) → G4 (392 Hz) → C5 (523 Hz), 100 ms each, sine wave.
+   * Gain: 0.20 (celebratory but not overwhelming).
+   * Duration: ~500ms total.
+   */
+  playPerfectFanfare(): void {
+    this.playNotes([262, 330, 392, 523], 0.1, 'sine', 0.2 * this.volume);
+  }
+
+  /**
    * Play a five-note ascending streak jingle for "3 in a row!" milestone.
    * Tones: C5 → E5 → G5 → B5 → C6, 80 ms each, sine wave.
    * Distinctly longer than playCorrect and more exciting than playComplete.
@@ -67,11 +77,14 @@ export class SFXService {
   }
 
   /**
-   * Play a short click-pop sound when the partition snaps to the correct position.
-   * Tone: C6 (1047 Hz), triangle wave, 40 ms — crisp tactile snap feel.
+   * Play a brief ascending glissando when the partition snaps to the correct position.
+   * Simulates a 200ms glissando from ~80 Hz to ~200 Hz using a four-note ascending pattern.
+   * Triangle wave for crisp tactile feel, gain 0.15.
+   * T13: Enhanced snap feedback for visual celebration.
    */
   playSnap(): void {
-    this.playNotes([1047], 0.04, 'triangle', 0.12 * this.volume);
+    // Use ascending tones to simulate upward glissando effect
+    this.playNotes([82, 110, 165, 196], 0.05, 'triangle', 0.15 * this.volume);
   }
 
   setEnabled(on: boolean): void {

@@ -183,10 +183,92 @@ export function createActionButton(
   return container;
 }
 
-// ── Chunky hint button ("?") ─────────────────────────────────────────────────
+// ── Chunky hint button — amber pill ─────────────────────────────────────────
+
+/**
+ * Amber 3-D pill button (100×60 px) — Phase 3 layout compression (S).
+ * Directly above the Check button at y≈720.
+ * Returns the container so callers can tween it for the pulse hint.
+ */
+export function createHintPillButton(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  onTap: () => void,
+  depth = 10
+): Phaser.GameObjects.Container {
+  const W = 100,
+    H = 60,
+    SHADOW = 5,
+    R = 30;
+
+  const shadow = scene.add.graphics();
+  shadow.fillStyle(ACTION_BORDER, 1);
+  shadow.fillRoundedRect(-W / 2, -H / 2 + SHADOW, W, H, R);
+
+  const face = scene.add.graphics();
+
+  const txt = scene.add
+    .text(0, 0, '?', {
+      fontFamily: TITLE_FONT,
+      fontSize: '24px',
+      color: ACTION_TEXT,
+      fontStyle: 'bold',
+    })
+    .setOrigin(0.5);
+
+  let isHovering = false;
+  let isPressed = false;
+
+  const draw = () => {
+    face.clear();
+    const color = isHovering ? ACTION_HOVER : ACTION_FILL;
+    const dy = isPressed ? SHADOW : 0;
+    face.fillStyle(color, 1);
+    face.fillRoundedRect(-W / 2, -H / 2 + dy, W, H, R);
+    face.lineStyle(4, ACTION_BORDER, 1);
+    face.strokeRoundedRect(-W / 2, -H / 2 + dy, W, H, R);
+    txt.setY(dy);
+  };
+  draw();
+
+  const container = scene.add.container(x, y, [shadow, face, txt]).setDepth(depth);
+
+  container.setSize(W, H + SHADOW);
+  container.setInteractive(
+    new Phaser.Geom.Rectangle(-W / 2, -H / 2, W, H + SHADOW),
+    Phaser.Geom.Rectangle.Contains
+  );
+  container.input!.cursor = 'pointer';
+
+  container.on('pointerover', () => {
+    isHovering = true;
+    draw();
+  });
+  container.on('pointerout', () => {
+    isHovering = false;
+    isPressed = false;
+    draw();
+  });
+  container.on('pointerdown', () => {
+    isPressed = true;
+    draw();
+  });
+  container.on('pointerup', () => {
+    isPressed = false;
+    draw();
+    onTap();
+  });
+
+  return container;
+}
+
+// ── Legacy hint button ("?") ─────────────────────────────────────────────────
 
 /**
  * Blue 3-D circular button matching the Settings station style.
+ * DEPRECATED: Use createHintPillButton for Phase 3 layout pass.
+ * Kept for backward compatibility during transition.
  * Returns the container so callers can tween it for the pulse hint.
  */
 export function createHintCircleButton(

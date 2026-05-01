@@ -42,6 +42,8 @@ Delegate to these via the Agent tool when scope warrants. CI auto-fires them on 
 
 **Swarm orchestration (when to fan out):** prefer parallel agent fan-out for independent workstreams within a phase — partition by **file**, not by feature. Two agents touching the same file in parallel = guaranteed merge mess. Workflow: list each workstream's file set, group into rounds where every round's agents have **zero file overlap**, run rounds sequentially, give each agent an explicit "do NOT touch these files" guard. Don't fan out for sequential or contended work — overusing agents has a real coordination cost.
 
+**God-file-heavy phases (Phase 3 pattern):** when ≥4 groups touch the same saturated files (`Level01Scene.ts`, `LevelScene.ts`, `Mascot.ts`), use a 2-round hybrid: (a) **Round 1** — parallel agents on independent file domains (FeedbackOverlay, deviceMeta, OnboardingScene, MenuScene); (b) **Round 2** — strictly sequential agents on the god files, one group at a time. Verified zero merge conflicts across 20+ commits in Phase 3. Sequential coordination cost is paid once per round, not once per commit.
+
 | Subagent | Description |
 |---|---|
 <!-- AUTO:subagents-table:start -->

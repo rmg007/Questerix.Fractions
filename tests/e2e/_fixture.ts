@@ -1,7 +1,7 @@
 /**
  * Playwright fixture that auto-injects ?testHooks=1 into all page.goto() calls.
  * This ensures E2E tests always target the special test mode where boot-start-btn is mounted.
- * Import this instead of @playwright/test in tests/e2e/**/*.spec.ts
+ * Import this instead of @playwright/test in tests/e2e spec files.
  */
 import { test as base, expect } from '@playwright/test'
 import { TEST_HOOKS_PARAM, DEV_URL } from '../../src/config/shared'

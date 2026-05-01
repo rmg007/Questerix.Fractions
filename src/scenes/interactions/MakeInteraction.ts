@@ -16,8 +16,8 @@ import {
   TEXT_ON_FILL,
 } from '../utils/levelTheme';
 
-const SHAPE_W = 340;
-const SHAPE_H = 260;
+const SHAPE_W = 400;
+const SHAPE_H = 520;
 const SNAP_PCT = 0.05;
 
 interface MakePayload {

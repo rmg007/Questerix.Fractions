@@ -361,6 +361,10 @@ export class OnboardingScene extends Phaser.Scene {
     this.updateStepDots(1);
     this.handPointer.setVisible(false);
 
+    // Clean up Step 1 UI artifacts
+    this.tapSkipHint?.destroy();
+    this.tapSkipHint = null;
+
     const msg = 'Your turn! Drag the line to the middle of the shape.';
     this.instructionText.setText(msg);
     tts.speak(msg);

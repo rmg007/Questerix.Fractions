@@ -190,11 +190,18 @@ On `MenuScene.create()`, read mastery records via `skillMasteryRepo.getByStudent
 
 ---
 
-## Phase 3 — UX Pre-Playtest
+## Phase 3 — UX Pre-Playtest ✅ COMPLETE (2026-05-01)
 
-Run groups in parallel; all groups require Phase 1 to be green. Phase 2 workstreams can overlap with Phase 3.
+All 10 groups (S, A, B, C, D, E, F, G, H + UI items) shipped via 2-round swarm + sequential orchestration. 20+ commits, 656/656 tests, 0 merge conflicts.
 
-Full task specs in `PLANS/_archive/feedback-and-ux-2026-05-01.md`. The structural layout fix (S) is the single highest-leverage change and should be done before the remaining groups.
+- **Round 1 — Structural (S):** hint button repositioned to y≈720 (100×60 amber pill), check button to y≈820, action arc compressed from 540 px gap to ~100 px.
+- **Round 2a — Parallel (4 agents, zero file overlap):** Group A (FeedbackOverlay sound + animations), Group D-TTS (decouple TTS from reduce-motion), Group H (onboarding hand pointer + tap-to-advance), Group G (streak pill in MenuScene + LevelMapScene).
+- **Round 2b — Verify:** Group B (Mascot oops expression) — confirmed pre-implemented, no work needed.
+- **Round 2c — Sequential (god-file heavy):** Group C (partition navy line + ghost midpoint + snap juice), Group D-rest (back-button 2-tap, auto-hint, text sizing), Group E (session-complete CTA banner + perfect-5/5 fanfare), Group F (Quest idle-boredom escalation + 10 speech bubbles).
+
+**Known blocker:** FeedbackOverlay T1 visual specs (panel 260px, radius 32px, icon 72px) deferred — file is at 365/300 LOC budget. Sparkle-burst texture-guard test is `it.skip` pending refactor.
+
+Full task specs archived in `PLANS/_archive/feedback-and-ux-2026-05-01.md`.
 
 ### S — Structural layout pass (highest leverage)
 

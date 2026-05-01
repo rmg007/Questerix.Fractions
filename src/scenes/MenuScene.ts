@@ -374,40 +374,40 @@ export class MenuScene extends Phaser.Scene {
   }
 
   /**
-   * T17: Load the daily streak from the DB and render a flame label below
-   * the Play button. Shows motivating copy based on streak length.
+   * T17: Load the daily streak from the DB and render a flame pill badge
+   * in the top-right corner. Uses amber background with white text.
    */
   private async renderStreakDisplay(): Promise<void> {
     const streak = await getStreak(this.lastStudentId);
-    const sy = PLAY_Y + 155;
-    const sx = STATION_X;
+    if (streak <= 0) return;
 
-    let label: string;
-    let color: string;
+    const label = `🔥 ${streak}`;
+    const PILL_H = 40;
+    const PILL_PAD = 16;
 
-    if (streak <= 1) {
-      label = '🔥 Start your streak!';
-      color = '#f59e0b'; // amber
-    } else if (streak >= 7) {
-      label = `🏆 ${streak} day legend streak!`;
-      color = '#b45309'; // gold/amber-dark
-    } else {
-      label = `🔥 ${streak} day streak!`;
-      color = '#d97706'; // amber-600
-    }
+    // Measure text width
+    const probe = this.add
+      .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
+      .setAlpha(0);
+    const tw = probe.width + PILL_PAD * 2;
+    probe.destroy();
 
-    // Welcome-back toast if streak reset (streak=1 and they had prior plays)
-    // We can't easily detect a reset without storing previous count, so for now
-    // show the simple streak display.
+    const px = CW - 16 - tw / 2;
+    const py = 36;
+
+    const bg = this.add.graphics().setDepth(25);
+    bg.fillStyle(0xf59e0b, 1); // amber-400
+    bg.fillRoundedRect(px - tw / 2, py - PILL_H / 2, tw, PILL_H, PILL_H / 2);
 
     this.add
-      .text(sx, sy, label, {
-        fontFamily: TITLE_FONT,
-        fontSize: '22px',
-        color,
+      .text(px, py, label, {
+        fontFamily: BODY_FONT,
+        fontSize: '18px',
+        color: '#FFFFFF',
+        fontStyle: 'bold',
       })
       .setOrigin(0.5)
-      .setDepth(16);
+      .setDepth(26);
   }
 
   /**
