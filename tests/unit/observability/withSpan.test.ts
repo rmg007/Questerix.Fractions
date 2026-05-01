@@ -11,32 +11,47 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const endMock = vi.fn();
-const setStatusMock = vi.fn();
-const startSpanMock = vi.fn(() => ({
-  end: endMock,
-  setStatus: setStatusMock,
-}));
+// vi.mock is hoisted by vitest, so the factory must NOT reference outer
+// variables. We populate the mock state via a getter on the module's exported
+// `tracerService` instead, then read the recorded calls back through it.
+const spanState = {
+  endCalls: 0,
+  setStatusCalls: [] as Array<{ code: number; message: string }>,
+  startSpanCalls: [] as Array<{ name: string; attributes: Record<string, unknown> }>,
+};
 
-// Mock the tracer service so the helpers see a controlled span object
 vi.mock('@/lib/observability/tracer', () => ({
-  tracerService: { startSpan: startSpanMock },
+  tracerService: {
+    startSpan(name: string, attributes: Record<string, unknown>) {
+      spanState.startSpanCalls.push({ name, attributes });
+      return {
+        end: () => {
+          spanState.endCalls++;
+        },
+        setStatus: (status: { code: number; message: string }) => {
+          spanState.setStatusCalls.push(status);
+        },
+      };
+    },
+  },
 }));
 
 import { withSpan, withSpanSync } from '@/lib/observability/withSpan';
 import { SPAN_NAMES } from '@/lib/observability/span-names';
 
 beforeEach(() => {
-  endMock.mockClear();
-  setStatusMock.mockClear();
-  startSpanMock.mockClear();
+  spanState.endCalls = 0;
+  spanState.setStatusCalls = [];
+  spanState.startSpanCalls = [];
 });
 
 describe('withSpan (async)', () => {
   it('passes name + attributes to startSpan', async () => {
     await withSpan(SPAN_NAMES.QUESTION.SUBMIT, { 'question.archetype': 'compare' }, async () => 42);
-    expect(startSpanMock).toHaveBeenCalledWith(SPAN_NAMES.QUESTION.SUBMIT, {
-      'question.archetype': 'compare',
+    expect(spanState.startSpanCalls).toHaveLength(1);
+    expect(spanState.startSpanCalls[0]).toEqual({
+      name: SPAN_NAMES.QUESTION.SUBMIT,
+      attributes: { 'question.archetype': 'compare' },
     });
   });
 
@@ -47,8 +62,8 @@ describe('withSpan (async)', () => {
 
   it('calls span.end() on success', async () => {
     await withSpan(SPAN_NAMES.SCENE.CREATE, {}, async () => 1);
-    expect(endMock).toHaveBeenCalledTimes(1);
-    expect(setStatusMock).not.toHaveBeenCalled();
+    expect(spanState.endCalls).toBe(1);
+    expect(spanState.setStatusCalls).toHaveLength(0);
   });
 
   it('marks the span as error and re-throws on rejection', async () => {
@@ -58,8 +73,8 @@ describe('withSpan (async)', () => {
         throw boom;
       })
     ).rejects.toBe(boom);
-    expect(setStatusMock).toHaveBeenCalledWith({ code: 1, message: 'Error: kaboom' });
-    expect(endMock).toHaveBeenCalledTimes(1);
+    expect(spanState.setStatusCalls).toEqual([{ code: 1, message: 'Error: kaboom' }]);
+    expect(spanState.endCalls).toBe(1);
   });
 });
 
@@ -67,7 +82,7 @@ describe('withSpanSync', () => {
   it('returns the wrapped function result', () => {
     const out = withSpanSync(SPAN_NAMES.HINT.REQUEST, { 'hint.tier': 'verbal' }, () => 'sync');
     expect(out).toBe('sync');
-    expect(endMock).toHaveBeenCalledTimes(1);
+    expect(spanState.endCalls).toBe(1);
   });
 
   it('marks the span as error and re-throws on synchronous throw', () => {
@@ -77,7 +92,7 @@ describe('withSpanSync', () => {
         throw boom;
       })
     ).toThrow(boom);
-    expect(setStatusMock).toHaveBeenCalledWith({ code: 1, message: 'Error: sync-boom' });
-    expect(endMock).toHaveBeenCalledTimes(1);
+    expect(spanState.setStatusCalls).toEqual([{ code: 1, message: 'Error: sync-boom' }]);
+    expect(spanState.endCalls).toBe(1);
   });
 });
