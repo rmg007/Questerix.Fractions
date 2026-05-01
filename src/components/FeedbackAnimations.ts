@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { TestHooks } from '../scenes/utils/TestHooks';
 
 export interface AnimationContext {
   scene: Phaser.Scene;
@@ -71,6 +72,7 @@ export function burstStarParticles(
   onEmitterDestroy: (emitter: Phaser.GameObjects.Particles.ParticleEmitter) => void
 ): void {
   if (!ctx.scene.textures.exists('clr-accentA')) return;
+  TestHooks.mountSentinel('sparkle-burst');
 
   const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
   const perColor = 3;
