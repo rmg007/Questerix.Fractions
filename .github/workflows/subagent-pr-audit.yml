@@ -22,6 +22,8 @@ jobs:
       validators_changed:    ${{ steps.check.outputs.validators_changed }}
       interactions_changed:  ${{ steps.check.outputs.interactions_changed }}
       bundle_changed:        ${{ steps.check.outputs.bundle_changed }}
+      engine_changed:        ${{ steps.check.outputs.engine_changed }}
+      curriculum_changed:    ${{ steps.check.outputs.curriculum_changed }}
       any_src_changed:       ${{ steps.check.outputs.any_src_changed }}
       changed_files_list:    ${{ steps.check.outputs.changed_files_list }}
       diff_summary:          ${{ steps.check.outputs.diff_summary }}
@@ -66,6 +68,17 @@ jobs:
               paths.includes('package.json') ||
               paths.includes('package-lock.json');
 
+            // Engine determinism — exclude the ports file itself, which is the boundary that may legally hold host calls.
+            const engine_changed = paths.some(
+              p => p.startsWith('src/engine/') && p !== 'src/engine/ports.ts'
+            );
+
+            // Curriculum byte-parity — both bundle paths plus pipeline output (a pipeline-only change still requires `npm run build:curriculum`).
+            const curriculum_changed =
+              paths.includes('public/curriculum/v1.json') ||
+              paths.includes('src/curriculum/bundle.json') ||
+              paths.some(p => p.startsWith('pipeline/output/'));
+
             const any_src_changed = paths.some(
               p => !p.startsWith('docs/') && !p.startsWith('PLANS/')
             );
@@ -77,6 +90,8 @@ jobs:
             core.setOutput('validators_changed',   String(validators_changed));
             core.setOutput('interactions_changed', String(interactions_changed));
             core.setOutput('bundle_changed',       String(bundle_changed));
+            core.setOutput('engine_changed',       String(engine_changed));
+            core.setOutput('curriculum_changed',   String(curriculum_changed));
             core.setOutput('any_src_changed',      String(any_src_changed));
             core.setOutput('changed_files_list',   changed_files_list);
             core.setOutput('diff_summary',         diff_summary);
@@ -102,50 +117,10 @@ jobs:
       working_branch: ${{ github.event.pull_request.head.ref }}
       pr_number: ${{ github.event.pull_request.number }}
       timeout_minutes: 15
+      max_tokens: 15000
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  post-c1-c10-comment:
-    needs: [get-changed-files, audit-c1-c10]
-    if: always() && needs.get-changed-files.outputs.any_src_changed == 'true'
-    runs-on: ubuntu-latest
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Post success comment
-        if: needs.audit-c1-c10.outputs.outcome == 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: c1-c10-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## C1–C10 Constraint Audit
-
-            ${{ needs.audit-c1-c10.outputs.summary }}
-
-            ---
-            *Automated audit by [c1-c10-auditor](/.claude/agents/c1-c10-auditor.md)*
-
-      - name: Post failure fallback comment
-        if: needs.audit-c1-c10.outputs.outcome != 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: c1-c10-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## C1–C10 Constraint Audit
-
-            > [!WARNING]
-            > The constraint auditor encountered an error and could not complete its review.
-            > **Manual check recommended** — please verify C1–C10 constraints before merging.
-
-            ---
-            *Automated audit by [c1-c10-auditor](/.claude/agents/c1-c10-auditor.md)*
 
   # ── Job 3 ─────────────────────────────────────────────────────────────────
   # A11y audit — runs when interaction/component/scene files changed.
@@ -168,50 +143,10 @@ jobs:
       working_branch: ${{ github.event.pull_request.head.ref }}
       pr_number: ${{ github.event.pull_request.number }}
       timeout_minutes: 15
+      max_tokens: 12000
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  post-a11y-comment:
-    needs: [get-changed-files, audit-a11y]
-    if: always() && needs.get-changed-files.outputs.interactions_changed == 'true'
-    runs-on: ubuntu-latest
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Post success comment
-        if: needs.audit-a11y.outputs.outcome == 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: a11y-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## Accessibility Audit
-
-            ${{ needs.audit-a11y.outputs.summary }}
-
-            ---
-            *Automated audit by [a11y-auditor](/.claude/agents/a11y-auditor.md)*
-
-      - name: Post failure fallback comment
-        if: needs.audit-a11y.outputs.outcome != 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: a11y-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## Accessibility Audit
-
-            > [!WARNING]
-            > The a11y auditor encountered an error and could not complete its review.
-            > **Manual check recommended** — please verify ARIA labels, touch targets (≥44×44 px), and reduced-motion gating before merging.
-
-            ---
-            *Automated audit by [a11y-auditor](/.claude/agents/a11y-auditor.md)*
 
   # ── Job 4 ─────────────────────────────────────────────────────────────────
   # Bundle audit — runs when package.json or package-lock.json changed.
@@ -234,50 +169,10 @@ jobs:
       working_branch: ${{ github.event.pull_request.head.ref }}
       pr_number: ${{ github.event.pull_request.number }}
       timeout_minutes: 15
+      max_tokens: 10000
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  post-bundle-comment:
-    needs: [get-changed-files, audit-bundle]
-    if: always() && needs.get-changed-files.outputs.bundle_changed == 'true'
-    runs-on: ubuntu-latest
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Post success comment
-        if: needs.audit-bundle.outputs.outcome == 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: bundle-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## Bundle Size Audit
-
-            ${{ needs.audit-bundle.outputs.summary }}
-
-            ---
-            *Automated audit by [bundle-watcher](/.claude/agents/bundle-watcher.md)*
-
-      - name: Post failure fallback comment
-        if: needs.audit-bundle.outputs.outcome != 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: bundle-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## Bundle Size Audit
-
-            > [!WARNING]
-            > The bundle-watcher encountered an error and could not complete its review.
-            > **Manual check recommended** — run `npm run measure-bundle` locally to verify the 1 MB gzipped budget before merging.
-
-            ---
-            *Automated audit by [bundle-watcher](/.claude/agents/bundle-watcher.md)*
 
   # ── Job 5 ─────────────────────────────────────────────────────────────────
   # Validator parity audit — runs when src/validators/** changed.
@@ -300,47 +195,124 @@ jobs:
       working_branch: ${{ github.event.pull_request.head.ref }}
       pr_number: ${{ github.event.pull_request.number }}
       timeout_minutes: 15
+      max_tokens: 10000
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  post-validator-parity-comment:
-    needs: [get-changed-files, audit-validator-parity]
-    if: always() && needs.get-changed-files.outputs.validators_changed == 'true'
+  # ── Job 6 ─────────────────────────────────────────────────────────────────
+  # Engine determinism audit — runs when src/engine/** (excluding ports.ts) changed.
+  # Gated on Phase 3 .claude/agents/engine-determinism-auditor.md being present.
+  # ──────────────────────────────────────────────────────────────────────────
+  audit-engine-determinism:
+    needs: get-changed-files
+    if: needs.get-changed-files.outputs.engine_changed == 'true'
+    continue-on-error: true
+
+    uses: ./.github/workflows/_shared/agent-dispatch.yml
+    with:
+      prompt_template: subagent-audit
+      context_json: >-
+        {
+          "SUBAGENT_NAME": "engine-determinism-auditor",
+          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
+          "PR_NUMBER": "${{ github.event.pull_request.number }}",
+          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
+        }
+      working_branch: ${{ github.event.pull_request.head.ref }}
+      pr_number: ${{ github.event.pull_request.number }}
+      timeout_minutes: 10
+      max_tokens: 8000
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Job 7 ─────────────────────────────────────────────────────────────────
+  # Curriculum byte-parity audit — runs when curriculum bundles or pipeline output changed.
+  # Gated on Phase 3 .claude/agents/curriculum-byte-parity.md being present.
+  # ──────────────────────────────────────────────────────────────────────────
+  audit-curriculum-parity:
+    needs: get-changed-files
+    if: needs.get-changed-files.outputs.curriculum_changed == 'true'
+    continue-on-error: true
+
+    uses: ./.github/workflows/_shared/agent-dispatch.yml
+    with:
+      prompt_template: subagent-audit
+      context_json: >-
+        {
+          "SUBAGENT_NAME": "curriculum-byte-parity",
+          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
+          "PR_NUMBER": "${{ github.event.pull_request.number }}",
+          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
+        }
+      working_branch: ${{ github.event.pull_request.head.ref }}
+      pr_number: ${{ github.event.pull_request.number }}
+      timeout_minutes: 5
+      max_tokens: 6000
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Aggregator ────────────────────────────────────────────────────────────
+  # Single consolidated PR comment, upserted under tag `subagent-audit-summary`.
+  # Replaces the six prior per-agent post-*-comment jobs to avoid comment spam.
+  # ──────────────────────────────────────────────────────────────────────────
+  post-consolidated-comment:
+    needs:
+      - get-changed-files
+      - audit-c1-c10
+      - audit-a11y
+      - audit-bundle
+      - audit-validator-parity
+      - audit-engine-determinism
+      - audit-curriculum-parity
+    if: always() && needs.get-changed-files.outputs.any_src_changed == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Post success comment
-        if: needs.audit-validator-parity.outputs.outcome == 'success'
+      - name: Upsert consolidated PR comment
         uses: ./.github/actions/pr-comment-update
         with:
-          comment-tag: validator-parity-audit
+          comment-tag: subagent-audit-summary
           pr-number: ${{ github.event.pull_request.number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           content: |
-            ## Validator Parity Audit
+            ## Subagent Audit Summary
 
-            ${{ needs.audit-validator-parity.outputs.summary }}
+            ${{ needs.get-changed-files.outputs.diff_summary }}
 
-            ---
-            *Automated audit by [validator-parity-checker](/.claude/agents/validator-parity-checker.md)*
+            <details><summary>C1–C10 Constraint Audit</summary>
 
-      - name: Post failure fallback comment
-        if: needs.audit-validator-parity.outputs.outcome != 'success'
-        uses: ./.github/actions/pr-comment-update
-        with:
-          comment-tag: validator-parity-audit
-          pr-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          content: |
-            ## Validator Parity Audit
+            ${{ needs.audit-c1-c10.result == 'skipped' && '_skipped (no relevant changes)_' || needs.audit-c1-c10.outputs.summary || '_auditor errored — manual review recommended_' }}
+            </details>
 
-            > [!WARNING]
-            > The validator-parity-checker encountered an error and could not complete its review.
-            > **Manual check recommended** — confirm every changed `src/validators/*.ts` file has a matching Python clone and passing parity fixtures before merging.
+            <details><summary>Accessibility Audit</summary>
 
-            ---
-            *Automated audit by [validator-parity-checker](/.claude/agents/validator-parity-checker.md)*
+            ${{ needs.audit-a11y.result == 'skipped' && '_skipped (no interaction/component/scene changes)_' || needs.audit-a11y.outputs.summary || '_auditor errored — verify ARIA labels, touch targets (≥44×44 px), and reduced-motion gating before merging_' }}
+            </details>
+
+            <details><summary>Bundle Size Audit</summary>
+
+            ${{ needs.audit-bundle.result == 'skipped' && '_skipped (no package.json / package-lock.json changes)_' || needs.audit-bundle.outputs.summary || '_auditor errored — run `npm run measure-bundle` locally to verify the 1 MB gzipped budget before merging_' }}
+            </details>
+
+            <details><summary>Validator Parity Audit</summary>
+
+            ${{ needs.audit-validator-parity.result == 'skipped' && '_skipped (no src/validators/** changes)_' || needs.audit-validator-parity.outputs.summary || '_auditor errored — confirm every changed `src/validators/*.ts` file has a matching Python clone and passing parity fixtures before merging_' }}
+            </details>
+
+            <details><summary>Engine Determinism Audit</summary>
+
+            ${{ needs.audit-engine-determinism.result == 'skipped' && '_skipped (no engine changes)_' || needs.audit-engine-determinism.outputs.summary || '_auditor errored — run `npx eslint src/engine/**/*.ts` locally_' }}
+            </details>
+
+            <details><summary>Curriculum Byte-Parity Audit</summary>
+
+            ${{ needs.audit-curriculum-parity.result == 'skipped' && '_skipped (no curriculum changes)_' || needs.audit-curriculum-parity.outputs.summary || '_auditor errored — run `sha256sum public/curriculum/v1.json src/curriculum/bundle.json` locally_' }}
+            </details>
+
+            *Consolidated by [subagent-pr-audit](/.github/workflows/subagent-pr-audit.yml). Re-runs on every push to this PR; this comment is upserted, not duplicated.*
