@@ -1262,6 +1262,99 @@ Phase 8 carries a hard prerequisite: **we don't yet know whether Claude Code exp
 
 ---
 
+## Appendix A — Risk register
+
+| Risk | Probability | Impact | Mitigation | Phase |
+|---|---|---|---|---|
+| `PostToolUse(Edit\|Write)` hook fires per-file-write but runs heavy `npm run gen:workflows`, blocks the agent | Med | High (latency) | Hook is keyed off Edit\|Write\|MultiEdit events (per-file, not per-keystroke); each arm short-circuits via `case "$FILE"` matching before doing any work | 1 |
+| LOC-budget hook misclassifies a file (e.g. blocks a legitimate refactor that adds LOC for clarity) | Med | Med | Hook prints clear extraction guidance; bypass with `git commit --no-verify` plus a one-line PR-body justification; CI gate is the backstop | 1 |
+| `.husky/pre-push` branch regex blocks emergency push (incident response, hotfix) | Low | High (when it happens) | `git push --no-verify` documented; PR template's "Conflict warning" section surfaces the bypass | 7 |
+| `$CLAUDE_CONTEXT_TOKENS` doesn't exist in Claude Code's hook env contract | High | Med | Hook records `unknown` and continues; verification spike (8.4) confirms before any rollup logic depends on real numbers | 8 |
+| New CI subagents spam PR with one comment per agent run | Med | Med | Phase 4 mandates a single consolidated comment per PR, idempotent on `synchronize`. Enforce via test PR before enabling autonomy variable | 4 |
+| `/recreate-pr` mis-fires when PR was legitimately closed by the user (not by the bot) | Med | High (recreates PRs the user explicitly killed) | Slash command checks closer is `github-actions[bot]`; if a human closed it, abort with confirmation prompt | 5 |
+| Husky tier router misclassifies a `chore/` branch that touched `src/**`, skips the heavy gate | Med | High (regression slips to main) | Auto-escalation logic in `preflight-router.mjs` reads `git diff --name-only main...HEAD`; if any `src/**` path appears on a `chore/`/`docs/`/`plans/` branch, escalate to `feat/` tier with stderr note | 2 |
+| CLAUDE.md "auto-invoke skills" rule causes infinite invocation loop (skill A → skill B → skill A …) | Low | High (session unrecoverable) | Recursion guard: auto-invoke fires once per skill per turn; never auto-invoke from inside a skill response. Manual escape: `[no-auto-followup]` in skill response | 1 |
+| Hook execution adds noticeable latency (>500 ms) to user-facing workflows | Med | Med | Every Phase 1 hook short-circuits via `case` before any I/O. Target: <200 ms p95 for path-mismatch fast path | 1 |
+| Frozen god-files block urgent bug fixes that need additions | Low | High | Hook compares post-edit LOC to `git show HEAD` LOC; net-LOC-negative edits (bug fixes that delete more than they add) are accepted | 1 |
+| Dependabot-auto-merge patch breaks dependabot's actual auto-merge flow | Low | Med | Verification spike before/after; test with a real dependabot PR after the patch lands | 5 |
+| ESLint `max-lines` rule trips on test fixtures or generated files | Med | Low | Per-file-group `overrides` are scoped to source globs (`src/scenes/*Scene.ts` etc.); tests, fixtures, generated files are not in scope | 1 |
+
+---
+
+## Appendix B — Open questions
+
+Ordered by impact. Each: question / what would resolve it.
+
+- **What env vars does Claude Code expose to hook scripts?** A one-shot `env > log` PreCompact hook plus a substantive session. Confirms `$CLAUDE_CONTEXT_TOKENS`, `$CLAUDE_SESSION_ID`, and any other per-session vars before Phase 8 commits to a schema.
+- **Does the dependabot-auto-merge patch break dependabot's actual auto-merge flow?** Test PR from `dependabot[bot]` after the patch lands; confirm the workflow runs (not skipped) when the author is dependabot.
+- **Should `/recreate-pr` be a skill (model-judgment) or a slash command (deterministic script)?** Side-by-side prototype on the next auto-close incident: if recovery is mechanical, slash command wins; if PR-body reconstruction needs judgment, skill wins.
+- **Does the D-NN renumbering pain warrant an automated numbering helper, or is a write-lock convention (manual rebase before every D-NN add) sufficient?** One more parallel-branch collision answers it; if it happens twice more in 4 weeks, build the helper.
+- **Should the `/economy` command estimate tokens itself (counting chars), or rely solely on `$CLAUDE_CONTEXT_TOKENS`?** Resolved by Phase 8.4: if env var is real, defer to it; if not, char-counting is the only path and the command's accuracy claim must be downgraded.
+- **Is `worktree-agent-*` the right exemption pattern for the pre-push branch check, or do agent worktrees use a different naming convention?** Grep `git for-each-ref refs/heads` after the next multi-agent session.
+- **What is the right LOC budget for `src/scenes/utils/levelMeta.ts`?** It's a registry file — naturally grows with each level. Likely needs an exemption or a higher budget (e.g. 500 LOC).
+- **Should the LOC-budget hook also enforce per-class method count or per-function complexity?** Probably yes long-term, but starting with line-count is the minimum-viable proactive gate. Add complexity rules in a future iteration.
+
+---
+
+## Appendix C — Acceptance criteria (testable)
+
+Per-phase, concrete and verifiable.
+
+### Phase 0 — Cleanup (already done in PR #32)
+- `find /home/user/Questerix.Fractions/.claude -type f | wc -l` returns ≤ 14.
+- `find /home/user/Questerix.Fractions -name "*roadie*" -not -path "*/node_modules/*"` returns 0 lines.
+- `ls /home/user/Questerix.Fractions/.claude/_archive 2>&1` reports "No such file or directory".
+
+### Phase 1 — Auto-invoke layer
+- A doc-only edit (e.g. `PLANS/foo.md`) followed by `git commit` triggers no `npm run` hook (verified by `time`: <1 s of hook overhead).
+- An edit to `src/persistence/db.ts` produces stderr containing "Schema-version bump?".
+- A direct edit to `public/curriculum/v1.json` is blocked with "Use `npm run build:curriculum`" message (`exit 2`).
+- Adding LOC to the 1727-LOC `Level01Scene.ts` is **blocked** unless the diff is net-negative.
+- Creating a 700-LOC `MenuScene.ts` is **blocked** at write-time.
+- Root CLAUDE.md contains "Auto-invoke skills" section with ≥4 rules and a recursion guard.
+
+### Phase 2 — Blast-radius preflight
+- `git push` from `chore/2026-05-15-foo` (no src/ touched) completes in ≤ 10 s.
+- The same on `feat/2026-05-15-foo` runs the full pipeline (≥ 60 s).
+- A `chore/...` branch that touches `src/persistence/db.ts` is auto-escalated to full tier with a stderr note.
+
+### Phase 3 — New subagents
+- `.claude/agents/engine-determinism-auditor.md` and `.claude/agents/curriculum-byte-parity.md` exist.
+- `node scripts/agent-doctor.mjs` exits 0.
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces an `engine-determinism-auditor` finding citing file:line.
+- Root CLAUDE.md "Specialist subagents" table lists all 6 agents.
+
+### Phase 4 — CI subagent audit refinement
+- A test PR with `Math.random` in `src/engine/` receives exactly one bot comment within 2 min.
+- A `synchronize` event overwrites the comment in place — `gh api` returns one bot comment.
+- `_shared/agent-dispatch.yml` accepts `max_tokens` input.
+
+### Phase 5 — Auto-close runbook + root-cause patch
+- `dependabot-auto-merge.yml` has a job-level `if: github.actor == 'dependabot[bot]'`.
+- A test PR titled `chore: test dexie poke (delete me)` from a human account remains open.
+- `.claude/commands/recreate-pr.md` exists.
+- learnings.md entry lands at the top of the entries list.
+
+### Phase 6 — learnings.md discipline
+- `SessionStart` banner prints exactly 3 learnings lines.
+- A commit `fix(persistence): correct schema version bump` produces the stderr nudge.
+- `.claude/commands/retro.md` has the `(REQUIRED)` annotation.
+- Five seed entries are present in `.claude/learnings.md`.
+
+### Phase 7 — PR template + branch enforcement
+- `.github/pull_request_template.md` exists with all six sections.
+- `git push` from `quick-fix` exits 1.
+- `git push` from `main`, `claude/foo`, `worktree-agent-bar` succeeds.
+- CLAUDE.md "Git workflow" section contains the regex literal.
+
+### Phase 8 — Token telemetry
+- `.claude/_session-log.md` last line has a `tokens:` field.
+- `.claude/commands/economy.md` exists.
+- `.claude/commands/retro-weekly.md` exists.
+- Verification spike has been run; result recorded.
+
+---
+
 ## Sequencing
 
 ```
