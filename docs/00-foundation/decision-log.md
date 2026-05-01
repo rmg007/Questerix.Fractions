@@ -24,6 +24,27 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-30 — 2026-05-01 — Proactive over reactive — per-directory LOC budgets + frozen god files + scaffolding
+
+**Decision:** Adopt **proactive prevention** as the default agent-tooling posture, replacing the prior reactive (audit-after-merge) model. Concretely:
+
+1. **Per-directory LOC budgets** enforced at three layers: PostToolUse Edit hook (write-time, `exit 2` on overrun), ESLint `max-lines` rule (lint-time), CI gate via `subagent-pr-audit.yml` (PR-time). Budgets: `src/scenes/*Scene.ts` = 600, `src/components/*.ts` = 300, `src/validators/*.ts` = 200, `src/engine/*.ts` = 400, `src/lib/*.ts` = 300.
+
+2. **Pre-existing god files frozen, not grandfathered.** `src/scenes/Level01Scene.ts` (1727 LOC) and `src/scenes/LevelScene.ts` are exempted from the ESLint rule but the PostToolUse hook rejects any *net-LOC-positive* edit until the D-27 sunset migration lands. Bug-fix edits that delete more than they add are accepted. Bypass with `--no-verify` plus a one-line PR-body justification.
+
+3. **Scaffolding mandate** (planned, Phase 9 follow-up): `npm run scaffold:scene <name>` / `scaffold:validator <archetype>` / `scaffold:component <name>` generate pre-split files from templates. New scenes cannot be born monolithic.
+
+**Why:** The four existing subagents (`c1-c10-auditor`, `bundle-watcher`, `validator-parity-checker`, `a11y-auditor`) are reactive — they audit after a diff exists. That's how `Level01Scene.ts` reached 1727 LOC despite four scoped subagents existing: nothing prevented the growth, the auditors only commented on it after the fact, by which time the cost of unwinding exceeded the appetite to do so. A reactive audit on a 1727-LOC file consumes ~30 k tokens just to read it; the same audit on three 600-LOC files consumes ~30 k tokens too, but every subsequent edit costs ~3× less because each file fits in a smaller context, and merge conflicts on parallel work drop because edits to different concerns no longer collide. Proactive prevention pays compounding dividends.
+
+**Alternatives considered:**
+- *Continue reactive auditing only*: rejected. Empirically proven insufficient (Level01Scene grew 1604→1727 in one session despite the audit predicting it).
+- *Enforce LOC budget at lint-time only*: rejected. Lint runs on commit, not on edit; the agent has already written the bytes. Hook-time `exit 2` is the only rejection point that prevents the write.
+- *Hard-block all edits to god files*: rejected. Bug fixes that *delete* code from `Level01Scene.ts` are exactly what we want; the freeze should permit them.
+
+**Source:** `PLANS/agent-tooling-2026-05-01.md` → "Core principle: Proactive over reactive" + Phase 1 (LOC-budget hook in `.claude/settings.json`, ESLint `max-lines` in `.eslintrc.json`). Implementation landed in PR #39.
+
+---
+
 ## D-29 — 2026-05-01 — App ships English-only; multi-locale not on roadmap
 
 **Decision:** The app is committed to English-only delivery. Multi-locale support is **not** on the roadmap and will not be revisited at v2 unless explicitly reopened.
