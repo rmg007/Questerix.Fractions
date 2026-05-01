@@ -54,11 +54,23 @@ export class LabelInteraction implements Interaction {
     this._cy = centerY;
     this._regionCount = regions.length;
 
+    // Layout helper — single source of truth for region x positions.
+    // All three input paths (canvas drag-end, TestHooks, A11yLayer) use
+    // `nearestRegionIndex` to translate a tile x into a region index, so
+    // they all agree on placement semantics.
+    const regionX = (i: number): number => centerX - (regions.length - 1) * 80 + i * 160;
+    const nearestRegionIndex = (tileX: number): number =>
+      regions.reduce((best, _reg, ri) => {
+        const dist = Math.abs(tileX - regionX(ri));
+        const bdist = Math.abs(tileX - regionX(best));
+        return dist < bdist ? ri : best;
+      }, 0);
+
     // Draw region boxes
     const regionW = 140;
     const regionH = 140;
     regions.forEach((reg, i) => {
-      const x = centerX - (regions.length - 1) * 80 + i * 160;
+      const x = regionX(i);
       const box = scene.add.rectangle(x, centerY - 60, regionW, regionH, OPTION_BG).setDepth(5);
       box.setStrokeStyle(2, OPTION_BORDER);
       scene.add
@@ -89,10 +101,12 @@ export class LabelInteraction implements Interaction {
         .setOrigin(0.5)
         .setDepth(8);
 
-      const snapToFirst = () => {
-        // Mock drag-drop by snapping to first region for e2e simplicity
-        const firstRegionId = regions[0]!.id;
-        this.placements[lbl.id] = firstRegionId;
+      // Snap the tile to the region nearest its current x — same semantic as
+      // canvas drag-end below. Used by TestHooks (e2e) and the A11yLayer
+      // keyboard mirror so all three input paths agree.
+      const snapToNearest = () => {
+        const nearestIdx = nearestRegionIndex(tile.x);
+        this.placements[lbl.id] = regions[nearestIdx]!.id;
         tile.setStrokeStyle(4, NAVY);
       };
 
@@ -102,31 +116,29 @@ export class LabelInteraction implements Interaction {
       });
 
       tile.on('dragend', () => {
-        // Simple: snap to nearest region
-        const nearestIdx = regions.reduce((best, _reg, ri) => {
-          const rx = centerX - (regions.length - 1) * 80 + ri * 160;
-          const dist = Math.abs(tile.x - rx);
-          const bdist = Math.abs(tile.x - (centerX - (regions.length - 1) * 80 + best * 160));
-          return dist < bdist ? ri : best;
-        }, 0);
+        // Snap to nearest region (shared helper).
+        const nearestIdx = nearestRegionIndex(tile.x);
         this.placements[lbl.id] = regions[nearestIdx]!.id;
       });
 
-      TestHooks.mountInteractive(`label-tile-${i}`, snapToFirst, {
+      TestHooks.mountInteractive(`label-tile-${i}`, snapToNearest, {
         top: `${(ty / 1280) * 100}%`,
         left: `${(tx / 800) * 100}%`,
         width: '120px',
         height: '48px',
       });
 
-      // A11y: keyboard mirror — same handler the canvas drag-end + TestHooks use.
-      // Without this, keyboard-only users cannot place a label tile on any region.
+      // A11y: keyboard mirror — same handler the canvas drag-end + TestHooks
+      // use. Without this, keyboard-only users cannot place a label tile.
+      // Note: keyboard activation snaps to whatever region the tile currently
+      // sits over (initially none — tile starts below the regions). For
+      // explicit "place on region X" semantics, keyboard users should use
+      // the per-region `label-target-${i}` actions registered below.
       const tileA11yId = `label-tile-${i}`;
-      const firstRegionAlt = regions[0]?.alt ?? regions[0]?.id ?? 'first region';
       A11yLayer.mountAction(
         tileA11yId,
-        `Place label "${lbl.text}" on ${firstRegionAlt}`,
-        snapToFirst
+        `Place label "${lbl.text}" on the nearest region`,
+        snapToNearest
       );
       this.a11yIds.push(tileA11yId);
 

@@ -169,8 +169,9 @@ test.describe('Playtest backstop — L1 → L2 → L3 full export', () => {
         try {
           // Prefer the modern API where available.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const dbs = await (indexedDB as unknown as { databases?: () => Promise<{ name?: string }[]> })
-            .databases?.();
+          const dbs = await (
+            indexedDB as unknown as { databases?: () => Promise<{ name?: string }[]> }
+          ).databases?.();
           if (dbs) {
             await Promise.all(
               dbs
@@ -220,20 +221,24 @@ test.describe('Playtest backstop — L1 → L2 → L3 full export', () => {
     await completeFiveAttempts(page, l3Scene);
 
     // ── Back to Menu ────────────────────────────────────────────────────────
-    // The L3 SessionCompleteOverlay's "Back to Menu" button has no testid;
-    // its A11yLayer mirror exposes data-testid="session-complete-menu" via
-    // SessionCompleteOverlay.addMenuButton().
-    // TODO: needs scene-level testid for the Back-to-Menu button on the
-    // canvas; falling back to the A11yLayer DOM mirror for now.
-    await page.locator('[data-testid="session-complete-menu"]').click({ force: true });
+    // SessionCompleteOverlay.addMenuButton() mounts a TestHooks invisible
+    // overlay (`session-complete-menu-btn`) directly over the canvas button.
+    // The A11yLayer mirror (`session-complete-menu`) remains as a fallback so
+    // this spec keeps working even if the canvas overlay regresses.
+    const sessionCompleteMenuBtn = page.locator(
+      '[data-testid="session-complete-menu-btn"], [data-testid="session-complete-menu"]'
+    );
+    await sessionCompleteMenuBtn.first().click({ force: true });
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 15000 });
 
     // ── Settings → Export ───────────────────────────────────────────────────
-    // MenuScene's gear icon does not expose a TestHooks overlay; its A11yLayer
-    // mirror (data-testid="a11y-settings") is the only DOM-addressable handle.
-    // TODO: needs scene-level testid for the Settings gear in MenuScene
-    // (currently relying on the A11yLayer button data-testid="a11y-settings").
-    await page.locator('[data-testid="a11y-settings"]').click({ force: true });
+    // MenuScene mounts a TestHooks invisible overlay (`menu-settings-btn`) on
+    // top of the gear icon; the A11yLayer mirror (`a11y-settings`) is kept as
+    // a secondary fallback so this spec is robust either way.
+    const menuSettingsBtn = page.locator(
+      '[data-testid="menu-settings-btn"], [data-testid="a11y-settings"]'
+    );
+    await menuSettingsBtn.first().click({ force: true });
     await expect(page.locator('[data-testid="settings-scene"]')).toBeVisible({ timeout: 15000 });
 
     const exportBtn = page.locator('[data-testid="settings-export-btn"]');
@@ -275,7 +280,9 @@ test.describe('Playtest backstop — L1 → L2 → L3 full export', () => {
     expect((deviceMeta.contentVersion ?? '').length).toBeGreaterThan(0);
 
     // ── Cardinality — one student, three sessions, ≥ fifteen attempts ──────
-    expect(envelope.tables.students.length, 'at least one student record').toBeGreaterThanOrEqual(1);
+    expect(envelope.tables.students.length, 'at least one student record').toBeGreaterThanOrEqual(
+      1
+    );
     expect(envelope.tables.sessions.length, 'one session per level played').toBeGreaterThanOrEqual(
       3
     );

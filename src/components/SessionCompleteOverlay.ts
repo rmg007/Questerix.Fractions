@@ -287,6 +287,13 @@ export class SessionCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    TestHooks.mountInteractive('session-complete-menu-btn', onTap, {
+      width: '300px',
+      height: '54px',
+      top: '74%',
+      left: '50%',
+    });
+
     A11yLayer.mountAction('session-complete-menu', 'Back to Menu', onTap);
 
     this.container.add([bg, txt, hit]);

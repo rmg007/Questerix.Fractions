@@ -157,9 +157,10 @@ export class MenuScene extends Phaser.Scene {
         this._startLevel(currentLevel, true);
       });
     }
-    A11yLayer.mountAction('a11y-settings', 'Open Settings', () => {
+    const openSettings = (): void => {
       fadeAndStart(this, 'SettingsScene');
-    });
+    };
+    A11yLayer.mountAction('a11y-settings', 'Open Settings', openSettings);
     A11yLayer.mountAction('a11y-choose-level', 'Choose a level to play', () => {
       void this._openChooseLevelOverlay();
     });
@@ -256,11 +257,18 @@ export class MenuScene extends Phaser.Scene {
       fontSize: 56,
       shadowOffset: 6,
       rounded: false,
-      onTap: () => {
-        fadeAndStart(this, 'SettingsScene');
-      },
+      onTap: openSettings,
     });
     this.drawTaglinePill(STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
+
+    // Test hook mirroring the canvas Settings gear at (STATION_X=400, SET_Y=420)
+    // in an 800x1280 game canvas → roughly 50% across, ~33% down.
+    TestHooks.mountInteractive('menu-settings-btn', openSettings, {
+      width: '100px',
+      height: '100px',
+      top: '33%',
+      left: '50%',
+    });
 
     // Continue — middle of the line, position ½ (only if returning student)
     if (hasContinue) {
