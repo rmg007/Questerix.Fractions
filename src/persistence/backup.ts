@@ -19,6 +19,8 @@ import type {
   MisconceptionFlag,
   ProgressionStat,
 } from '../types';
+import { safeParseBackupEnvelope } from './schemas';
+import { log } from '../lib/log';
 
 // ── Backup envelope ────────────────────────────────────────────────────────
 
@@ -124,13 +126,23 @@ interface RestoreResult {
  */
 export async function restoreFromFile(file: File): Promise<RestoreResult> {
   const text = await file.text();
-  let envelope: BackupEnvelope;
+  let raw: unknown;
 
   try {
-    envelope = JSON.parse(text) as BackupEnvelope;
+    raw = JSON.parse(text);
   } catch (err) {
     throw new Error('backup.restore: invalid JSON');
   }
+
+  // Phase 7.4 / harden R29: Zod-backed envelope validation. Reject the entire
+  // restore on any malformed table or row — the transaction below stays
+  // all-or-nothing, and a partially-valid backup never reaches Dexie.
+  const parsed = safeParseBackupEnvelope(raw);
+  if (!parsed.ok) {
+    log.warn('BACKUP', 'envelope.invalid', { issues: parsed.message });
+    throw new Error(`backup.restore: schema validation failed — ${parsed.message}`);
+  }
+  const envelope = parsed.value as unknown as BackupEnvelope;
 
   if (envelope.version !== BACKUP_SCHEMA_VERSION) {
     throw new Error(

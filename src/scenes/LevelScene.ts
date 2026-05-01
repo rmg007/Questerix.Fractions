@@ -1003,7 +1003,13 @@ export class LevelScene extends Phaser.Scene {
         // Limit to recent 10 for performance
         const limitedAttempts = recentAttempts.slice(-10);
         const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
+        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+          await import('../lib/adapters');
+        const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
+          clock: SystemClock,
+          ids: CryptoUuidGenerator,
+          logger: ConsoleEngineLogger,
+        });
 
         if (flags.length > 0) {
           const { misconceptionFlagRepo } =
@@ -1187,8 +1193,19 @@ export class LevelScene extends Phaser.Scene {
 
   preDestroy(): void {
     log.scene('destroy', { level: this.levelNumber });
-    AccessibilityAnnouncer.destroy();
+    // R7: destroy all managed components to prevent memory leaks and dangling listeners.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, hint
+    // pulse tween) require explicit cleanup. killAll() catches any in-flight tween
+    // (badge bounce, hint pulse) when the scene shuts down.
+    this.tweens.killAll();
     this.activeInteraction?.unmount();
+    this.feedbackOverlay?.destroy();
+    this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
+    AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();
   }

@@ -1,12 +1,18 @@
 /**
  * Question selection algorithm — picks the best next question from candidates.
- * Pure function. No Dexie, no Phaser.
+ * Pure function. No Dexie, no Phaser. No host-global side effects.
  *
  * Zone of Proximal Development (ZPD) window: 0.4 < P_known < 0.85
  * Recency filter: exclude the last 5 template IDs seen.
+ *
+ * Determinism: callers MUST supply an `Rng` port (see src/engine/ports.ts).
+ * Production wires `MathRandomRng` from src/lib/adapters; tests pass a seeded
+ * RNG so tiebreaks are reproducible. Direct `Math.random()` calls inside
+ * src/engine/** are blocked by ESLint (no-restricted-syntax).
  */
 
 import type { QuestionTemplate, QuestionTemplateId, SkillId, SkillMastery } from '@/types';
+import type { Rng } from './ports';
 
 // ── ZPD constants ─────────────────────────────────────────────────────────
 
@@ -28,6 +34,11 @@ export interface SelectionArgs {
   recentTemplateIds: Set<QuestionTemplateId>;
   /** If true, prefer skills below ZPD_LOW over already-mastered ones. */
   preferUnmastered?: boolean;
+  /**
+   * Random source for tiebreak selection. Required — pass `MathRandomRng` from
+   * src/lib/adapters in production, or a seeded RNG in tests for determinism.
+   */
+  rng: Rng;
 }
 
 // ── Main export ───────────────────────────────────────────────────────────
@@ -41,10 +52,10 @@ export interface SelectionArgs {
  *   3. If preferUnmastered=true, fallback to P_known <= 0.4 skills
  *   4. Any remaining candidate (avoids stall on edge-case small pools)
  *
- * Tiebreak is random within each tier.
+ * Tiebreak is random within each tier — seeded by the caller-supplied `rng`.
  */
 export function selectNextQuestion(args: SelectionArgs): QuestionTemplate | null {
-  const { candidates, studentMastery, recentTemplateIds, preferUnmastered = false } = args;
+  const { candidates, studentMastery, recentTemplateIds, preferUnmastered = false, rng } = args;
 
   if (candidates.length === 0) return null;
 
@@ -56,14 +67,14 @@ export function selectNextQuestion(args: SelectionArgs): QuestionTemplate | null
 
   // Score each question by best-matching skill tier
   const zpd = pool.filter((q) => hasSkillInZPD(q, studentMastery));
-  if (zpd.length > 0) return pickRandom(zpd);
+  if (zpd.length > 0) return pickRandom(zpd, rng);
 
   if (preferUnmastered) {
     const unmastered = pool.filter((q) => hasSkillBelowZPD(q, studentMastery));
-    if (unmastered.length > 0) return pickRandom(unmastered);
+    if (unmastered.length > 0) return pickRandom(unmastered, rng);
   }
 
-  return pickRandom(pool);
+  return pickRandom(pool, rng);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -83,6 +94,6 @@ function hasSkillBelowZPD(q: QuestionTemplate, mastery: Map<SkillId, SkillMaster
   return q.skillIds.some((sid) => getMastery(sid, mastery) <= ZPD_LOW);
 }
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!;
+function pickRandom<T>(arr: T[], rng: Rng): T {
+  return arr[Math.floor(rng.random() * arr.length)]!;
 }

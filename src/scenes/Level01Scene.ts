@@ -964,8 +964,11 @@ export class Level01Scene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    this.showOutcome(result);
+    // C6: persist before showing feedback. If recordAttempt fails (quota,
+    // schema), the user must not see "Correct!" on a never-recorded answer.
+    // Mirrors LevelScene.ts:560-561.
     await this.recordAttempt(result, responseMs, input);
+    this.showOutcome(result);
   }
 
   /**
@@ -1422,7 +1425,13 @@ export class Level01Scene extends Phaser.Scene {
         );
         const limitedAttempts = recentAttempts.slice(-10);
         const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, 1);
+        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+          await import('../lib/adapters');
+        const flags = await runAllDetectors(limitedAttempts, 1, {
+          clock: SystemClock,
+          ids: CryptoUuidGenerator,
+          logger: ConsoleEngineLogger,
+        });
 
         if (flags.length > 0) {
           const { misconceptionFlagRepo } =
@@ -1658,11 +1667,17 @@ export class Level01Scene extends Phaser.Scene {
   preDestroy(): void {
     log.scene('destroy');
     // R7: destroy all managed components to prevent memory leaks and dangling listeners.
-    // feedbackOverlay, dragHandle, progressBar all expose destroy() via Phaser base classes.
-    // hintLadder is a plain state-machine (no Phaser objects), so no destroy needed.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, etc.)
+    // require explicit cleanup. killAll() catches any tween still in flight (worked-
+    // example overlay, hint pulse, badge bounce) when the scene shuts down.
+    this.tweens.killAll();
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();
