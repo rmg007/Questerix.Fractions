@@ -260,21 +260,16 @@ export class Level01Scene extends Phaser.Scene {
         'Sorry, we could not start your session. Please reload the page.'
       );
       this.add
-        .text(
-          CW / 2,
-          CH / 2,
-          'Could not start session.\nPlease reload the page.',
-          {
-            fontSize: '24px',
-            fontFamily: BODY_FONT,
-            fontStyle: 'bold',
-            color: '#b91c1c',
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            padding: { x: 20, y: 14 },
-            align: 'center',
-            wordWrap: { width: 600 },
-          }
-        )
+        .text(CW / 2, CH / 2, 'Could not start session.\nPlease reload the page.', {
+          fontSize: '24px',
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          color: '#b91c1c',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: { x: 20, y: 14 },
+          align: 'center',
+          wordWrap: { width: 600 },
+        })
         .setOrigin(0.5)
         .setDepth(100);
       // Block play — do not proceed with UI or question loading.
@@ -969,8 +964,11 @@ export class Level01Scene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    this.showOutcome(result);
+    // C6: persist before showing feedback. If recordAttempt fails (quota,
+    // schema), the user must not see "Correct!" on a never-recorded answer.
+    // Mirrors LevelScene.ts:560-561.
     await this.recordAttempt(result, responseMs, input);
+    this.showOutcome(result);
   }
 
   /**
@@ -1562,7 +1560,6 @@ export class Level01Scene extends Phaser.Scene {
     await this.closeSession();
   }
 
-
   /**
    * G-5: Write (or update) a ProgressionStat row in IndexedDB marking Level 1 as
    * completed and advancing to Level 2.
@@ -1571,9 +1568,7 @@ export class Level01Scene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId('level_1');
@@ -1666,11 +1661,17 @@ export class Level01Scene extends Phaser.Scene {
   preDestroy(): void {
     log.scene('destroy');
     // R7: destroy all managed components to prevent memory leaks and dangling listeners.
-    // feedbackOverlay, dragHandle, progressBar all expose destroy() via Phaser base classes.
-    // hintLadder is a plain state-machine (no Phaser objects), so no destroy needed.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, etc.)
+    // require explicit cleanup. killAll() catches any tween still in flight (worked-
+    // example overlay, hint pulse, badge bounce) when the scene shuts down.
+    this.tweens.killAll();
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();

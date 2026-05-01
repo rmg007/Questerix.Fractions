@@ -1100,9 +1100,7 @@ export class LevelScene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId(`level_${this.levelNumber}`);
@@ -1140,8 +1138,7 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy =
-        this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
+      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1190,8 +1187,19 @@ export class LevelScene extends Phaser.Scene {
 
   preDestroy(): void {
     log.scene('destroy', { level: this.levelNumber });
-    AccessibilityAnnouncer.destroy();
+    // R7: destroy all managed components to prevent memory leaks and dangling listeners.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, hint
+    // pulse tween) require explicit cleanup. killAll() catches any in-flight tween
+    // (badge bounce, hint pulse) when the scene shuts down.
+    this.tweens.killAll();
     this.activeInteraction?.unmount();
+    this.feedbackOverlay?.destroy();
+    this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
+    AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();
   }
