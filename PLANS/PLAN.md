@@ -26,6 +26,7 @@ Work phases in order. Do not start a later phase unless the gate for the earlier
 ## Phase 0 — Validate (do this first, before any code)
 
 **Status:** ✅ DONE — verified 2026-05-01.  
+**Status:** Not yet verified after the 2026-05-01 merge train (17 PRs).  
 **Effort:** 30–60 min
 
 Run the app in a real Chrome/Chromium tab and walk the full happy path:
@@ -59,6 +60,11 @@ Checklist:
 All three bugs fixed and verified 2026-05-01. Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
 
 ### B1 — Skip button blocked during Step 1 (T9 depth regression) ✅
+## Phase 1 — Fix Critical Bugs
+
+Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
+
+### B1 — Skip button blocked during Step 1 (T9 depth regression)
 
 **Severity:** 🔴 Critical — existing feature regressed  
 **File:** `src/scenes/OnboardingScene.ts`  
@@ -72,6 +78,7 @@ All three bugs fixed and verified 2026-05-01. Fix in order; B1 and B2 block firs
 ---
 
 ### B2 — Misleading copy: "Let's try an easier one →" on Level 1 ✅
+### B2 — Misleading copy: "Let's try an easier one →" on Level 1
 
 **Severity:** 🔴 High — promise the child can't redeem  
 **File:** `src/scenes/Level01Scene.ts` or `src/components/SessionCompleteOverlay.ts`  
@@ -85,6 +92,7 @@ All three bugs fixed and verified 2026-05-01. Fix in order; B1 and B2 block firs
 ---
 
 ### B3 — FPS drops in OnboardingScene (3–6 FPS sustained) ✅
+### B3 — FPS drops in OnboardingScene (3–6 FPS sustained)
 
 **Severity:** 🟡 Medium — bad on constrained devices  
 **File:** `src/scenes/OnboardingScene.ts` → `updatePartitionLine()` (or equivalent)  
