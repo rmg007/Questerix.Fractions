@@ -1,9 +1,19 @@
 # Questerix Fractions — Planning Documents Index
 
-**Last updated:** 2026-04-30
+**Last updated:** 2026-05-01
 **Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
 
 > **Naming convention:** all plan files must be named `<slug>-YYYY-MM-DD.md` where the date is the day the file was created. Files without a date are non-compliant and must be renamed. Full rules: `docs/00-foundation/git-workflow.md`.
+
+---
+
+## 🆕 Agent Tooling (2026-05-01)
+
+### [agent-tooling-2026-05-01.md](agent-tooling-2026-05-01.md) — AGENT TOOLING & AUTO-INVOCATION
+
+Plan for making Claude agents run smoothly, produce high-quality output, and save tokens — without the user having to remember slash commands. Phase 0 (cleanup of Roadie + `_archive/`) in progress on `chore/2026-05-01-prune-roadie-and-plan-tooling`. Phases 1–8 awaiting approval.
+
+**Use it for:** auto-invoke layer (hooks + skills), blast-radius gates, missing specialist subagents, CI subagent integration, auto-close-PR runbook, learnings discipline, PR template + branch enforcement, token telemetry.
 
 ---
 
