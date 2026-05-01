@@ -77,8 +77,9 @@ export class OnboardingScene extends Phaser.Scene {
   private actionBtn!: Phaser.GameObjects.Container;
   private handPointer!: Phaser.GameObjects.Text;
   private skipText!: Phaser.GameObjects.Text;
-  // T9: timers for Step 1 demo — stored so tap-to-skip can cancel them
+  // T9: timers and tweens for Step 1 demo — stored so tap-to-skip can cancel them
   private watchTimers: Phaser.Time.TimerEvent[] = [];
+  private demoTween: Phaser.Tweens.Tween | null = null;
   private tapSkipHint: Phaser.GameObjects.Text | null = null;
   private stepDots: Phaser.GameObjects.Graphics[] = [];
 
@@ -299,7 +300,8 @@ export class OnboardingScene extends Phaser.Scene {
     skipHit.once('pointerup', () => {
       for (const t of this.watchTimers) t.destroy();
       this.watchTimers = [];
-      this.tweens.killAll();
+      this.demoTween?.stop();
+      this.demoTween = null;
       skipHit.destroy();
       this.tapSkipHint?.destroy();
       this.tapSkipHint = null;
@@ -327,7 +329,7 @@ export class OnboardingScene extends Phaser.Scene {
     }
 
     const tweenProxy = { x: startX };
-    this.tweens.add({
+    this.demoTween = this.tweens.add({
       targets: tweenProxy,
       x: endX,
       duration: 1600,
@@ -338,6 +340,7 @@ export class OnboardingScene extends Phaser.Scene {
         this.handPointer.setPosition(tweenProxy.x, handY);
       },
       onComplete: () => {
+        this.demoTween = null;
         this.mascot.setState('cheer');
         // Pause on the correct position so the student sees success
         this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
