@@ -1003,7 +1003,13 @@ export class LevelScene extends Phaser.Scene {
         // Limit to recent 10 for performance
         const limitedAttempts = recentAttempts.slice(-10);
         const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
+        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+          await import('../lib/adapters');
+        const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
+          clock: SystemClock,
+          ids: CryptoUuidGenerator,
+          logger: ConsoleEngineLogger,
+        });
 
         if (flags.length > 0) {
           const { misconceptionFlagRepo } =
