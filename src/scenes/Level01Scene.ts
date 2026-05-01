@@ -1106,7 +1106,10 @@ export class Level01Scene extends Phaser.Scene {
         result = partitionEqualAreas.fn(input, payload);
       }
     } catch (err) {
-      console.error('[Level01Scene] Validator error — marking ABANDONED:', err);
+      // R18: Surface validator errors visibly for debugging
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('[Level01Scene] Validator threw:', errorMsg);
+      log.error('VALID', 'crash', { err: errorMsg, templateId: this.currentQuestion.id });
       result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
     }
 
