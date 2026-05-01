@@ -339,11 +339,11 @@ This eliminates parity rather than enforcing it. It also means the runtime can n
 **Recommendation A1 (Phase 3):** sunset Level01Scene. Defer to Path B only if the L1 special-cases (per `LEVEL_META`) cannot be expressed in the config-driven `LevelScene` — which the audit found no evidence of.
 
 
-## 4.5 Cross-cutting findings (security, PWA, i18n, observability, hidden coupling)
+## 4.8 Cross-cutting findings (security, PWA, i18n, observability, hidden coupling)
 
 These dimensions span multiple SOLID/SRP buckets but are coherent enough to surface separately. **None of these were captured in the v1 plan**; they emerged from three follow-up agent passes (security/privacy, PWA/i18n/observability, hidden-coupling/state).
 
-### 4.5.A Security & supply chain (HIGH–CRITICAL)
+### 4.8.A Security & supply chain (HIGH–CRITICAL)
 
 - **CRITICAL: 8 unpatched npm vulnerabilities** including `esbuild ≤0.24.2` (dev-server bypass — GHSA-67mh-4wv8-2f99) and `serialize-javascript ≤7.0.4` (RCE via RegExp.flags + CPU DoS). All in dev dependencies, but exploitable during CI/CD if the build environment is compromised. **Remediation (Phase 0.6):** `npm audit fix`; pin post-upgrade; add `npm audit` to the pre-commit hook (`scripts/residual-lint.mjs` already exists as a hook home).
 - **HIGH: Three new C5 violations** beyond the ones the v1 plan tracks:
