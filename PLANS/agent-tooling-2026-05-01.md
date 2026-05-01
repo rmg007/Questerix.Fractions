@@ -629,20 +629,178 @@ Delegate to these via the Agent tool when scope warrants. Auto-fire triggers (Ph
 
 ---
 
-## Phase 4 — Wire subagents into CI (delivers D-25)
+## Phase 4 — Refine existing `subagent-pr-audit.yml` (concrete patches)
 
-**Goal:** Drift caught even when no Claude session is open. PRs the user opens manually get audited too.
+**Goal:** Drift caught even when no Claude session is open. The workflow already exists; this phase wires the two new Phase 3 subagents and consolidates per-agent comment spam.
 
-`.github/workflows/subagent-pr-audit.yml`:
-- On PR open targeting `main`.
-- Detect changed paths via `dorny/paths-filter`.
-- Map paths → relevant subagents (Phase 3 table).
-- Invoke each via the Anthropic API with a per-subagent token cap.
-- Post a single consolidated PR comment (one bot message, not per-agent spam).
-- Idempotent: re-runs on `synchronize` overwrite the comment, don't append.
-- Gated by `AGENT_AUTONOMY_ENABLED` repo variable (already documented in D-25).
+### 4.1 Diagnosis of current state
 
-**Acceptance:** Open a test PR with a deliberate `Math.random` in `src/engine/`. Within 2 min, a single comment appears citing the violation with the PR-#16 reference.
+The current workflow (`.github/workflows/subagent-pr-audit.yml`, 347 lines) triggers on `pull_request: [opened, synchronize, reopened]` with a per-PR concurrency group that cancels in-progress runs (lines 11–13 — idempotent on `synchronize`).
+
+Job 1 `get-changed-files` (lines 19–82) calls `pulls.listFiles` (capped at 100 files) and uses an inline `match()` helper to compute four boolean outputs: `validators_changed` (`src/validators/**`), `interactions_changed` (`src/components/**`, `src/scenes/interactions/**`, top-level `src/scenes/*Scene.ts`), `bundle_changed` (`package.json` / `package-lock.json`), and `any_src_changed`.
+
+Jobs 2–5 (lines 87–346) each call the reusable `./.github/workflows/_shared/agent-dispatch.yml` with `timeout_minutes: 15` (no per-subagent token cap) and post one comment per subagent via `./.github/actions/pr-comment-update` keyed on a per-agent `comment-tag` (`c1-c10-audit`, `a11y-audit`, `bundle-audit`, `validator-parity-audit`).
+
+### 4.2 Gaps relative to Phase 3
+
+- **No `engine_changed` filter.** New `engine-determinism-auditor` has no trigger.
+- **No `curriculum_changed` filter.** New `curriculum-byte-parity` has no trigger.
+- **One PR comment per subagent.** Phase 3 brings the count to six separate threaded comments; needs consolidation into a single `subagent-audit-summary` upserted comment.
+- **No per-subagent token budget.** Reusable dispatcher gets `timeout_minutes: 15` only; one runaway agent could drain monthly key budget.
+- **Idempotency on `synchronize` is OK** (concurrency cancels in-flight; comment action upserts by tag).
+
+### 4.3 Patch A — extend Job 1 path filters
+
+```yaml
+   get-changed-files:
+     runs-on: ubuntu-latest
+     outputs:
+       validators_changed:    ${{ steps.check.outputs.validators_changed }}
+       interactions_changed:  ${{ steps.check.outputs.interactions_changed }}
+       bundle_changed:        ${{ steps.check.outputs.bundle_changed }}
++      engine_changed:        ${{ steps.check.outputs.engine_changed }}
++      curriculum_changed:    ${{ steps.check.outputs.curriculum_changed }}
+       any_src_changed:       ${{ steps.check.outputs.any_src_changed }}
+       changed_files_list:    ${{ steps.check.outputs.changed_files_list }}
+       diff_summary:          ${{ steps.check.outputs.diff_summary }}
+```
+
+Inside the `script:` block, after `bundle_changed`:
+
+```yaml
++            // Engine determinism — exclude the ports file itself, which is the boundary that may legally hold host calls.
++            const engine_changed = paths.some(
++              p => p.startsWith('src/engine/') && p !== 'src/engine/ports.ts'
++            );
++
++            // Curriculum byte-parity — both bundle paths plus pipeline output (a pipeline-only change still requires `npm run build:curriculum`).
++            const curriculum_changed =
++              paths.includes('public/curriculum/v1.json') ||
++              paths.includes('src/curriculum/bundle.json') ||
++              paths.some(p => p.startsWith('pipeline/output/'));
++
+             const any_src_changed = paths.some(
+```
+
+And at the bottom:
+
+```yaml
+             core.setOutput('bundle_changed',       String(bundle_changed));
++            core.setOutput('engine_changed',       String(engine_changed));
++            core.setOutput('curriculum_changed',   String(curriculum_changed));
+             core.setOutput('any_src_changed',      String(any_src_changed));
+```
+
+### 4.4 Patch B — Job 6 (engine-determinism-auditor)
+
+```yaml
++  audit-engine-determinism:
++    needs: get-changed-files
++    if: needs.get-changed-files.outputs.engine_changed == 'true'
++    continue-on-error: true
++    uses: ./.github/workflows/_shared/agent-dispatch.yml
++    with:
++      prompt_template: subagent-audit
++      context_json: >-
++        {
++          "SUBAGENT_NAME": "engine-determinism-auditor",
++          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
++          "PR_NUMBER": "${{ github.event.pull_request.number }}",
++          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
++        }
++      working_branch: ${{ github.event.pull_request.head.ref }}
++      pr_number: ${{ github.event.pull_request.number }}
++      timeout_minutes: 10
++      max_tokens: 8000
++    secrets:
++      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
++      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### 4.5 Patch C — Job 7 (curriculum-byte-parity)
+
+```yaml
++  audit-curriculum-parity:
++    needs: get-changed-files
++    if: needs.get-changed-files.outputs.curriculum_changed == 'true'
++    continue-on-error: true
++    uses: ./.github/workflows/_shared/agent-dispatch.yml
++    with:
++      prompt_template: subagent-audit
++      context_json: >-
++        {
++          "SUBAGENT_NAME": "curriculum-byte-parity",
++          "CHANGED_FILES": "${{ needs.get-changed-files.outputs.changed_files_list }}",
++          "PR_NUMBER": "${{ github.event.pull_request.number }}",
++          "DIFF_SUMMARY": "${{ needs.get-changed-files.outputs.diff_summary }}"
++        }
++      working_branch: ${{ github.event.pull_request.head.ref }}
++      pr_number: ${{ github.event.pull_request.number }}
++      timeout_minutes: 5
++      max_tokens: 6000
++    secrets:
++      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
++      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> **Prerequisite for Patches B & C:** `max_tokens` must be added as an optional input to `_shared/agent-dispatch.yml` (default e.g. `15000`) and threaded into the Anthropic call. Apply the same input to the existing four dispatcher invocations to retire the unbudgeted state across the board.
+
+### 4.6 Patch D — Consolidate per-agent comments into one
+
+Replace the six `post-*-comment` jobs with one aggregator that runs `if: always()` after every `audit-*` job, collects each `outputs.summary`, and upserts a single comment under tag `subagent-audit-summary`. Strip comment steps from per-agent jobs; the aggregator is the only writer.
+
+```yaml
++  post-consolidated-comment:
++    needs:
++      - get-changed-files
++      - audit-c1-c10
++      - audit-a11y
++      - audit-bundle
++      - audit-validator-parity
++      - audit-engine-determinism
++      - audit-curriculum-parity
++    if: always() && needs.get-changed-files.outputs.any_src_changed == 'true'
++    runs-on: ubuntu-latest
++    continue-on-error: true
++    steps:
++      - uses: actions/checkout@v4
++      - name: Upsert consolidated PR comment
++        uses: ./.github/actions/pr-comment-update
++        with:
++          comment-tag: subagent-audit-summary
++          pr-number: ${{ github.event.pull_request.number }}
++          github-token: ${{ secrets.GITHUB_TOKEN }}
++          content: |
++            ## Subagent Audit Summary
++
++            ${{ needs.get-changed-files.outputs.diff_summary }}
++
++            <details><summary>C1–C10 Constraint Audit</summary>
++
++            ${{ needs.audit-c1-c10.result == 'skipped' && '_skipped (no relevant changes)_' || needs.audit-c1-c10.outputs.summary || '_auditor errored — manual review recommended_' }}
++            </details>
++
++            <details><summary>Engine Determinism Audit</summary>
++
++            ${{ needs.audit-engine-determinism.result == 'skipped' && '_skipped (no engine changes)_' || needs.audit-engine-determinism.outputs.summary || '_auditor errored — run `npx eslint src/engine/**/*.ts` locally_' }}
++            </details>
++
++            <details><summary>Curriculum Byte-Parity Audit</summary>
++
++            ${{ needs.audit-curriculum-parity.result == 'skipped' && '_skipped (no curriculum changes)_' || needs.audit-curriculum-parity.outputs.summary || '_auditor errored — run `sha256sum public/curriculum/v1.json src/curriculum/bundle.json` locally_' }}
++            </details>
++
++            *Consolidated by [subagent-pr-audit](/.github/workflows/subagent-pr-audit.yml). Re-runs on every push to this PR; this comment is upserted, not duplicated.*
+```
+
+(Full version includes `<details>` blocks for a11y, bundle, validator-parity too — same pattern.)
+
+### 4.7 Acceptance for Phase 4
+
+- `subagent-pr-audit.yml` has `engine_changed` and `curriculum_changed` outputs from Job 1.
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces a single bot comment (not six) within 2 min.
+- A `synchronize` event overwrites the comment in place — `gh api repos/.../issues/<n>/comments` returns one bot comment.
+- `_shared/agent-dispatch.yml` accepts `max_tokens` input; all six dispatcher invocations pass an explicit budget.
 
 **Effort:** 4–6 hr.
 
