@@ -26,6 +26,10 @@ All progression data lives here. localStorage is **not** an option (C5).
 4. Re-export from `repositories/index.ts` if you have one, or wire callers directly.
 5. Add unit tests; use `fake-indexeddb/auto` to set up a real Dexie instance in tests.
 
+## Extend rows before adding tables
+
+Before introducing a new entity, ask: can this be a new field on an existing row? Per-level counters, scalar flags, or per-student-per-level maps belong on the existing entity row (`Record<number, number>` on `LevelProgression`, a boolean on `DevicePreferences`, etc.) — **not** in a new table. Mark the new field **optional** in the type so existing rows from earlier schema versions still validate; readers normalise the absent case (`?? {}` / `?? false`). Reach for a new table only when the data has its own lifecycle, query needs, or write cadence.
+
 ## C5 status
 
 As of 2026-05-01, all known localStorage uses outside the documented `lastUsedStudentId` exception have been migrated to IndexedDB:

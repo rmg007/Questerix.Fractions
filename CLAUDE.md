@@ -31,9 +31,16 @@ Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-cha
 - **Append to it whenever you discover something a future agent would benefit from.** Use `/learn <text>` — one line per entry, newest first. Bar for inclusion: cost you debugging time, contradicted apparent docs, or wasn't in CLAUDE.md.
 - **Run `/retro` before closing a substantive session.** It proposes targeted updates to CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, and the decision log based on the diff.
 
+### Plans must have phases. End-of-phase = update docs.
+
+- **Every plan in `PLANS/` must be structured as ordered phases with explicit gate criteria.** Free-form task lists without phase boundaries are not acceptable; if a plan lacks phases, restructure it before starting work.
+- **At the close of every phase** (not every session — every *phase*): sweep this conversation for non-obvious lessons and propagate them to (a) `.claude/learnings.md` (one-line gotchas), (b) this `CLAUDE.md` if a durable rule changed, (c) any nested `CLAUDE.md` whose surface was touched, (d) `.claude/agents/*.md` and `.claude/commands/*.md` if subagent or skill behavior should evolve, then (e) `npm run sync:claude-md` to refresh the auto-generated tables. Commit those doc updates as part of the phase-closing PR — do not defer to a later "cleanup" branch.
+
 ## Specialist subagents (in `.claude/agents/`)
 
 Delegate to these via the Agent tool when scope warrants. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`. The table body below is auto-generated from `.claude/agents/*.md` frontmatter by `npm run sync:claude-md`.
+
+**Swarm orchestration (when to fan out):** prefer parallel agent fan-out for independent workstreams within a phase — partition by **file**, not by feature. Two agents touching the same file in parallel = guaranteed merge mess. Workflow: list each workstream's file set, group into rounds where every round's agents have **zero file overlap**, run rounds sequentially, give each agent an explicit "do NOT touch these files" guard. Don't fan out for sequential or contended work — overusing agents has a real coordination cost.
 
 | Subagent | Description |
 |---|---|
@@ -62,12 +69,22 @@ The harness exposes user-invocable skills that overlap our slash commands. Hooks
 ## Autonomous mode
 
 `.claude/settings.json` (committed, repo-wide) pre-approves the safe surface so agents work without permission prompts:
-- **allow** — all `npm run` scripts, `npx tsc`/`eslint`/`prettier`/`vitest`/`playwright`, read-only `git`, project `node scripts/*`, pipeline Python, plus `git add`/`commit`/`mv`/`rm` for normal flow.
-- **ask** — `git push`, `git reset --hard`, `npm run deploy`, `npx wrangler`, `npm publish` (always confirm).
+- **allow** — all `npm run` scripts, `npx tsc`/`eslint`/`prettier`/`vitest`/`playwright`, read-only `git`, project `node scripts/*`, pipeline Python, `git add`/`commit`/`mv`/`rm`/`push`, and the GitHub MCP PR tools (`create_pull_request`, `merge_pull_request`, `update_pull_request`).
+- **ask** — `git reset --hard`, `npm run deploy`, `npx wrangler`, `npm publish` (always confirm).
 - **deny** — `.env*` reads, `git push --force`, `curl`/`wget`, `rm -rf /`/`~`.
 - **SessionStart hook** — prints branch, dirty count, doc pointers, and slash commands when a session starts so the agent orients in one screen.
 
 Personal overrides go in `.claude/settings.local.json` (gitignored — your local file persists; not committed).
+
+### Push-and-merge default
+
+After a successful commit on a non-`main` feature/`claude/*` branch where typecheck + lint + unit tests are green, **push to remote and squash-merge the PR without asking**. The flow:
+
+1. `git push -u origin <branch>` (with the network-retry policy already documented above).
+2. `mcp__github__create_pull_request` against `main` with a Summary + Test plan body.
+3. `mcp__github__merge_pull_request` with `merge_method: "squash"` (matches the existing `(#NN)` history).
+
+Skip the PR step only if the branch already has an open PR — update it instead. Pause for confirmation only when: `main` itself is the head, the diff touches `.env*` or CI infra, force-push would be involved, or the user has indicated otherwise this turn.
 
 ---
 
