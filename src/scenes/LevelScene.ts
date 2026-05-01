@@ -965,11 +965,28 @@ export class LevelScene extends Phaser.Scene {
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
     if (!this.studentId || !this.sessionId) return;
+
+    const studentIdTyped = this.studentId as import('@/types').StudentId;
+    const sessionIdTyped = this.sessionId as import('@/types').SessionId;
+
+    // Phase 6.3: wrap attempt + mastery in a single Dexie transaction so
+    // partial state (attempt persisted but mastery not updated, or vice versa)
+    // is impossible. Misconception detection stays separate / best-effort —
+    // detector failures must not roll back the attempt itself.
     try {
+      const { db } = await import('../persistence/db');
       const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+      const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
       const attemptId = crypto.randomUUID() as import('@/types').AttemptId;
+      const isCorrect = result.outcome === 'correct';
+      const skillIds = this.currentTemplate.skillIds ?? [];
+      const skillId = (skillIds[0] ??
+        `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
+
       log.atmp('record_start', {
         attemptId,
         outcome,
@@ -977,44 +994,35 @@ export class LevelScene extends Phaser.Scene {
         questionId: this.currentTemplate.id,
         hintsUsed: this.currentQuestionHintIds.length,
       });
-      await attemptRepo.record({
-        id: attemptId,
-        sessionId: this.sessionId as import('@/types').SessionId,
-        studentId: this.studentId as import('@/types').StudentId,
-        questionTemplateId: this.currentTemplate.id,
-        archetype: this.currentTemplate.archetype,
-        roundNumber: this.questionIndex + 1,
-        attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
-        startedAt: Date.now() - responseMs,
-        submittedAt: Date.now(),
-        responseMs,
-        studentAnswerRaw: this.lastPayload,
-        correctAnswerRaw: null,
-        outcome,
-        errorMagnitude: null,
-        pointsEarned: result.score,
-        hintsUsedIds: [...this.currentQuestionHintIds],
-        hintsUsed: [],
-        roundEvents: [...this.currentRoundEvents],
-        flaggedMisconceptionIds: [],
-        validatorPayload: result,
-        syncState: 'local',
-      });
 
-      // Fix G-E1: update BKT mastery after every attempt
-      try {
-        const isCorrect = result.outcome === 'correct';
-        const skillIds = this.currentTemplate.skillIds ?? [];
-        const skillId = (skillIds[0] ??
-          `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
-        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
-        const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+      await db.transaction('rw', [db.attempts, db.skillMastery], async () => {
+        await attemptRepo.record({
+          id: attemptId,
+          sessionId: sessionIdTyped,
+          studentId: studentIdTyped,
+          questionTemplateId: this.currentTemplate.id,
+          archetype: this.currentTemplate.archetype,
+          roundNumber: this.questionIndex + 1,
+          attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
+          startedAt: Date.now() - responseMs,
+          submittedAt: Date.now(),
+          responseMs,
+          studentAnswerRaw: this.lastPayload,
+          correctAnswerRaw: null,
+          outcome,
+          errorMagnitude: null,
+          pointsEarned: result.score,
+          hintsUsedIds: [...this.currentQuestionHintIds],
+          hintsUsed: [],
+          roundEvents: [...this.currentRoundEvents],
+          flaggedMisconceptionIds: [],
+          validatorPayload: result,
+          syncState: 'local',
+        });
 
-        const existing = await skillMasteryRepo.get(
-          this.studentId as import('@/types').StudentId,
-          skillId
-        );
-        const studentIdTyped = this.studentId as import('@/types').StudentId;
+        // Fix G-E1: update BKT mastery after every attempt — same transaction
+        // as the attempt write so they are atomic.
+        const existing = await skillMasteryRepo.get(studentIdTyped, skillId);
         const prev: import('@/types').SkillMastery = existing ?? {
           studentId: studentIdTyped,
           skillId,
@@ -1052,42 +1060,49 @@ export class LevelScene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
-      } catch (err) {
-        log.warn('BKT', 'mastery_update_error', { level: this.levelNumber, error: String(err) });
-      }
+      });
+    } catch (err) {
+      // Transaction rolled back. Don't run detectors on a non-durable attempt.
+      log.error('ATMP', 'record_failed', { error: String(err) });
+      return;
+    }
 
-      // C7.2: Run misconception detectors and upsert flags
-      try {
-        const recentAttempts = await attemptRepo.listForStudent(
-          this.studentId as import('@/types').StudentId
-        );
-        // Limit to recent 10 for performance
-        const limitedAttempts = recentAttempts.slice(-10);
-        const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
-          await import('../lib/adapters');
-        const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
-          clock: SystemClock,
-          ids: CryptoUuidGenerator,
-          logger: ConsoleEngineLogger,
-        });
+    // C7.2: Run misconception detectors and upsert flags. Best-effort —
+    // detector failures must not roll back the attempt+mastery transaction
+    // above (per Phase 6.3 design). Wrapped in its own transaction so the
+    // flag writes are atomic with each other.
+    try {
+      const { db } = await import('../persistence/db');
+      const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const recentAttempts = await attemptRepo.listForStudent(
+        this.studentId as import('@/types').StudentId
+      );
+      // Limit to recent 10 for performance
+      const limitedAttempts = recentAttempts.slice(-10);
+      const { runAllDetectors } = await import('../engine/misconceptionDetectors');
+      const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+        await import('../lib/adapters');
+      const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
+        clock: SystemClock,
+        ids: CryptoUuidGenerator,
+        logger: ConsoleEngineLogger,
+      });
 
-        if (flags.length > 0) {
-          const { misconceptionFlagRepo } =
-            await import('../persistence/repositories/misconceptionFlag');
+      if (flags.length > 0) {
+        const { misconceptionFlagRepo } =
+          await import('../persistence/repositories/misconceptionFlag');
+        await db.transaction('rw', [db.misconceptionFlags], async () => {
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
-          log.misc('flags_detected', {
-            count: flags.length,
-            ids: flags.map((f) => f.misconceptionId),
-          });
-        }
-      } catch (err) {
-        log.warn('MISC', 'detection_error', { error: String(err) });
+        });
+        log.misc('flags_detected', {
+          count: flags.length,
+          ids: flags.map((f) => f.misconceptionId),
+        });
       }
     } catch (err) {
-      log.error('ATMP', 'record_failed', { error: String(err) });
+      log.warn('MISC', 'detection_error', { error: String(err) });
     }
   }
 
