@@ -50,7 +50,10 @@ function tierFor(branch) {
   if (/^(chore|docs|plans)\//.test(branch)) return 'light';
   if (/^(fix|test)\//.test(branch)) return 'medium';
   if (/^(feat|refactor)\//.test(branch)) return 'full';
-  // claude/*, worktree-agent-*, main, detached, unknown — defensive default
+  // claude/* and worktree-agent-* are agent branches; treat like fix/* —
+  // medium by default, auto-escalated to full if src/** was touched.
+  if (/^(claude\/|worktree-agent-)/.test(branch)) return 'medium';
+  // main, detached, unknown — defensive default
   return 'full';
 }
 
