@@ -245,6 +245,11 @@ export interface ProgressionStat {
  * Per-student level unlock/completion tracking (replaces localStorage).
  * Single row per student tracking which levels are unlocked and completed.
  * per C5 and P4 Dexie migration.
+ *
+ * Phase 2a (D-1): adds `consecutiveFailedSessions`, a per-level counter
+ * tracking sessions where the student failed to reach the unlock threshold
+ * (3/5 correct). After three consecutive failures the never-stuck escape
+ * hatch unlocks the next level silently.
  */
 export interface LevelProgression {
   studentId: StudentId;
@@ -252,6 +257,14 @@ export interface LevelProgression {
   unlockedLevels: number[];
   /** Array of completed level numbers (1–9). */
   completedLevels: number[];
+  /**
+   * Per-level count of consecutive sessions that failed to reach the
+   * unlock threshold (3/5 correct). Resets to 0 on a passing session.
+   * Keys are level numbers (1–9). Missing key implies 0.
+   * Optional for backward compatibility with rows persisted before
+   * Phase 2a (D-1) — readers normalise to {} when absent.
+   */
+  consecutiveFailedSessions?: Record<number, number>;
   /** Epoch ms; updated whenever unlocked/completed changes. */
   lastUpdatedAt: number;
   syncState: SyncState;
@@ -280,6 +293,14 @@ export interface DevicePreferences {
    * per data-schema.md §3.8 and persistence-spec.md §3.2 (audit §5 fix)
    */
   persistGranted: boolean;
+  /**
+   * Researcher escape hatch (Phase 2a / D-1): when true, every level-unlock
+   * gate short-circuits to "unlocked" so observers can probe later levels
+   * without grinding through them. Toggled by tapping the SettingsScene
+   * version label three times. Defaults to false. Optional for backward
+   * compatibility with rows persisted before Phase 2a.
+   */
+  unlockGateBypass?: boolean;
 }
 
 /** Singleton per device. per data-schema.md §3.8 */
@@ -329,23 +350,6 @@ export interface Bookmark {
   levelNumber: number;
   /** Epoch ms. */
   savedAt: number;
-  syncState: SyncState;
-}
-
-// ── §3.7a LevelProgression ────────────────────────────────────────────────
-/**
- * Per-student level unlock/completion tracking (replaces localStorage).
- * Single row per student tracking which levels are unlocked and completed.
- * per C5 and R13 Dexie migration.
- */
-export interface LevelProgression {
-  studentId: StudentId;
-  /** Array of unlocked level numbers (1–9). */
-  unlockedLevels: number[];
-  /** Array of completed level numbers (1–9). */
-  completedLevels: number[];
-  /** Epoch ms; updated whenever unlocked/completed changes. */
-  lastUpdatedAt: number;
   syncState: SyncState;
 }
 

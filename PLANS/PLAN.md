@@ -115,13 +115,13 @@ Fix in order; B1 and B2 block first-impression UX, B3 is secondary.
 
 ---
 
-## Phase 2 — Core Features
+## Phase 2 — Core Features ✅ DONE
 
-Four independent workstreams; all can run in parallel once Phase 1 is green.
+All four workstreams (2a, 2b, 2c, 2d) shipped 2026-05-01 via 4-agent parallel swarm. Combined: 12 files modified, 3 new files (`unlockGate.ts`, `PostSessionOverlay.ts`, `levelCardMasteryStar.ts`), +430/−219 LOC. Typecheck/lint/655 unit tests green.
 
 ---
 
-### 2a — Level unlock model (D-1)
+### 2a — Level unlock model (D-1) ✅
 
 **Effort:** 2–3 h  
 **Files:**
@@ -138,7 +138,7 @@ Four independent workstreams; all can run in parallel once Phase 1 is green.
 
 ---
 
-### 2b — Post-session routing overlay (UI-11)
+### 2b — Post-session routing overlay (UI-11) ✅
 
 **Effort:** 3–5 h  
 **Files:** `src/components/PostSessionOverlay.ts` (new), `src/scenes/LevelMapScene.ts`, `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts`
@@ -160,7 +160,7 @@ Trigger: pass `{ postSession: true }` to `LevelMapScene.init()` from session-com
 
 ---
 
-### 2c — Menu station badges (D-menu-fraction-badges)
+### 2c — Menu station badges (D-menu-fraction-badges) ✅
 
 **Effort:** 1–2 h  
 **File:** `src/scenes/MenuScene.ts`
@@ -179,7 +179,7 @@ Label sizing: ~24–28 px Fredoka One, ~48 px icon. Keep the wavy number-line pa
 
 ---
 
-### 2d — Gold mastery ribbon on level cards (P4)
+### 2d — Gold mastery ribbon on level cards (P4) ✅
 
 **Effort:** 1–2 h  
 **Files:** `src/scenes/MenuScene.ts`, `src/persistence/repositories/skillMastery.ts`

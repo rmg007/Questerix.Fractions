@@ -14,6 +14,7 @@ import { PreferenceToggle } from '../components/PreferenceToggle';
 import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
+import { toggleUnlockGateBypass, isUnlockGateBypassEnabled } from '../lib/preferences';
 
 const CW = 800;
 const CH = 1280;
@@ -164,6 +165,9 @@ export class SettingsScene extends Phaser.Scene {
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(cx, 1100, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
+
+    // ── Version label (triple-tap = researcher unlock-gate bypass; D-1) ────
+    this.createVersionTapToggle(cx, 1200);
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -519,6 +523,48 @@ export class SettingsScene extends Phaser.Scene {
     hitZone.on('pointerout', () => draw());
 
     g.setDepth(1);
+  }
+
+  // ── Researcher escape hatch (Phase 2a / D-1) ───────────────────────────
+  private versionTapCount = 0;
+  private versionTapTimer: Phaser.Time.TimerEvent | null = null;
+  private researcherToast: Phaser.GameObjects.Text | null = null;
+
+  private createVersionTapToggle(cx: number, y: number): void {
+    const sha = (import.meta.env.VITE_GIT_SHA as string | undefined) ?? 'dev';
+    const label = `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`;
+    const txt = this.add
+      .text(cx, y, label, { fontSize: '14px', fontFamily: BODY_FONT, color: HEX.neutral600 })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(3);
+    txt.on('pointerup', () => void this.handleVersionTap(txt, sha));
+  }
+
+  private async handleVersionTap(txt: Phaser.GameObjects.Text, sha: string): Promise<void> {
+    this.versionTapCount += 1;
+    this.versionTapTimer?.remove();
+    this.versionTapTimer = this.time.delayedCall(800, () => {
+      this.versionTapCount = 0;
+    });
+    if (this.versionTapCount >= 3) {
+      this.versionTapCount = 0;
+      const next = await toggleUnlockGateBypass();
+      txt.setText(`v ${sha}${next ? '  (researcher)' : ''}`);
+      this.showResearcherToast(next ? 'Researcher mode ON' : 'Researcher mode OFF');
+    }
+  }
+
+  private showResearcherToast(msg: string): void {
+    this.researcherToast?.destroy();
+    this.researcherToast = this.add
+      .text(CW / 2, 1240, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' })
+      .setOrigin(0.5)
+      .setDepth(5);
+    this.time.delayedCall(2000, () => {
+      this.researcherToast?.destroy();
+      this.researcherToast = null;
+    });
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────────

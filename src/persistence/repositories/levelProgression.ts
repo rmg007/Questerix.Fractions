@@ -2,6 +2,11 @@
  * LevelProgression repository — upsert via key studentId.
  * Tracks which levels are unlocked and completed per student (replaces localStorage).
  * per C5 constraint and P4 (Dexie migration).
+ *
+ * Phase 2a (D-1): also tracks `consecutiveFailedSessions`, a per-level counter
+ * used by the never-stuck escape hatch. A session is a "failure" when the
+ * student finished it with fewer than 3/5 correct answers. After three
+ * consecutive failures the next level unlocks silently.
  */
 
 import { db } from '../db';
@@ -38,13 +43,20 @@ export const levelProgressionRepo = {
    */
   async getOrCreate(studentId: StudentId): Promise<LevelProgression> {
     const existing = await this.get(studentId);
-    if (existing) return existing;
+    if (existing) {
+      // Backfill the field on rows persisted before Phase 2a (D-1).
+      if (!existing.consecutiveFailedSessions) {
+        existing.consecutiveFailedSessions = {};
+      }
+      return existing;
+    }
 
     // First-time student: level 1 is unlocked, nothing completed
     const initial: LevelProgression = {
       studentId,
       unlockedLevels: [1],
       completedLevels: [],
+      consecutiveFailedSessions: {},
       lastUpdatedAt: Date.now(),
       syncState: 'local',
     };
@@ -116,5 +128,53 @@ export const levelProgressionRepo = {
     } catch (err) {
       // idempotent
     }
+  },
+
+  // ── Phase 2a (D-1): consecutive-failed-session counter ──────────────────
+
+  /**
+   * Get the count of consecutive sessions in which the student failed to
+   * reach the unlock threshold (3/5 correct) for the given level. Returns 0
+   * if no record exists or the level has never failed.
+   */
+  async getFailedSessions(studentId: StudentId, levelNumber: number): Promise<number> {
+    const prog = await this.get(studentId);
+    if (!prog) return 0;
+    return prog.consecutiveFailedSessions?.[levelNumber] ?? 0;
+  },
+
+  /**
+   * Increment the consecutive-failed-sessions counter for the given level
+   * and return the new value. Initializes the record (and the per-level
+   * counter) lazily.
+   */
+  async incrementFailedSession(studentId: StudentId, levelNumber: number): Promise<number> {
+    const prog = await this.getOrCreate(studentId);
+    const map = prog.consecutiveFailedSessions ?? {};
+    const next = (map[levelNumber] ?? 0) + 1;
+    map[levelNumber] = next;
+    prog.consecutiveFailedSessions = map;
+    prog.lastUpdatedAt = Date.now();
+    await this.upsert(prog);
+    return next;
+  },
+
+  /**
+   * Reset the consecutive-failed-sessions counter for the given level to 0.
+   * Called whenever the gate passes (either via the 3/5 threshold or via the
+   * never-stuck escape hatch).
+   */
+  async resetFailedSessions(studentId: StudentId, levelNumber: number): Promise<void> {
+    const prog = await this.getOrCreate(studentId);
+    const map = prog.consecutiveFailedSessions ?? {};
+    if (map[levelNumber] === undefined || map[levelNumber] === 0) {
+      // Still ensure the field is initialised so future writes are stable.
+      prog.consecutiveFailedSessions = map;
+      return;
+    }
+    map[levelNumber] = 0;
+    prog.consecutiveFailedSessions = map;
+    prog.lastUpdatedAt = Date.now();
+    await this.upsert(prog);
   },
 };
