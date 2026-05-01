@@ -335,8 +335,13 @@ export class LevelScene extends Phaser.Scene {
     this.questionIndex = index;
     this.wrongCount = 0;
     this.inputLocked = false;
+    this.lastPayload = null;
     this.currentQuestionHintIds = [];
     this.currentRoundEvents = [];
+
+    // Ensure chrome submit button is visible at start of each question.
+    // Interaction mount might hide it (e.g. for 'identify' archetype).
+    this.submitButtonContainer?.setVisible(true);
 
     // Unmount previous interaction
     this.activeInteraction?.unmount();
@@ -395,9 +400,74 @@ export class LevelScene extends Phaser.Scene {
       onCommit: (payload) => void this.onCommit(payload),
       pushEvent: (event) => this.currentRoundEvents.push(event),
     });
+
+    // Fix duplicate button: IdentifyInteraction renders its own internal "Check" button.
+    this.submitButtonContainer?.setVisible(this.currentTemplate?.archetype !== 'identify');
   }
 
+  private static readonly LEVEL_FALLBACK_OVERRIDES: Record<
+    number,
+    {
+      archetype: import('@/types').ArchetypeId;
+      payload: any;
+      validatorId: import('@/types').ValidatorId;
+      prompt: string;
+    }
+  > = {
+    1: {
+      archetype: 'partition',
+      payload: {
+        shapeType: 'rectangle',
+        targetPartitions: 2,
+        snapMode: 'axis',
+        areaTolerance: 0.05,
+      },
+      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
+      prompt: 'Cut the shape into 2 equal parts.',
+    },
+    2: {
+      archetype: 'partition',
+      payload: {
+        shapeType: 'rectangle',
+        targetPartitions: 3,
+        snapMode: 'free',
+        areaTolerance: 0.08,
+      },
+      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
+      prompt: 'Cut the shape into 3 equal parts.',
+    },
+    3: {
+      archetype: 'equal_or_not',
+      payload: {
+        partitionLines: [
+          [
+            [0.5, 0],
+            [0.5, 1],
+          ],
+        ],
+      },
+      validatorId: 'validator.equal_or_not.areaTolerance' as import('@/types').ValidatorId,
+      prompt: 'Are these two parts equal?',
+    },
+  };
+
   private makeFallbackTemplate(): QuestionTemplate {
+    const override = LevelScene.LEVEL_FALLBACK_OVERRIDES[this.levelNumber];
+
+    if (override) {
+      return {
+        id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
+        archetype: override.archetype,
+        prompt: { text: override.prompt, ttsKey: '' },
+        payload: override.payload,
+        correctAnswer: override.archetype === 'equal_or_not' ? true : null,
+        validatorId: override.validatorId,
+        skillIds: [],
+        misconceptionTraps: [],
+        difficultyTier: 'easy',
+      };
+    }
+
     return {
       id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
       archetype: 'partition',

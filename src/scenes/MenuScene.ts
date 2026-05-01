@@ -24,6 +24,7 @@ import { LevelCard } from '../components/LevelCard';
 import { LEVEL_META } from './utils/levelMeta';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
+import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
@@ -149,8 +150,13 @@ export class MenuScene extends Phaser.Scene {
     const currentLevel = Math.max(...Array.from(unlocked));
 
     A11yLayer.unmountAll();
-    A11yLayer.mountAction('a11y-play', 'Open Adventure Map', () => {
-      fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+    A11yLayer.mountAction('a11y-play', 'Open Adventure Map', async () => {
+      const isComplete = await deviceMetaRepo.getOnboardingComplete();
+      if (!isComplete) {
+        fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
+      } else {
+        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+      }
     });
     if (this.lastStudentId) {
       A11yLayer.mountAction('a11y-continue', 'Continue from your last spot', () => {
@@ -176,8 +182,13 @@ export class MenuScene extends Phaser.Scene {
     // Position test hook over the Play! button location (~86% down).
     TestHooks.mountInteractive(
       'level-card-L1',
-      () => {
-        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+      async () => {
+        const isComplete = await deviceMetaRepo.getOnboardingComplete();
+        if (!isComplete) {
+          fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
+        } else {
+          fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+        }
       },
       { width: '420px', height: '120px', top: '86%', left: '50%' }
     );
@@ -313,8 +324,13 @@ export class MenuScene extends Phaser.Scene {
       fontSize: 56,
       shadowOffset: 8,
       rounded: true,
-      onTap: () => {
-        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+      onTap: async () => {
+        const isComplete = await deviceMetaRepo.getOnboardingComplete();
+        if (!isComplete) {
+          fadeAndStart(this, 'OnboardingScene', { studentId: this.lastStudentId });
+        } else {
+          fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
+        }
       },
     });
 
