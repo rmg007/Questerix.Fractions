@@ -24,6 +24,44 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-27 — 2026-05-01 — App ships English-only; multi-locale not on roadmap
+
+**Decision:** The app is committed to English-only delivery. Multi-locale support is **not** on the roadmap and will not be revisited at v2 unless explicitly reopened.
+
+**Why:** K-2 educational validation prototype with a fixed scope (C3 caps content at L9, C9 caps sessions at 15 min). The runtime i18n catalog (`src/lib/i18n/catalog.ts` + 445+ entries) is retained for its non-localization value (centralized strings, tone tags, content QA), but ICU plural support, locale-keyed pipeline output, RTL CSS, and locale-aware TTS are all explicitly rejected for MVP.
+
+**Alternatives:** Defer to a "future flag" — rejected, would leave Phase 14 work in `PLANS/code-quality-2026-05-01.md` as a phantom dependency. Plan an English+Spanish v2 — rejected, no validation-stage requirement and no localized curriculum content available.
+
+**Source:** `PLANS/code-quality-2026-05-01.md` §4.5.C, Phase 14 (now marked DEFERRED)
+
+---
+
+## D-26 — 2026-05-01 — Pipeline parity re-architecture deferred (recommendation A2)
+
+**Decision:** Recommendation A2 (move pipeline validation step to TypeScript; eliminate `pipeline/validators_py.py` and parity fixtures) is **deferred** to a discovery spike. Phase 9 of `PLANS/code-quality-2026-05-01.md` does not start until the spike is complete and approved.
+
+**Why:** A2 is structurally correct (eliminates rather than enforces parity, ~12 hr task on paper) but the boundary between "pipeline content generation" (Python, Anthropic SDK) and "validation step" (could be TS) is not concretely drawn. A 2-hour spike is needed to confirm the migration is a clean cut, not a re-cutting of the pipeline orchestration. The conservative fallback is Phase 0.2 with full parity-fixture coverage and CI invocation — already approved.
+
+**Alternatives:** Approve A2 immediately — rejected, scope risk too high. Reject A2 outright — rejected, the labor tax of hand-mirroring TS↔Python is real and recommendation A2 stands on architectural merit.
+
+**Source:** `PLANS/code-quality-2026-05-01.md` §6 Phase 9, recommendation A2; `PLANS/forensic-deep-dive-2026-05-01.md` §5.4
+
+---
+
+## D-25 — 2026-05-01 — Sunset Level01Scene.ts (Path A) over controller extraction (Path B)
+
+**Decision:** When the v2/v3 plan's Phase 3 executes, take **Path A**: migrate L1 into `LevelScene` via `LEVEL_META`, then delete `Level01Scene.ts` (1604 LOC). **Reject Path B** (extract a `QuestionLoopController` shared by both scenes).
+
+**Why:** The 45% duplication between `Level01Scene` and `LevelScene` is the visible symptom of the codebase's Original Sin — the Phaser Scene became the application architecture (per `PLANS/code-quality-2026-05-01.md` §12.1). Path B preserves the parallel scaffold and locks in a "shared controller" abstraction that becomes structurally indistinguishable from the simpler "L1 entered into the meta table" path. Path A is KISS over extracted abstraction.
+
+The forensic deep-dive (`PLANS/forensic-deep-dive-2026-05-01.md` §1.2) confirms that Path A is the cleanup the team always knew was coming — the bifurcation was deliberate per D-08, and commit `3dd038b` documented the planned fix that never executed. Path A executes that fix.
+
+**Alternatives:** Path B (controller extraction, ~18 hr instead of Path A's 14 hr) — rejected as documented above. Defer indefinitely — rejected, the duplication compounds with every behavior change.
+
+**Source:** `PLANS/code-quality-2026-05-01.md` §6 Phase 3; `PLANS/forensic-deep-dive-2026-05-01.md` §1, §4
+
+---
+
 ## D-24 — 2026-04-30 — Committed Claude Code agent harness as canonical onboarding mechanism
 
 **Decision:** The autonomous agent system — `CLAUDE.md` (root + 8 nested subtree guides), `.claude/settings.json` with pre-approved allow/ask/deny tiers, SessionStart/PreCompact/PostToolUse hooks, 9 slash commands, 4 specialist subagents, and `scripts/agent-doctor.mjs` — is the canonical onboarding mechanism for all coding agents working on this repo.
