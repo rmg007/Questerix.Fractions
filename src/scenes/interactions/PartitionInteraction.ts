@@ -15,8 +15,8 @@ import { sfx } from '../../audio/SFXService';
 
 const OPTION_BORDER = NAVY;
 
-const SHAPE_W = 340;
-const SHAPE_H = 260;
+const SHAPE_W = 400;
+const SHAPE_H = 520;
 const SNAP_PCT = 0.05;
 // Handle starts off-centre so the divider is clearly unequal on load —
 // otherwise the centre is already the correct halves answer and a stray

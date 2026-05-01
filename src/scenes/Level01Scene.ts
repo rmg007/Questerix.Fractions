@@ -12,7 +12,7 @@ import * as Phaser from 'phaser';
 import {
   drawAdventureBackground,
   createActionButton,
-  createHintCircleButton,
+  createHintPillButton,
   HINT_TEXT_STYLE,
   TITLE_FONT,
   BODY_FONT,
@@ -51,9 +51,9 @@ const CH = 1280;
 
 // Shape rendering region — centre of canvas
 const SHAPE_CX = CW / 2;
-const SHAPE_CY = CH / 2 - 80;
-const SHAPE_W = 340;
-const SHAPE_H = 260;
+const SHAPE_CY = 450;
+const SHAPE_W = 400;
+const SHAPE_H = 520;
 
 // Session goal per C9
 const SESSION_GOAL = 5;
@@ -334,8 +334,8 @@ export class Level01Scene extends Phaser.Scene {
     // Feedback overlay — per interaction-model.md §2 (<800ms)
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
 
-    // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
-    this.mascot = new Mascot(this, 720, 160, 0.75);
+    // ── Mascot — positioned left of shape (smaller scale) ──
+    this.mascot = new Mascot(this, 80, 450, 0.75);
     this.mascot.setState('idle');
 
     // Shape graphics placeholder
@@ -371,7 +371,7 @@ export class Level01Scene extends Phaser.Scene {
     // ── Test hooks ─────────────────────────────────────────────────────────
     // NOTE: must run AFTER ProgressBar construction so progress-bar sentinel is not wiped
     TestHooks.mountSentinel('level01-scene');
-    // partition-target: transparent button over canvas centre — snaps handle to
+    // partition-target: transparent button over shape centre — snaps handle to
     // the correct halves position then submits. Snapping ensures a deterministic
     // correct answer for e2e tests regardless of handle drag state.
     TestHooks.mountInteractive(
@@ -383,15 +383,15 @@ export class Level01Scene extends Phaser.Scene {
         }
         void this.onSubmit();
       },
-      { width: '120px', height: '120px', top: '50%', left: '50%' }
+      { width: '120px', height: '120px', top: '35.16%', left: '50%' }
     );
-    // hint-btn: transparent button over the ? button (upper-right)
+    // hint-btn: transparent button over the hint button (centered, above check)
     TestHooks.mountInteractive(
       'hint-btn',
       () => {
         this.onHintRequest();
       },
-      { width: '80px', height: '48px', top: '12.5%', left: 'calc(50% + 280px)' }
+      { width: '100px', height: '60px', top: '56.25%', left: '50%' }
     );
     // hint-text: starts hidden (no text). showHintForTier makes it visible.
     // Sentinel is a span with role=status; visibility toggled by data-visible attr.
@@ -622,17 +622,18 @@ export class Level01Scene extends Phaser.Scene {
 
   private createHintArea(): void {
     this.hintText = this.add
-      .text(CW / 2, CH - 280, '', HINT_TEXT_STYLE)
+      .text(CW / 2, 680, '', HINT_TEXT_STYLE)
       .setOrigin(0.5)
       .setDepth(5)
       .setVisible(false);
   }
 
   private createHintButton(): void {
-    this.hintButton = createHintCircleButton(
+    // Phase 3 layout pass (S): amber pill button 100×60 px, positioned above Check
+    this.hintButton = createHintPillButton(
       this,
-      CW - 60,
-      160,
+      CW / 2,
+      720,
       () => {
         log.input('hint_button_tap', {
           questionIndex: this.questionIndex,
@@ -648,7 +649,7 @@ export class Level01Scene extends Phaser.Scene {
     this.submitButtonContainer = createActionButton(
       this,
       CW / 2,
-      CH - 180,
+      820,
       'Check ✓',
       () => {
         log.input('check_button_tap', {
@@ -1803,7 +1804,7 @@ export class Level01Scene extends Phaser.Scene {
       });
       if (this.mascot) {
         this.mascot.setDepth(60);
-        this.mascot.reposition(CW - 120, 400);
+        this.mascot.reposition(700, 250);
         this.mascot.setState('celebrate');
       }
       await this.closeSession();
@@ -1847,7 +1848,7 @@ export class Level01Scene extends Phaser.Scene {
 
     if (this.mascot) {
       this.mascot.setDepth(60);
-      this.mascot.reposition(CW - 120, 400);
+      this.mascot.reposition(700, 250);
       this.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
     }
 

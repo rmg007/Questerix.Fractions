@@ -16,6 +16,7 @@ import { TITLE_FONT, BODY_FONT, NAVY } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
+import * as anim from './FeedbackAnimations';
 
 export type FeedbackKind = 'correct' | 'incorrect' | 'close';
 
@@ -254,84 +255,25 @@ export class FeedbackOverlay {
     });
   }
 
-  // ── Entry animations ────────────────────────────────────────────────────────
+  // ── Entry animations delegated to FeedbackAnimations module ───────────────────
 
-  /** Correct: icon pops (scale 1.0 → 1.3 → 1.0, ~300ms). */
   private animateBounceIcon(): void {
-    this.scene.tweens.add({
-      targets: this.iconGO,
-      scaleX: 1.3,
-      scaleY: 1.3,
-      duration: 150,
-      ease: 'Back.easeOut',
-      yoyo: true,
-    });
+    anim.animateCorrectEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
   }
 
-  /** Incorrect: real left-right shake (±22px, 3 cycles, 80ms each). */
   private animateShake(): void {
-    const amplitude = 22;
-    const halfCycle = 80;
-    const shake = { offset: 0 };
-    this.scene.tweens.chain({
-      targets: shake,
-      tweens: [
-        { offset: amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { offset: -amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { offset: amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { offset: -amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        {
-          offset: 0,
-          duration: halfCycle,
-          ease: 'Sine.easeOut',
-          onComplete: () => this.redrawPanel(this.showY, 1),
-        },
-      ],
-      onUpdate: () => {
-        this.iconGO.setX(this.cx + shake.offset);
-        this.label.setX(this.cx + shake.offset);
-        this.panel.setX(shake.offset);
-      },
-    });
+    anim.animateIncorrectEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
   }
 
-  /** Close: gentle pulse scale 1.0→1.04→1.0 (~250ms). */
   private animatePulse(): void {
-    this.scene.tweens.add({
-      targets: [this.iconGO, this.label],
-      scaleX: 1.04,
-      scaleY: 1.04,
-      duration: 125,
-      ease: 'Sine.easeInOut',
-      yoyo: true,
-    });
+    anim.animateCloseEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
   }
 
-  /** Correct: burst of 14 small stars drifting upward with alpha fade. */
   private burstStarParticles(): void {
-    if (!this.scene.textures.exists('clr-accentA')) return;
     TestHooks.mountSentinel('sparkle-burst');
-
-    const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
-    const perColor = 3; // Math.ceil(14 / starColors.length)
-    for (const tint of starColors) {
-      const emitter = this.scene.add.particles(this.cx, this.showY - 65, 'clr-accentA', {
-        lifespan: 700,
-        speed: { min: 40, max: 160 },
-        scale: { start: 5, end: 1 },
-        alpha: { start: 1, end: 0 },
-        tint,
-        angle: { min: -180, max: 0 },
-        emitting: false,
-      });
-      emitter.setDepth(this.depth + 5);
-      emitter.explode(perColor);
-      this.activeParticleEmitters.push(emitter);
-      this.scene.time.delayedCall(900, () => {
-        this.activeParticleEmitters = this.activeParticleEmitters.filter((e) => e !== emitter);
-        emitter.destroy();
-      });
-    }
+    anim.burstStarParticles({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) }, (e) => {
+      this.activeParticleEmitters.push(e);
+    });
   }
 
   // ── Internal ─────────────────────────────────────────────────────────────────

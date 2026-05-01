@@ -9,7 +9,7 @@ import * as Phaser from 'phaser';
 import {
   drawAdventureBackground,
   createActionButton,
-  createHintCircleButton,
+  createHintPillButton,
   HINT_TEXT_STYLE,
   TITLE_FONT,
   BODY_FONT,
@@ -638,10 +638,11 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private createHintButton(): void {
-    this.hintButton = createHintCircleButton(
+    // Phase 3 layout pass (S): amber pill button 100×60 px, centered at y≈720
+    this.hintButton = createHintPillButton(
       this,
-      CW - 60,
-      270,
+      CW / 2,
+      720,
       () => {
         log.input('hint_button_tap', {
           level: this.levelNumber,
@@ -655,10 +656,11 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private createSubmitButton(): void {
+    // Phase 3 layout pass (S): check button repositioned to y≈820 in layout arc
     this.submitButtonContainer = createActionButton(
       this,
       CW / 2,
-      CH - 180,
+      820,
       'Check ✓',
       () => {
         log.input('check_button_tap', {
