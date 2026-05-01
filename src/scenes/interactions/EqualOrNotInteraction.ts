@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -14,6 +15,7 @@ import {
   OPTION_BORDER,
   TEXT_ON_FILL,
 } from '../utils/levelTheme';
+import { checkReduceMotion } from '../../lib/preferences';
 
 export class EqualOrNotInteraction implements Interaction {
   readonly archetype = 'equal_or_not' as const;
@@ -22,6 +24,7 @@ export class EqualOrNotInteraction implements Interaction {
   private _cx = 0;
   private _cy = 0;
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
+  private a11yIds: string[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, centerX, centerY, width, onCommit } = ctx;
@@ -53,7 +56,15 @@ export class EqualOrNotInteraction implements Interaction {
     });
     this.gameObjects.push(shapeG);
 
-    const makeBtn = (x: number, label: string, answer: boolean, color: number, testid: string) => {
+    const makeBtn = (
+      x: number,
+      label: string,
+      answer: boolean,
+      color: number,
+      testid: string,
+      a11yId: string,
+      a11yLabel: string
+    ) => {
       const bg = scene.add.rectangle(x, y, btnW, btnH, color).setDepth(5);
       const lbl = scene.add
         .text(x, y, label, {
@@ -76,11 +87,30 @@ export class EqualOrNotInteraction implements Interaction {
         width: `${btnW}px`,
         height: `${btnH}px`,
       });
+      // A11y: keyboard mirror — same submit handler the canvas + TestHooks use.
+      A11yLayer.mountAction(a11yId, a11yLabel, submit);
+      this.a11yIds.push(a11yId);
       this.gameObjects.push(bg, lbl, hit);
     };
 
-    makeBtn(centerX - btnW / 2 - gap / 2, '✓ Equal', true, CHOICE_YES, 'equal-btn');
-    makeBtn(centerX + btnW / 2 + gap / 2, '✗ Not equal', false, CHOICE_NO, 'not-equal-btn');
+    makeBtn(
+      centerX - btnW / 2 - gap / 2,
+      '✓ Equal',
+      true,
+      CHOICE_YES,
+      'equal-btn',
+      'equal-yes',
+      'Yes — the parts are equal'
+    );
+    makeBtn(
+      centerX + btnW / 2 + gap / 2,
+      '✗ Not equal',
+      false,
+      CHOICE_NO,
+      'not-equal-btn',
+      'equal-no',
+      'No — the parts are not equal'
+    );
   }
 
   unmount(): void {
@@ -88,6 +118,8 @@ export class EqualOrNotInteraction implements Interaction {
     this.gameObjects = [];
     this._overlayGfx.forEach((g) => g.destroy());
     this._overlayGfx = [];
+    this.a11yIds.forEach((id) => A11yLayer.unmount(id));
+    this.a11yIds = [];
     import('../utils/TestHooks').then(({ TestHooks }) => TestHooks.unmountAll());
   }
 
@@ -102,7 +134,7 @@ export class EqualOrNotInteraction implements Interaction {
     overlay.lineBetween(shapeX, shapeY + 130, shapeX + 340, shapeY + 130);
 
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (checkReduceMotion()) {
       this._scene.time.delayedCall(3000, () => {
         overlay.destroy();
       });

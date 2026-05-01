@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -53,6 +54,7 @@ export class IdentifyInteraction implements Interaction {
   private selectedIndex: number = -1;
   private submitBtn: Phaser.GameObjects.Rectangle | null = null;
   private submitLabel: Phaser.GameObjects.Text | null = null;
+  private a11yIds: string[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
@@ -111,6 +113,15 @@ export class IdentifyInteraction implements Interaction {
         height: `${cardH}px`,
       });
 
+      // A11y: keyboard-mountable mirror — same handler the canvas uses.
+      const a11yId = `identify-option-${i}`;
+      A11yLayer.mountAction(
+        a11yId,
+        `Choose option ${i + 1}: ${opt.alt ?? `option ${i + 1}`}`,
+        select
+      );
+      this.a11yIds.push(a11yId);
+
       this.gameObjects.push(bg, label, hit);
     });
 
@@ -157,6 +168,8 @@ export class IdentifyInteraction implements Interaction {
     this.selectedIndex = -1;
     this.submitBtn = null;
     this.submitLabel = null;
+    this.a11yIds.forEach((id) => A11yLayer.unmount(id));
+    this.a11yIds = [];
     TestHooks.unmountAll(); // Interaction owns its ephemeral hooks
   }
 }

@@ -1263,8 +1263,12 @@ export class Level01Scene extends Phaser.Scene {
       SHAPE_CX,
       SHAPE_CY + SHAPE_H / 2 + 20
     );
-    // Fade out after 3 seconds
+    // Fade out after 3 seconds — respect reduce-motion (accessibility.md §7)
     this.time.delayedCall(3000, () => {
+      if (checkReduceMotion()) {
+        overlay.destroy();
+        return;
+      }
       this.tweens.add({
         targets: overlay,
         alpha: 0,

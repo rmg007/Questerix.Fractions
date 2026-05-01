@@ -5,6 +5,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -16,6 +17,7 @@ import {
   TEXT_BODY,
   TEXT_ON_FILL,
 } from '../utils/levelTheme';
+import { checkReduceMotion } from '../../lib/preferences';
 
 interface LabelOption {
   id: string;
@@ -36,6 +38,7 @@ export class LabelInteraction implements Interaction {
   private _cy = 0;
   private _regionCount = 0;
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
+  private a11yIds: string[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, onCommit } = ctx;
@@ -116,7 +119,37 @@ export class LabelInteraction implements Interaction {
         height: '48px',
       });
 
+      // A11y: keyboard mirror — same handler the canvas drag-end + TestHooks use.
+      // Without this, keyboard-only users cannot place a label tile on any region.
+      const tileA11yId = `label-tile-${i}`;
+      const firstRegionAlt = regions[0]?.alt ?? regions[0]?.id ?? 'first region';
+      A11yLayer.mountAction(
+        tileA11yId,
+        `Place label "${lbl.text}" on ${firstRegionAlt}`,
+        snapToFirst
+      );
+      this.a11yIds.push(tileA11yId);
+
       this.gameObjects.push(tile, ttext);
+    });
+
+    // A11y: per-region placement targets — let keyboard users place the most
+    // recently focused label tile on a specific region. Each region action
+    // routes to setPlacementTarget, mirroring drag-end's snap-to-region path.
+    regions.forEach((reg, i) => {
+      const placeOnRegion = () => {
+        // Place every label tile that has not yet been assigned onto this region;
+        // a keyboard user with one label simply lands the label here. With
+        // multiple labels, repeated activations cycle through unplaced tiles.
+        const unplaced = labels.find((l) => this.placements[l.id] !== reg.id);
+        if (unplaced) {
+          this.placements[unplaced.id] = reg.id;
+          A11yLayer.announce(`Placed "${unplaced.text}" on ${reg.alt ?? reg.id}.`);
+        }
+      };
+      const regionA11yId = `label-target-${i}`;
+      A11yLayer.mountAction(regionA11yId, `Place a label on ${reg.alt ?? reg.id}`, placeOnRegion);
+      this.a11yIds.push(regionA11yId);
     });
 
     // Submit button
@@ -162,6 +195,8 @@ export class LabelInteraction implements Interaction {
     this.placements = {};
     this._overlayGfx.forEach((g) => g.destroy());
     this._overlayGfx = [];
+    this.a11yIds.forEach((id) => A11yLayer.unmount(id));
+    this.a11yIds = [];
     TestHooks.unmountAll();
   }
 
@@ -176,7 +211,7 @@ export class LabelInteraction implements Interaction {
       overlay.strokeRect(rx - regionW / 2, this._cy - 60 - regionH / 2, regionW, regionH);
     }
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (checkReduceMotion()) {
       this._scene.time.delayedCall(3000, () => {
         overlay.destroy();
       });

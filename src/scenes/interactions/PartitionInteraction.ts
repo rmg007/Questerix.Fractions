@@ -5,6 +5,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { DragHandle } from '../../components/DragHandle';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
@@ -120,6 +121,31 @@ export class PartitionInteraction implements Interaction {
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
     );
+
+    // ── A11y: keyboard nudges mirror canvas drag (parity with Level01Scene). ──
+    // Stable IDs scoped to this interaction; mountAction re-binds on re-mount.
+    const nudge = (delta: number): void => {
+      const next = Phaser.Math.Clamp(this.handlePos + delta, minX, maxX);
+      this.handlePos = next;
+      this.updatePartitionLine(next, this.shapeCenterY);
+      this.dragHandle.moveTo(next, false);
+      const pct = Math.round(((next - minX) / SHAPE_W) * 100);
+      A11yLayer.announce(`Partition at ${pct} percent across.`);
+    };
+    A11yLayer.mountAction('partition-nudge-left', 'Move partition line left', () => {
+      nudge(-30);
+    });
+    A11yLayer.mountAction('partition-nudge-right', 'Move partition line right', () => {
+      nudge(30);
+    });
+    A11yLayer.mountAction('partition-snap-center', 'Place partition at center for halves', () => {
+      this.handlePos = centerX;
+      this.updatePartitionLine(centerX, this.shapeCenterY);
+      this.dragHandle.moveTo(centerX, false);
+      A11yLayer.announce('Partition placed at center.');
+      // Mirror canvas drag-end behaviour: commit so the Check button has a payload.
+      ctx.onCommit(buildInput());
+    });
   }
 
   unmount(): void {
@@ -129,6 +155,9 @@ export class PartitionInteraction implements Interaction {
     this.cutLineHint = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
+    A11yLayer.unmount('partition-nudge-left');
+    A11yLayer.unmount('partition-nudge-right');
+    A11yLayer.unmount('partition-snap-center');
   }
 
   /**

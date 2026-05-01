@@ -517,7 +517,7 @@ export class MenuScene extends Phaser.Scene {
     const mapY = panelY + panelH / 2 - 38;
     const mapLinkBg = this.add.graphics().setDepth(OVERLAY_DEPTH + 2);
     mapLinkBg.fillStyle(NAVY, 0.12);
-    mapLinkBg.fillRoundedRect(panelX - 140, mapY - 20, 280, 40, 20);
+    mapLinkBg.fillRoundedRect(panelX - 140, mapY - 24, 280, 48, 24);
     track(mapLinkBg);
     const mapLink = this.add
       .text(panelX, mapY, '🗺 Full Adventure Map →', {
@@ -530,7 +530,7 @@ export class MenuScene extends Phaser.Scene {
       .setDepth(OVERLAY_DEPTH + 3);
     track(mapLink);
     const mapHit = this.add
-      .rectangle(panelX, mapY, 280, 40, 0x000000, 0)
+      .rectangle(panelX, mapY, 280, 48, 0x000000, 0)
       .setDepth(OVERLAY_DEPTH + 4)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', () => {
