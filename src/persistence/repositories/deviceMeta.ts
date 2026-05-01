@@ -20,6 +20,7 @@ const DEFAULT_META: DeviceMeta = {
     reduceMotion: false,
     highContrast: false,
     ttsLocale: 'en-US',
+    ttsEnabled: true,
     largeTouchTargets: false,
     telemetryConsent: false,
     persistGranted: false,

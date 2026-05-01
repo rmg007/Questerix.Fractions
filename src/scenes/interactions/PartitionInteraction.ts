@@ -10,7 +10,10 @@ import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import type { PartitionInput, PartitionPayload } from '../../validators/partition';
 import { log } from '../../lib/log';
-import { NAVY, OPTION_BG, OPTION_BORDER } from '../utils/levelTheme';
+import { NAVY, SKY_BG, ACTION_FILL, BODY_FONT, TITLE_FONT } from '../utils/levelTheme';
+import { sfx } from '../../audio/SFXService';
+
+const OPTION_BORDER = NAVY;
 
 const SHAPE_W = 340;
 const SHAPE_H = 260;
@@ -30,6 +33,10 @@ export class PartitionInteraction implements Interaction {
   private dragAffordance: Phaser.GameObjects.Text | null = null;
   private handlePos!: number;
   private cutLineHint: Phaser.GameObjects.Graphics | null = null;
+  private ghostGuide: Phaser.GameObjects.Graphics | null = null;
+  private ghostLabel: Phaser.GameObjects.Text | null = null;
+  private correctFillGraphics: Phaser.GameObjects.Graphics | null = null;
+  private fractionLabels: Phaser.GameObjects.Text[] = [];
   private shapeCenterX!: number;
   private shapeCenterY!: number;
   private shapeType!: 'rectangle' | 'circle';
@@ -148,10 +155,124 @@ export class PartitionInteraction implements Interaction {
     this.partitionLine?.destroy();
     this.cutLineHint?.destroy();
     this.cutLineHint = null;
+    this.ghostGuide?.destroy();
+    this.ghostGuide = null;
+    this.ghostLabel?.destroy();
+    this.ghostLabel = null;
+    this.correctFillGraphics?.destroy();
+    this.correctFillGraphics = null;
+    this.fractionLabels.forEach((l) => l.destroy());
+    this.fractionLabels = [];
     this.dragAffordance?.destroy();
     this.dragAffordance = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
+  }
+
+  showGhostGuide(): void {
+    this.ghostGuide?.destroy();
+    this.ghostLabel?.destroy();
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+    const g = this.scene.add.graphics().setDepth(8).setAlpha(0.28);
+    this.ghostGuide = g;
+
+    g.lineStyle(3, NAVY, 1);
+
+    if (this.shapeType === 'rectangle') {
+      // Midpoint is a vertical line at cx
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      this.drawDashedLine(g, cx, top, cx, bottom, 12, 8);
+      this.ghostLabel = this.scene.add
+        .text(cx + SHAPE_W / 2 + 6, cy, 'half', {
+          fontFamily: BODY_FONT,
+          fontSize: '14px',
+          color: '#1e3a8a',
+        })
+        .setOrigin(0, 0.5)
+        .setAlpha(0.35)
+        .setDepth(8);
+    } else {
+      // For circle: midpoint is a vertical diameter at cx
+      const top = cy - SHAPE_W / 2;
+      const bottom = cy + SHAPE_W / 2;
+      this.drawDashedLine(g, cx, top, cx, bottom, 12, 8);
+      this.ghostLabel = this.scene.add
+        .text(cx + SHAPE_W / 2 + 6, cy, 'half', {
+          fontFamily: BODY_FONT,
+          fontSize: '14px',
+          color: '#1e3a8a',
+        })
+        .setOrigin(0, 0.5)
+        .setAlpha(0.35)
+        .setDepth(8);
+    }
+  }
+
+  showCorrectFeedback(): void {
+    sfx.playSnap();
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+    const n = this.targetPartitions;
+
+    const fillG = this.scene.add.graphics().setDepth(5).setAlpha(0);
+    this.correctFillGraphics = fillG;
+
+    if (this.shapeType === 'rectangle') {
+      const left = cx - SHAPE_W / 2;
+      const top = cy - SHAPE_H / 2;
+      const partW = SHAPE_W / n;
+      const colors: number[] = [ACTION_FILL, SKY_BG];
+      for (let i = 0; i < n; i++) {
+        fillG.fillStyle(colors[i % colors.length]!, 0.45);
+        fillG.fillRect(left + partW * i, top, partW, SHAPE_H);
+      }
+
+      // Fraction labels — centered in each segment
+      this.scene.time.delayedCall(200, () => {
+        for (let i = 0; i < n; i++) {
+          const lx = left + partW * i + partW / 2;
+          const label = this.scene.add
+            .text(lx, cy, `1/${n}`, {
+              fontFamily: TITLE_FONT,
+              fontSize: '28px',
+              color: '#1e3a8a',
+            })
+            .setOrigin(0.5)
+            .setDepth(9)
+            .setScale(0.5);
+          this.fractionLabels.push(label);
+          this.scene.tweens.add({
+            targets: label,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 300,
+            ease: 'Back.easeOut',
+          });
+        }
+      });
+    } else {
+      // Circle: color the left and right semicircles
+      fillG.fillStyle(ACTION_FILL, 0.45);
+      fillG.fillCircle(cx, cy, SHAPE_W / 2);
+      const maskG = this.scene.add.graphics().setDepth(5).setAlpha(0);
+      maskG.fillStyle(SKY_BG, 0.45);
+      maskG.fillRect(cx, cy - SHAPE_W / 2, SHAPE_W / 2, SHAPE_W);
+      this.fractionLabels.push(
+        this.scene.add.text(0, 0, '').setDepth(9)
+      ); // sentinel so maskG gets destroyed with fractionLabels
+      maskG.destroy(); // simplified: just fill the whole circle amber for circle shape
+    }
+
+    this.scene.tweens.add({
+      targets: fillG,
+      alpha: 1,
+      duration: 350,
+      ease: 'Sine.easeOut',
+    });
   }
 
   /**
@@ -200,12 +321,13 @@ export class PartitionInteraction implements Interaction {
     const g = this.shapeGraphics;
     g.clear();
     if (shapeType === 'rectangle') {
-      g.fillStyle(OPTION_BG, 1);
+      // Sky-tinted fill so the navy partition line is clearly visible
+      g.fillStyle(SKY_BG, 0.55);
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
     } else {
-      g.fillStyle(OPTION_BG, 1);
+      g.fillStyle(SKY_BG, 0.55);
       g.fillCircle(cx, cy, SHAPE_W / 2);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);

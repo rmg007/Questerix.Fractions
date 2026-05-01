@@ -36,6 +36,7 @@ import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import type { StudentId } from '../types';
 import { StudentId as StudentIdConstructor } from '../types/branded';
+import { getStreak } from '../lib/streak';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -111,6 +112,9 @@ export class LevelMapScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(20);
+
+    // T17: Flame streak pill — top-right corner
+    void this._renderStreakPill();
 
     // ── Unlock data ────────────────────────────────────────────────────────
     const unlocked = await this._getUnlockedLevels();
@@ -203,6 +207,39 @@ export class LevelMapScene extends Phaser.Scene {
         TestHooks.mountSentinel(`mastery-ribbon-L${meta.number}`);
       }
     }
+  }
+
+  // ── T17: Daily streak pill ────────────────────────────────────────────────────
+
+  private async _renderStreakPill(): Promise<void> {
+    const streak = await getStreak(this.studentId);
+
+    const label = streak >= 2 ? `🔥 ${streak}` : '🔥 1';
+    const PILL_H = 40, PILL_PAD = 16;
+
+    // Measure text width
+    const probe = this.add
+      .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
+      .setAlpha(0);
+    const tw = probe.width + PILL_PAD * 2;
+    probe.destroy();
+
+    const px = CW - 16 - tw / 2;
+    const py = 36;
+
+    const bg = this.add.graphics().setDepth(25);
+    bg.fillStyle(0xf59e0b, 1); // amber
+    bg.fillRoundedRect(px - tw / 2, py - PILL_H / 2, tw, PILL_H, PILL_H / 2);
+
+    this.add
+      .text(px, py, label, {
+        fontFamily: BODY_FONT,
+        fontSize: '18px',
+        color: '#FFFFFF',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(26);
   }
 
   // ── Path drawing ─────────────────────────────────────────────────────────────

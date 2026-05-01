@@ -18,6 +18,7 @@ import {
   SKY_BG,
   PATH_BLUE,
   OPTION_BG,
+  ACTION_FILL,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
@@ -75,6 +76,8 @@ export class LevelScene extends Phaser.Scene {
 
   // Fix G-E4: real accuracy + response-time tracking
   private correctCount: number = 0;
+  // T16: consecutive correct streak for microcopy
+  private correctStreak: number = 0;
   private responseTimes: number[] = [];
   private latestMasteryEstimate: number = 0;
   private questionStartTime: number = 0;
@@ -227,15 +230,25 @@ export class LevelScene extends Phaser.Scene {
     // hint-text sentinel (hidden until text set)
     TestHooks.mountSentinel('hint-text');
 
-    // Fix TTS: load persisted preference before first question fires
+    // T4: Load persisted preferences — TTS is gated by its own `ttsEnabled` flag,
+    // NOT by reduceMotion. Audio master toggle still acts as a parent gate.
     try {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
-      tts.setEnabled(meta.preferences.audio ?? true);
-      sfx.setEnabled(meta.preferences.audio ?? true);
-    } catch (err) {
+      const audioOn = meta.preferences.audio ?? true;
+      sfx.setEnabled(audioOn);
+      // TTS is on when: master audio is on AND ttsEnabled is on (default true)
+      const ttsOn = audioOn && (meta.preferences.ttsEnabled ?? true);
+      tts.setEnabled(ttsOn);
+    } catch (_err) {
       // Graceful fallback — leave TTS and SFX in their default state
     }
+
+    // T14: Any pointer input resets the idle timer.
+    this.input.on('pointerdown', () => {
+      this.mascot?.resetIdleTimer();
+      this.mascot?.startIdleTimer();
+    });
 
     this.loadQuestion(0);
   }
@@ -370,11 +383,9 @@ export class LevelScene extends Phaser.Scene {
       source: this.templatePool.length > 0 ? 'dexie' : 'synthetic',
     });
 
-    // S3-T1: speak prompt aloud via TTS (preference already loaded in create())
-    // Gate by prefers-reduced-motion for users who don't want auto-speech
-    if (!checkReduceMotion()) {
-      tts.speak(this.currentTemplate.prompt.text);
-    }
+    // T4: speak prompt aloud via TTS — gated only by ttsEnabled preference
+    // (already loaded into TTSService.setEnabled() in create()). No reduceMotion gate.
+    tts.speak(this.currentTemplate.prompt.text);
 
     // Announce question to assistive tech (separate from audio TTS)
     A11yLayer.announce(
@@ -403,6 +414,16 @@ export class LevelScene extends Phaser.Scene {
 
     // Fix duplicate button: IdentifyInteraction renders its own internal "Check" button.
     this.submitButtonContainer?.setVisible(this.currentTemplate?.archetype !== 'identify');
+
+    // T14: Reset & restart idle escalation timer for this question.
+    this.mascot?.startIdleTimer();
+
+    // T16: Quest microcopy at question-load moments
+    if (index === 0) {
+      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble('Ready? Let\'s go! 🚀', 2000));
+    } else if (index === SESSION_GOAL - 1) {
+      this.time.delayedCall(400, () => this.mascot?.showSpeechBubble('Last one! You\'ve got this!', 2000));
+    }
   }
 
   private static readonly LEVEL_FALLBACK_OVERRIDES: Record<
@@ -533,17 +554,40 @@ export class LevelScene extends Phaser.Scene {
         useHandCursor: true,
       });
 
+    let menuConfirmPending = false;
+    let menuConfirmTimer: Phaser.Time.TimerEvent | null = null;
+
+    const resetMenuBtn = () => {
+      menuConfirmPending = false;
+      menuConfirmTimer = null;
+      backBtn.setText('← Menu').setColor(NAVY_HEX);
+    };
+
     backBtn.on('pointerup', () => {
-      log.input('back_to_menu', {
-        level: this.levelNumber,
-        questionIndex: this.questionIndex,
-        attemptCount: this.attemptCount,
-      });
-      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      if (!menuConfirmPending) {
+        menuConfirmPending = true;
+        backBtn.setText('Leave? ✕').setColor('#b45309');
+        menuConfirmTimer = this.time.delayedCall(2000, resetMenuBtn);
+        this.input.once('pointerdown', (ptr: Phaser.Input.Pointer, _objs: unknown[]) => {
+          const btnBounds = backBtn.getBounds();
+          if (!Phaser.Geom.Rectangle.Contains(btnBounds, ptr.x, ptr.y)) {
+            menuConfirmTimer?.remove(false);
+            resetMenuBtn();
+          }
+        });
+      } else {
+        menuConfirmTimer?.remove(false);
+        log.input('back_to_menu', {
+          level: this.levelNumber,
+          questionIndex: this.questionIndex,
+          attemptCount: this.attemptCount,
+        });
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      }
     });
 
     // Question counter pill — right side, mirrors the back button
-    const CTR_W = 118,
+    const CTR_W = 140,
       CTR_H = 52;
     const ctrX = CW - 18 - CTR_W;
     const ctrY = 34;
@@ -555,7 +599,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.questionCounterText = this.add
       .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${SESSION_GOAL}`, {
-        fontSize: '17px',
+        fontSize: '22px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
@@ -574,12 +618,12 @@ export class LevelScene extends Phaser.Scene {
 
     this.promptText = this.add
       .text(CW / 2, 164, '', {
-        fontSize: '22px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
         align: 'center',
-        wordWrap: { width: CW - 160 },
+        wordWrap: { width: CW - 180 },
       })
       .setOrigin(0.5)
       .setDepth(5);
@@ -750,8 +794,10 @@ export class LevelScene extends Phaser.Scene {
     // Mascot reacts after the overlay is visible
     if (kind === 'correct') {
       this.mascot?.setState('cheer');
+      // T13: Trigger color-fill + fraction labels on partition shape
+      this.activeInteraction?.showCorrectFeedback?.();
     } else if (kind === 'incorrect') {
-      this.mascot?.setState('think');
+      this.mascot?.setState('oops');
     }
 
     // Mirror the visible feedback to the screen-reader announcer so the
@@ -870,8 +916,12 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private onCorrectAnswer(): void {
+    // T13: flash color fill + fraction labels on the shape for partition questions
+    this.activeInteraction?.showCorrectFeedback?.();
+
     this.attemptCount++;
     this.correctCount++; // Fix G-E4: track correct answers separately
+    this.correctStreak++;
     this.progressBar.setProgress(this.attemptCount);
     this.lastPayload = null;
     log.q('correct', {
@@ -882,6 +932,19 @@ export class LevelScene extends Phaser.Scene {
       wrongCountThisQ: this.wrongCount,
     });
 
+    // T16: Quest streak microcopy (after FeedbackOverlay fades ~1600ms)
+    const streak = this.correctStreak;
+    const streakLine =
+      streak === 1 ? 'Nice one!' : streak === 2 ? "You've got this!" : streak >= 3 ? 'On fire! 🔥' : null;
+    if (streakLine) {
+      this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
+    }
+
+    // T12: Streak milestone banner at exactly 3 or 5 consecutive correct
+    if (streak === 3 || streak === 5) {
+      this.time.delayedCall(1800, () => this.showStreakBanner(streak));
+    }
+
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
     } else {
@@ -889,7 +952,60 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
+  /** T12: Slide a streak milestone banner in from the top of the screen. */
+  private showStreakBanner(streak: number): void {
+    const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
+    const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
+
+    const PILL_W = 520, PILL_H = 88, PILL_R = 44;
+    const cx = CW / 2;
+    const startY = -PILL_H;
+    const landY = 140;
+
+    const g = this.add.graphics().setDepth(90);
+    g.fillStyle(bannerBg, 1);
+    g.fillRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
+    g.lineStyle(3, NAVY, 0.4);
+    g.strokeRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
+
+    const txt = this.add
+      .text(cx, startY, bannerText, {
+        fontFamily: TITLE_FONT,
+        fontSize: '32px',
+        color: NAVY_HEX,
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(91);
+
+    sfx.playStreak();
+    this.mascot?.setState('cheer-big');
+
+    const container = this.add.container(0, 0, [g, txt]).setDepth(90);
+
+    this.tweens.add({
+      targets: [g, txt],
+      y: `+=${landY - startY}`,
+      duration: 400,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.time.delayedCall(1600, () => {
+          this.tweens.add({
+            targets: [g, txt],
+            y: `-=${landY - startY}`,
+            duration: 350,
+            ease: 'Back.easeIn',
+            onComplete: () => {
+              container.destroy();
+            },
+          });
+        });
+      },
+    });
+  }
+
   private onWrongAnswer(): void {
+    this.correctStreak = 0;
     this.wrongCount++;
     this.inputLocked = false;
     this.lastPayload = null;
@@ -899,6 +1015,20 @@ export class LevelScene extends Phaser.Scene {
       wrongCount: this.wrongCount,
       questionId: this.currentTemplate.id,
     });
+
+    // T16: Quest wrong-answer microcopy
+    if (this.wrongCount === 1) {
+      this.time.delayedCall(1400, () => this.mascot?.showSpeechBubble('Oops! Try again 💪', 2000));
+    } else if (this.wrongCount === 2) {
+      this.time.delayedCall(1400, () =>
+        this.mascot?.showSpeechBubble("Almost... I'll give you a hint!", 2000)
+      );
+    }
+
+    // T8: show ghost midpoint guide after first wrong attempt on partition questions
+    if (this.wrongCount === 1) {
+      this.activeInteraction?.showGhostGuide?.();
+    }
 
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
     if (tier) {
@@ -933,6 +1063,11 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
+    // T16: Quest hint microcopy (only on first/second hint shown per question)
+    if (this.wrongCount <= 2) {
+      this.mascot?.showSpeechBubble('Here\'s a secret... 🤫', 2000);
+    }
+
     const archetype = this.currentTemplate?.archetype ?? 'partition';
     let msg = '';
 
@@ -1236,13 +1371,25 @@ export class LevelScene extends Phaser.Scene {
     const nextLevel =
       this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
 
+    // T11: Scaffold recommendation based on accuracy
+    const totalAttempts = this.responseTimes.length;
+    const sessionAccuracy = totalAttempts > 0 ? this.correctCount / totalAttempts : 0;
+    const scaffoldRec: 'advance' | 'stay' | 'regress' =
+      sessionAccuracy >= 0.8 ? 'advance' : sessionAccuracy < 0.4 ? 'regress' : 'stay';
+
+    // T15: Perfect session — all correct, no extra attempts
+    const isPerfect = this.correctCount >= SESSION_GOAL && totalAttempts === SESSION_GOAL;
+
     new SessionCompleteOverlay({
       scene: this,
       levelNumber: this.levelNumber,
       correctCount: this.correctCount,
-      totalAttempts: this.responseTimes.length,
+      totalAttempts,
       width: CW,
       height: CH,
+      scaffoldRecommendation: scaffoldRec,
+      nextLevelNumber: scaffoldRec === 'advance' && nextLevel !== null ? nextLevel : null,
+      isPerfect,
       ...(nextLevel !== null
         ? {
             onNextLevel: () => {
@@ -1263,6 +1410,11 @@ export class LevelScene extends Phaser.Scene {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
     });
+
+    // T16: Quest session-complete speech line
+    const completeLine =
+      scaffoldRec === 'advance' ? 'I knew you could do it! ⭐' : 'Great practice! Keep going!';
+    this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
 
     // Move Quest beside the trophy card (right of centre, above the heading at
     // overlay-y=420) and raise its depth above the overlay (depth 50).

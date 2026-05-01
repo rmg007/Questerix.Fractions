@@ -19,7 +19,7 @@ import {
   NAVY_HEX,
   NAVY,
   SKY_BG,
-  PATH_BLUE,
+  ACTION_FILL,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
@@ -141,6 +141,8 @@ export class Level01Scene extends Phaser.Scene {
   private responseTimes: number[] = [];
   private correctCount: number = 0;
   private totalQuestionsAttempted: number = 0;
+  // T16: consecutive correct streak for microcopy
+  private correctStreak: number = 0;
 
   // Fix 6 (G-E3): hint-event IDs accumulated per question (Dexie auto-increment numbers)
   private currentQuestionHintIds: number[] = [];
@@ -175,6 +177,12 @@ export class Level01Scene extends Phaser.Scene {
   // Graphics
   private shapeGraphics!: Phaser.GameObjects.Graphics;
   private partitionLine!: Phaser.GameObjects.Graphics;
+  /** T8: Ghost guide shown after first wrong answer */
+  private ghostGuideGraphics: Phaser.GameObjects.Graphics | null = null;
+  private ghostGuideLabel: Phaser.GameObjects.Text | null = null;
+  /** T13: Color fill + fraction labels shown on correct answer */
+  private correctFillGraphics: Phaser.GameObjects.Graphics | null = null;
+  private fractionLabels: Phaser.GameObjects.Text[] = [];
   /** Transparent overlay over the shape — taps here move the partition line.
    * Provides a click-to-place affordance in addition to drag, so any input
    * method (mouse, touch, automated test tool) can position the partition. */
@@ -398,20 +406,29 @@ export class Level01Scene extends Phaser.Scene {
       { width: '10px', height: '10px', top: '2%', left: '2%' }
     );
 
-    // Fix TTS: load persisted preference before first question fires
+    // T4: Load persisted preferences — TTS gated by its own flag, NOT reduceMotion.
     try {
       const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       const meta = await deviceMetaRepo.get();
-      tts.setEnabled(meta.preferences.audio ?? true);
-      sfx.setEnabled(meta.preferences.audio ?? true);
+      const audioOn = meta.preferences.audio ?? true;
+      sfx.setEnabled(audioOn);
+      const ttsOn = audioOn && (meta.preferences.ttsEnabled ?? true);
+      tts.setEnabled(ttsOn);
       const vol = meta.preferences.volume ?? 0.8;
       tts.setVolume(vol);
       sfx.setVolume(vol);
-    } catch (err) {
+    } catch (_err) {
       // Graceful fallback — leave TTS and SFX in their default state
     }
 
     log.scene('create_done');
+
+    // T14: Any pointer input resets the idle timer so Quest stops escalating.
+    this.input.on('pointerdown', () => {
+      this.mascot?.resetIdleTimer();
+      this.mascot?.startIdleTimer();
+    });
+
     // Load first question
     this.loadQuestion(0);
   }
@@ -531,17 +548,43 @@ export class Level01Scene extends Phaser.Scene {
         useHandCursor: true,
       });
 
+    let menuConfirmPending = false;
+    let menuConfirmTimer: Phaser.Time.TimerEvent | null = null;
+
+    const resetMenuBtn = () => {
+      menuConfirmPending = false;
+      menuConfirmTimer = null;
+      backBtn.setText('← Menu').setColor(NAVY_HEX);
+    };
+
     backBtn.on('pointerup', () => {
-      log.input('back_to_menu', {
-        fromScene: 'Level01Scene',
-        questionIndex: this.questionIndex,
-        attemptCount: this.attemptCount,
-      });
-      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      if (!menuConfirmPending) {
+        menuConfirmPending = true;
+        backBtn.setText('Leave? ✕').setColor('#b45309');
+        menuConfirmTimer = this.time.delayedCall(2000, resetMenuBtn);
+        // Any tap outside the button resets it
+        this.input.once('pointerdown', (ptr: Phaser.Input.Pointer, _objs: unknown[]) => {
+          const hitX = ptr.x;
+          const hitY = ptr.y;
+          const btnBounds = backBtn.getBounds();
+          if (!Phaser.Geom.Rectangle.Contains(btnBounds, hitX, hitY)) {
+            menuConfirmTimer?.remove(false);
+            resetMenuBtn();
+          }
+        });
+      } else {
+        menuConfirmTimer?.remove(false);
+        log.input('back_to_menu', {
+          fromScene: 'Level01Scene',
+          questionIndex: this.questionIndex,
+          attemptCount: this.attemptCount,
+        });
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      }
     });
 
     // Question counter pill badge — sky-blue, matches LevelScene style
-    const CTR_W = 118,
+    const CTR_W = 140,
       CTR_H = 52;
     const ctrX = CW - 18 - CTR_W;
     const ctrY = 34;
@@ -552,7 +595,7 @@ export class Level01Scene extends Phaser.Scene {
     ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
     this.questionCounterText = this.add
       .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${SESSION_GOAL}`, {
-        fontSize: '17px',
+        fontSize: '22px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
@@ -564,12 +607,12 @@ export class Level01Scene extends Phaser.Scene {
   private createPromptArea(): void {
     this.promptText = this.add
       .text(CW / 2, 160, '', {
-        fontSize: '22px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
         align: 'center',
-        wordWrap: { width: 640 },
+        wordWrap: { width: 600 },
         backgroundColor: 'rgba(255,255,255,0.75)',
         padding: { x: 14, y: 8 },
       })
@@ -699,6 +742,16 @@ export class Level01Scene extends Phaser.Scene {
     this.wrongCount = 0;
     this.inputLocked = false;
 
+    // T8/T13: Destroy ghost guide and correct-fill overlays from previous question
+    this.ghostGuideGraphics?.destroy();
+    this.ghostGuideGraphics = null;
+    this.ghostGuideLabel?.destroy();
+    this.ghostGuideLabel = null;
+    this.correctFillGraphics?.destroy();
+    this.correctFillGraphics = null;
+    this.fractionLabels.forEach((l) => l.destroy());
+    this.fractionLabels = [];
+
     // Update question counter badge — use raw index so display is independent of
     // template-pool cycling (matches LevelScene behaviour)
     this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
@@ -743,6 +796,16 @@ export class Level01Scene extends Phaser.Scene {
 
     this.drawShape();
     this.createDragHandle();
+
+    // T14: Start idle-escalation timer each time a new question is presented.
+    this.mascot?.startIdleTimer();
+
+    // T16: Quest microcopy at question-load moments
+    if (index === 0) {
+      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble('Ready? Let\'s go! 🚀', 2000));
+    } else if (index === SESSION_GOAL - 1) {
+      this.time.delayedCall(400, () => this.mascot?.showSpeechBubble('Last one! You\'ve got this!', 2000));
+    }
   }
 
   // ── Shape rendering ───────────────────────────────────────────────────────
@@ -766,10 +829,10 @@ export class Level01Scene extends Phaser.Scene {
     const x = SHAPE_CX - SHAPE_W / 2;
     const y = SHAPE_CY - SHAPE_H / 2;
 
-    // Soft white fill with a light navy border — lives in the adventure world
-    g.fillStyle(0xffffff, 0.9);
+    // Sky-tinted fill so the navy partition line is clearly visible against it
+    g.fillStyle(SKY_BG, 0.55);
     g.fillRect(x, y, SHAPE_W, SHAPE_H);
-    g.lineStyle(3, 0x1e3a8a, 0.35);
+    g.lineStyle(3, 0x1e3a8a, 0.6);
     g.strokeRect(x, y, SHAPE_W, SHAPE_H);
 
     // Tap-to-place: any pointerdown over the rectangle moves the partition line
@@ -799,17 +862,99 @@ export class Level01Scene extends Phaser.Scene {
   private drawCircleShape(): void {
     const g = this.shapeGraphics;
 
-    g.fillStyle(0xffffff, 0.9);
+    g.fillStyle(SKY_BG, 0.55);
     g.fillCircle(SHAPE_CX, SHAPE_CY, SHAPE_W / 2);
-    g.lineStyle(3, 0x1e3a8a, 0.35);
+    g.lineStyle(3, 0x1e3a8a, 0.6);
     g.strokeCircle(SHAPE_CX, SHAPE_CY, SHAPE_W / 2);
   }
 
+  /** T8: Draw a faint ghost line at the shape's midpoint after the first wrong answer. */
+  private showGhostGuide(): void {
+    this.ghostGuideGraphics?.destroy();
+    this.ghostGuideLabel?.destroy();
+
+    const g = this.add.graphics().setDepth(8).setAlpha(0.28);
+    this.ghostGuideGraphics = g;
+    g.lineStyle(3, NAVY, 1);
+
+    const top = SHAPE_CY - SHAPE_H / 2;
+    const bottom = SHAPE_CY + SHAPE_H / 2;
+    const dashLen = 12;
+    const gapLen = 8;
+    const cycle = dashLen + gapLen;
+    let pos = 0;
+    const len = bottom - top;
+    while (pos < len) {
+      const seg = Math.min(dashLen, len - pos);
+      g.lineBetween(SHAPE_CX, top + pos, SHAPE_CX, top + pos + seg);
+      pos += cycle;
+    }
+
+    this.ghostGuideLabel = this.add
+      .text(SHAPE_CX + SHAPE_W / 2 + 6, SHAPE_CY, 'half', {
+        fontFamily: BODY_FONT,
+        fontSize: '14px',
+        color: NAVY_HEX,
+      })
+      .setOrigin(0, 0.5)
+      .setAlpha(0.35)
+      .setDepth(8);
+  }
+
+  /** T13: On correct partition, color-fill the two halves and show fraction labels. */
+  private showCorrectFeedback(): void {
+    sfx.playSnap();
+
+    // Level 1 is always halves (2 partitions)
+    const n = 2;
+    const left = SHAPE_CX - SHAPE_W / 2;
+    const top = SHAPE_CY - SHAPE_H / 2;
+    const partW = SHAPE_W / n;
+    const colors: number[] = [ACTION_FILL, SKY_BG];
+
+    const fillG = this.add.graphics().setDepth(5).setAlpha(0);
+    this.correctFillGraphics = fillG;
+
+    for (let i = 0; i < n; i++) {
+      fillG.fillStyle(colors[i % n]!, 0.45);
+      fillG.fillRect(left + partW * i, top, partW, SHAPE_H);
+    }
+
+    this.tweens.add({
+      targets: fillG,
+      alpha: 1,
+      duration: 350,
+      ease: 'Sine.easeOut',
+    });
+
+    // Fraction labels scale in 200ms after fill begins
+    this.time.delayedCall(200, () => {
+      for (let i = 0; i < n; i++) {
+        const lx = left + partW * i + partW / 2;
+        const label = this.add
+          .text(lx, SHAPE_CY, `1/${n}`, {
+            fontFamily: TITLE_FONT,
+            fontSize: '28px',
+            color: NAVY_HEX,
+          })
+          .setOrigin(0.5)
+          .setDepth(9)
+          .setScale(0.5);
+        this.fractionLabels.push(label);
+        this.tweens.add({
+          targets: label,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 300,
+          ease: 'Back.easeOut',
+        });
+      }
+    });
+  }
+
   /**
-   * Draw the partition line as a dashed path — the same visual language
-   * as the marching-dash number line on the MenuScene.
-   *
-   * Renders: thick PATH_BLUE background rail + white dashes on top.
+   * Draw the partition line as a solid navy line with a white inner highlight —
+   * clearly visible against the sky-tinted shape background.
    */
   private updatePartitionLine(handleX: number): void {
     const g = this.partitionLine;
@@ -817,24 +962,14 @@ export class Level01Scene extends Phaser.Scene {
 
     const top = SHAPE_CY - SHAPE_H / 2 - 20;
     const bottom = SHAPE_CY + SHAPE_H / 2 + 20;
-    const len = bottom - top;
 
-    // Background rail (light-blue, matching the path)
-    g.lineStyle(12, PATH_BLUE, 1);
+    // Thick navy line
+    g.lineStyle(6, NAVY, 1);
     g.lineBetween(handleX, top, handleX, bottom);
 
-    // White dashes
-    const dashLen = 14;
-    const gapLen = 10;
-    const cycle = dashLen + gapLen;
-    g.lineStyle(6, 0xffffff, 1);
-
-    let pos = 0;
-    while (pos < len) {
-      const segEnd = Math.min(len, pos + dashLen);
-      g.lineBetween(handleX, top + pos, handleX, top + segEnd);
-      pos += cycle;
-    }
+    // Thin white centre highlight for depth
+    g.lineStyle(2, 0xffffff, 0.7);
+    g.lineBetween(handleX, top, handleX, bottom);
   }
 
   // ── Drag handle creation ──────────────────────────────────────────────────
@@ -1097,8 +1232,10 @@ export class Level01Scene extends Phaser.Scene {
     // Mascot reacts after the overlay is visible
     if (kind === 'correct') {
       this.mascot?.setState('cheer');
+      // T13: Flash color fill + fraction labels immediately on correct confirm
+      this.showCorrectFeedback();
     } else if (kind === 'incorrect') {
-      this.mascot?.setState('think');
+      this.mascot?.setState('oops');
     }
 
     // Mirror the visible feedback to the screen-reader announcer so the
@@ -1119,6 +1256,7 @@ export class Level01Scene extends Phaser.Scene {
   private onCorrectAnswer(): void {
     this.recentOutcomes.push(true);
     this.attemptCount++;
+    this.correctStreak++;
     this.progressBar.setProgress(this.attemptCount);
     log.q('correct', {
       questionIndex: this.questionIndex,
@@ -1126,6 +1264,19 @@ export class Level01Scene extends Phaser.Scene {
       progress: `${this.attemptCount}/${SESSION_GOAL}`,
       wrongCountThisQ: this.wrongCount,
     });
+
+    // T16: Quest streak microcopy (shown after FeedbackOverlay fades, ~1600ms delay)
+    const streak = this.correctStreak;
+    const streakLine =
+      streak === 1 ? 'Nice one!' : streak === 2 ? "You've got this!" : streak >= 3 ? 'On fire! 🔥' : null;
+    if (streakLine) {
+      this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
+    }
+
+    // T12: Streak milestone banner at exactly 3 or 5 consecutive correct
+    if (streak === 3 || streak === 5) {
+      this.time.delayedCall(1800, () => this.showStreakBanner(streak));
+    }
 
     if (this.attemptCount >= SESSION_GOAL) {
       this.showSessionComplete();
@@ -1135,14 +1286,81 @@ export class Level01Scene extends Phaser.Scene {
     }
   }
 
+  /** T12: Slide in a streak milestone banner from the top of the screen. */
+  private showStreakBanner(streak: number): void {
+    const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
+    const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
+
+    const PILL_W = 520, PILL_H = 88, PILL_R = 44;
+    const cx = CW / 2;
+    const startY = -PILL_H;
+    const landY = 140;
+
+    const g = this.add.graphics().setDepth(90);
+    g.fillStyle(bannerBg, 1);
+    g.fillRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
+    g.lineStyle(3, NAVY, 0.4);
+    g.strokeRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
+
+    const txt = this.add
+      .text(cx, startY, bannerText, {
+        fontFamily: TITLE_FONT,
+        fontSize: '32px',
+        color: NAVY_HEX,
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(91);
+
+    sfx.playStreak();
+    this.mascot?.setState('cheer-big');
+
+    const container = this.add.container(0, 0, [g, txt]).setDepth(90);
+
+    this.tweens.add({
+      targets: [g, txt],
+      y: `+=${landY - startY}`,
+      duration: 400,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.time.delayedCall(1600, () => {
+          this.tweens.add({
+            targets: [g, txt],
+            y: `-=${landY - startY}`,
+            duration: 350,
+            ease: 'Back.easeIn',
+            onComplete: () => {
+              container.destroy();
+            },
+          });
+        });
+      },
+    });
+  }
+
   private onWrongAnswer(): void {
     this.recentOutcomes.push(false);
+    this.correctStreak = 0;
     this.wrongCount++;
     log.q('wrong', {
       questionIndex: this.questionIndex,
       wrongCount: this.wrongCount,
       questionId: this.currentQuestion.id,
     });
+
+    // T16: Quest wrong-answer microcopy
+    if (this.wrongCount === 1) {
+      this.time.delayedCall(1400, () => this.mascot?.showSpeechBubble('Oops! Try again 💪', 2000));
+    } else if (this.wrongCount === 2) {
+      this.time.delayedCall(1400, () =>
+        this.mascot?.showSpeechBubble("Almost... I'll give you a hint!", 2000)
+      );
+    }
+
+    // T8: Show ghost midpoint guide after first wrong attempt
+    if (this.wrongCount === 1) {
+      this.showGhostGuide();
+    }
 
     // Auto-escalate hint after wrong attempt per interaction-model.md §4 + §5.4
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
@@ -1187,6 +1405,11 @@ export class Level01Scene extends Phaser.Scene {
    */
   private async showHintForTierAndRecord(tier: import('@/types').HintTier): Promise<void> {
     this.hintText.setVisible(true);
+
+    // T16: Quest hint microcopy (only once per question — on first hint shown)
+    if (this.wrongCount <= 2) {
+      this.mascot?.showSpeechBubble('Here\'s a secret... 🤫', 2000);
+    }
 
     // Quest-voiced hint per ux-elevation §9 T28. Each tier shows a distinct
     // line from the catalog (split2.verbal / .visual / .worked) so language
@@ -1574,6 +1797,15 @@ export class Level01Scene extends Phaser.Scene {
       return;
     }
 
+    // T11: Compute scaffold recommendation from session accuracy
+    const sessionAccuracy =
+      this.totalQuestionsAttempted > 0 ? this.correctCount / this.totalQuestionsAttempted : 0;
+    const scaffoldRec: 'advance' | 'stay' | 'regress' =
+      sessionAccuracy >= 0.8 ? 'advance' : sessionAccuracy < 0.4 ? 'regress' : 'stay';
+
+    // T15: Perfect session — all 5 correct, no extra attempts (totalQuestionsAttempted === SESSION_GOAL)
+    const isPerfect = this.correctCount >= SESSION_GOAL && this.totalQuestionsAttempted === SESSION_GOAL;
+
     new SessionCompleteOverlay({
       scene: this,
       levelNumber: 1,
@@ -1581,6 +1813,9 @@ export class Level01Scene extends Phaser.Scene {
       totalAttempts: this.totalQuestionsAttempted,
       width: CW,
       height: CH,
+      scaffoldRecommendation: scaffoldRec,
+      nextLevelNumber: scaffoldRec === 'advance' ? 2 : null,
+      isPerfect,
       onNextLevel: () => {
         fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.studentId });
       },
@@ -1591,6 +1826,11 @@ export class Level01Scene extends Phaser.Scene {
         fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
       },
     });
+
+    // T16: Quest session-complete speech line
+    const completeLine =
+      scaffoldRec === 'advance' ? 'I knew you could do it! ⭐' : 'Great practice! Keep going!';
+    this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
 
     // Move Quest beside the trophy card (right of centre, above the heading at
     // overlay-y=420) and raise its depth above the overlay (depth 50).

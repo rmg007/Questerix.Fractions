@@ -23,4 +23,15 @@ export interface Interaction {
   unmount(): void;
   /** Tier 2 hint: draw a contextual visual overlay atop the interaction canvas. */
   showVisualOverlay?(): void;
+  /**
+   * T8: Called after the first wrong answer on a partition question.
+   * Draws a faint ghost guide line at 50% of the shape to help the child
+   * understand where "the middle" is.
+   */
+  showGhostGuide?(): void;
+  /**
+   * T13: Called when a correct partition answer is confirmed.
+   * Fills the two halves with color and shows fraction labels.
+   */
+  showCorrectFeedback?(): void;
 }

@@ -267,6 +267,8 @@ export interface DevicePreferences {
   reduceMotion: boolean;
   highContrast: boolean;
   ttsLocale: string;
+  /** Whether the game should read question prompts aloud via TTS. Default true. */
+  ttsEnabled: boolean;
   largeTouchTargets: boolean;
   /**
    * Whether the user has opted in to telemetry (default false).

@@ -77,6 +77,9 @@ export class OnboardingScene extends Phaser.Scene {
   private actionBtn!: Phaser.GameObjects.Container;
   private handPointer!: Phaser.GameObjects.Text;
   private skipText!: Phaser.GameObjects.Text;
+  // T9: timers for Step 1 demo — stored so tap-to-skip can cancel them
+  private watchTimers: Phaser.Time.TimerEvent[] = [];
+  private tapSkipHint: Phaser.GameObjects.Text | null = null;
   private stepDots: Phaser.GameObjects.Graphics[] = [];
 
   constructor() {
@@ -273,26 +276,53 @@ export class OnboardingScene extends Phaser.Scene {
     this.handlePos = SHAPE_CX - SHAPE_W * 0.3;
     this.updatePartitionLine(this.handlePos);
 
-    // Show animated hand pointer below the shape
-    const handY = SHAPE_CY + SHAPE_H / 2 + 44;
+    // T9 Fix 1: Hand pointer now at the drag-handle's actual vertical center
+    const handY = SHAPE_CY;
     this.handPointer.setPosition(this.handlePos, handY).setVisible(true);
 
-    // Wait 1.8 s then animate the drag
-    this.time.delayedCall(1800, () => this.playDemoAnimation());
+    // T9 Fix 2: "Tap to skip" hint at bottom of screen
+    if (!this.tapSkipHint) {
+      this.tapSkipHint = this.add
+        .text(SHAPE_CX, CH - 120, 'Tap anywhere to skip', {
+          fontFamily: BODY_FONT,
+          fontSize: '16px',
+          color: NAVY_HEX,
+          alpha: 0.5,
+        } as Phaser.Types.GameObjects.Text.TextStyle)
+        .setOrigin(0.5)
+        .setAlpha(0.5)
+        .setDepth(30);
+    }
+
+    // Tap-to-advance: any tap during the demo skips straight to the try step
+    const skipHit = this.add.rectangle(SHAPE_CX, CH / 2, CW, CH, 0, 0).setInteractive().setDepth(29);
+    skipHit.once('pointerup', () => {
+      for (const t of this.watchTimers) t.destroy();
+      this.watchTimers = [];
+      this.tweens.killAll();
+      skipHit.destroy();
+      this.tapSkipHint?.destroy();
+      this.tapSkipHint = null;
+      this.startTryStep();
+    });
+
+    // Wait 1.8 s then animate the drag — store timer so tap can cancel it
+    this.watchTimers.push(this.time.delayedCall(1800, () => this.playDemoAnimation()));
   }
 
   private playDemoAnimation(): void {
     const reduceMotion = this.checkReduceMotion();
     const startX = SHAPE_CX - SHAPE_W * 0.3;
     const endX = SHAPE_CX;
-    const handY = SHAPE_CY + SHAPE_H / 2 + 44;
+    // T9 Fix 1: hand Y at shape center (drag handle center), not below shape
+    const handY = SHAPE_CY;
 
     if (reduceMotion) {
       // Static jump for prefers-reduced-motion
       this.handlePos = endX;
       this.updatePartitionLine(endX);
       this.handPointer.setPosition(endX, handY);
-      this.time.delayedCall(800, () => this.afterDemoComplete());
+      this.watchTimers.push(this.time.delayedCall(800, () => this.afterDemoComplete()));
       return;
     }
 
@@ -310,7 +340,7 @@ export class OnboardingScene extends Phaser.Scene {
       onComplete: () => {
         this.mascot.setState('cheer');
         // Pause on the correct position so the student sees success
-        this.time.delayedCall(1400, () => this.afterDemoComplete());
+        this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
       },
     });
   }
@@ -322,7 +352,7 @@ export class OnboardingScene extends Phaser.Scene {
     tts.speak(msg);
     this.mascot.setState('idle');
 
-    this.time.delayedCall(2200, () => this.startTryStep());
+    this.watchTimers.push(this.time.delayedCall(2200, () => this.startTryStep()));
   }
 
   // ── Step 2: TRY — interactive practice ───────────────────────────────────
@@ -409,7 +439,7 @@ export class OnboardingScene extends Phaser.Scene {
       const msg = 'Almost! Drag the line a little closer to the middle and try again.';
       this.instructionText.setText(msg);
       tts.speak(msg);
-      this.mascot.setState('think');
+      this.mascot.setState('oops');
       this.inputLocked = false;
     }
   }

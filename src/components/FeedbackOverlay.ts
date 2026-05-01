@@ -1,18 +1,18 @@
 /**
- * FeedbackOverlay — renders correct/incorrect feedback in ≤800ms.
- * Shows a colored panel with icon/text, dismisses automatically.
+ * FeedbackOverlay — bottom-sheet feedback panel that slides up from below the canvas.
+ *
+ * Layout: full-width rounded panel anchored to the bottom of the screen.
+ * Correct: solid green, 1400ms display.  Incorrect: solid red, 1600ms + shake.
+ * Close:   solid amber, 1200ms.
+ *
  * per interaction-model.md §2 (feedback timing), §6.1 (success), §5.2 (failure)
  * per design-language.md §6.1 (snap pulse 180–240ms), §2.3 (semantic tokens)
- *
- * Entry animations: correct = bounce-in + star burst; incorrect = shake; close = pulse.
- * Reduced-motion: instant show, no animations.
  *
  * Plain class (not a Phaser Container) to avoid name conflicts.
  */
 
 import * as Phaser from 'phaser';
-import { CLR, HEX } from '../scenes/utils/colors';
-import { TITLE_FONT, BODY_FONT } from '../scenes/utils/levelTheme';
+import { TITLE_FONT, BODY_FONT, NAVY } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
@@ -25,24 +25,47 @@ export interface FeedbackOverlayConfig {
   width?: number;
   /** Canvas logical height (1280 per design-language.md §8.2). */
   height?: number;
-  /** How long to show feedback before auto-dismiss. Must be <800ms. per interaction-model.md §2 */
-  displayMs?: number;
   /** Depth to render above all other game objects. */
   depth?: number;
 }
 
-const DISPLAY_MS = 600; // per interaction-model.md §2 — <800ms total
-const FADE_MS = 120;
+// ── Timing ────────────────────────────────────────────────────────────────────
+const SLIDE_MS = 280;
+const DISPLAY_MS: Record<FeedbackKind, number> = {
+  correct: 1400,
+  incorrect: 1600,
+  close: 1200,
+};
+const FADE_MS = 140;
+
+// ── Panel dimensions ──────────────────────────────────────────────────────────
+const PANEL_H = 220;
+const CORNER_R = 24;
+
+// ── Colors ────────────────────────────────────────────────────────────────────
+const COLOR_CORRECT = 0x22c55e; // green-500
+const COLOR_INCORRECT = 0xef4444; // red-500
+const COLOR_CLOSE = 0xf59e0b; // amber-500
 
 const KIND_CONFIG: Record<
   FeedbackKind,
-  { bg: number; textColor: string; text: string; icon: string }
+  { color: number; textHex: string; text: string; icon: string }
 > = {
-  correct: { bg: CLR.successSoft, textColor: HEX.success, text: 'Correct!', icon: '✓' },
-  incorrect: { bg: CLR.errorSoft, textColor: HEX.error, text: 'Not quite — try again!', icon: '✗' },
+  correct: {
+    color: COLOR_CORRECT,
+    textHex: '#ffffff',
+    text: 'Correct! 🌟',
+    icon: '✓',
+  },
+  incorrect: {
+    color: COLOR_INCORRECT,
+    textHex: '#ffffff',
+    text: 'Not quite — try again!',
+    icon: '✗',
+  },
   close: {
-    bg: CLR.warning,
-    textColor: HEX.neutral900,
+    color: COLOR_CLOSE,
+    textHex: '#1e3a8a',
     text: 'Almost! Adjust a little.',
     icon: '~',
   },
@@ -52,14 +75,18 @@ const KIND_CONFIG: Record<
 export const FEEDBACK_DISMISSED_EVENT = 'feedback-dismissed';
 
 export class FeedbackOverlay {
-  private bg: Phaser.GameObjects.Rectangle;
+  private panel: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
   private iconGO: Phaser.GameObjects.Text;
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
   private readonly cx: number;
-  private readonly cy: number;
+  private readonly showY: number;   // center Y when panel is fully visible
+  private readonly hideY: number;   // center Y when panel is off-screen below
+  private readonly panelW: number;
+  private readonly depth: number;
   private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+  private panelColor: number = COLOR_CORRECT;
 
   /** Subscribe to dismiss events. */
   readonly events: Phaser.Events.EventEmitter;
@@ -68,46 +95,46 @@ export class FeedbackOverlay {
     const { scene, width = 800, height = 1280, depth = 100 } = config;
 
     this.scene = scene;
+    this.depth = depth;
     this.events = new Phaser.Events.EventEmitter();
-
+    this.panelW = width;
     this.cx = width / 2;
-    this.cy = height / 2;
 
-    const cx = this.cx;
-    const cy = this.cy;
+    // Panel sits at bottom of canvas. Center Y when shown = height - PANEL_H/2.
+    this.showY = height - PANEL_H / 2;
+    this.hideY = height + PANEL_H / 2 + 10;
 
-    // Background panel — spans full width, 200px tall
-    this.bg = scene.add
-      .rectangle(cx, cy, width, 200, CLR.successSoft, 0.97)
-      .setDepth(depth)
-      .setVisible(false);
+    // ── Panel graphics ────────────────────────────────────────────────────────
+    this.panel = scene.add.graphics().setDepth(depth).setVisible(false);
 
-    // Icon
+    // ── Icon — top area of the panel ─────────────────────────────────────────
     this.iconGO = scene.add
-      .text(cx - 220, cy, '✓', {
-        fontSize: '48px',
+      .text(this.cx, this.hideY - 65, '✓', {
+        fontSize: '64px',
         fontFamily: TITLE_FONT,
-        color: HEX.success,
+        color: '#ffffff',
       })
       .setOrigin(0.5)
       .setDepth(depth + 1)
       .setVisible(false);
 
-    // Label — per interaction-model.md §5.1: never say "wrong"
+    // ── Label — below icon ────────────────────────────────────────────────────
     this.label = scene.add
-      .text(cx + 20, cy, '', {
+      .text(this.cx, this.hideY + 10, '', {
         fontSize: '28px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
-        color: HEX.neutral900,
+        color: '#ffffff',
+        align: 'center',
+        wordWrap: { width: width - 80 },
       })
-      .setOrigin(0, 0.5)
+      .setOrigin(0.5)
       .setDepth(depth + 1)
       .setVisible(false);
   }
 
   /**
-   * Show feedback for the given kind. Auto-dismisses after displayMs.
+   * Show feedback for the given kind. Slides up from the bottom, auto-dismisses.
    * per interaction-model.md §2 — visual feedback must start within 300ms of submit.
    */
   show(kind: FeedbackKind, onDismiss?: () => void, text?: string): void {
@@ -115,30 +142,36 @@ export class FeedbackOverlay {
     const reduceMotion = checkReduceMotion();
 
     const labelText = text && text.trim().length > 0 ? text : cfg.text;
+    this.panelColor = cfg.color;
 
-    this.bg.setFillStyle(cfg.bg, 0.97);
-    this.iconGO.setText(cfg.icon).setColor(cfg.textColor).setVisible(true);
-    this.label.setText(labelText).setVisible(true);
-    this.bg.setVisible(true).setAlpha(1);
-    this.iconGO.setAlpha(1);
-    this.label.setAlpha(1);
+    // ── Configure text content ────────────────────────────────────────────────
+    this.iconGO
+      .setText(cfg.icon)
+      .setColor(cfg.textHex)
+      .setY(this.hideY - 65)
+      .setAlpha(1)
+      .setVisible(true);
 
-    // Reset scale/position in case a previous tween left them non-unit
-    this.bg.setScale(1);
-    this.iconGO.setScale(1);
-    this.label.setScale(1);
-    this.bg.setX(this.cx);
-    this.iconGO.setX(this.cx - 220);
-    this.label.setX(this.cx + 20);
+    this.label
+      .setText(labelText)
+      .setColor(cfg.textHex)
+      .setY(this.hideY + 10)
+      .setAlpha(1)
+      .setVisible(true);
+
+    this.redrawPanel(this.hideY, 1);
+    this.panel.setVisible(true);
 
     this.dismissTimer?.remove(false);
 
-    // ── Sound effect ─────────────────────────────────────────────────────────
+    // ── Sound effect ──────────────────────────────────────────────────────────
     if (kind === 'correct') {
       sfx.playCorrect();
+    } else if (kind === 'incorrect') {
+      sfx.playIncorrect();
     }
 
-    // ── Test hooks ─────────────────────────────────────────────────────────
+    // ── Test hooks ────────────────────────────────────────────────────────────
     TestHooks.mountSentinel('feedback-overlay');
     TestHooks.setText('feedback-overlay', labelText);
     TestHooks.mountInteractive(
@@ -152,99 +185,151 @@ export class FeedbackOverlay {
         this.events.emit(FEEDBACK_DISMISSED_EVENT);
         onDismiss?.();
       },
-      { width: '200px', height: '60px', top: '55%', left: '50%' }
+      { width: '200px', height: '60px', top: '85%', left: '50%' }
     );
 
     const dismiss = () => {
-      this.hide();
+      if (reduceMotion) {
+        this.hide();
+      } else {
+        this.scene.tweens.add({
+          targets: [this.iconGO, this.label],
+          alpha: 0,
+          duration: FADE_MS,
+          ease: 'Cubic.easeIn',
+        });
+        this.scene.tweens.add({
+          targets: this.panel,
+          alpha: 0,
+          duration: FADE_MS,
+          ease: 'Cubic.easeIn',
+          onComplete: () => this.hide(),
+        });
+      }
       TestHooks.unmount('feedback-overlay');
       TestHooks.unmount('feedback-next-btn');
       this.events.emit(FEEDBACK_DISMISSED_EVENT);
       onDismiss?.();
     };
 
-    // ── Entry animations (skipped for prefers-reduced-motion) ────────────────
-    if (!reduceMotion) {
-      if (kind === 'correct') {
-        this.animateBounceIn();
-        this.burstStarParticles();
-      } else if (kind === 'incorrect') {
-        this.animateShake();
-      } else if (kind === 'close') {
-        this.animatePulse();
-      }
-    }
-
     if (reduceMotion) {
-      this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, dismiss);
-    } else {
-      this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS, () => {
-        this.scene.tweens.add({
-          targets: [this.bg, this.iconGO, this.label],
-          alpha: 0,
-          duration: FADE_MS,
-          ease: 'Cubic.easeIn',
-          onComplete: dismiss,
-        });
-      });
+      // Instant show at final position, no animation
+      this.repositionToShow();
+      this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS[kind], dismiss);
+      return;
     }
-  }
 
-  // ── Entry animations ────────────────────────────────────────────────────
-
-  /** Correct: panel scales in with pop (0.7 → 1.05 → 1.0, ~280ms, Back.easeOut). */
-  private animateBounceIn(): void {
-    this.bg.setScale(0.7);
-    this.iconGO.setScale(0.7);
-    this.label.setScale(0.7);
-
-    // First pop: scale up to 1.05 with Back.easeOut (~160ms)
+    // ── Slide up ──────────────────────────────────────────────────────────────
     this.scene.tweens.add({
-      targets: [this.bg, this.iconGO, this.label],
-      scaleX: 1.05,
-      scaleY: 1.05,
-      duration: 160,
+      targets: this.panel,
+      duration: SLIDE_MS,
+      ease: 'Back.easeOut',
+      onUpdate: (_tween: Phaser.Tweens.Tween, _target: unknown, _key: string, _current: number) => {
+        const progress = _tween.progress;
+        const panelY = this.hideY + (this.showY - this.hideY) * progress;
+        this.redrawPanel(panelY, 1);
+      },
+      onComplete: () => {
+        this.redrawPanel(this.showY, 1);
+      },
+    });
+
+    this.scene.tweens.add({
+      targets: [this.iconGO, this.label],
+      props: {
+        y: {
+          from: undefined, // current y (hideY offsets)
+          to: (target: Phaser.GameObjects.Text) =>
+            target === this.iconGO ? this.showY - 65 : this.showY + 10,
+        },
+      },
+      duration: SLIDE_MS,
       ease: 'Back.easeOut',
       onComplete: () => {
-        // Second settle: scale down to 1.0 with Quad.easeOut (~120ms)
-        this.scene.tweens.add({
-          targets: [this.bg, this.iconGO, this.label],
-          scaleX: 1.0,
-          scaleY: 1.0,
-          duration: 120,
-          ease: 'Quad.easeOut',
-        });
+        // ── Post-slide entry animations ───────────────────────────────────────
+        if (kind === 'correct') {
+          this.animateBounceIcon();
+          this.burstStarParticles();
+        } else if (kind === 'incorrect') {
+          this.animateShake();
+        } else if (kind === 'close') {
+          this.animatePulse();
+        }
+
+        // Start the display timer after slide completes
+        this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS[kind], dismiss);
       },
     });
   }
 
-  /**
-   * Incorrect: softer opacity + subtle scale pulse (200ms, Quad.easeOut).
-   * Respects prefers-reduced-motion: only panel + color flash, no scale.
-   */
-  private animateShake(): void {
-    // S3-T2: Softer feedback — opacity pulse + slight scale (no harsh shake)
+  // ── Entry animations ────────────────────────────────────────────────────────
+
+  /** Correct: icon pops (scale 1.0 → 1.3 → 1.0, ~300ms). */
+  private animateBounceIcon(): void {
     this.scene.tweens.add({
-      targets: [this.bg, this.iconGO, this.label],
-      alpha: 0.8,
-      duration: 100,
-      ease: 'Quad.easeOut',
+      targets: this.iconGO,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      duration: 150,
+      ease: 'Back.easeOut',
       yoyo: true,
       repeat: 0,
-      onComplete: () => {
-        this.bg.setAlpha(1);
-        this.iconGO.setAlpha(1);
-        this.label.setAlpha(1);
+    });
+  }
+
+  /** Incorrect: real left-right shake (±22px, 3 cycles, 80ms each). */
+  private animateShake(): void {
+    const amplitude = 22;
+    const halfCycle = 80;
+    const origX = this.cx;
+
+    this.scene.tweens.chain({
+      targets: [this.iconGO, this.label],
+      tweens: [
+        { x: origX + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: origX - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: origX + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: origX - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        {
+          x: origX,
+          duration: halfCycle,
+          ease: 'Sine.easeOut',
+        },
+      ],
+    });
+
+    // Shake the panel graphics too — update redrawPanel during shake
+    const panelShake = { x: this.cx };
+    this.scene.tweens.chain({
+      targets: panelShake,
+      tweens: [
+        { x: this.cx + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: this.cx - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: this.cx + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { x: this.cx - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        {
+          x: this.cx,
+          duration: halfCycle,
+          ease: 'Sine.easeOut',
+          onComplete: () => {
+            this.redrawPanel(this.showY, 1);
+          },
+        },
+      ],
+      onUpdate: () => {
+        // Offset the panel by the shake amount
+        const offsetX = panelShake.x - this.cx;
+        this.panel.setX(offsetX);
       },
     });
   }
 
-  /** Close: gentle pulse scale 1.0→1.05→1.0 (~250ms). */
+  /** Close: gentle pulse scale 1.0→1.04→1.0 (~250ms). */
   private animatePulse(): void {
     this.scene.tweens.add({
-      targets: [this.bg, this.iconGO, this.label],
-      scaleX: 1.05,
-      scaleY: 1.05,
+      targets: [this.iconGO, this.label],
+      scaleX: 1.04,
+      scaleY: 1.04,
       duration: 125,
       ease: 'Sine.easeInOut',
       yoyo: true,
@@ -252,32 +337,30 @@ export class FeedbackOverlay {
     });
   }
 
-  /** Correct: burst of 12-14 small stars drifting upward with alpha fade. */
+  /** Correct: burst of 14 small stars drifting upward with alpha fade. */
   private burstStarParticles(): void {
     if (!this.scene.textures.exists('clr-accentA')) return;
     TestHooks.mountSentinel('sparkle-burst');
 
-    // S3-T2: 12-14 particles in warm palette, drifting upward with alpha fade
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
     const maxParticles = 14;
     for (const tint of starColors) {
-      // Emit ~3 per color to reach ~14-15 total
       const perColor = Math.ceil(maxParticles / starColors.length);
-      const emitter = this.scene.add.particles(this.iconGO.x, this.iconGO.y, 'clr-accentA', {
-        lifespan: 650, // extended fade time for upward drift
-        speed: { min: 30, max: 140 },
-        scale: { start: 5, end: 1 }, // smaller particles
-        alpha: { start: 1, end: 0 }, // alpha fade (no gravity pulldown)
+      const emitter = this.scene.add.particles(this.cx, this.showY - 65, 'clr-accentA', {
+        lifespan: 700,
+        speed: { min: 40, max: 160 },
+        scale: { start: 5, end: 1 },
+        alpha: { start: 1, end: 0 },
         tint,
-        angle: { min: -180, max: 0 }, // upward range
-        gravityY: 0, // no gravity — let them float up
+        angle: { min: -180, max: 0 },
+        gravityY: 0,
         quantity: perColor,
         emitting: false,
       });
-      emitter.setDepth(this.bg.depth + 5);
+      emitter.setDepth(this.depth + 5);
       emitter.explode(perColor);
       this.activeParticleEmitters.push(emitter);
-      this.scene.time.delayedCall(800, () => {
+      this.scene.time.delayedCall(900, () => {
         const idx = this.activeParticleEmitters.indexOf(emitter);
         if (idx !== -1) {
           this.activeParticleEmitters.splice(idx, 1);
@@ -287,16 +370,31 @@ export class FeedbackOverlay {
     }
   }
 
-  // ── Internal ─────────────────────────────────────────────────────────────
+  // ── Internal ─────────────────────────────────────────────────────────────────
+
+  /** Redraw the panel graphics at the given center-Y position. */
+  private redrawPanel(centerY: number, alpha: number): void {
+    this.panel.clear();
+    this.panel.setAlpha(alpha);
+    this.panel.setX(0);
+    this.panel.fillStyle(this.panelColor, 1);
+    this.panel.fillRoundedRect(0, centerY - PANEL_H / 2, this.panelW, PANEL_H, CORNER_R);
+    // Subtle top border for depth
+    this.panel.lineStyle(2, NAVY, 0.15);
+    this.panel.strokeRoundedRect(0, centerY - PANEL_H / 2, this.panelW, PANEL_H, CORNER_R);
+  }
+
+  private repositionToShow(): void {
+    this.redrawPanel(this.showY, 1);
+    this.iconGO.setY(this.showY - 65);
+    this.label.setY(this.showY + 10);
+  }
 
   private hide(): void {
-    this.bg.setVisible(false).setAlpha(1).setScale(1);
-    this.iconGO.setVisible(false).setAlpha(1).setScale(1);
-    this.label.setVisible(false).setAlpha(1).setScale(1);
-    // Restore original x positions
-    this.bg.setX(this.cx);
-    this.iconGO.setX(this.cx - 220);
-    this.label.setX(this.cx + 20);
+    this.panel.setVisible(false).setAlpha(1).setX(0);
+    this.panel.clear();
+    this.iconGO.setVisible(false).setAlpha(1).setScale(1).setY(this.hideY - 65).setX(this.cx);
+    this.label.setVisible(false).setAlpha(1).setScale(1).setY(this.hideY + 10).setX(this.cx);
     for (const e of this.activeParticleEmitters) e.destroy();
     this.activeParticleEmitters = [];
     TestHooks.unmount('sparkle-burst');
@@ -305,7 +403,7 @@ export class FeedbackOverlay {
   destroy(): void {
     this.dismissTimer?.remove(false);
     this.events.destroy();
-    this.bg.destroy();
+    this.panel.destroy();
     this.iconGO.destroy();
     this.label.destroy();
     for (const e of this.activeParticleEmitters) e.destroy();

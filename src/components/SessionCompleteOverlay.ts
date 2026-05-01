@@ -32,6 +32,12 @@ export interface SessionCompleteConfig {
   onNextLevel?: () => void;
   onPlayAgain: () => void;
   onMenu: () => void;
+  /** T11: Drives the scaffold banner text + tap target below the stars. */
+  scaffoldRecommendation?: 'advance' | 'stay' | 'regress';
+  /** T11: Passed alongside scaffoldRecommendation so the banner knows which level to name. */
+  nextLevelNumber?: number | null;
+  /** T15: When true, renders a gold "PERFECT!" variant instead of the sky-blue standard. */
+  isPerfect?: boolean;
 }
 
 export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
@@ -59,6 +65,9 @@ export class SessionCompleteOverlay {
       onNextLevel,
       onPlayAgain,
       onMenu,
+      scaffoldRecommendation,
+      nextLevelNumber,
+      isPerfect = false,
     } = config;
 
     const cx = width / 2;
@@ -70,28 +79,38 @@ export class SessionCompleteOverlay {
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
     this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
 
-    // Full-screen sky-blue card
+    // T15: Gold background for perfect sessions, sky-blue for standard
     const cardBg = scene.add.graphics();
-    cardBg.fillStyle(SKY_BG, 1);
-    cardBg.fillRect(0, 0, width, height);
+    if (isPerfect) {
+      cardBg.fillStyle(0xffd700, 1);
+      cardBg.fillRect(0, 0, width, height / 2);
+      cardBg.fillStyle(0xff9500, 1);
+      cardBg.fillRect(0, height / 2, width, height / 2);
+    } else {
+      cardBg.fillStyle(SKY_BG, 1);
+      cardBg.fillRect(0, 0, width, height);
+    }
     cardBg.lineStyle(4, NAVY, 1);
     cardBg.lineBetween(0, 0, width, 0);
     this.container.add(cardBg);
 
     // Trophy — starts at scale 0.5 so the wave tween can spring it in
+    const trophyEmoji = isPerfect ? '🌟' : '🏆';
     const trophyT = scene.add
-      .text(cx, 320, '🏆', { fontSize: '72px', fontFamily: TITLE_FONT })
+      .text(cx, 320, trophyEmoji, { fontSize: '72px', fontFamily: TITLE_FONT })
       .setOrigin(0.5)
       .setScale(reduceMotion ? 1 : 0.5);
     this.container.add(trophyT);
 
-    // Heading
+    // T15: Perfect heading is white "PERFECT! 🌟"; standard is navy "Level N Complete!"
+    const headingText = isPerfect ? 'PERFECT! 🌟' : `Level ${levelNumber} Complete!`;
+    const headingColor = isPerfect ? '#ffffff' : NAVY_HEX;
     const headingT = scene.add
-      .text(cx, 420, `Level ${levelNumber} Complete!`, {
-        fontSize: '44px',
+      .text(cx, 420, headingText, {
+        fontSize: isPerfect ? '42px' : '44px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
-        color: NAVY_HEX,
+        color: headingColor,
       })
       .setOrigin(0.5);
     this.container.add(headingT);
@@ -111,13 +130,28 @@ export class SessionCompleteOverlay {
       this.container.add(st);
     }
 
+    // T15: Extra "ALL 5 correct!" line for perfect sessions
+    if (isPerfect) {
+      const perfectT = scene.add
+        .text(cx, 620, 'ALL 5 correct! You\'re a star! ⭐', {
+          fontSize: '20px',
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          color: '#ffffff',
+          align: 'center',
+          wordWrap: { width: width - 80 },
+        })
+        .setOrigin(0.5);
+      this.container.add(perfectT);
+    }
+
     // Encouragement
     const encT = scene.add
-      .text(cx, 640, this.encouragementLine(starCount), {
+      .text(cx, isPerfect ? 660 : 640, this.encouragementLine(starCount as 1 | 2 | 3, isPerfect), {
         fontSize: '24px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
-        color: NAVY_HEX,
+        color: isPerfect ? '#ffffff' : NAVY_HEX,
         align: 'center',
         wordWrap: { width: width - 80 },
       })
@@ -126,22 +160,81 @@ export class SessionCompleteOverlay {
 
     // Accuracy detail
     const accT = scene.add
-      .text(cx, 690, `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`, {
+      .text(cx, isPerfect ? 710 : 690, `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`, {
         fontSize: '19px',
         fontFamily: BODY_FONT,
-        color: NAVY_HEX,
+        color: isPerfect ? '#ffffff' : NAVY_HEX,
       })
       .setOrigin(0.5);
     this.container.add(accT);
 
-    // Buttons — "Next Level" (primary) when available, then "Play Again", then Menu
-    if (onNextLevel) {
-      this.addNextLevelButton(scene, cx, 780, onNextLevel);
-      this.addPlayAgainButton(scene, cx, 860, onPlayAgain);
-      this.addMenuButton(scene, cx, 940, onMenu);
+    // T11: Scaffold recommendation banner — slides in after stars land
+    const scaffoldBannerY = isPerfect ? 760 : 740;
+    if (scaffoldRecommendation) {
+      const bannerText =
+        scaffoldRecommendation === 'advance'
+          ? nextLevelNumber
+            ? `Level ${nextLevelNumber} unlocked! →`
+            : 'Great job! →'
+          : scaffoldRecommendation === 'stay'
+            ? 'Keep practising →'
+            : 'Let\'s try an easier one →';
+
+      const BANN_W = 440, BANN_H = 64, BANN_R = 32;
+      const bannerBg = scene.add.graphics().setAlpha(0);
+      bannerBg.fillStyle(ACTION_FILL, 1);
+      bannerBg.fillRoundedRect(cx - BANN_W / 2, scaffoldBannerY - BANN_H / 2, BANN_W, BANN_H, BANN_R);
+      bannerBg.lineStyle(3, NAVY, 0.4);
+      bannerBg.strokeRoundedRect(cx - BANN_W / 2, scaffoldBannerY - BANN_H / 2, BANN_W, BANN_H, BANN_R);
+
+      const bannerTxt = scene.add
+        .text(cx, scaffoldBannerY, bannerText, {
+          fontFamily: TITLE_FONT,
+          fontSize: '24px',
+          color: NAVY_HEX,
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5)
+        .setAlpha(0);
+
+      // Tap target for the banner navigates to the next level
+      const bannerHit = scene.add
+        .rectangle(cx, scaffoldBannerY, BANN_W, BANN_H, 0, 0)
+        .setAlpha(0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerup', () => {
+          if (scaffoldRecommendation === 'advance' && nextLevelNumber && onNextLevel) {
+            onNextLevel();
+          } else if (scaffoldRecommendation === 'stay') {
+            onPlayAgain();
+          } else if (scaffoldRecommendation === 'regress') {
+            onMenu(); // fall back to menu if no specific regress target
+          }
+        });
+
+      this.container.add([bannerBg, bannerTxt, bannerHit]);
+
+      // Animate the banner in 400ms after the overlay lands (stars finish at ~900ms + 400ms)
+      scene.time.delayedCall(reduceMotion ? 0 : 1300, () => {
+        scene.tweens.add({
+          targets: [bannerBg, bannerTxt],
+          alpha: 1,
+          duration: 400,
+          ease: 'Back.easeOut',
+        });
+        bannerHit.setAlpha(0.01); // make it interactive but visually transparent
+      });
+    }
+
+    // Buttons — pushed down to account for banner
+    const btnBaseY = scaffoldRecommendation ? 860 : 800;
+    if (onNextLevel && !scaffoldRecommendation) {
+      this.addNextLevelButton(scene, cx, btnBaseY, onNextLevel);
+      this.addPlayAgainButton(scene, cx, btnBaseY + 80, onPlayAgain);
+      this.addMenuButton(scene, cx, btnBaseY + 160, onMenu);
     } else {
-      this.addPlayAgainButton(scene, cx, 800, onPlayAgain);
-      this.addMenuButton(scene, cx, 880, onMenu);
+      this.addPlayAgainButton(scene, cx, btnBaseY, onPlayAgain);
+      this.addMenuButton(scene, cx, btnBaseY + 80, onMenu);
     }
 
     // Mount sentinel immediately so tests can observe completion-screen as soon
@@ -151,12 +244,12 @@ export class SessionCompleteOverlay {
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
       sfx.playComplete();
+      if (isPerfect) scene.time.delayedCall(600, () => sfx.playComplete(1.25));
       this.announce(levelNumber, starCount);
       return;
     }
 
-    // Issue #96: overlay entrance — panel slides in from below the viewport.
-    // The container starts at y = height (below the canvas) and tweens to y = 0.
+    // Overlay entrance — panel slides in from below the viewport.
     scene.tweens.add({
       targets: this.container,
       y: 0,
@@ -165,14 +258,15 @@ export class SessionCompleteOverlay {
       delay: 60,
       onComplete: () => {
         sfx.playComplete();
-        // Issue #70: Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
+        if (isPerfect) scene.time.delayedCall(600, () => sfx.playComplete(1.25));
+        // Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
         this.animateTrophyWave(scene, trophyT, () => {
-          // Issue #82: Glow sync — start repeating alpha pulse on heading after wave.
+          // Glow sync — start repeating alpha pulse on heading after wave.
           this.startGlowSync(scene, headingT);
           // Animate stars after trophy wave lands.
           this.animateStars(scene, cx, 530, depth, () => {
             this.announce(levelNumber, starCount);
-          });
+          }, isPerfect ? 80 : 40);
         });
       },
     });
@@ -328,7 +422,8 @@ export class SessionCompleteOverlay {
     confettiX: number,
     confettiY: number,
     depth: number,
-    onDone: () => void
+    onDone: () => void,
+    confettiCount = 40
   ): void {
     let delay = 0;
     for (let i = 0; i < this.starTexts.length; i++) {
@@ -343,7 +438,7 @@ export class SessionCompleteOverlay {
             scene.tweens.add({ targets: st, scale: 1.0, duration: 100, ease: 'Cubic.easeOut' });
           },
         });
-        if (i === 0) this.burstConfetti(scene, confettiX, confettiY, depth);
+        if (i === 0) this.burstConfetti(scene, confettiX, confettiY, depth, confettiCount);
         if (i === this.starTexts.length - 1) scene.time.delayedCall(300, onDone);
       });
       delay += 300;
@@ -351,10 +446,11 @@ export class SessionCompleteOverlay {
     if (this.starTexts.length === 0) onDone();
   }
 
-  private burstConfetti(scene: Phaser.Scene, x: number, y: number, depth: number): void {
+  private burstConfetti(scene: Phaser.Scene, x: number, y: number, depth: number, totalCount = 40): void {
     if (!scene.textures.exists('clr-accentA')) return;
 
     const colors = [0xfcd34d, 0x34d399, 0x60a5fa, 0xfb7185, 0xa78bfa, 0xf97316];
+    const perColor = Math.max(1, Math.round(totalCount / colors.length));
     for (const tint of colors) {
       const emitter = scene.add.particles(x, y, 'clr-accentA', {
         lifespan: 1000,
@@ -364,11 +460,11 @@ export class SessionCompleteOverlay {
         tint,
         angle: { min: -160, max: -20 },
         gravityY: 320,
-        quantity: 5,
+        quantity: perColor,
         emitting: false,
       });
       emitter.setDepth(depth + 15);
-      emitter.explode(5);
+      emitter.explode(perColor);
       scene.time.delayedCall(1400, () => emitter.destroy());
     }
   }
@@ -378,7 +474,8 @@ export class SessionCompleteOverlay {
     AccessibilityAnnouncer.announce(`Level ${levelNumber} complete! You earned ${stars} ${word}.`);
   }
 
-  private encouragementLine(stars: 1 | 2 | 3): string {
+  private encouragementLine(stars: 1 | 2 | 3, perfect = false): string {
+    if (perfect) return 'Incredible! You nailed every one!';
     if (stars === 3) return 'Amazing! Perfect score!';
     if (stars === 2) return 'Great work! Keep it up!';
     return 'Nice try! Practice makes perfect!';

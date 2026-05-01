@@ -39,11 +39,39 @@ export class SFXService {
   }
 
   /**
+   * Play a short descending two-note tone for an incorrect answer.
+   * Tones: G4 (392 Hz) → D4 (294 Hz), 70 ms each, sine wave.
+   * Softer gain than playCorrect — present but not harsh.
+   */
+  playIncorrect(): void {
+    this.playNotes([392, 294], 0.07, 'sine', 0.18 * this.volume);
+  }
+
+  /**
    * Play a four-note ascending celebratory jingle for session complete.
    * Tones: C5 → E5 → G5 → C6, 110 ms each, sine wave.
+   * Optional pitchMultiplier stretches all frequencies (e.g. 1.25 for perfect-session fanfare).
    */
-  playComplete(): void {
-    this.playNotes([523, 659, 784, 1047], 0.11, 'sine', 0.35 * this.volume);
+  playComplete(pitchMultiplier = 1): void {
+    const freqs = [523, 659, 784, 1047].map((f) => f * pitchMultiplier);
+    this.playNotes(freqs, 0.11, 'sine', 0.35 * this.volume);
+  }
+
+  /**
+   * Play a five-note ascending streak jingle for "3 in a row!" milestone.
+   * Tones: C5 → E5 → G5 → B5 → C6, 80 ms each, sine wave.
+   * Distinctly longer than playCorrect and more exciting than playComplete.
+   */
+  playStreak(): void {
+    this.playNotes([523, 659, 784, 988, 1047], 0.08, 'sine', 0.32 * this.volume);
+  }
+
+  /**
+   * Play a short click-pop sound when the partition snaps to the correct position.
+   * Tone: C6 (1047 Hz), triangle wave, 40 ms — crisp tactile snap feel.
+   */
+  playSnap(): void {
+    this.playNotes([1047], 0.04, 'triangle', 0.12 * this.volume);
   }
 
   setEnabled(on: boolean): void {

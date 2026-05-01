@@ -83,8 +83,12 @@ export class SettingsScene extends Phaser.Scene {
         { top: toViewport(330), left: halfCanvas }
       ),
       new PreferenceToggle(
-        { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
+        { key: 'ttsEnabled', label: 'Read Questions Aloud' },
         { top: toViewport(410), left: halfCanvas }
+      ),
+      new PreferenceToggle(
+        { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
+        { top: toViewport(490), left: halfCanvas }
       )
     );
 

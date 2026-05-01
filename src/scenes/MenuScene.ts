@@ -28,6 +28,7 @@ import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
+import { getStreak } from '../lib/streak';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -334,6 +335,9 @@ export class MenuScene extends Phaser.Scene {
       },
     });
 
+    // T17: Streak pill — async load from DB, render below Play button
+    void this.renderStreakDisplay();
+
     // "Choose Level" pill button — opens the Adventure Map (LevelMapScene)
     // where players can see all levels on a winding path and tap to choose one.
     this.createChooseLevelButton();
@@ -395,6 +399,43 @@ export class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setDepth(18)
       .on('pointerup', () => void this._openChooseLevelOverlay());
+  }
+
+  /**
+   * T17: Load the daily streak from the DB and render a flame label below
+   * the Play button. Shows motivating copy based on streak length.
+   */
+  private async renderStreakDisplay(): Promise<void> {
+    const streak = await getStreak(this.lastStudentId);
+    const sy = PLAY_Y + 155;
+    const sx = STATION_X;
+
+    let label: string;
+    let color: string;
+
+    if (streak <= 1) {
+      label = '🔥 Start your streak!';
+      color = '#f59e0b'; // amber
+    } else if (streak >= 7) {
+      label = `🏆 ${streak} day legend streak!`;
+      color = '#b45309'; // gold/amber-dark
+    } else {
+      label = `🔥 ${streak} day streak!`;
+      color = '#d97706'; // amber-600
+    }
+
+    // Welcome-back toast if streak reset (streak=1 and they had prior plays)
+    // We can't easily detect a reset without storing previous count, so for now
+    // show the simple streak display.
+
+    this.add
+      .text(sx, sy, label, {
+        fontFamily: TITLE_FONT,
+        fontSize: '22px',
+        color,
+      })
+      .setOrigin(0.5)
+      .setDepth(16);
   }
 
   /**
