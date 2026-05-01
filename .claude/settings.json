@@ -31,6 +31,7 @@
       "Bash(npm run preview:*)",
       "Bash(npm run gen\\:workflows:*)",
       "Bash(npm run lint\\:ci:*)",
+      "Bash(npm run sync\\:claude-md:*)",
 
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
@@ -120,6 +121,15 @@
             "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_SESSION_ID:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
           }
         ]
+      },
+      {
+        "_comment": "Spike: probe Claude Code env contract — remove after the result is captured in learnings.md",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p .claude && { echo \"[$(date '+%F %H:%M')] pre-compact env probe (Phase 8.4 spike)\"; env | grep -i claude || echo '(no CLAUDE_* env vars present)'; echo '---'; } >> .claude/_env-probe.log 2>/dev/null; exit 0"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -146,6 +156,15 @@
           {
             "type": "command",
             "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ] && exit 0; LOC=$(wc -l < \"$FILE\" 2>/dev/null | tr -d ' '); BUDGET=0; case \"$FILE\" in *src/scenes/*Scene.ts) BUDGET=600 ;; *src/components/*.ts) BUDGET=300 ;; *src/validators/*.ts) BUDGET=200 ;; *src/engine/*.ts) BUDGET=400 ;; *src/lib/*.ts) BUDGET=300 ;; esac; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt \"$BUDGET\" ]; then case \"$FILE\" in *Level01Scene.ts|*LevelScene.ts) PRE=$(git show HEAD:\"$FILE\" 2>/dev/null | wc -l | tr -d ' ' || echo 0); if [ \"$LOC\" -gt \"$PRE\" ]; then echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget. This is a frozen god file (D-27 deferred sunset) — net-LOC-positive edits are rejected until extraction lands. Bug-fix edits that delete more than they add are allowed. Bypass with --no-verify and a one-line PR-body justification.\" >&2; exit 2; fi ;; *) echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. Extract before adding more. See PLANS/agent-tooling-2026-05-01.md → Core principle: Proactive over reactive.\" >&2; exit 2 ;; esac; fi; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt $((BUDGET * 8 / 10)) ]; then echo \"◇ LOC advisory: $FILE is at $LOC/$BUDGET (>80%). Consider extracting before next addition.\" >&2; fi; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] && exit 0; case \"$FILE\" in *.claude/agents/*.md|*.claude/commands/*.md) echo '▶ .claude/agents or .claude/commands edited — running sync:claude-md...'; npm run sync:claude-md >/dev/null 2>&1 || true; if [ -n \"$(git status --short CLAUDE.md 2>/dev/null)\" ]; then echo 'WARNING: CLAUDE.md drift after sync — review the diff and stage CLAUDE.md before committing.' >&2; fi ;; esac; exit 0"
           }
         ]
       }

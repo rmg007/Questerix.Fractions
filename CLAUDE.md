@@ -10,14 +10,18 @@ Educational browser game (Phaser 4 + TypeScript) teaching K–2 fraction concept
 
 Many slash commands are now harness skills that auto-discover by intent — typing them is rarely necessary. Project-specific commands (those not covered by skills) live in `.claude/commands/`:
 
-- `/learn <text>` — append a one-line gotcha to `.claude/learnings.md`
-- `/retro` — end-of-session retro; proposes CLAUDE.md / learnings / PLANS / CHANGELOG updates (always proposes a candidate learnings entry)
-- `/sprint-status` — compact table of active blockers vs. codebase reality
-- `/c5-check` — grep localStorage for constraint drift outside documented exceptions
-- `/decision <title>` — append a new D-NN entry to `docs/00-foundation/decision-log.md`
-- `/recreate-pr <N>` — re-open an auto-closed PR (legacy escape hatch from PR #36 fix)
-- `/economy` — summarize current session's token cost
-- `/retro-weekly` — 7-day token-cost rollup from `_session-log.md`
+<!-- AUTO:slash-commands-list:start -->
+- `/c5-check` — Grep for localStorage usage outside documented C5 exceptions — catches constraint drift
+- `/decision` — Append a new architectural decision entry to docs/00-foundation/decision-log.md
+- `/economy` — Summarize this session's token cost — file reads vs tool output vs assistant prose
+- `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
+- `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
+- `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
+- `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+- `/sprint-status` — Print active sprint blockers and their current status in compact form
+<!-- AUTO:slash-commands-list:end -->
+
+> The list above is auto-generated from `.claude/commands/*.md` frontmatter by `npm run sync:claude-md`. Edit the source files, not this section.
 
 Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-changed` (these replaced the previous project slash commands of the same names — auto-fired by hooks where possible, otherwise invoked by intent).
 
@@ -29,16 +33,18 @@ Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-cha
 
 ## Specialist subagents (in `.claude/agents/`)
 
-Delegate to these via the Agent tool when scope warrants. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`:
+Delegate to these via the Agent tool when scope warrants. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`. The table body below is auto-generated from `.claude/agents/*.md` frontmatter by `npm run sync:claude-md`.
 
-| Subagent | Auto-fires when… |
+| Subagent | Description |
 |---|---|
-| `c1-c10-auditor` | persistence, network, dependency, or new top-level UI changes |
-| `bundle-watcher` | `package.json` / `package-lock.json` change; large feature merge |
-| `validator-parity-checker` | any `src/validators/*.ts` change |
-| `a11y-auditor` | new interactive component or scene-level UI addition |
-| `engine-determinism-auditor` | any `src/engine/**` change (excluding `src/engine/ports.ts`) |
-| `curriculum-byte-parity` | `public/curriculum/v1.json` or `src/curriculum/bundle.json` (or pipeline output) changes |
+<!-- AUTO:subagents-table:start -->
+| `a11y-auditor` | Audits new or changed interactions and components for WCAG 2.1 AA compliance — ARIA labels, touch target sizes, reduced-motion gating, keyboard parity via A11yLayer. Use after adding or modifying interactive elements. |
+| `bundle-watcher` | Audits production bundle size against the 1.0 MB gzipped JS budget. Use after dependency changes, large feature merges, or whenever the build looks heavier than expected. |
+| `c1-c10-auditor` | Audits a diff or branch for violations of the locked C1–C10 constraints. Use proactively when significant code changes touch persistence, networking, UI surface area, dependencies, or device targets. |
+| `curriculum-byte-parity` | Confirms public/curriculum/v1.json and src/curriculum/bundle.json are byte-identical (sha256 match). Use whenever a diff touches either curriculum bundle file or pipeline output. |
+| `engine-determinism-auditor` | Audits diffs touching src/engine/** for direct host-global calls (Math.random, Date.now, crypto.randomUUID) and points to the correct port in src/engine/ports.ts. Use proactively whenever engine code changes. |
+| `validator-parity-checker` | Confirms that a changed TypeScript validator has a matching Python clone in pipeline/validators_py.py and that parity fixtures still pass. Use after any change to src/validators/*.ts. |
+<!-- AUTO:subagents-table:end -->
 
 ## Auto-invoke skills
 

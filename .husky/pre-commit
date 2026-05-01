@@ -4,3 +4,12 @@
 # scripts/preflight-router.mjs. Do NOT add work here — it slows every commit
 # and an aborted commit loses the staged diff. Push-time is the right tier.
 npm run typecheck
+
+# CLAUDE.md drift check — regenerate auto-managed sections from
+# .claude/agents/*.md and .claude/commands/*.md, then ensure no diff.
+# If drift exists, fail the commit so the agent author re-stages.
+npm run sync:claude-md
+if ! git diff --exit-code CLAUDE.md >/dev/null 2>&1; then
+  echo "ERROR: CLAUDE.md drift — run 'npm run sync:claude-md' and re-stage CLAUDE.md before committing." >&2
+  exit 1
+fi
