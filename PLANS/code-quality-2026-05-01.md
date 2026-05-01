@@ -21,7 +21,9 @@ The new material this plan adds: **architectural pushback that the prior plans a
 
 ## Audit methodology
 
-Four dimensions, applied in the order they appear in the audit prompt. Findings carry severity (CRITICAL / HIGH / MEDIUM / LOW), file:line citation, and a remediation phase reference. **No finding is included unless it carries a concrete remediation** — diagnosis without prescription is noise.
+Four primary dimensions per the audit prompt (Architectural Cohesion · Computational Performance · Defensive Engineering · Modularity & Future-Proofing), plus a **fifth cross-cutting pass** (§4.5) covering security, PWA correctness, i18n readiness, observability conventions, and hidden coupling/state-management discipline. Findings carry severity (CRITICAL / HIGH / MEDIUM / LOW), file:line citation, and a remediation phase reference. **No finding is included unless it carries a concrete remediation** — diagnosis without prescription is noise.
+
+The cross-cutting pass was added in v2 after three follow-up agent investigations; it surfaced 25 issues the v1 plan missed entirely, including 8 unpatched npm CVEs, 3 new C5 violations, and an undocumented session-crash recovery contract. **The cross-cutting findings significantly reshape the plan's risk profile**, which is why this v2 supersedes the original.
 
 ---
 
@@ -333,6 +335,65 @@ This eliminates parity rather than enforcing it. It also means the runtime can n
 **Recommendation A1 (Phase 3):** sunset Level01Scene. Defer to Path B only if the L1 special-cases (per `LEVEL_META`) cannot be expressed in the config-driven `LevelScene` — which the audit found no evidence of.
 
 
+## 4.5 Cross-cutting findings (security, PWA, i18n, observability, hidden coupling)
+
+These dimensions span multiple SOLID/SRP buckets but are coherent enough to surface separately. **None of these were captured in the v1 plan**; they emerged from three follow-up agent passes (security/privacy, PWA/i18n/observability, hidden-coupling/state).
+
+### 4.5.A Security & supply chain (HIGH–CRITICAL)
+
+- **CRITICAL: 8 unpatched npm vulnerabilities** including `esbuild ≤0.24.2` (dev-server bypass — GHSA-67mh-4wv8-2f99) and `serialize-javascript ≤7.0.4` (RCE via RegExp.flags + CPU DoS). All in dev dependencies, but exploitable during CI/CD if the build environment is compromised. **Remediation (Phase 0.6):** `npm audit fix`; pin post-upgrade; add `npm audit` to the pre-commit hook (`scripts/residual-lint.mjs` already exists as a hook home).
+- **HIGH: Three new C5 violations** beyond the ones the v1 plan tracks:
+  - `src/lib/streak.ts:25,43,72` — stores `questerix.streak:${studentId}` JSON (count + lastDate) in localStorage. Plan Phase 5 must absorb this; `streakRecord` table goes into the Dexie v7 migration.
+  - `src/scenes/OnboardingScene.ts:415` — writes `questerix.onboardingSeen` flag.
+  - The `Level01Scene.ts:1435,1477` `suggestedLevel` write was already in plan Phase 5; this audit confirms the comment at `:1461` acknowledges the issue but the code persists.
+- **MEDIUM: Sentry `setUser({ id: studentId })`** at `src/lib/observability/errorReporter.ts:49-52`. Even with lazy-loading and `sendDefaultPii: false`, the studentId UUID is sent as a Sentry user identifier — correlatable across events. **Remediation:** hash the ID or omit it; document in pre-deploy checklist that K-2 production builds must not configure `VITE_SENTRY_DSN`.
+- **MEDIUM: CSP `style-src 'self' 'unsafe-inline'`** in `public/_headers:6`. Index.html has inline `<style>` (lines 18-112) by design; broader policy is unnecessary. **Remediation:** extract to a separate stylesheet + nonce-based CSP at build time.
+- **MEDIUM: Source-map files generated** (`vite.config.ts:129` uses `sourcemap: 'hidden'`). The "hidden" mode strips `//# sourceMappingURL` references but leaves `.map` files in `dist/`. If the deploy step doesn't filter them, source code leaks. **Remediation:** add a pre-deploy validation in CI that fails if `dist/**/*.map` exists.
+- **MEDIUM: Backup restore accepts any JSON without confirmation** (`src/persistence/backup.ts:125-140`). User downloads a malicious backup → silent state replacement. **Remediation:** confirmation modal with diff preview; transactional restore (already in Phase 7.4 as Zod boundary; extend with UX confirmation).
+- **MEDIUM: Service worker caches curriculum JSON for 30 days** (`vite.config.ts:36-46` uses `CacheFirst`). A patched-misconception curriculum cannot reach users for a month if they go offline after one online visit. **Remediation:** reduce to 7 days; add a manual "Refresh Curriculum" affordance in Settings.
+- **LOW: PWA manifest missing `screenshots` and `categories`** (`public/manifest.json`). Not a security issue; documented for completeness.
+
+### 4.5.B PWA correctness (MEDIUM)
+
+- **MEDIUM: No offline error affordance.** If a student attempts to load a level whose curriculum JSON has never been cached, `src/curriculum/loader.ts:80-121` emits a cryptic console error and the scene hangs. **Remediation:** wrap fetch in try/catch; surface a "This level is not available offline — please connect to download" toast; fall back to safe state.
+- **MEDIUM: No update-available UI.** The service worker uses `registerType: 'autoUpdate'` with `skipWaiting`. When a new bundle ships, the old tab keeps running until the user closes it. No banner prompts a refresh at a safe checkpoint. **Remediation:** subscribe to `oncontrollerchange`; render a banner; let the user accept the reload at the menu (not mid-level).
+- **MEDIUM: TTS voice not locale-aware.** `src/audio/TTSService.ts:57-60` accepts an optional `opts.voice` but never sets it; defaults to system voice. **Remediation (Phase 11 + Phase 12 if i18n is on roadmap):** select voice from `speechSynthesis.getVoices()` matching the active locale.
+
+### 4.5.C i18n readiness — RESOLVED: English-only (D-27)
+
+**Decision D-27 (2026-05-01): App ships English-only. Multi-locale is not on the roadmap and will not be revisited at v2 unless explicitly reopened.**
+
+Implications:
+- Q47–Q50 (pipeline locale tagging, fraction formatting, RTL prep, locale persistence) **demoted to LOW · deferred indefinitely**.
+- The runtime i18n catalog (`src/lib/i18n/catalog.ts` + 445+ entries in `keys/quest.ts`) is **retained for its non-localization value**: centralized string management, tone tags, ICU plural support, easier content review and QA. Do **not** dismantle it.
+- Phase 14 is **DEFERRED** as an entire phase. The plan's effort total drops by ~8 hr.
+- TTS voice locale-awareness (Q46) collapses to "use English voice if available, fall back to system default" — a 15-minute task absorbed into Phase 11.
+- The pipeline parity re-architecture (Phase 9 / recommendation A2) is now safe to execute without coordinating with i18n design.
+
+**Findings retained for documentation only** (in case the decision is reopened): pipeline output is English-only literal strings; fraction notation is hardcoded ("1/2"); ordinals at `src/lib/i18n/keys/quest.ts:113-158` are English-literal. None require remediation under D-27 = English-only.
+
+### 4.5.D Observability conventions (HIGH instrumentation gap)
+
+The infrastructure is solid (lazy-loaded OTel + Sentry, IndexedDB telemetry buffer in `logger.ts`, consent-gated). **The instrumentation is sparse and the conventions are absent.**
+
+- **HIGH: Only three callsites emit spans**, all in `src/persistence/middleware.ts:19,42,59` (`db.mutate`, `db.get`, `db.query`). No spans on scene lifecycle, question flow, mastery updates, or hint usage. The instrumentation exists; it's not wired anywhere meaningful.
+- **HIGH: Span names and attribute names are scattered string literals.** Middleware uses `{ table, type }` (unqualified); `phaserInstrumentation.ts:17-18` uses `{ scene }` (also unqualified). No central `SPAN_NAMES` registry, no naming convention document. A typo creates a silent dead span.
+- **MEDIUM: No client-side sampling.** When `VITE_OTLP_URL` is set, every Dexie operation traces. A 100-question session emits hundreds of spans per student.
+- **MEDIUM: Error severity contract is implicit.** `logger.error/warn/info` exist but routing is informal — only top-level catches reach Sentry; warnings stay in console. No documented `fatal | error | warn | info` mapping to destinations.
+
+### 4.5.E Hidden coupling & state-management (HIGH–CRITICAL)
+
+Findings from the third audit pass (cross-referenced against existing plan items to extract only what is **new**):
+
+- **CRITICAL (new): Session crash recovery contract is undocumented.** Plan Q5 captures "session creation silent collapse" but does **not** document the post-crash recovery semantics. If a scene is destroyed mid-attempt (before Dexie writes complete), what does the next session see? Current behavior: silently resumes from the last *persisted* attempt, dropping the in-memory partial. Safe but non-obvious; under 30-min sessions on flaky devices, this is a real loss vector. **Remediation (Phase 0.5 / Phase 1):** add an architectural test that pre-state, kills the scene mid-attempt, and asserts the recovery is correct + visible to the student.
+- **HIGH (new): Branded-ID `as` casts are widespread and unvalidated.** `attemptRepo.ts:38` casts `String(key) as AttemptId` (Dexie auto-increment key — a behavior assumption). `misconceptionDetectors.ts` does `evidenceIds as AttemptId[]` ×11 — batch cast without item validation. The plan (§1.8) only brands `MisconceptionId`; this audit shows StudentId/SessionId/AttemptId have the same hole. **Remediation (Phase 8):** audit every `as *Id` site; replace with smart-constructor calls or boundary-Zod validation. Acceptance: zero `as *Id` outside test fixtures.
+- **HIGH (new): Scene `init(data)` is untyped.** `fadeAndStart(this, 'Level01Scene', { studentId, levelNumber })` (LevelMapScene.ts:363) passes a free-form object; `Level01Scene.init(data)` accepts `any`. A caller can pass `levelNumber: 100` and the receiver accepts silently. **Remediation (Phase 8):** define `SceneContract<T>` per scene; ESLint rule that fails `fadeAndStart(..., data: any)` without a type guard.
+- **MEDIUM (new): Scene-layer `Date.now()` calls** at `Level01Scene.ts:1364,1373,1376` are outside Phase 2's engine-only lint scope. The mastery-update path reads wall clock directly. **Remediation (Phase 4 / Phase 6):** scene injects clock into mastery write; engine `ClockPort` is the only source.
+- **MEDIUM (new): Typed event bus is incomplete.** One typed event constant exists (`FEEDBACK_DISMISSED_EVENT` at `FeedbackOverlay.ts:51`); inter-scene/inter-component communication otherwise uses Phaser's loosely typed emitter. **Remediation (Phase 8):** introduce `SceneEventBus` interface; enforce named-constant event keys.
+- **MEDIUM (new): Hardcoded particle colors.** `FeedbackOverlay.ts:260`, `SessionCompleteOverlay.ts:357`, `QuestCompleteOverlay.ts:287` all embed hex literals (`[0xfcd34d, 0xfbbf24, ...]`) bypassing `levelTheme.ts`. Theme palette change won't propagate. **Remediation (Phase 8):** replace with theme tokens.
+
+---
+
 ## 5. Risk inventory (consolidated)
 
 Cross-section table. `H&P` denotes an item already enumerated in `harden-and-polish-2026-04-30.md` — this plan **sequences** rather than redrafts those items.
@@ -374,8 +435,33 @@ Cross-section table. `H&P` denotes an item already enumerated in `harden-and-pol
 | Q33 | LOW      | 3   | BKT edge cases: extreme priors, threshold-boundary not property-tested                    | `tests/unit/bkt.test.ts`                        | 6     |
 | Q34 | LOW      | 3   | Detector unit tests: zero coverage for 16 detectors                                       | (no file)                                       | 4.5   |
 | Q35 | LOW      | 4   | No CI coverage gate (engine/validators/persistence are pure — cheap to gate)              | `.github/workflows/ci.yml`                      | 6.4   |
+| Q36 | CRITICAL | 4.5.A | 8 unpatched npm vulnerabilities (esbuild, serialize-javascript)                          | `package.json`, lockfile                        | 0.6   |
+| Q37 | HIGH     | 4.5.A | C5 violation — `streak.ts` localStorage writes                                            | `src/lib/streak.ts:25,43,72`                    | 5     |
+| Q38 | HIGH     | 4.5.A | C5 violation — `OnboardingScene` writes `questerix.onboardingSeen`                        | `src/scenes/OnboardingScene.ts:415`             | 5     |
+| Q39 | MEDIUM   | 4.5.A | Sentry `setUser({ id: studentId })` — UUID exfiltration via correlation                   | `src/lib/observability/errorReporter.ts:49-52`  | 0.6,13 |
+| Q40 | MEDIUM   | 4.5.A | CSP `style-src 'unsafe-inline'` broader than necessary                                    | `public/_headers:6`                             | 13    |
+| Q41 | MEDIUM   | 4.5.A | `dist/**/*.map` files generated; no deploy-gate filter                                    | `vite.config.ts:129`, `.github/workflows/deploy.yml` | 0.6 |
+| Q42 | MEDIUM   | 4.5.A | Backup restore has no confirmation + diff preview                                          | `src/persistence/backup.ts:125-140`             | 13    |
+| Q43 | MEDIUM   | 4.5.A | SW caches curriculum JSON 30 days (`CacheFirst`)                                          | `vite.config.ts:36-46`                          | 11    |
+| Q44 | MEDIUM   | 4.5.B | No offline error affordance for un-cached level                                            | `src/curriculum/loader.ts:80-121`               | 11    |
+| Q45 | MEDIUM   | 4.5.B | No update-available UI when SW receives new bundle                                        | service worker + UI                             | 11    |
+| Q46 | MEDIUM   | 4.5.B | TTS voice not locale-aware                                                                 | `src/audio/TTSService.ts:57-60`                 | 11,12 |
+| Q47 | LOW (deferred) | 4.5.C | Pipeline emits English-only prompts; no locale tagging — **deferred per D-27**            | `pipeline/output/level_NN/all.json`, schema     | (none) |
+| Q48 | LOW (deferred) | 4.5.C | Number/fraction formatting hardcoded — **deferred per D-27**                              | `src/lib/i18n/keys/quest.ts:113-158`, callsites | (none) |
+| Q49 | LOW (deferred) | 4.5.C | RTL layout not prepared — **deferred per D-27**                                            | CSS / scene layout                              | (none) |
+| Q50 | LOW (deferred) | 4.5.C | Locale not persisted; no UI selector — **deferred per D-27**                              | `levelProgression` schema, MenuScene            | (none) |
+| Q51 | HIGH     | 4.5.D | Only 3 spans emitted (all Dexie middleware); no scene/question/mastery instrumentation    | `src/persistence/middleware.ts:19,42,59`        | 12    |
+| Q52 | HIGH     | 4.5.D | Span names / attribute names scattered + untyped                                           | observability callsites                          | 12    |
+| Q53 | MEDIUM   | 4.5.D | No client-side OTel sampling                                                               | `src/lib/observability/tracer.ts:51-57`         | 12    |
+| Q54 | MEDIUM   | 4.5.D | Error severity contract implicit                                                           | `src/lib/log.ts`, `errorReporter.ts`            | 12    |
+| Q55 | CRITICAL | 4.5.E | Session crash recovery contract undocumented                                              | `Level01Scene.ts:314-379, 1276-1428`            | 0.5,1 |
+| Q56 | HIGH     | 4.5.E | Branded-ID `as` casts widespread (StudentId/SessionId/AttemptId)                          | `attemptRepo.ts:38`, `misconceptionDetectors.ts` ×11 | 8 |
+| Q57 | HIGH     | 4.5.E | Scene `init(data)` is untyped — caller/receiver contract not enforced                     | scene init signatures + `fadeAndStart`          | 8    |
+| Q58 | MEDIUM   | 4.5.E | Scene-layer `Date.now()` outside engine lint scope                                         | `Level01Scene.ts:1364,1373,1376`                | 4,6  |
+| Q59 | MEDIUM   | 4.5.E | Typed event bus incomplete; custom events risk string-literal scattering                  | `FeedbackOverlay.ts:51`                         | 8    |
+| Q60 | MEDIUM   | 4.5.E | Hardcoded particle colors bypass `levelTheme.ts`                                          | `FeedbackOverlay.ts:260`, `SessionCompleteOverlay.ts:357`, `QuestCompleteOverlay.ts:287` | 8 |
 
-**Severity rollup:** 9 CRITICAL, 9 HIGH, 12 MEDIUM, 5 LOW = 35 issues. (`harden-and-polish` independently lists 48; ~10 of those duplicate the items above and are sequenced via the H&P plan in Phase 9.)
+**Severity rollup (v2, post cross-cutting, post D-27):** 10 CRITICAL, 14 HIGH, 23 MEDIUM, 9 LOW (4 of which are i18n-deferred) = **56 actionable issues**. `harden-and-polish-2026-04-30.md` independently lists 48; ~10 of those duplicate plan items and are sequenced via the H&P rollup in Phase 10. **Net unique scope of this plan: ~46 distinct findings (excluding the 4 deferred-i18n items).**
 
 
 ## 6. Phased remediation plan
@@ -393,6 +479,20 @@ Cross-section table. `H&P` denotes an item already enumerated in `harden-and-pol
 | 0.5 | Sequence harden CRITICALs that are pure prerequisites: R6, R7, R8 (one PR, one branch).                                   | `Level01Scene.ts`, `src/main.ts`                      | 1 hr    |
 
 **Acceptance:** D-25 written; CI fails on a deliberately broken parity fixture; `CLAUDE.md` reflects ground truth; 15 parity fixtures present; window.error handler installed; preDestroy cleanup present.
+
+### Phase 0.6 — Immediate security hygiene (≈3 hr · ship first)
+
+Highest urgency. The 8 npm CVEs and source-map deploy-gate are pre-merge for everything else; sentry-id scrub is a privacy obligation.
+
+| #     | Task                                                                                                                       | File:line / artifact                                  | Effort  |
+| ----- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
+| 0.6.1 | `npm audit fix`. If breaking changes are required for `vitest` / `workbox-build`, take them. Pin post-upgrade.            | `package.json`, `package-lock.json`                   | 30 min  |
+| 0.6.2 | Add `npm audit --omit=optional --audit-level=high` step to `scripts/residual-lint.mjs` (already pre-push). Fail on HIGH+. | `scripts/residual-lint.mjs`                           | 30 min  |
+| 0.6.3 | Strip `studentId` from Sentry `setUser({})`. Replace with a per-session hash (or omit entirely). Document in pre-deploy checklist that production must not configure `VITE_SENTRY_DSN` for K-2 audience. | `src/lib/observability/errorReporter.ts:49-52`        | 30 min  |
+| 0.6.4 | Add a deploy-time guard: fail CI/deploy if `dist/**/*.map` exists. Either filter at build (`build.sourcemap: false`) or prune in deploy step. | `.github/workflows/deploy.yml`, `vite.config.ts:129`  | 1 hr    |
+| 0.6.5 | Document in `SECURITY.md` (new, repo root) the dependency-audit + telemetry-DSN policies. Link from `CLAUDE.md`.          | `SECURITY.md` (new), `CLAUDE.md`                      | 30 min  |
+
+**Acceptance:** `npm audit` reports 0 HIGH/CRITICAL. `npm run build && ls dist/**/*.map` returns nothing OR is gated. Sentry user-context contains no raw studentId. `SECURITY.md` exists.
 
 ### Phase 1 — Bug fixes from located root causes (≈3 hr)
 
@@ -453,7 +553,7 @@ Structural fix for Q10, Q12, Q18, Q20, Q26, Q28, Q31, Q34.
 
 **Acceptance:** zero `Math.random | Date.now | crypto.*` inside `src/engine/` (Phase 2 lint enforces). Adding a new misconception is a single-row addition to `misconceptionRules.ts`. Coverage of misconception rules ≥ 90%. Detector run is deterministic given a seeded RNG.
 
-### Phase 5 — Persistence consolidation + C5 closeout (≈5 hr)
+### Phase 5 — Persistence consolidation + C5 closeout (≈7 hr)
 
 Structural fix for Q9, Q16, Q27, Q29.
 
@@ -464,8 +564,11 @@ Structural fix for Q9, Q16, Q27, Q29.
 | 5.3 | Migrate `MenuScene.ts:434-441` localStorage reads to `levelProgressionRepo`.                                              | `MenuScene.ts`                                        | 30 min  |
 | 5.4 | Migrate `src/lib/log.ts:40,113,118,122` `LOG` key off localStorage (per H&P R27). Either to IndexedDB or remove if not load-bearing. | `src/lib/log.ts`                                      | 1 hr    |
 | 5.5 | Integration test: pre-populate v5 localStorage fixture, open the v6 DB, assert `levelProgression` rows match and localStorage keys are absent. | `tests/integration/2026-05-01-v5-to-v6.test.ts`       | 1 hr    |
+| 5.6 | Migrate `src/lib/streak.ts:25,43,72` `questerix.streak:*` localStorage off to a Dexie `streakRecord` table (v7 schema bump).                   | `src/lib/streak.ts`, `src/persistence/db.ts`         | 1 hr    |
+| 5.7 | Migrate `src/scenes/OnboardingScene.ts:415` `questerix.onboardingSeen` flag to Dexie (`appState` row or `levelProgression.onboardingSeen` field). | `src/scenes/OnboardingScene.ts`                      | 30 min  |
+| 5.8 | After 5.6 + 5.7 + Phase 5.1-5.4 land, extend the migration callback in `db.ts` to absorb the streak/onboarding keys too. Bump schema to v7.    | `src/persistence/db.ts`                               | 30 min  |
 
-**Acceptance:** `/c5-check` returns only `lastUsedStudentId` (the documented exception). `npm run test:integration` includes a v5→v6 migration test. The `levelProgressionRepo` is the single read/write path for level state.
+**Acceptance:** `/c5-check` returns only `lastUsedStudentId` (the documented exception). `npm run test:integration` includes a v5→v7 migration test (single test verifies both jumps). The `levelProgressionRepo` and the new `streakRepo` are the single read/write paths for their respective state.
 
 ### Phase 6 — Test pyramid + coverage gate (≈9 hr)
 
@@ -497,7 +600,7 @@ Structural fix for Q7, Q8, Q14, Q15, Q21.
 **Acceptance:** `measure-bundle` enforces ≤ 560 KB main entry; CI assertion fails on telemetry leakage; deliberate `QuotaExceededError` injection produces a recoverable UI state, not silent data loss.
 
 
-### Phase 8 — Type-system rigor + DRY pass (≈8 hr)
+### Phase 8 — Type-system rigor + DRY pass (≈13 hr)
 
 Structural fix for Q13, Q22, Q23, Q24, Q25, Q30.
 
@@ -509,8 +612,12 @@ Structural fix for Q13, Q22, Q23, Q24, Q25, Q30.
 | 8.4 | Segregate `Interaction` interface into `MountableInteraction` + optional `HintAware` + optional `OverlayCapable`. Update the 10 archetype implementations to declare the optional capabilities they provide. | `src/scenes/interactions/types.ts`, all 10 archetypes | 2.5 hr  |
 | 8.5 | Extract `deriveLevelGroup()` to `src/curriculum/levelGroup.ts`; remove the duplicate. Extract `skillMapping` to `src/scenes/utils/skillMapping.ts`; remove the duplicate. | per H&P R14, audit Q25                                 | 1 hr    |
 | 8.6 | Enable `noUncheckedIndexedAccess` in `tsconfig.json` (per H&P R41). Fix resulting type errors.                            | `tsconfig.json`                                       | 30 min  |
+| 8.7 | **Branded-ID hardening (Q56).** Audit every `as StudentId | SessionId | AttemptId | LevelId | SkillId` cast. Replace with smart-constructor calls or boundary Zod-validate at the parse site. Cited hot-spots: `attemptRepo.ts:38`, `lastUsedStudent.ts`, `BootScene.ts` (×2), `misconceptionDetectors.ts` (×11 batch casts). | branded.ts callers across `src/`                      | 2 hr    |
+| 8.8 | **Scene init typing (Q57).** Define `SceneContract<T>` per scene; convert `init(data)` signatures to typed inputs. ESLint rule that fails `fadeAndStart(scene, key, data)` if `data` is not a typed object. | scene init signatures + `fadeAndStart` callsites      | 1.5 hr  |
+| 8.9 | **Typed event bus (Q59).** Introduce `SceneEventBus` interface; centralize event keys in `src/scenes/events.ts`; convert `events.emit('foo', payload)` to `events.emit(EVT.FOO, payload)`.    | `src/scenes/events.ts` (new), emitters                 | 1 hr    |
+| 8.10 | **Theme-token sweep (Q60).** Replace hardcoded particle hex literals in `FeedbackOverlay.ts:260`, `SessionCompleteOverlay.ts:357`, `QuestCompleteOverlay.ts:287` with `levelTheme` tokens.   | three component files                                 | 1 hr    |
 
-**Acceptance:** zero `as never | as unknown as | as any` outside well-commented test fixtures; `noUncheckedIndexedAccess` enabled and clean; `Interaction` interface segregated; new archetype registration is one row.
+**Acceptance:** zero `as never | as unknown as | as any | as *Id` outside well-commented test fixtures; `noUncheckedIndexedAccess` enabled and clean; `Interaction` interface segregated; new archetype registration is one row; scene init contracts are compile-checked; event keys are constants; particle colors flow from theme.
 
 ### Phase 9 — Pipeline parity re-architecture (≈12 hr · recommendation A2)
 
@@ -543,31 +650,89 @@ Sequence into 4 PRs by risk dimension:
 
 **Acceptance:** all 48 items in `harden-and-polish-2026-04-30.md` checked off or explicitly deferred with a documented reason.
 
+### Phase 11 — PWA hardening (≈3 hr)
+
+Structural fix for Q43, Q44, Q45.
+
+| #    | Task                                                                                                                       | File:line / artifact                                  | Effort  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
+| 11.1 | Reduce SW curriculum cache TTL from 30d to 7d. Add a "Refresh Curriculum" affordance in Settings that calls `caches.delete('curriculum-cache')` + reloads. | `vite.config.ts:36-46`, `src/scenes/SettingsScene.ts` | 1 hr    |
+| 11.2 | Wrap curriculum fetch in try/catch; render a user-facing "This level isn't available offline" toast; fall back to a safe state (menu or last cached level). | `src/curriculum/loader.ts:80-121`                     | 1 hr    |
+| 11.3 | Subscribe to `oncontrollerchange`; render a non-blocking "A new version is ready" banner; let the user accept the reload at a safe checkpoint (menu, never mid-level). | `src/main.ts`, new `UpdateBanner.ts` component        | 1 hr    |
+| 11.4 | TTS voice selection (absorbed from former Phase 14): pick an English voice from `speechSynthesis.getVoices()` (e.g., `lang.startsWith('en')`); fall back to system default. Skip locale-awareness per D-27. | `src/audio/TTSService.ts:57-60`                       | 15 min  |
+
+**Acceptance:** Playwright spec — turn off network mid-session, attempt to load an un-cached level, assert the toast surfaces. Second spec — simulate SW update event, assert the banner appears, accept it, assert reload happens at menu only. TTS plays a sample line on iOS Safari with an English voice if one is enumerated.
+
+### Phase 12 — Observability conventions + instrumentation (≈7 hr)
+
+Structural fix for Q51, Q52, Q53, Q54.
+
+| #    | Task                                                                                                                       | File:line / artifact                                  | Effort  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
+| 12.1 | Create `src/lib/observability/span-names.ts` with a `SPAN_NAMES` registry (DB / SCENE / QUESTION / MASTERY / HINT / TTS). | new file                                              | 1 hr    |
+| 12.2 | Create `src/lib/observability/README.md` documenting attribute-naming convention (`db.*`, `scene.*`, `question.*`, `student.*`) and severity contract (`fatal` → Sentry; `error` → Sentry-if-consent; `warn` → local; `info` → local-if-category-enabled). | new file                                              | 1 hr    |
+| 12.3 | Apply naming convention retroactively at `src/persistence/middleware.ts:20-22` (`{ 'db.table': ..., 'db.operation': ... }`). | `src/persistence/middleware.ts`                       | 30 min  |
+| 12.4 | Add span instrumentation at: scene init/create/shutdown; question load/validate/submit; mastery update; hint request. | scene + repo callsites                                | 2 hr    |
+| 12.5 | Wire `logger.fatal()` to call `errorReporter.report()` (currently only top-level catches reach Sentry).                  | `src/lib/log.ts`, `errorReporter.ts`                  | 30 min  |
+| 12.6 | Add `TraceIdRatioBasedSampler` to the OTel provider with `VITE_SAMPLING_RATE` env (default 0.1).                          | `src/lib/observability/tracer.ts:51-57`               | 1 hr    |
+| 12.7 | Acceptance test: trace view in a local OTel collector shows `question.load → question.validate → question.submit → mastery.update` as a single trace. | `tests/integration/observability.test.ts`             | 1 hr    |
+
+**Acceptance:** zero bare-string spans in `src/` (lint check via grep); a critical-path trace visible end-to-end; sampling rate respected; `logger.fatal` reaches Sentry when configured; severity contract documented and linked from CLAUDE.md.
+
+### Phase 13 — Security hardening (≈4 hr)
+
+Structural fix for Q40, Q42 (the v1 plan's Phase 7.4 already covers Q14/Q15 Zod boundaries; Phase 13 extends with UX confirmation + CSP + dependency-audit gate).
+
+| #    | Task                                                                                                                       | File:line / artifact                                  | Effort  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------- |
+| 13.1 | Extract inline CSS from `index.html` (lines 18-112) to a separate stylesheet `public/splash.css`. Compute build-time nonce; inject into both the `<style>` tag and the `style-src` CSP. Drop `'unsafe-inline'`. | `index.html`, `public/_headers`, vite plugin          | 2 hr    |
+| 13.2 | Backup-restore confirmation modal: pre-restore diff dialog (records to merge / records to skip / unknown shape errors); two-button confirm/cancel; transactional restore (roll back on failure). | `src/persistence/backup.ts:125-210`, `src/scenes/SettingsScene.ts` | 2 hr |
+
+**Acceptance:** CSP report-only in CI shows zero violations on the styles surface; restoring a malicious backup file is blocked at confirmation; `npm audit` step (added Phase 0.6.2) gates HIGH+ vulnerabilities on every push.
+
+### Phase 14 — i18n preparedness · DEFERRED (D-27 = English-only)
+
+**Decision D-27 confirms the app is English-only.** Phase 14 is removed from the plan's effort total. The entire phase is documented here for traceability only.
+
+If a future product decision reopens multi-locale, the deferred work (≈8 hr) is: pipeline locale-keyed prompts; `Intl.NumberFormat` for fractions; RTL CSS path; locale selector + persistence; locale-aware TTS voice. None of it has to ship before v2.
+
+**Action under current decision:** TTS voice selection collapses to a 15-minute task — pick an English voice from `speechSynthesis.getVoices()` if available; fall back to system default. **Absorbed into Phase 11.4.**
+
 ---
 
 ## 7. Sequencing & branching
 
 ```
-Phase 0  (unblock)
-  ├─→ Phase 1  (bugs)            ─── shippable independently
-  ├─→ Phase 2  (DIP enforcement) ─── enables Phase 4
-  ├─→ Phase 5  (persistence)     ─── independent
-  └─→ Phase 7  (bundle/resilience) ─── independent
-                  ↓
-              Phase 3  (sunset L01)         ← gated by D-25 from Phase 0.1
-                  ↓
-              Phase 4  (engine determinism) ← depends on Phase 2 lint enforcement
-                  ↓
-              Phase 6  (test pyramid + coverage gate)
-                  ↓
-              Phase 8  (type rigor + DRY)
-                  ↓
-              Phase 9  (pipeline parity re-arch) ← optional / deferrable
-                  ↓
-              Phase 10 (harden rollup)
+Phase 0   (unblock — D-25, parity CI, doc cleanup, harden CRITs)
+Phase 0.6 (security hygiene — npm audit fix, sentry scrub, sourcemap gate) ── ship FIRST
+              ↓
+  ┌──── parallel-safe band ────────────────────────────────────┐
+  │  Phase 1   (bug fixes — BUG-02, G-C7)                       │
+  │  Phase 2   (DIP enforcement — engine lint rules)            │── enables Phase 4
+  │  Phase 5   (persistence consolidation + C5 closeout)        │
+  │  Phase 7   (bundle / observability lazy / resilience)       │
+  │  Phase 11  (PWA hardening — offline + update banner + TTS)  │
+  │  Phase 13  (security hardening — CSP nonce + backup UX)     │
+  └─────────────────────────────────────────────────────────────┘
+              ↓
+              Phase 3   (sunset Level01Scene)         ← gated by D-25 from Phase 0.1
+              ↓
+              Phase 4   (engine determinism + misconception rules) ← needs Phase 2 lint
+              ↓
+              Phase 6   (test pyramid + coverage gate)
+              ↓
+              Phase 8   (type rigor + DRY + branded IDs + scene contracts + event bus)
+              ↓
+              Phase 12  (observability conventions + instrumentation rollout)
+              ↓
+              Phase 9   (pipeline parity re-architecture) ← optional / deferrable
+              ↓
+              Phase 10  (harden-and-polish rollup)
+
+Phase 14  (i18n)  · DEFERRED per D-27 (English-only)
 ```
 
-Phases 0, 1, 2, 5, 7 are **parallel-safe** and can ship in any order. Phase 3 gates on D-25. Phase 4 gates on Phase 2's lint enforcement (otherwise the engine refactor lands without the rule that prevents regression). Phase 9 is **deferrable** — the conservative fallback is Phase 0.2 with full fixture coverage.
+Phases 0, 0.6, 1, 2, 5, 7, 11, 13 are **parallel-safe** and can ship in any order. Phase 3 gates on D-25. Phase 4 gates on Phase 2's lint enforcement. Phase 12 (observability instrumentation) sits late because it benefits from the cleaner scene/engine boundaries delivered by Phases 3, 4, and 8. Phase 9 is **deferrable** — the conservative fallback is Phase 0.2 with full fixture coverage.
 
 Each phase is its own dated branch:
 - `fix/2026-05-01-bug02-gc7` (Phase 1)
@@ -575,14 +740,35 @@ Each phase is its own dated branch:
 - `refactor/2026-05-01-sunset-l01` (Phase 3)
 - ...etc.
 
-Total effort estimate (Path A, all phases): **~91 hr / ~2.5 weeks for one engineer**.
+Total effort estimate (v2, post cross-cutting findings, Path A, English-only):
+
+| Scope                                                                       | Hours  |
+| --------------------------------------------------------------------------- | ------ |
+| Phase 0 (unblock) + Phase 0.6 (security hygiene)                            | 7      |
+| Phase 1 (bug fixes)                                                         | 3      |
+| Phase 2 (DIP lint enforcement)                                              | 6      |
+| Phase 3 (sunset Level01Scene)                                               | 14     |
+| Phase 4 (engine determinism + misconception rules)                          | 10     |
+| Phase 5 (persistence + C5 closeout — incl. streak.ts + onboarding)          | 7      |
+| Phase 6 (test pyramid + coverage gate)                                      | 9      |
+| Phase 7 (bundle / observability lazy / resilience)                          | 6      |
+| Phase 8 (type rigor + DRY + branded IDs + scene contracts + event bus)      | 13     |
+| Phase 9 (pipeline parity re-arch — optional)                                | 12     |
+| Phase 10 (harden-and-polish rollup absorption)                              | 14     |
+| Phase 11 (PWA hardening — incl. English TTS voice)                          | 3.25   |
+| Phase 12 (observability conventions + instrumentation)                      | 7      |
+| Phase 13 (security hardening — CSP + backup UX)                             | 4      |
+| Phase 14 (i18n) — DEFERRED per D-27                                         | 0      |
+| **Total (all phases except deferred Phase 14)**                              | **~115 hr** |
 
 Effort by sub-scope:
-- Core code-quality work, Phases 0–8: **~65 hr** (~1.5 weeks)
-- Including optional Phase 9 (pipeline TS migration): **~77 hr**
-- Including Phase 10 (`harden-and-polish` rollup absorption): **~91 hr**
+- Core code-quality work, Phases 0 / 0.6 / 1 / 2 / 5 / 6 / 8: **~50 hr** (~1.5 weeks for one engineer)
+- Plus structural refactors, Phase 3 + 4: **+24 hr** (~3 days)
+- Plus cross-cutting hardening, Phases 7 / 11 / 12 / 13: **+20.25 hr** (~2.5 days)
+- Plus optional Phase 9 (pipeline TS migration): **+12 hr**
+- Plus Phase 10 (harden-and-polish absorption): **+14 hr**
 
-Two engineers can compress Phases 0, 1, 2, 5, 7 into the first week in parallel; the dependent chain (Phase 3 → 4 → 6 → 8) takes the second week serially.
+Two engineers can compress the parallel-safe band (Phases 0, 0.6, 1, 2, 5, 7, 11, 13) into ~3 days; the dependent chain (Phase 3 → 4 → 6 → 8 → 12) takes ~1.5 weeks serially. **Realistic shipping window: 3 weeks for one engineer; 2 weeks for two.**
 
 ---
 
@@ -593,13 +779,18 @@ This plan is complete when:
 1. **Architectural seams enforced.** ESLint fails the build on `engine/*` → `persistence/*` imports, on direct `Math.random | Date.now() | crypto.*` calls inside `engine/*`, and on `@sentry/* | @opentelemetry/*` strings in the main entry chunk.
 2. **Two scenes have become one.** `Level01Scene.ts` is deleted (Path A) or both scenes consume a shared controller (Path B fallback). No file in `src/scenes/` exceeds 800 LOC.
 3. **Engine is deterministic.** Seeded RNG produces a reproducible question sequence; misconception rules are data; detector unit-test coverage ≥ 90%.
-4. **Persistence is consolidated.** `/c5-check` returns only `lastUsedStudentId`; v5→v6 migration callback is wired; all level state flows through `levelProgressionRepo`.
-5. **Defensive boundaries are real.** Zod validation at curriculum loader and backup restore; `QuotaExceededError` handled at every write site; `window.error` listener installed.
+4. **Persistence is consolidated.** `/c5-check` returns only `lastUsedStudentId`; v5→v7 migration callback is wired (covering streak + onboarding); all level state flows through `levelProgressionRepo`; streak state through `streakRepo`.
+5. **Defensive boundaries are real.** Zod validation at curriculum loader and backup restore; `QuotaExceededError` handled at every write site; `window.error` listener installed; backup restore requires confirmation modal.
 6. **Tests are gated.** 80% line coverage on `engine/`, `validators/`, `persistence/`. Full-level happy-path E2E parameterized for L1, L5, L9. Unit tests ≥ 450.
-7. **Bundle is gated.** Main entry ≤ 560 KB gzipped; CI assertion enforces.
+7. **Bundle is gated.** Main entry ≤ 560 KB gzipped; CI assertion enforces; no `dist/**/*.map` ships.
 8. **Pipeline parity is eliminated** (Phase 9, optional) **or fully gated in CI** (Phase 0.2 fallback).
-9. **`CLAUDE.md` reflects ground truth.** Active bug list is empty. Source map is accurate. C5 exception list is current. Decision log includes D-25 (and D-26 if Phase 9 lands).
+9. **`CLAUDE.md` reflects ground truth.** Active bug list is empty. Source map is accurate. C5 exception list is current. Decision log includes D-25, D-27 (English-only confirmation), and D-26 if Phase 9 lands.
 10. **All 48 items in `harden-and-polish-2026-04-30.md` are closed or explicitly deferred with reason.**
+11. **Security baseline is current.** `npm audit --audit-level=high` returns clean; Sentry user-context contains no raw studentId; `SECURITY.md` exists and documents policy; CSP drops `'unsafe-inline'` for styles via build-time nonce.
+12. **PWA degrades gracefully.** Offline access to un-cached level surfaces a user-facing toast; SW update emits a banner the user accepts at menu only; curriculum cache TTL is 7 days.
+13. **Observability has conventions.** `SPAN_NAMES` registry exists; attribute names follow the documented `db.* | scene.* | question.* | student.*` prefix convention; spans cover scene lifecycle + question flow + mastery; sampling is configurable via `VITE_SAMPLING_RATE`.
+14. **Type system is rigorous.** Zero `as *Id` casts outside test fixtures; scene `init(data)` is typed; event keys are constants; `noUncheckedIndexedAccess` enabled and clean.
+15. **Session crash recovery is documented and tested.** Architectural test pre-states a session, kills the scene mid-attempt, and asserts the user re-entry produces a recoverable, non-data-losing state.
 
 ---
 
@@ -613,7 +804,11 @@ This plan is complete when:
 | Phase 5 migration loses user state in v5→v6                                                | Stage migration in a feature branch with fixtures simulating both pre-v6 and post-v6 starting states. |
 | Phase 9 (pipeline TS migration) introduces subtle semantic differences                     | Re-run all 9 levels through both pipelines; require byte-identical output before merging.       |
 | Phase 10 expands scope beyond the 48 items                                                 | Hard-cap at the items listed in `harden-and-polish-2026-04-30.md`; new findings → new plan doc. |
-| Plan duration exceeds 2 weeks; new sprint priorities arrive                                | Phases 0, 1, 2, 5, 7 are independently shippable. Pause at any sprint boundary without leaving work in an inconsistent state. |
+| Plan duration exceeds 2 weeks; new sprint priorities arrive                                | Phases 0, 0.6, 1, 2, 5, 7, 11, 13 are independently shippable. Pause at any sprint boundary without leaving work in an inconsistent state. |
+| Phase 0.6 `npm audit fix` cascades into a Vitest or Workbox major-version upgrade           | Take the upgrade in a dedicated branch; don't bundle with security fix. Verify CI green before merge. If breaking, schedule the upgrade as Phase 0.6.x sub-task with own rollback plan. |
+| Phase 12 (observability instrumentation) generates trace volume that exceeds backend quota | Default `VITE_SAMPLING_RATE=0.1`; documentation states production rate. CI sets `VITE_OTLP_URL` only in the synthetic-playtest workflow. |
+| Phase 13 CSP nonce extraction breaks the splash screen on browsers that don't read meta-CSP  | Stage CSP changes in `report-only` mode for one PR cycle; verify zero violations across Chromium + WebKit before promoting to enforcing. |
+| Branded-ID hardening (Phase 8.7) breaks tests that constructed IDs from raw strings         | Fix tests; do not weaken the type. The whole point is to surface those construction sites. |
 
 ---
 
@@ -635,11 +830,16 @@ Explicitly **not** in this plan:
 
 If approved, this plan produces:
 
-1. `docs/00-foundation/decision-log.md` D-25 (Level01 sunset) and optionally D-26 (pipeline TS migration).
-2. ~10 dated branches and PRs per the sequencing diagram in §7.
-3. Updated `CLAUDE.md` (active bugs, source map, constraints exception list).
+1. `docs/00-foundation/decision-log.md` entries:
+   - **D-25** — Level01Scene sunset (Phase 3 / recommendation A1)
+   - **D-26** — Pipeline parity re-architecture (Phase 9 / recommendation A2; optional)
+   - **D-27** — English-only commitment (resolves §4.5.C; defers Phase 14)
+2. ~14 dated branches and PRs per the sequencing diagram in §7.
+3. Updated `CLAUDE.md` (active bugs cleared; source map accurate; C5 exception list current; pre-deploy security checklist linked).
 4. Updated `PLANS/INDEX.md` referencing this plan.
-5. Closure of `harden-and-polish-2026-04-30.md` (Phase 10).
+5. New `SECURITY.md` (repo root) with dependency-audit + Sentry-DSN policy.
+6. New `src/lib/observability/README.md` (Phase 12) with span-naming convention and severity contract.
+7. Closure of `harden-and-polish-2026-04-30.md` (Phase 10).
 
 ---
 
