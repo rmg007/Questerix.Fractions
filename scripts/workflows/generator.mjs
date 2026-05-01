@@ -86,8 +86,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit tests
-        run: npm run test:unit
+      - name: Unit tests + coverage gate
+        run: npm run test:coverage
 
       - name: Integration tests
         run: npm run test:integration
