@@ -42,6 +42,9 @@ import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
 import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
+import { withSpan } from '../lib/observability/withSpan';
+import { tracerService } from '../lib/observability/tracer';
+import { SPAN_NAMES } from '../lib/observability/span-names';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -126,6 +129,14 @@ export class LevelScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    return withSpan(
+      SPAN_NAMES.SCENE.CREATE,
+      { 'scene.name': 'LevelScene', 'scene.level': this.levelNumber },
+      () => this._createImpl()
+    );
+  }
+
+  private async _createImpl(): Promise<void> {
     log.scene('create_start', { level: this.levelNumber });
     TestHooks.unmountAll();
 
@@ -618,7 +629,15 @@ export class LevelScene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    await this.recordAttempt(result, responseMs);
+    await withSpan(
+      SPAN_NAMES.QUESTION.SUBMIT,
+      {
+        'question.archetype': this.currentTemplate.archetype,
+        'question.outcome': result.outcome,
+        'scene.level': this.levelNumber,
+      },
+      () => this.recordAttempt(result, responseMs)
+    );
     this.showOutcome(result);
   }
 
@@ -820,14 +839,23 @@ export class LevelScene extends Phaser.Scene {
 
   private onHintRequest(): void {
     const tier = this.hintLadder.next();
-    log.hint('request', {
-      tier,
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
+    const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
+      'hint.tier': tier,
+      'scene.level': this.levelNumber,
+      'question.archetype': this.currentTemplate?.archetype,
     });
-    this.mascot?.setState('think');
-    void this.showHintForTier(tier);
+    try {
+      log.hint('request', {
+        tier,
+        level: this.levelNumber,
+        questionIndex: this.questionIndex,
+        wrongCount: this.wrongCount,
+      });
+      this.mascot?.setState('think');
+      void this.showHintForTier(tier);
+    } finally {
+      span.end();
+    }
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
