@@ -47,40 +47,68 @@ Checklist:
 
 ## P2 — Wire BKT (Learning Engine Is Dark)
 
-**Status:** Code exists, never called.  
-**Effort:** 1–2 h  
-**Files:** `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts`, `src/engine/bkt.ts`
-
-`updateMastery()` is fully built but never called from `recordAttempt()`. Every answer a child gives disappears into a void — no mastery changes, no difficulty adapts, no misconception feedback escalates.
-
-Steps:
-1. In `Level01Scene.recordAttempt()`: call `updateMastery(prior, outcome === 'correct')` after the validator result; persist the returned `SkillMastery` row via `skillMasteryRepo`.
-2. Do the same in `LevelScene.recordAttempt()`.
-3. Pass `hintsUsedIds` through from hint events into the attempt record (already tracked in both scenes — plumb the reference).
-4. Verify in IndexedDB DevTools that `masteryEstimate` increases after 3 correct answers.
-
-**Done when:** DevTools shows `masteryEstimate` moving after a session.
+**Status:** ✅ CLOSED — confirmed wired (2026-05-01).  
+Both `Level01Scene` and `LevelScene` call `updateMastery()` inside an atomic Dexie transaction after every attempt. Mastery updates. Nothing to do here.
 
 ---
 
 ## P3 — Fix Level Progression
 
-**Status:** Broken — "Keep Going" loops L1; no UI route to L2–L9.  
-**Effort:** 30–60 min  
-**Files:** `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts`, `src/scenes/MenuScene.ts`
+**Status:** ✅ P3a CLOSED — confirmed (2026-05-01). "Keep Going" correctly advances to `LevelScene { levelNumber: 2 }` via the scaffold system. Regress path on L1 sends to menu (correct — no L0 exists); copy is wrong — see B2 below.  
+**P3b:** Verify the `MenuScene` "Choose Level" 3×3 grid routes correctly to each level. Needs manual confirmation.
 
-Two sub-tasks:
+### P3b — Verify level grid routing (needs manual check)
+**File:** `src/scenes/MenuScene.ts` (`_openLevelChooser`, `_renderLevelGrid`)  
+**Test:** Open `localhost:5000`, tap "Choose Level", tap Level 3 → verify a level-3 question loads.  
+**Done when:** All 9 tiles route to the correct `LevelScene { levelNumber: n }` without crashing.
 
-### P3a — "Keep Going" must advance to L2
-After a session-complete, the "Keep Going ▶" button currently restarts L1.
-- In `Level01Scene.closeSession()`: route to `LevelScene { levelNumber: 2, studentId }` instead of re-entering L1.
-- In `LevelScene.closeSession()`: increment `this.levelNumber` and route to the next level (cap at 9).
-- Update `unlockedLevels` (or the Dexie `progressionStat` row if P5 is done first) when advancing.
+---
 
-### P3b — Adventure map nodes must be tappable (or level grid must work)
-`MenuScene` has a "Choose Level" button (`_openLevelChooser`) that opens a 3×3 tappable grid — verify it routes correctly to each level. If already working, mark done. If not, make the nodes call `fadeAndStart(this, 'LevelScene', { levelNumber: n, studentId })`.
+## B — Active Bugs (fix before any playtest)
 
-**Done when:** Complete L1 → "Keep Going" → L2 loads with a level-2 question template.
+These were discovered during the 2026-05-01 onboarding/UX pass. Both are regressions introduced by recent changes. Fix in order.
+
+---
+
+### B1 — Skip button blocked during Step 1 (T9 depth regression)
+
+**Severity:** 🔴 Critical — existing feature regressed  
+**File:** `src/scenes/OnboardingScene.ts`  
+**Symptom:** The full-screen invisible tap-to-advance rectangle added for T9-fix2 sits at depth 29. The "Skip tutorial" button is at depth 5. In Phaser 4, the higher-depth object wins all pointer events. A child tapping "Skip tutorial" during the watch step is silently sent to the try step (step 2) instead of skipping the tutorial entirely.  
+**Fix (pick one):**
+- Option A (preferred): raise the skip button's depth above the hit rect — `skipBtn.setDepth(35)` (or whatever depth constant the button uses).
+- Option B: remove the skip button from the hit rect's interactive area by setting the rect's hit area to exclude the bottom row (e.g. a polygon or a smaller rect that stops above the skip button's y).
+
+**Done when:** Tapping "Skip tutorial" during Step 1 exits the tutorial immediately, not advances to step 2.
+
+---
+
+### B2 — Misleading copy: "Let's try an easier one →" on Level 1
+
+**Severity:** 🔴 High — promise the child can't redeem  
+**File:** `src/scenes/Level01Scene.ts` (or `src/components/SessionCompleteOverlay.ts` — wherever `scaffoldRecommendation === 'regress'` renders the banner)  
+**Symptom:** When a child scores below 40% on Level 1, the scaffold banner reads "Let's try an easier one →". Tapping it navigates to the main menu because there is no L0. A struggling 5-year-old sees a promise of an easier level, taps it, and lands on the menu instead.  
+**Fix (pick one — check with user if unsure):**
+- Option A (simpler): cap `scaffoldRecommendation` at `'stay'` when `levelNumber === 1`. The regress branch never fires for L1.
+- Option B: keep the regress recommendation but change the copy to `"Try again →"` when `levelNumber === 1` (so the button still navigates to menu, but makes no false promise).
+
+**Done when:** A struggling L1 child never sees "easier one" copy that routes to the menu.
+
+---
+
+### B3 — FPS drops in OnboardingScene (3–6 FPS sustained)
+
+**Severity:** 🟡 Medium — bad on constrained devices, may be tab-throttling  
+**File:** `src/scenes/OnboardingScene.ts` → `updatePartitionLine()` (or equivalent)  
+**Symptom:** Browser logs show OnboardingScene running at 3–6 FPS for sustained periods during the Step 1 animation.  
+**Most likely cause:** `updatePartitionLine()` is called on every animation frame. It runs `g.clear()` + a `while` loop drawing ~15 individual dashed-line segments. In Phaser's Canvas renderer on a constrained environment (Replit iframe, low-end tablet), that Graphics redraw budget gets exhausted quickly. Could also be tab-throttling (focus-lost/regained events coincide).  
+**Fix:** Replace the per-frame dashed line loop with either:
+- A single solid line (no loop needed — one `lineBetween` call).
+- A static `RenderTexture` captured once; reuse the texture instead of redrawing each frame.
+
+**Verify on a real device** before declaring fixed — tab-throttling in Replit can fake this symptom.
+
+**Done when:** OnboardingScene sustains ≥ 30 FPS on a mid-range Android tablet (or the Replit iframe, whichever is available first).
 
 ---
 
@@ -183,6 +211,7 @@ Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 | E2E parameterization L1–L9 | MEDIUM | Requires `data-testid` sentinels on `LevelScene` for L2–L9 that don't exist yet. Start with `LevelScene` sentinels when P7 E2E work begins. |
 | Tighten coverage gate 45%→75% | MEDIUM | Real coverage is ~77% when integration suite runs. Low ROI until the coverage pipeline is unified. |
 | TS→Python validator parity (A2) | MEDIUM | Valid long-term but not blocking the MVP. Evaluate after deploy. |
+| `sessionAccuracy` dual implementation | LOW | `Level01Scene` uses `correctCount / totalQuestionsAttempted`; `LevelScene` uses `correctCount / responseTimes.length`. Currently equivalent, but will diverge silently if the sunset (D-25) merge is done carelessly. Fix during or immediately after sunset. |
 
 ---
 
