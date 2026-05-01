@@ -451,6 +451,16 @@ export class Level01Scene extends Phaser.Scene {
       const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
       lastUsedStudent.set(this.studentId as import('@/types').StudentId);
 
+      // R20: Verify student exists before resuming
+      const { studentRepo } = await import('../persistence/repositories/student');
+      const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+      if (!student) {
+        log.warn('SESS', 'student_not_found', { studentId: this.studentId });
+        // Student was deleted — boot back to BootScene to re-create
+        this.scene.start('BootScene');
+        return;
+      }
+
       // ── Resume existing session if flag is true ────────────────────────────
       if (this.resume === true) {
         const { sessionRepo } = await import('../persistence/repositories/session');
@@ -460,7 +470,12 @@ export class Level01Scene extends Phaser.Scene {
 
         if (sessions.length > 0) {
           const lastSession = sessions[0]!;
-          this.sessionId = lastSession.id as string;
+          // R20: Verify session still exists and is open (not ended)
+          if (lastSession.endedAt) {
+            log.warn('SESS', 'session_already_ended', { sessionId: lastSession.id });
+            // Fall through to create a new session
+          } else {
+            this.sessionId = lastSession.id as string;
 
           // Restore prior attempt count
           const { attemptRepo } = await import('../persistence/repositories/attempt');
