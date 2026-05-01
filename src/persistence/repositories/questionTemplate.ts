@@ -4,6 +4,7 @@
  */
 
 import { db } from '../db';
+import { deriveLevelGroup, type LevelGroup } from '../../curriculum/levelGroup';
 import type { QuestionTemplate, QuestionTemplateId, ArchetypeId } from '../../types';
 
 /**
@@ -12,17 +13,7 @@ import type { QuestionTemplate, QuestionTemplateId, ArchetypeId } from '../../ty
  */
 export interface StoredQuestionTemplate extends QuestionTemplate {
   /** Derived from id format 'q:<arch>:L{N}:NNNN' — maps to Activity.levelGroup */
-  levelGroup: '01-02' | '03-05' | '06-09';
-}
-
-/** Derive levelGroup from canonical ID format 'q:<arch>:L{N}:NNNN'. */
-function deriveLevelGroup(id: string): StoredQuestionTemplate['levelGroup'] {
-  // Extract level number from 'q:pt:L1:0001' → 1
-  const match = /L(\d+):/i.exec(id);
-  const level = match ? parseInt(match[1]!, 10) : 1;
-  if (level <= 2) return '01-02';
-  if (level <= 5) return '03-05';
-  return '06-09';
+  levelGroup: LevelGroup;
 }
 
 export const questionTemplateRepo = {
@@ -45,7 +36,7 @@ export const questionTemplateRepo = {
   async getByLevel(level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<QuestionTemplate[]> {
     const prefix = `:L${level}:`;
     // IndexedDB doesn't support substring search; filter in JS after a levelGroup pre-filter.
-    const group = deriveLevelGroup(`q:x:L${level}:0001`) as StoredQuestionTemplate['levelGroup'];
+    const group: LevelGroup = deriveLevelGroup(`q:x:L${level}:0001`);
     const candidates = await db.questionTemplates.where('levelGroup').equals(group).toArray();
     return candidates.filter((t) => t.id.includes(prefix));
   },
