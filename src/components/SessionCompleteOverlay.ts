@@ -47,6 +47,7 @@ export class SessionCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
   private glowTween: Phaser.Tweens.Tween | null = null;
+  private layerPopped = false;
 
   constructor(config: SessionCompleteConfig) {
     const {
@@ -136,10 +137,22 @@ export class SessionCompleteOverlay {
     this.container.add(accT);
 
     // Push a modal A11y layer so the underlying scene becomes inert; popped
-    // in destroy(). Mounts each action button as an SR-only DOM mirror so
-    // VoiceOver / keyboard users can advance past this screen — the canvas
-    // buttons are unreachable to assistive tech otherwise.
+    // on either explicit destroy() or scene shutdown (whichever fires first).
+    // Mounts each action button as an SR-only DOM mirror so VoiceOver /
+    // keyboard users can advance past this screen — the canvas buttons are
+    // unreachable to assistive tech otherwise.
     A11yLayer.pushLayer('session-complete', `Level ${levelNumber} complete`);
+
+    // Critical: scene transitions via fadeAndStart() destroy the container
+    // but NEVER call this overlay's destroy() — Phaser only auto-destroys
+    // GameObjects, and the overlay class is a wrapper. Without this hook,
+    // the pushed layer leaks across L1->L2->L3 and the next scene's
+    // mountAction calls attach to the wrong (still-inert) layer, leaving
+    // option buttons unreachable. Bound `once` so a manual destroy() doesn't
+    // double-pop.
+    // String event name (not Phaser.Scenes.Events.SHUTDOWN) so unit-test
+    // Phaser mocks don't need to stub the Scenes namespace.
+    scene.events.once('shutdown', () => this.popLayerOnce());
 
     // Buttons — "Next Level" (primary) when available, then "Play Again", then Menu
     if (onNextLevel) {
@@ -404,12 +417,19 @@ export class SessionCompleteOverlay {
     return 'Nice try! Practice makes perfect!';
   }
 
+  /** Pop the modal A11y layer at most once across destroy() + shutdown event. */
+  private popLayerOnce(): void {
+    if (this.layerPopped) return;
+    this.layerPopped = true;
+    A11yLayer.popLayer();
+  }
+
   destroy(): void {
     if (this.glowTween) {
       this.glowTween.stop();
       this.glowTween = null;
     }
-    A11yLayer.popLayer();
+    this.popLayerOnce();
     this.container.destroy(true);
     this.starTexts.length = 0;
   }

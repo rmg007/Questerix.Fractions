@@ -95,6 +95,7 @@ function makeSceneStub() {
     time: { delayedCall: vi.fn() },
     tweens: { add: vi.fn() },
     textures: { exists: vi.fn().mockReturnValue(false) },
+    events: { once: vi.fn(), off: vi.fn() },
   };
 }
 

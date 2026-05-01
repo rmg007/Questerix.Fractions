@@ -235,6 +235,17 @@ export class LevelScene extends Phaser.Scene {
       // Graceful fallback — leave TTS and SFX in their default state
     }
 
+    // session-complete-btn: directly triggers showSessionComplete() so e2e
+    // tests can verify scene-transition + export without solving 5 questions.
+    // Mirrors the same affordance on Level01Scene.ts:394.
+    TestHooks.mountInteractive(
+      'session-complete-btn',
+      () => {
+        this.showSessionComplete();
+      },
+      { width: '10px', height: '10px', top: '2%', left: '2%' }
+    );
+
     this.loadQuestion(0);
   }
 
