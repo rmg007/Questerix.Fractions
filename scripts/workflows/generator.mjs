@@ -191,7 +191,7 @@ jobs:
       - name: Install Chrome
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
+          sudo apt-get install -y google-chrome-stable
       - run: lhci autorun
 `
   return yaml
