@@ -51,6 +51,10 @@
           {
             "selector": "CallExpression[callee.type='MemberExpression'][callee.object.name='crypto'][callee.property.name='randomUUID']",
             "message": "Engine code must consume an IdGenerator port (src/engine/ports.ts) via DetectorContext — direct crypto.randomUUID() couples to the host runtime and prevents test-time fixtures. See PLANS/forensic-deep-dive-2026-05-01.md §1.5 / Phase 4.4."
+          },
+          {
+            "selector": "MemberExpression[object.name='Math'][property.name='random']",
+            "message": "Engine code must inject a seedable Rng port (src/engine/ports.ts) — direct Math.random() breaks determinism and replay. See PLANS/forensic-deep-dive-2026-05-01.md §4.2."
           }
         ]
       }
