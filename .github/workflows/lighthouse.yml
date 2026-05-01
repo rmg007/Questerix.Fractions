@@ -6,13 +6,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '24', cache: 'npm' }
+        with:
+          node-version: '24'
+          cache: 'npm'
       - run: npm ci
       - run: npm run build
       - run: npm install -g @lhci/cli@0.14.x
       - uses: browser-actions/setup-chrome@latest
-      - name: Start dev server
-        run: npm run dev:app &
-      - name: Wait for server
-        run: npx wait-on http://localhost:5000 --timeout 30000
-      - run: lhci autorun
+      - name: Start dev server and run Lighthouse CI
+        run: |
+          npm run dev:app &
+          npx wait-on http://localhost:5000 --timeout 30000
+          lhci autorun
