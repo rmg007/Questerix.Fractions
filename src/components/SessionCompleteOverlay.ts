@@ -262,8 +262,8 @@ export class SessionCompleteOverlay {
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
-      sfx.playComplete();
-      if (isPerfect) scene.time.delayedCall(600, () => sfx.playComplete(1.25));
+      if (isPerfect) sfx.playPerfectFanfare();
+      else sfx.playComplete();
       this.announce(levelNumber, starCount);
       return;
     }
@@ -276,8 +276,8 @@ export class SessionCompleteOverlay {
       ease: 'Back.Out',
       delay: 60,
       onComplete: () => {
-        sfx.playComplete();
-        if (isPerfect) scene.time.delayedCall(600, () => sfx.playComplete(1.25));
+        if (isPerfect) sfx.playPerfectFanfare();
+        else sfx.playComplete();
         // Trophy wave — elastic spring from 0.5 → 1.2 → 1.0.
         this.animateTrophyWave(scene, trophyT, () => {
           // Glow sync — start repeating alpha pulse on heading after wave.
@@ -449,15 +449,18 @@ export class SessionCompleteOverlay {
     confettiY: number,
     depth: number,
     onDone: () => void,
-    confettiCount = 40
+    confettiCount = 40,
+    isPerfect = false
   ): void {
     let delay = 0;
     for (let i = 0; i < this.starTexts.length; i++) {
       const st = this.starTexts[i]!;
       scene.time.delayedCall(delay, () => {
+        // T15: Perfect sessions have extra bounce (1.3x scale peak vs 1.2x)
+        const peakScale = isPerfect ? 1.3 : 1.2;
         scene.tweens.add({
           targets: st,
-          scale: 1.2,
+          scale: peakScale,
           duration: 180,
           ease: 'Back.easeOut',
           onComplete: () => {

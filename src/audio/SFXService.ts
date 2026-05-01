@@ -58,6 +58,16 @@ export class SFXService {
   }
 
   /**
+   * T15: Play a special 4-note ascending fanfare for perfect 5/5 sessions.
+   * Tones: C4 (262 Hz) → E4 (330 Hz) → G4 (392 Hz) → C5 (523 Hz), 100 ms each, sine wave.
+   * Gain: 0.20 (celebratory but not overwhelming).
+   * Duration: ~500ms total.
+   */
+  playPerfectFanfare(): void {
+    this.playNotes([262, 330, 392, 523], 0.1, 'sine', 0.2 * this.volume);
+  }
+
+  /**
    * Play a five-note ascending streak jingle for "3 in a row!" milestone.
    * Tones: C5 → E5 → G5 → B5 → C6, 80 ms each, sine wave.
    * Distinctly longer than playCorrect and more exciting than playComplete.
