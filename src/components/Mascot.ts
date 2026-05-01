@@ -396,9 +396,16 @@ export class Mascot extends Phaser.GameObjects.Container {
       this.idleTween.stop();
       this.idleTween = null;
     }
-    this.scene.tweens.killTweensOf(this);
-    if (this.face) this.scene.tweens.killTweensOf(this.face);
-    if (this.rightArm) this.scene.tweens.killTweensOf(this.rightArm);
+    // Phaser sets `scene` to undefined on Container teardown when the scene
+    // itself shut down before the child container's destroy() ran. Guard
+    // every scene-typed access — calling killTweensOf on undefined throws
+    // and halts MenuScene.create when the previous Level01Scene's mascot
+    // is torn down on re-entry.
+    if (this.scene?.tweens) {
+      this.scene.tweens.killTweensOf(this);
+      if (this.face) this.scene.tweens.killTweensOf(this.face);
+      if (this.rightArm) this.scene.tweens.killTweensOf(this.rightArm);
+    }
     if (this.stateSentinel) {
       this.stateSentinel.remove();
       this.stateSentinel = null;
