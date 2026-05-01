@@ -145,7 +145,7 @@ export class Level01Scene extends Phaser.Scene {
   private correctStreak: number = 0;
 
   // Fix 6 (G-E3): hint-event IDs accumulated per question (Dexie auto-increment numbers)
-  private currentQuestionHintIds: number[] = [];
+  private currentQuestionHintIds: string[] = []; // Hint event IDs (UUIDs) for linking after attempt creation (R3)
 
   // Archetype of the active question — set when loading from templatePool, else 'partition'
   private currentArchetype: string = 'partition';
@@ -1452,13 +1452,15 @@ export class Level01Scene extends Phaser.Scene {
     // Mirror hint text to DOM sentinel for tests
     TestHooks.setText('hint-text', hintMessage);
 
-    // Fix 6 (G-E3): persist hint event and collect ID for the current attempt
+    // R3: Persist hint event and collect ID for linking after attempt is created.
+    // The attemptId is added later via hintEventRepo.linkToAttempt() in recordAttempt().
     if (this.sessionId) {
       try {
         const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
         const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
         const event = await hintEventRepo.record({
-          attemptId: '' as unknown as import('@/types').AttemptId, // linked post-submission
+          // Note: attemptId will be filled in by linkToAttempt() after attempt persists (R3)
+          attemptId: '' as unknown as import('@/types').AttemptId,
           hintId: `hint.partition.${tier}`,
           tier,
           shownAt: Date.now(),
