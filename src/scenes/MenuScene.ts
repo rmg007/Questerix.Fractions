@@ -200,6 +200,15 @@ export class MenuScene extends Phaser.Scene {
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
 
+    // R30: settings-btn testid for E2E testing
+    TestHooks.mountInteractive(
+      'settings-btn',
+      () => {
+        fadeAndStart(this, 'SettingsScene');
+      },
+      { width: '100px', height: '100px', top: toViewport(SET_Y) + '%', left: '50%' }
+    );
+
     // ── Background: pale sky + soft glow circles ──────────────────────────
     this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);
 
