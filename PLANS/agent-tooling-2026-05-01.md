@@ -295,29 +295,177 @@ The two pre-existing god files are exempted (the hook handles them with the free
 
 ---
 
-## Phase 2 — Blast-radius-aware preflight
+## Phase 2 — Blast-radius preflight (concrete artifacts)
 
-**Goal:** The full preflight runs full only when needed.
+**Goal:** The full preflight runs full only when needed. The proactive piece: when a `chore/` or `docs/` branch unexpectedly touches `src/**`, the router auto-escalates to the full tier rather than trusting the prefix.
 
-### Branch-prefix → gate level
+### 2.1 `scripts/preflight-router.mjs` — full source
 
-| Branch prefix | Gate |
-|---|---|
-| `chore/`, `docs/`, `plans/` | typecheck + lint |
-| `fix/`, `test/` | typecheck + lint + unit |
-| `refactor/`, `feat/` | full `/preflight` |
+```javascript
+#!/usr/bin/env node
+/**
+ * preflight-router.mjs
+ *
+ * Branch-aware preflight gate. Reads the current branch name and runs the
+ * tier of checks proportional to the branch's blast radius:
+ *
+ *   chore/* docs/* plans/*       → light   (typecheck + lint)
+ *   fix/*   test/*               → medium  (light + unit)
+ *   feat/*  refactor/*           → full    (medium + integration + build + bundle)
+ *   claude/* worktree-agent-* …  → full    (defensive default)
+ *
+ * Auto-escalation: a chore/docs/plans branch that touches src/** is
+ * escalated to full tier with a stderr note. The branch prefix is a hint,
+ * not a contract.
+ *
+ * Invoked by .husky/pre-push. Fails fast on the first failing step.
+ *
+ * Exit 0 = all checks passed
+ * Exit 1 = a check failed (message printed) or git unavailable
+ */
 
-Implement as `scripts/preflight-router.mjs` reading `git branch --show-current` and routing.
+import { execSync, spawnSync } from 'node:child_process';
 
-### Outcome
+const TIERS = {
+  light: ['typecheck', 'lint'],
+  medium: ['typecheck', 'lint', 'test:unit'],
+  full: ['typecheck', 'lint', 'test:unit', 'test:integration', 'build', 'measure-bundle'],
+};
+
+function currentBranch() {
+  try {
+    return execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function changedSrcPaths() {
+  try {
+    const base = execSync('git merge-base HEAD origin/main', { encoding: 'utf8' }).trim();
+    const out = execSync(`git diff --name-only ${base}..HEAD`, { encoding: 'utf8' });
+    return out.split('\n').filter((p) => p.startsWith('src/'));
+  } catch {
+    return [];
+  }
+}
+
+function tierFor(branch) {
+  if (/^(chore|docs|plans)\//.test(branch)) return 'light';
+  if (/^(fix|test)\//.test(branch)) return 'medium';
+  if (/^(feat|refactor)\//.test(branch)) return 'full';
+  // claude/*, worktree-agent-*, main, detached, unknown — defensive default
+  return 'full';
+}
+
+function run(script) {
+  process.stdout.write(`  → npm run ${script}\n`);
+  const r = spawnSync('npm', ['run', script], { stdio: 'inherit' });
+  if (r.status !== 0) {
+    console.error(`\n✗ preflight failed at: npm run ${script}`);
+    process.exit(1);
+  }
+}
+
+const branch = currentBranch() || '(detached)';
+let tier = tierFor(branch);
+
+// Proactive auto-escalation: a "doc-only" branch that touched src/** is
+// suspicious. Escalate to full tier rather than trusting the prefix.
+if (tier === 'light') {
+  const srcPaths = changedSrcPaths();
+  if (srcPaths.length > 0) {
+    console.error(`◇ auto-escalating: branch '${branch}' is prefixed for light tier but touches src/**:`);
+    srcPaths.slice(0, 5).forEach((p) => console.error(`  - ${p}`));
+    if (srcPaths.length > 5) console.error(`  - … and ${srcPaths.length - 5} more`);
+    tier = 'full';
+  }
+}
+
+const steps = TIERS[tier];
+
+console.log(`▶ tier: ${tier}  (branch: ${branch})`);
+for (const step of steps) run(step);
+console.log(`✓ all checks passed (${tier})`);
+```
+
+Notes:
+- Pure Node; no new dependencies.
+- Auto-escalation is the proactive piece — it catches the case where someone (human or agent) mislabels a branch.
+- `measure-bundle` is gated to `full` because it requires a fresh `dist/`.
+
+### 2.2 Updated `.husky/pre-push`
+
+```sh
+#!/usr/bin/env sh
+# Pre-push guard:
+#   1. Branch-name compliance (per CLAUDE.md git-workflow rule)
+#   2. Workflow regen drift check
+#   3. Tiered preflight router (see scripts/preflight-router.mjs)
+# Bypass with: git push --no-verify (CI consistency gate is backstop)
+
+# 1. Branch-name compliance ---------------------------------------------------
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  main|claude/*|worktree-agent-*) ;;
+  *)
+    if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+      echo ""
+      echo "ERROR: branch name '$BRANCH' is non-compliant."
+      echo "Required shape: <type>/YYYY-MM-DD-<slug>"
+      echo "  type ∈ {feat, fix, refactor, plans, chore, docs, test}"
+      echo "  slug: lowercase, kebab-case"
+      echo "See docs/00-foundation/git-workflow.md and CLAUDE.md → 'Git workflow'."
+      exit 1
+    fi
+    ;;
+esac
+
+# 2. Workflow drift -----------------------------------------------------------
+echo "▶ pre-push: checking workflow consistency..."
+npm run gen:workflows
+if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then
+  echo ""
+  echo "ERROR: Workflow drift detected — run 'npm run gen:workflows' and commit the updated YAML."
+  exit 1
+fi
+
+# 3. Tiered preflight ---------------------------------------------------------
+node scripts/preflight-router.mjs || exit 1
+
+echo "✓ pre-push checks passed"
+```
+
+The standalone `npm run lint:ci` line that used to live at `.husky/pre-push:14-15` is removed because `lint` is now a member of every tier in the router.
+
+### 2.3 Updated `.husky/pre-commit`
+
+Already minimal — keep typecheck only:
+
+```sh
+#!/usr/bin/env sh
+# Quick pre-commit check — typecheck only (~3s).
+# Heavy gates (lint, unit, integration, build, bundle) run on pre-push via
+# scripts/preflight-router.mjs. Do NOT add work here — it slows every commit
+# and an aborted commit loses the staged diff. Push-time is the right tier.
+npm run typecheck
+```
+
+### 2.4 Outcome
 
 | Branch type | Preflight time before | After |
 |---|---|---|
-| `chore/...` | ~90 s | ~5 s |
+| `chore/...` (no src/ touched) | ~90 s | ~5 s |
+| `chore/...` (touches src/ — auto-escalated) | ~90 s | ~90 s (correct! prefix lied) |
 | `fix/...` | ~90 s | ~25 s |
-| `feat/...` | ~90 s | ~90 s (unchanged — needs full) |
+| `feat/...`, `refactor/...` | ~90 s | ~90 s (unchanged — needs full) |
 
-**Acceptance:** `npm run preflight` on the current branch runs the right tier. Husky `pre-push` calls the router, not the full pipeline.
+### 2.5 Acceptance for Phase 2
+
+- `git push` from `plans/2026-05-15-agent-tooling` runs only typecheck + lint (~5 s).
+- `git push` from `feat/2026-05-15-hint-ladder` runs the full tier (~90 s).
+- `git push` from `feat/hint-ladder` (no date) is rejected before any check runs.
+- A `chore/...` branch that touches `src/persistence/db.ts` is auto-escalated with a stderr note explaining why.
 
 **Effort:** 2 hr.
 
