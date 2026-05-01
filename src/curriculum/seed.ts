@@ -41,7 +41,10 @@ let _seeding: Promise<SeedResult> | null = null;
  * Never throws: failure logs warnings and returns degraded state.
  */
 export async function seedIfEmpty(): Promise<SeedResult> {
-  if (!_seeding) _seeding = _doSeed().finally(() => { _seeding = null; });
+  if (!_seeding)
+    _seeding = _doSeed().finally(() => {
+      _seeding = null;
+    });
   return _seeding;
 }
 
@@ -121,27 +124,6 @@ async function _doSeed(): Promise<SeedResult> {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-/**
- * Wipe all static (curriculum) stores.
- * Safe to call — will be re-seeded immediately after.
- */
-async function wipeStaticStores(): Promise<void> {
-  const stores = [
-    db.curriculumPacks,
-    db.standards,
-    db.skills,
-    db.activities,
-    db.activityLevels,
-    db.fractionBank,
-    db.questionTemplates,
-    db.misconceptions,
-    db.hints,
-  ];
-
-  await Promise.all(stores.map((store) => store.clear()));
-  console.info('[seedIfEmpty] Wiped all static stores');
-}
 
 /**
  * Bulk seed all static stores from the curriculum bundle.

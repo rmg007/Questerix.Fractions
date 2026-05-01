@@ -130,7 +130,6 @@ export class Level01Scene extends Phaser.Scene {
   // Session state
   private studentId: string | null = null;
   private sessionId: string | null = null;
-  private volatileMode: boolean = false; // Set true if session creation fails after retry (R6)
   private questionIndex: number = 0;
   private attemptCount: number = 0; // total across session
   private wrongCount: number = 0; // wrong attempts on current question
@@ -487,7 +486,10 @@ export class Level01Scene extends Phaser.Scene {
               this.progressBar.setProgress(this.attemptCount);
             }
 
-            log.sess('open_resumed', { sessionId: this.sessionId, priorAttempts: this.attemptCount });
+            log.sess('open_resumed', {
+              sessionId: this.sessionId,
+              priorAttempts: this.attemptCount,
+            });
             return;
           }
         }
@@ -528,14 +530,29 @@ export class Level01Scene extends Phaser.Scene {
     } catch (err) {
       log.error('SESS', 'open_error_initial', { error: String(err) });
       try {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         const { sessionRepo } = await import('../persistence/repositories/session');
         const id = crypto.randomUUID() as import('@/types').SessionId;
         const session = await sessionRepo.create({
-          id, studentId: this.studentId as import('@/types').StudentId, activityId: 'partition_halves' as import('@/types').ActivityId,
-          levelNumber: 1, scaffoldLevel: 1, startedAt: Date.now(), endedAt: null, totalAttempts: 0, correctAttempts: 0,
-          accuracy: null, avgResponseMs: null, xpEarned: 0, scaffoldRecommendation: null, endLevel: 1,
-          device: { type: 'unknown', viewport: { width: window.innerWidth, height: window.innerHeight } }, syncState: 'local',
+          id,
+          studentId: this.studentId as import('@/types').StudentId,
+          activityId: 'partition_halves' as import('@/types').ActivityId,
+          levelNumber: 1,
+          scaffoldLevel: 1,
+          startedAt: Date.now(),
+          endedAt: null,
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracy: null,
+          avgResponseMs: null,
+          xpEarned: 0,
+          scaffoldRecommendation: null,
+          endLevel: 1,
+          device: {
+            type: 'unknown',
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+          },
+          syncState: 'local',
         });
         if (session) {
           this.sessionId = session.id;
@@ -545,8 +562,6 @@ export class Level01Scene extends Phaser.Scene {
       } catch (retryErr) {
         log.error('SESS', 'open_retry_failed', { error: String(retryErr) });
       }
-      this.volatileMode = true;
-      console.warn('[Level01Scene] Session creation failed — volatile mode enabled. Data may not persist.');
     }
   }
 
