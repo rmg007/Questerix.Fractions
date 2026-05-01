@@ -281,45 +281,20 @@ export class FeedbackOverlay {
   private animateShake(): void {
     const amplitude = 22;
     const halfCycle = 80;
-    const origX = this.cx;
-
+    const shake = { offset: 0 };
     this.scene.tweens.chain({
-      targets: [this.iconGO, this.label],
+      targets: shake,
       tweens: [
-        { x: origX + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: origX - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        {
-          x: origX,
-          duration: halfCycle,
-          ease: 'Sine.easeOut',
-        },
-      ],
-    });
-
-    // Shake the panel graphics too — update redrawPanel during shake
-    const panelShake = { x: this.cx };
-    this.scene.tweens.chain({
-      targets: panelShake,
-      tweens: [
-        { x: this.cx + amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx - amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx + amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        { x: this.cx - amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
-        {
-          x: this.cx,
-          duration: halfCycle,
-          ease: 'Sine.easeOut',
-          onComplete: () => {
-            this.redrawPanel(this.showY, 1);
-          },
-        },
+        { offset: amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: -amplitude, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: -amplitude * 0.6, duration: halfCycle, ease: 'Sine.easeInOut' },
+        { offset: 0, duration: halfCycle, ease: 'Sine.easeOut', onComplete: () => this.redrawPanel(this.showY, 1) },
       ],
       onUpdate: () => {
-        // Offset the panel by the shake amount
-        const offsetX = panelShake.x - this.cx;
-        this.panel.setX(offsetX);
+        this.iconGO.setX(this.cx + shake.offset);
+        this.label.setX(this.cx + shake.offset);
+        this.panel.setX(shake.offset);
       },
     });
   }
@@ -333,7 +308,6 @@ export class FeedbackOverlay {
       duration: 125,
       ease: 'Sine.easeInOut',
       yoyo: true,
-      repeat: 0,
     });
   }
 
@@ -343,9 +317,8 @@ export class FeedbackOverlay {
     TestHooks.mountSentinel('sparkle-burst');
 
     const starColors = [0xfcd34d, 0xfbbf24, 0xf59e0b, 0xfde68a, 0xffffff];
-    const maxParticles = 14;
+    const perColor = 3; // Math.ceil(14 / starColors.length)
     for (const tint of starColors) {
-      const perColor = Math.ceil(maxParticles / starColors.length);
       const emitter = this.scene.add.particles(this.cx, this.showY - 65, 'clr-accentA', {
         lifespan: 700,
         speed: { min: 40, max: 160 },
@@ -361,11 +334,8 @@ export class FeedbackOverlay {
       emitter.explode(perColor);
       this.activeParticleEmitters.push(emitter);
       this.scene.time.delayedCall(900, () => {
-        const idx = this.activeParticleEmitters.indexOf(emitter);
-        if (idx !== -1) {
-          this.activeParticleEmitters.splice(idx, 1);
-          emitter.destroy();
-        }
+        this.activeParticleEmitters = this.activeParticleEmitters.filter(e => e !== emitter);
+        emitter.destroy();
       });
     }
   }

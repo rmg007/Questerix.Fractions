@@ -428,7 +428,7 @@ export class LevelScene extends Phaser.Scene {
     number,
     {
       archetype: import('@/types').ArchetypeId;
-      payload: any;
+      payload: Record<string, unknown>;
       validatorId: import('@/types').ValidatorId;
       prompt: string;
     }
