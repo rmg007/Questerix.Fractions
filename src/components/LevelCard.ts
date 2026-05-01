@@ -23,11 +23,7 @@ import {
 import { TestHooks } from '../scenes/utils/TestHooks';
 import type { LevelMeta } from '../scenes/utils/levelMeta';
 import { checkReduceMotion } from '../lib/preferences';
-
-// ── Mastery ribbon palette (matches LevelMapScene) ────────────────────────────
-const RIBBON_GOLD = 0xfbbf24; // amber-400
-const RIBBON_BORDER = 0xb45309; // amber-700
-const RIBBON_H = 20;
+import { drawMasteryStar } from './levelCardMasteryStar';
 
 // ── Adventure theme colours ───────────────────────────────────────────────────
 
@@ -149,31 +145,6 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.drawCard(this.bgFill, suggested ? SUGGESTED_BORDER : this.bgBorder, suggested ? 0.3 : 0);
     this.add(this.bg);
 
-    // Gold mastery ribbon — top strip across the card, clipped to rounded corners.
-    // Dimensions are divided by containerScale so the ribbon appears at a fixed
-    // 20 × CARD_W screen-pixel size after the caller applies setScale(containerScale).
-    if (this.mastered) {
-      const cs = this.containerScale;
-      const localH = RIBBON_H / cs;
-      const localBorder = 2 / cs;
-      const ribbonG = s.add.graphics();
-      ribbonG.fillStyle(RIBBON_GOLD, 1);
-      ribbonG.fillRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, localH, {
-        tl: CARD_RADIUS,
-        tr: CARD_RADIUS,
-        bl: 0,
-        br: 0,
-      });
-      ribbonG.lineStyle(localBorder, RIBBON_BORDER, 1);
-      ribbonG.strokeRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, localH, {
-        tl: CARD_RADIUS,
-        tr: CARD_RADIUS,
-        bl: 0,
-        br: 0,
-      });
-      this.add(ribbonG);
-    }
-
     // Level number chip — top-left
     this.add(
       s.add.text(-CARD_W / 2 + 14, -CARD_H / 2 + 12, `L${this.meta.number}`, {
@@ -236,25 +207,21 @@ export class LevelCard extends Phaser.GameObjects.Container {
       this.add(s.add.text(0, -20, '🔒', { fontSize: '42px' }).setOrigin(0.5));
     }
 
-    // Star badge for completed levels — top-right corner circle
-    if (this.completed) {
-      const BADGE_R = 18;
-      const bx = CARD_W / 2 - BADGE_R + 4;
-      const by = -CARD_H / 2 + BADGE_R - 4;
-      const badgeCircle = s.add.graphics();
-      badgeCircle.fillStyle(COMPLETED_STAR_BG, 1);
-      badgeCircle.lineStyle(2.5, COMPLETED_STAR_BORDER, 1);
-      badgeCircle.fillCircle(bx, by, BADGE_R);
-      badgeCircle.strokeCircle(bx, by, BADGE_R);
-      this.add(badgeCircle);
-      this.add(
-        s.add
-          .text(bx, by, '★', {
-            fontSize: '20px',
-            color: '#78350f',
-          })
-          .setOrigin(0.5)
-      );
+    // PLAN.md Phase 2d — gold mastery star (top-right) supersedes the amber
+    // completion star. Locked cards never show either because the dark overlay
+    // covers the corner. Star renderer lives in levelCardMasteryStar.ts.
+    if (this.unlocked && this.mastered) {
+      this.add(drawMasteryStar(s, CARD_W, CARD_H, this.containerScale));
+    } else if (this.unlocked && this.completed) {
+      const r = 18;
+      const bx = CARD_W / 2 - r + 4;
+      const by = -CARD_H / 2 + r - 4;
+      const g = s.add.graphics();
+      g.fillStyle(COMPLETED_STAR_BG, 1).lineStyle(2.5, COMPLETED_STAR_BORDER, 1);
+      g.fillCircle(bx, by, r);
+      g.strokeCircle(bx, by, r);
+      this.add(g);
+      this.add(s.add.text(bx, by, '★', { fontSize: '20px', color: '#78350f' }).setOrigin(0.5));
     }
 
     // "Suggested next" amber badge — bottom centre

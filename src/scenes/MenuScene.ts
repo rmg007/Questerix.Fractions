@@ -73,7 +73,7 @@ const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
 // ── Choose-level overlay ───────────────────────────────────────────────────
 const OVERLAY_CARD_SCALE = 0.8;
 const OVERLAY_DEPTH = 50;
-const OVERLAY_MASTERY_THRESHOLD = 0.85;
+const OVERLAY_MASTERY_THRESHOLD = 0.8; // PLAN.md Phase 2d — gold star at masteryEstimate >= 0.8
 // Skill ID mapping mirrors LevelMapScene — Level 1 uses a named skill.
 function menuSkillIdForLevel(level: number): string {
   if (level === 1) return 'skill.partition_halves';
@@ -101,14 +101,6 @@ interface StationButtonOpts {
   shadowOffset: number;
   rounded: boolean; // true = pill, false = circle
   onTap: () => void;
-}
-
-interface FractionBadgeOpts {
-  x: number;
-  y: number;
-  text: string;
-  borderColor: number;
-  textColor: string;
 }
 
 export class MenuScene extends Phaser.Scene {
@@ -246,14 +238,8 @@ export class MenuScene extends Phaser.Scene {
     // ── Stations ──────────────────────────────────────────────────────────
     const hasContinue = !!this.lastStudentId;
 
-    // Settings — top of the line, position 1
-    this.drawFractionBadge({
-      x: STATION_X,
-      y: SET_Y - 100,
-      text: '1',
-      borderColor: SET_BORDER,
-      textColor: SET_TEXT,
-    });
+    // Settings — top of the line (icon + word label, no fraction badge —
+    // see file header comment + 2026-05-01 menu-pedagogy decision).
     this.createStationButton({
       x: STATION_X,
       y: SET_Y,
@@ -274,15 +260,8 @@ export class MenuScene extends Phaser.Scene {
     });
     this.drawTaglinePill(STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
 
-    // Continue — middle of the line, position ½ (only if returning student)
+    // Continue — middle of the line (only if returning student).
     if (hasContinue) {
-      this.drawFractionBadge({
-        x: STATION_X,
-        y: CONT_Y - 90,
-        text: '1/2', // Use slash for better font compatibility and a11y
-        borderColor: CONT_BORDER,
-        textColor: CONT_TEXT,
-      });
       this.createStationButton({
         x: STATION_X,
         y: CONT_Y,
@@ -303,20 +282,13 @@ export class MenuScene extends Phaser.Scene {
       });
     }
 
-    // Play — bottom of the line, position 0 (always shown)
-    this.drawFractionBadge({
-      x: STATION_X,
-      y: PLAY_Y - 100,
-      text: '0',
-      borderColor: PLAY_BORDER,
-      textColor: PLAY_TEXT,
-    });
+    // Play — bottom of the line (always shown).
     this.createStationButton({
       x: STATION_X,
       y: PLAY_Y,
       w: 440,
       h: 110,
-      label: 'Play!',
+      label: 'Play',
       iconChar: '▶',
       fillColor: PLAY_FILL,
       hoverColor: PLAY_HOVER,
@@ -800,32 +772,6 @@ export class MenuScene extends Phaser.Scene {
 
     const container = this.add.container(cx, cy, [bg, txt]).setDepth(20);
     if (text.includes('!')) container.setAngle(-2.5); // only rotate the "fun" tagline
-  }
-
-  private drawFractionBadge(opts: FractionBadgeOpts): void {
-    const padX = 14;
-    const padY = 6;
-    const txt = this.add
-      .text(0, 0, opts.text, {
-        fontFamily: TITLE_FONT,
-        fontSize: '34px',
-        color: opts.textColor,
-      })
-      .setOrigin(0.5);
-    const w = Math.max(56, txt.width + padX * 2);
-    const h = txt.height + padY * 2;
-
-    const bg = this.add.graphics();
-    bg.fillStyle(WHITE, 1);
-    bg.fillRoundedRect(-w / 2, -h / 2, w, h, 12);
-    bg.lineStyle(4, opts.borderColor, 1);
-    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
-    // 3D shadow
-    const shadow = this.add.graphics();
-    shadow.fillStyle(opts.borderColor, 1);
-    shadow.fillRoundedRect(-w / 2, -h / 2 + 4, w, h, 12);
-
-    this.add.container(opts.x, opts.y, [shadow, bg, txt]).setDepth(21);
   }
 
   /**

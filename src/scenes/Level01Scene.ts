@@ -1758,17 +1758,20 @@ export class Level01Scene extends Phaser.Scene {
           : null,
     });
 
-    // Persist level 1 completion so Level 2 unlocks in the chooser (G-C3/S4-T4).
-    MenuScene.markLevelComplete(1, this.studentId);
-
-    // G-5: unlock Level 2 in IndexedDB progressionStat
-    await this.persistLevelCompletion();
+    // Phase 2a (D-1): gate Level-2 unlock on correctCount/never-stuck/researcher
+    const { evaluateUnlockGate } = await import('../lib/unlockGate');
+    const gate = await evaluateUnlockGate({
+      studentId: this.studentId,
+      levelNumber: 1,
+      correctCount: this.correctCount,
+    });
+    if (gate.passed) MenuScene.markLevelComplete(1, this.studentId);
+    if (gate.passed) await this.persistLevelCompletion();
 
     // Adaptive router: write suggested next level (simplified for L1 — no mastery tracking)
     try {
       const { decideNextLevel } = await import('../engine/router');
       const inCalibration = !!(this.calibrationState && this.calibrationState.remaining > 0);
-      // Level 1 has no prerequisites, so prereqsMet is always false
       const suggestedLevel = decideNextLevel({
         currentLevel: 1 as import('@/types').LevelId,
         masteries: new Map(),
@@ -1807,15 +1810,11 @@ export class Level01Scene extends Phaser.Scene {
       return;
     }
 
-    // T11: Compute scaffold recommendation from session accuracy
-    const sessionAccuracy =
-      this.totalQuestionsAttempted > 0 ? this.correctCount / this.totalQuestionsAttempted : 0;
-    // B2: no Level 0 exists — cap at 'stay' so regress never fires on L1.
-    const scaffoldRec: 'advance' | 'stay' = sessionAccuracy >= 0.8 ? 'advance' : 'stay';
-
-    // T15: Perfect session — all 5 correct, no extra attempts (totalQuestionsAttempted === SESSION_GOAL)
-    const isPerfect =
-      this.correctCount >= SESSION_GOAL && this.totalQuestionsAttempted === SESSION_GOAL;
+    // T11: Scaffold rec; gate failure forces 'stay' (B2: no Level 0 to regress to).
+    const total = this.totalQuestionsAttempted;
+    const advance = gate.passed && total > 0 && this.correctCount / total >= 0.8;
+    const scaffoldRec: 'advance' | 'stay' = advance ? 'advance' : 'stay';
+    const isPerfect = gate.passed && this.correctCount >= SESSION_GOAL && total === SESSION_GOAL;
 
     new SessionCompleteOverlay({
       scene: this,
@@ -1827,30 +1826,29 @@ export class Level01Scene extends Phaser.Scene {
       scaffoldRecommendation: scaffoldRec,
       nextLevelNumber: scaffoldRec === 'advance' ? 2 : null,
       isPerfect,
-      onNextLevel: () => {
-        fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.studentId });
-      },
-      onPlayAgain: () => {
-        fadeAndStart(this, 'Level01Scene', { studentId: this.studentId });
-      },
-      onMenu: () => {
-        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
-      },
+      ...(gate.passed
+        ? { onNextLevel: () => fadeAndStart(this, 'LevelScene', { levelNumber: 2, studentId: this.studentId }) } // prettier-ignore
+        : {}),
+      onPlayAgain: () => fadeAndStart(this, 'Level01Scene', { studentId: this.studentId }),
+      onMenu: () =>
+        fadeAndStart(this, 'LevelMapScene', {
+          studentId: this.studentId,
+          postSession: true,
+          levelNumber: 1,
+          completedScore: this.correctCount,
+        }),
     });
 
     // T16: Quest session-complete speech line
-    const completeLine =
-      scaffoldRec === 'advance' ? 'I knew you could do it! ⭐' : 'Great practice! Keep going!';
+    let completeLine = 'Great practice! Keep going!';
+    if (!gate.passed) completeLine = "Let's practice a little more!";
+    else if (advance) completeLine = 'I knew you could do it! ⭐';
     this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
 
-    // Move Quest beside the trophy card (right of centre, above the heading at
-    // overlay-y=420) and raise its depth above the overlay (depth 50).
-    // x = CW - 120 keeps Quest inside the right edge; y = 400 sits between
-    // the trophy emoji (overlay-y=320) and the level heading (overlay-y=420).
     if (this.mascot) {
       this.mascot.setDepth(60);
       this.mascot.reposition(CW - 120, 400);
-      this.mascot.setState('cheer-big');
+      this.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
     }
 
     await this.closeSession();

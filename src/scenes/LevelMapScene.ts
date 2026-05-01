@@ -32,11 +32,13 @@ import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { LEVEL_META } from './utils/levelMeta';
 import { LevelCard } from '../components/LevelCard';
+import { PostSessionOverlay } from '../components/PostSessionOverlay';
 import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import type { StudentId } from '../types';
 import { StudentId as StudentIdConstructor } from '../types/branded';
 import { getStreak } from '../lib/streak';
+import { evaluateUnlockGate } from '../lib/unlockGate';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -74,12 +76,22 @@ const NODE_POSITIONS: [number, number][] = [
 ];
 
 interface LevelMapData {
-  studentId: string | null;
+  studentId?: string | null;
+  /** Phase 2b (UI-11): when true, show PostSessionOverlay on top of the map. */
+  postSession?: boolean;
+  /** Level just completed — used to compute Next Level target & unlock gate. */
+  levelNumber?: number;
+  /** Correct-count from the just-finished session (drives anonymous gate). */
+  completedScore?: number;
 }
 
 export class LevelMapScene extends Phaser.Scene {
   private studentId: string | null = null;
   private reduceMotion = false;
+  // Phase 2b (UI-11): payload from a session-complete handoff.
+  private postSession = false;
+  private completedLevelNumber: number | null = null;
+  private completedScore: number | null = null;
 
   constructor() {
     super({ key: 'LevelMapScene' });
@@ -87,6 +99,9 @@ export class LevelMapScene extends Phaser.Scene {
 
   init(data: LevelMapData): void {
     this.studentId = data?.studentId ?? null;
+    this.postSession = data?.postSession === true;
+    this.completedLevelNumber = typeof data?.levelNumber === 'number' ? data.levelNumber : null;
+    this.completedScore = typeof data?.completedScore === 'number' ? data.completedScore : null;
   }
 
   async create(): Promise<void> {
@@ -207,6 +222,113 @@ export class LevelMapScene extends Phaser.Scene {
         TestHooks.mountSentinel(`mastery-ribbon-L${meta.number}`);
       }
     }
+
+    // Phase 2b (UI-11): show post-session routing overlay on top of the map.
+    if (this.postSession && this.completedLevelNumber !== null) {
+      void this._showPostSessionOverlay(this.completedLevelNumber, unlocked);
+    }
+  }
+
+  // ── Phase 2b (UI-11): post-session routing overlay ────────────────────────
+
+  private async _showPostSessionOverlay(
+    completedLevel: number,
+    unlocked: Set<number>
+  ): Promise<void> {
+    const nextLevel = completedLevel + 1;
+    const isLastLevel = completedLevel >= 9;
+
+    // Determine unlock state. The session that just ended already wrote
+    // through the gate, so the unlocked-set we already loaded is authoritative
+    // for the persistent (signed-in) case. For anonymous sessions the gate is
+    // in-memory only — fall back to completedScore.
+    let canAdvance = false;
+    if (!isLastLevel) {
+      if (this.studentId) {
+        canAdvance = unlocked.has(nextLevel);
+        if (!canAdvance && this.completedScore !== null) {
+          // Re-evaluate without persistence side effect — read-only check via
+          // unlockGate so the never-stuck path is honoured even if the prior
+          // call missed (e.g. session-end raced with map navigation).
+          try {
+            const result = await evaluateUnlockGate({
+              studentId: this.studentId,
+              levelNumber: completedLevel,
+              correctCount: this.completedScore,
+            });
+            canAdvance = result.passed;
+          } catch {
+            canAdvance = false;
+          }
+        }
+      } else {
+        canAdvance = (this.completedScore ?? 0) >= 3;
+      }
+    }
+
+    new PostSessionOverlay({
+      scene: this,
+      levelNumber: completedLevel,
+      width: CW,
+      height: CH,
+      hideNextLevel: isLastLevel,
+      onPlayAgain: () => {
+        const data = { levelNumber: completedLevel, studentId: this.studentId };
+        if (completedLevel === 1) fadeAndStart(this, 'Level01Scene', data);
+        else fadeAndStart(this, 'LevelScene', data);
+      },
+      onMenu: () => {
+        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+      },
+      ...(isLastLevel
+        ? {}
+        : {
+            onNextLevel: () => {
+              if (canAdvance) {
+                fadeAndStart(this, 'LevelScene', {
+                  levelNumber: nextLevel,
+                  studentId: this.studentId,
+                });
+              } else {
+                this._showLockedToast();
+              }
+            },
+          }),
+    });
+  }
+
+  /** Small toast surfaced when Next Level is tapped but N+1 isn't unlocked. */
+  private _showLockedToast(): void {
+    const cx = CW / 2;
+    const cy = CH - 200;
+    const TOAST_DEPTH = 2000;
+    const message = 'Finish this one first!';
+
+    const panel = this.add
+      .rectangle(cx, cy, 360, 72, NAVY, 0.94)
+      .setDepth(TOAST_DEPTH)
+      .setStrokeStyle(3, PATH_BLUE, 1);
+
+    const text = this.add
+      .text(cx, cy, message, {
+        fontFamily: BODY_FONT,
+        fontSize: '20px',
+        fontStyle: 'bold',
+        color: '#FFFFFF',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(TOAST_DEPTH + 1);
+
+    TestHooks.mountSentinel('post-session-locked-toast');
+    TestHooks.setText('post-session-locked-toast', message);
+    A11yLayer.announce(message);
+
+    this.time.delayedCall(2200, () => {
+      panel.destroy();
+      text.destroy();
+      TestHooks.unmount('post-session-locked-toast');
+    });
   }
 
   // ── T17: Daily streak pill ────────────────────────────────────────────────────

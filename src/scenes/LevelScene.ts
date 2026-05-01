@@ -952,7 +952,7 @@ export class LevelScene extends Phaser.Scene {
     }
 
     if (this.attemptCount >= SESSION_GOAL) {
-      this.showSessionComplete();
+      void this.showSessionComplete();
     } else {
       this.loadQuestion(this.questionIndex + 1);
     }
@@ -1353,7 +1353,7 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Session complete ─────────────────────────────────────────────────────────
 
-  private showSessionComplete(): void {
+  private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
     const accuracy =
       this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
@@ -1369,23 +1369,26 @@ export class LevelScene extends Phaser.Scene {
       avgResponseMs,
     });
 
-    // Persist level completion so the next level unlocks in the chooser (G-C3/S4-T4).
-    MenuScene.markLevelComplete(this.levelNumber, this.studentId);
-
-    // G-5: unlock next level in IndexedDB progressionStat
-    void this.persistLevelCompletion();
+    // Phase 2a (D-1): gate next-level unlock on correctCount/never-stuck/researcher
+    const { evaluateUnlockGate } = await import('../lib/unlockGate');
+    const gate = await evaluateUnlockGate({
+      studentId: this.studentId,
+      levelNumber: this.levelNumber,
+      correctCount: this.correctCount,
+    });
+    if (gate.passed) MenuScene.markLevelComplete(this.levelNumber, this.studentId);
+    if (gate.passed) void this.persistLevelCompletion();
 
     const nextLevel =
       this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
 
-    // T11: Scaffold recommendation based on accuracy
+    // T11: Scaffold recommendation. Gate failure forces 'stay' regardless of accuracy.
     const totalAttempts = this.responseTimes.length;
-    const sessionAccuracy = totalAttempts > 0 ? this.correctCount / totalAttempts : 0;
-    const scaffoldRec: 'advance' | 'stay' | 'regress' =
-      sessionAccuracy >= 0.8 ? 'advance' : sessionAccuracy < 0.4 ? 'regress' : 'stay';
-
-    // T15: Perfect session — all correct, no extra attempts
-    const isPerfect = this.correctCount >= SESSION_GOAL && totalAttempts === SESSION_GOAL;
+    const acc = totalAttempts > 0 ? this.correctCount / totalAttempts : 0;
+    let scaffoldRec: 'advance' | 'stay' | 'regress' = 'stay';
+    if (gate.passed && acc >= 0.8) scaffoldRec = 'advance';
+    else if (gate.passed && acc < 0.4) scaffoldRec = 'regress';
+    const isPerfect = gate.passed && acc === 1 && totalAttempts === SESSION_GOAL;
 
     new SessionCompleteOverlay({
       scene: this,
@@ -1397,40 +1400,33 @@ export class LevelScene extends Phaser.Scene {
       scaffoldRecommendation: scaffoldRec,
       nextLevelNumber: scaffoldRec === 'advance' && nextLevel !== null ? nextLevel : null,
       isPerfect,
-      ...(nextLevel !== null
-        ? {
-            onNextLevel: () => {
-              fadeAndStart(this, 'LevelScene', {
-                levelNumber: nextLevel,
-                studentId: this.studentId,
-              });
-            },
-          }
+      ...(gate.passed && nextLevel !== null
+        ? { onNextLevel: () => fadeAndStart(this, 'LevelScene', { levelNumber: nextLevel, studentId: this.studentId }) } // prettier-ignore
         : {}),
-      onPlayAgain: () => {
+      onPlayAgain: () =>
         fadeAndStart(this, 'LevelScene', {
           levelNumber: this.levelNumber,
           studentId: this.studentId,
-        });
-      },
-      onMenu: () => {
-        fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
-      },
+        }),
+      onMenu: () =>
+        fadeAndStart(this, 'LevelMapScene', {
+          studentId: this.studentId,
+          postSession: true,
+          levelNumber: this.levelNumber,
+          completedScore: this.correctCount,
+        }),
     });
 
     // T16: Quest session-complete speech line
-    const completeLine =
-      scaffoldRec === 'advance' ? 'I knew you could do it! ⭐' : 'Great practice! Keep going!';
+    let completeLine = 'Great practice! Keep going!';
+    if (!gate.passed) completeLine = "Let's practice a little more!";
+    else if (scaffoldRec === 'advance') completeLine = 'I knew you could do it! ⭐';
     this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
 
-    // Move Quest beside the trophy card (right of centre, above the heading at
-    // overlay-y=420) and raise its depth above the overlay (depth 50).
-    // x = CW - 120 keeps Quest inside the right edge; y = 400 sits between
-    // the trophy emoji (overlay-y=320) and the level heading (overlay-y=420).
     if (this.mascot) {
       this.mascot.setDepth(60);
       this.mascot.reposition(CW - 120, 400);
-      this.mascot.setState('cheer-big');
+      this.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
     }
 
     void this.closeSession();

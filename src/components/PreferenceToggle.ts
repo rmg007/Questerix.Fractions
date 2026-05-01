@@ -173,7 +173,7 @@ export class PreferenceToggle {
 
   async refresh(): Promise<void> {
     const meta = await deviceMetaRepo.get();
-    const raw = meta.preferences[this.key];
+    const raw = meta.preferences[this.key] ?? false;
     const checked = typeof raw === 'boolean' ? raw : false;
     this.setChecked(checked, raw);
   }

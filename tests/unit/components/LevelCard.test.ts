@@ -53,9 +53,18 @@ import type { LevelMeta } from '@/scenes/utils/levelMeta';
 function makeGameObject() {
   const go: Record<string, unknown> = { x: 0, y: 0, depth: 0, alpha: 1, scale: 1 };
   for (const m of [
-    'setDepth', 'setVisible', 'setOrigin', 'setScale', 'setAlpha',
-    'setX', 'setY', 'setFillStyle', 'setText', 'setColor',
-    'setInteractive', 'on',
+    'setDepth',
+    'setVisible',
+    'setOrigin',
+    'setScale',
+    'setAlpha',
+    'setX',
+    'setY',
+    'setFillStyle',
+    'setText',
+    'setColor',
+    'setInteractive',
+    'on',
   ]) {
     go[m] = vi.fn().mockReturnValue(go);
   }
@@ -66,8 +75,21 @@ function makeGameObject() {
 function makeGraphics() {
   const g: Record<string, unknown> = {};
   for (const m of [
-    'fillStyle', 'fillRect', 'fillRoundedRect', 'lineStyle',
-    'strokeRoundedRect', 'clear', 'setDepth',
+    'fillStyle',
+    'fillRect',
+    'fillRoundedRect',
+    'lineStyle',
+    'strokeRoundedRect',
+    'fillCircle',
+    'strokeCircle',
+    'beginPath',
+    'moveTo',
+    'lineTo',
+    'closePath',
+    'fillPath',
+    'strokePath',
+    'clear',
+    'setDepth',
   ]) {
     g[m] = vi.fn().mockReturnValue(g);
   }
@@ -114,9 +136,7 @@ describe('LevelCard — gold mastery ribbon', () => {
     });
   });
 
-  it('creates a ribbon graphics object and adds it to the container when mastered is true', () => {
-    // Capture every graphics object returned by the scene so we can identify
-    // the ribbon instance (the second one created).
+  it('creates a 0xFFD700 gold star graphics object and adds it to the container when mastered is true', () => {
     const graphicsObjects: ReturnType<typeof makeGraphics>[] = [];
     const scene = makeSceneStub();
     scene.add.graphics.mockImplementation(() => {
@@ -127,40 +147,73 @@ describe('LevelCard — gold mastery ribbon', () => {
 
     const card = new LevelCard(makeCardOpts(scene, true));
 
-    // build() calls scene.add.graphics() once for the bg and once for the ribbon.
+    // build() calls scene.add.graphics() at least twice: bg + mastery star.
     expect(graphicsObjects.length).toBeGreaterThanOrEqual(2);
 
-    // The ribbon is the second graphics object. It must be drawn with gold fill
-    // and passed to this.add() on the container.
-    const ribbonG = graphicsObjects[1];
-    expect(ribbonG.fillStyle).toHaveBeenCalledWith(0xfbbf24, 1); // RIBBON_GOLD
-    expect(ribbonG.fillRoundedRect).toHaveBeenCalled();
-    expect(ribbonG.strokeRoundedRect).toHaveBeenCalled();
+    // The mastery star is drawn with true-gold fill (0xFFD700 per PLAN.md
+    // Phase 2d) using a 5-pointed polygon (fillPath/strokePath, not rounded
+    // rect or circle).
+    const starG = graphicsObjects.find((g) =>
+      (g.fillStyle as ReturnType<typeof vi.fn>).mock.calls.some(([c]) => c === 0xffd700)
+    );
+    expect(starG).toBeDefined();
+    expect(starG!.fillPath).toHaveBeenCalled();
+    expect(starG!.strokePath).toHaveBeenCalled();
 
-    // Verify the ribbon was actually added to the LevelCard container.
+    // Verify the star was actually added to the LevelCard container.
     const addCalls = (card as unknown as { add: ReturnType<typeof vi.fn> }).add.mock.calls;
-    const wasAddedToContainer = addCalls.some(([arg]) => arg === ribbonG);
+    const wasAddedToContainer = addCalls.some(([arg]) => arg === starG);
     expect(wasAddedToContainer).toBe(true);
   });
 
-  it('does NOT create a ribbon graphics object when mastered is false', () => {
+  it('does NOT create a gold mastery star when mastered is false', () => {
+    const graphicsObjects: ReturnType<typeof makeGraphics>[] = [];
     const scene = makeSceneStub();
+    scene.add.graphics.mockImplementation(() => {
+      const g = makeGraphics();
+      graphicsObjects.push(g);
+      return g;
+    });
     new LevelCard(makeCardOpts(scene, false));
 
-    // With mastered=false the build() method only calls scene.add.graphics()
-    // once — for the background card — so the ribbon is absent.
-    const graphicsCalls = scene.add.graphics.mock.calls.length;
-    expect(graphicsCalls).toBe(1);
+    const goldStar = graphicsObjects.find((g) =>
+      (g.fillStyle as ReturnType<typeof vi.fn>).mock.calls.some(([c]) => c === 0xffd700)
+    );
+    expect(goldStar).toBeUndefined();
   });
 
-  it('does NOT create a ribbon graphics object when mastered is omitted (defaults false)', () => {
+  it('does NOT create a gold mastery star when mastered is omitted (defaults false)', () => {
+    const graphicsObjects: ReturnType<typeof makeGraphics>[] = [];
     const scene = makeSceneStub();
+    scene.add.graphics.mockImplementation(() => {
+      const g = makeGraphics();
+      graphicsObjects.push(g);
+      return g;
+    });
     const opts = makeCardOpts(scene, false);
-    // Omit mastered entirely (default is false per LevelCardOptions)
     const { mastered: _omit, ...optsWithoutMastered } = opts;
     new LevelCard(optsWithoutMastered);
 
-    // No ribbon — only 1 graphics call for the background
-    expect(scene.add.graphics.mock.calls.length).toBe(1);
+    const goldStar = graphicsObjects.find((g) =>
+      (g.fillStyle as ReturnType<typeof vi.fn>).mock.calls.some(([c]) => c === 0xffd700)
+    );
+    expect(goldStar).toBeUndefined();
+  });
+
+  it('does NOT show the gold mastery star on locked cards even if mastered=true (race-condition guard)', () => {
+    const graphicsObjects: ReturnType<typeof makeGraphics>[] = [];
+    const scene = makeSceneStub();
+    scene.add.graphics.mockImplementation(() => {
+      const g = makeGraphics();
+      graphicsObjects.push(g);
+      return g;
+    });
+    const opts = { ...makeCardOpts(scene, true), unlocked: false };
+    new LevelCard(opts);
+
+    const goldStar = graphicsObjects.find((g) =>
+      (g.fillStyle as ReturnType<typeof vi.fn>).mock.calls.some(([c]) => c === 0xffd700)
+    );
+    expect(goldStar).toBeUndefined();
   });
 });

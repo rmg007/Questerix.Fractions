@@ -9,6 +9,12 @@ import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 interface PreferenceCache {
   reduceMotion: boolean;
   highContrast: boolean;
+  /**
+   * Phase 2a (D-1) researcher escape hatch. When true the level-unlock gate
+   * short-circuits and every "next level" advances. Toggled by triple-tapping
+   * the SettingsScene version label.
+   */
+  unlockGateBypass: boolean;
 }
 
 let cache: PreferenceCache | null = null;
@@ -23,6 +29,7 @@ export async function initPreferences(): Promise<void> {
     cache = {
       reduceMotion: meta.preferences.reduceMotion ?? false,
       highContrast: meta.preferences.highContrast ?? false,
+      unlockGateBypass: meta.preferences.unlockGateBypass ?? false,
     };
     applyContrastMode(cache.highContrast);
   } catch (err) {
@@ -30,6 +37,7 @@ export async function initPreferences(): Promise<void> {
     cache = {
       reduceMotion: false,
       highContrast: false,
+      unlockGateBypass: false,
     };
   }
 }
@@ -57,6 +65,9 @@ export async function updatePreferences(updates: Partial<PreferenceCache>): Prom
     cache!.highContrast = updates.highContrast;
     applyContrastMode(updates.highContrast);
   }
+  if (updates.unlockGateBypass !== undefined) {
+    cache!.unlockGateBypass = updates.unlockGateBypass;
+  }
 }
 
 /**
@@ -77,4 +88,31 @@ function applyContrastMode(enabled: boolean): void {
  */
 export function isHighContrastEnabled(): boolean {
   return cache?.highContrast ?? false;
+}
+
+/**
+ * Phase 2a (D-1): runtime accessor for the researcher unlock-gate bypass.
+ * Returns the cached value; falls back to false if the cache hasn't been
+ * primed yet (e.g. in unit tests that never called initPreferences()).
+ */
+export function isUnlockGateBypassEnabled(): boolean {
+  return cache?.unlockGateBypass ?? false;
+}
+
+/**
+ * Phase 2a (D-1): toggle the researcher unlock-gate bypass and persist the
+ * new value via deviceMetaRepo. Returns the resulting boolean so the caller
+ * can render an immediate confirmation toast.
+ */
+export async function toggleUnlockGateBypass(): Promise<boolean> {
+  if (!cache) await initPreferences();
+  const next = !cache!.unlockGateBypass;
+  cache!.unlockGateBypass = next;
+  try {
+    await deviceMetaRepo.updatePreferences({ unlockGateBypass: next });
+  } catch {
+    // Best-effort persistence — the in-memory cache still reflects the toggle
+    // so the rest of the session honours the researcher's intent.
+  }
+  return next;
 }

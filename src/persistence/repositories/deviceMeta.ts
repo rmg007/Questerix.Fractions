@@ -24,6 +24,7 @@ const DEFAULT_META: DeviceMeta = {
     largeTouchTargets: false,
     telemetryConsent: false,
     persistGranted: false,
+    unlockGateBypass: false,
   },
   lastBackupAt: null,
   lastRestoredAt: null,
