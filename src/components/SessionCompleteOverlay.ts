@@ -291,7 +291,8 @@ export class SessionCompleteOverlay {
             () => {
               this.announce(levelNumber, starCount);
             },
-            isPerfect ? 80 : 40
+            isPerfect ? 80 : 40,
+            isPerfect
           );
         });
       },
@@ -456,11 +457,10 @@ export class SessionCompleteOverlay {
     for (let i = 0; i < this.starTexts.length; i++) {
       const st = this.starTexts[i]!;
       scene.time.delayedCall(delay, () => {
-        // T15: Perfect sessions have extra bounce (1.3x scale peak vs 1.2x)
-        const peakScale = isPerfect ? 1.3 : 1.2;
+        // T15: Extra bounce for perfect sessions (1.3x vs 1.2x)
         scene.tweens.add({
           targets: st,
-          scale: peakScale,
+          scale: isPerfect ? 1.3 : 1.2,
           duration: 180,
           ease: 'Back.easeOut',
           onComplete: () => {
