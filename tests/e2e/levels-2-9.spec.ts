@@ -1,118 +1,164 @@
 /**
- * Levels 2–9 smoke tests.
+ * L2–L9 lightweight smoke tests.
  *
- * Verifies that each level scene loads without crashing and renders the
- * `progress-bar` sentinel, which ProgressBar.ts mounts as soon as the scene
- * is active.
+ * Goal: verify each level scene loads without crashing.
+ * These tests do NOT exercise full interaction flows — they only confirm the
+ * level-scene sentinel is mounted (scene started successfully).
  *
  * Navigation strategy:
- *   - L6, L7 — MenuScene exposes off-canvas `level-card-L6` / `level-card-L7`
- *               interactive overlays that bypass the Adventure Map, so these
- *               tests run without unlocking anything in storage.
- *   - L2–L5, L8–L9 — LevelMapScene only mounts interactive `map-level-<N>`
- *               buttons for already-unlocked levels (level 1 is the only one
- *               unlocked by default).  No direct shortcut exists in the current
- *               codebase, so these tests are marked fixme until a test-hook
- *               shortcut or forced-unlock param is added.
+ *   - Levels 2–5, 8–9: no level-card sentinel exists in MenuScene yet;
+ *     the LevelMapScene provides navigation. Tests use `test.fixme` until
+ *     the relevant level-card test hook stubs are wired up.
+ *   - Levels 6–7: MenuScene already mounts `level-card-L6` / `level-card-L7`
+ *     interactive sentinels, so those levels get a live smoke path.
  *
- * per test-strategy.md §1.3, TestHooks.ts sentinel conventions.
+ * per test-strategy.md §1.3 — sentinels mirror active scene/state.
  */
 
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Navigate to MenuScene (Boot → menu-scene). */
-async function navigateToMenu(page: Page): Promise<void> {
+/**
+ * Boot the app and land on the MenuScene.
+ * Re-used by every test that needs to start from the main menu.
+ */
+async function navigateToMenu(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/');
-  await expect(page.locator('[data-testid="boot-start-btn"]')).toBeVisible({ timeout: 15000 });
-  await page.locator('[data-testid="boot-start-btn"]').click();
-  await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 15000 });
+  const startBtn = page.locator('[data-testid="boot-start-btn"]');
+  await expect(startBtn).toBeVisible({ timeout: 8000 });
+  await startBtn.click();
+  await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 5000 });
 }
 
 /**
- * Navigate directly to a LevelScene that has a MenuScene shortcut hook.
- * Currently only L6 and L7 expose `level-card-L6` / `level-card-L7`.
+ * Assert that `level-scene` AND the per-level `levelNN-scene` sentinel appear.
+ * LevelScene mounts both on create().
  */
-async function navigateToLevelViaMenuShortcut(page: Page, level: 6 | 7): Promise<void> {
-  await navigateToMenu(page);
-  await page.locator(`[data-testid="level-card-L${level}"]`).click();
-  // LevelScene mounts the per-level sentinel levelNN-scene
-  const levelId = `level${String(level).padStart(2, '0')}-scene`;
-  await expect(page.locator(`[data-testid="${levelId}"]`)).toBeAttached({ timeout: 15000 });
+async function expectLevelSceneLoaded(
+  page: import('@playwright/test').Page,
+  levelNumber: number
+): Promise<void> {
+  const levelId = `level${String(levelNumber).padStart(2, '0')}-scene`;
+  await expect(page.locator('[data-testid="level-scene"]')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(`[data-testid="${levelId}"]`)).toBeVisible({ timeout: 3000 });
 }
 
-// ── L6 ────────────────────────────────────────────────────────────────────────
+// ── Level 2 ──────────────────────────────────────────────────────────────────
 
-test.describe('Level 6 — smoke', () => {
-  test('loads Level 6 scene without crashing', async ({ page }) => {
-    await navigateToLevelViaMenuShortcut(page, 6);
-  });
+test.describe('Level 02 — smoke', () => {
+  test.fixme(
+    'navigates to L2 and level-scene sentinel is mounted',
+    // fixme: `level-card-L2` interactive stub not yet wired in MenuScene /
+    // LevelMapScene. Add the TestHooks.mountInteractive call for L2 and remove fixme.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L2"]').click();
+      await expectLevelSceneLoaded(page, 2);
+    }
+  );
+});
 
-  test('Level 6 scene renders progress-bar sentinel', async ({ page }) => {
-    await navigateToLevelViaMenuShortcut(page, 6);
-    // ProgressBar.ts mounts the progress-bar sentinel in its constructor.
-    await expect(page.locator('[data-testid="progress-bar"]')).toBeAttached({ timeout: 10000 });
+// ── Level 3 ──────────────────────────────────────────────────────────────────
+
+test.describe('Level 03 — smoke', () => {
+  test.fixme(
+    'navigates to L3 and level-scene sentinel is mounted',
+    // fixme: `level-card-L3` interactive stub not yet wired in MenuScene /
+    // LevelMapScene.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L3"]').click();
+      await expectLevelSceneLoaded(page, 3);
+    }
+  );
+});
+
+// ── Level 4 ──────────────────────────────────────────────────────────────────
+
+test.describe('Level 04 — smoke', () => {
+  test.fixme(
+    'navigates to L4 and level-scene sentinel is mounted',
+    // fixme: `level-card-L4` interactive stub not yet wired in MenuScene /
+    // LevelMapScene.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L4"]').click();
+      await expectLevelSceneLoaded(page, 4);
+    }
+  );
+});
+
+// ── Level 5 ──────────────────────────────────────────────────────────────────
+
+test.describe('Level 05 — smoke', () => {
+  test.fixme(
+    'navigates to L5 and level-scene sentinel is mounted',
+    // fixme: `level-card-L5` interactive stub not yet wired in MenuScene /
+    // LevelMapScene.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L5"]').click();
+      await expectLevelSceneLoaded(page, 5);
+    }
+  );
+});
+
+// ── Level 6 — live (level-card-L6 wired in MenuScene) ────────────────────────
+
+test.describe('Level 06 — smoke', () => {
+  test('navigates to L6 via level-card-L6 and level-scene sentinel is mounted', async ({
+    page,
+  }) => {
+    await navigateToMenu(page);
+    // MenuScene already mounts an interactive sentinel for L6.
+    await page.locator('[data-testid="level-card-L6"]').click();
+    await expectLevelSceneLoaded(page, 6);
+    // Also verify the progress bar sentinel appears (LevelScene mounts it).
+    await expect(page.locator('[data-testid="progress-bar"]')).toBeVisible({ timeout: 5000 });
   });
 });
 
-// ── L7 ────────────────────────────────────────────────────────────────────────
+// ── Level 7 — live (level-card-L7 wired in MenuScene) ────────────────────────
 
-test.describe('Level 7 — smoke', () => {
-  test('loads Level 7 scene without crashing', async ({ page }) => {
-    await navigateToLevelViaMenuShortcut(page, 7);
-  });
-
-  test('Level 7 scene renders progress-bar sentinel', async ({ page }) => {
-    await navigateToLevelViaMenuShortcut(page, 7);
-    await expect(page.locator('[data-testid="progress-bar"]')).toBeAttached({ timeout: 10000 });
+test.describe('Level 07 — smoke', () => {
+  test('navigates to L7 via level-card-L7 and level-scene sentinel is mounted', async ({
+    page,
+  }) => {
+    await navigateToMenu(page);
+    // MenuScene already mounts an interactive sentinel for L7.
+    await page.locator('[data-testid="level-card-L7"]').click();
+    await expectLevelSceneLoaded(page, 7);
+    await expect(page.locator('[data-testid="progress-bar"]')).toBeVisible({ timeout: 5000 });
   });
 });
 
-// ── L2–L5, L8–L9 (fixme — no direct shortcuts yet) ───────────────────────────
-//
-// LevelMapScene only exposes `map-level-<N>` interactive buttons for levels
-// that are already in the student's unlocked set (default: level 1 only).
-// Until a `?unlockAll=1` test param or per-level MenuScene shortcut is added,
-// these tests cannot navigate past the locked node.
-//
-// Tracking issue: add `level-card-L{N}` hooks to MenuScene (matching the L6/L7
-// pattern) or a forced-unlock URL param so all levels are reachable in test mode.
+// ── Level 8 ──────────────────────────────────────────────────────────────────
 
-for (const level of [2, 3, 4, 5, 8, 9] as const) {
-  test.describe(`Level ${level} — smoke (fixme: no unlock shortcut)`, () => {
-    test.fixme(
-      `loads Level ${level} scene without crashing`,
-      async ({ page }) => {
-        // When a direct shortcut exists, replace this body with:
-        //   await navigateToLevelViaMenuShortcut(page, level);
-        //   const levelId = `level${String(level).padStart(2, '0')}-scene`;
-        //   await expect(page.locator(`[data-testid="${levelId}"]`)).toBeAttached({ timeout: 15000 });
-        await navigateToMenu(page);
-        // Navigate to Adventure Map and attempt to click the (still-locked) node.
-        await page.locator('[data-testid="level-card-L1"]').click();
-        await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({
-          timeout: 15000,
-        });
-        // map-level-<N> is only present for unlocked levels — this assertion
-        // documents the current gap and will start failing (usefully) once
-        // unlock shortcuts are wired up.
-        await expect(page.locator(`[data-testid="map-level-${level}"]`)).toBeAttached({
-          timeout: 3000,
-        });
-      }
-    );
+test.describe('Level 08 — smoke', () => {
+  test.fixme(
+    'navigates to L8 and level-scene sentinel is mounted',
+    // fixme: `level-card-L8` interactive stub not yet wired in MenuScene /
+    // LevelMapScene.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L8"]').click();
+      await expectLevelSceneLoaded(page, 8);
+    }
+  );
+});
 
-    test.fixme(
-      `Level ${level} scene renders progress-bar sentinel`,
-      async ({ page }) => {
-        // Dependent on the navigation fixme above.
-        await navigateToMenu(page);
-        const levelId = `level${String(level).padStart(2, '0')}-scene`;
-        await expect(page.locator(`[data-testid="${levelId}"]`)).toBeAttached({ timeout: 15000 });
-        await expect(page.locator('[data-testid="progress-bar"]')).toBeAttached({ timeout: 10000 });
-      }
-    );
-  });
-}
+// ── Level 9 ──────────────────────────────────────────────────────────────────
+
+test.describe('Level 09 — smoke', () => {
+  test.fixme(
+    'navigates to L9 and level-scene sentinel is mounted',
+    // fixme: `level-card-L9` interactive stub not yet wired in MenuScene /
+    // LevelMapScene.
+    async ({ page }) => {
+      await navigateToMenu(page);
+      await page.locator('[data-testid="level-card-L9"]').click();
+      await expectLevelSceneLoaded(page, 9);
+    }
+  );
+});
