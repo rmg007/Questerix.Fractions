@@ -122,20 +122,20 @@ describe('ProgressBar', () => {
       const { bar, stars } = buildBar(5);
       bar.setProgress(3);
 
-      expect(stars[0].setText).toHaveBeenLastCalledWith('★');
-      expect(stars[1].setText).toHaveBeenLastCalledWith('★');
-      expect(stars[2].setText).toHaveBeenLastCalledWith('★');
-      expect(stars[3].setText).toHaveBeenLastCalledWith('☆');
-      expect(stars[4].setText).toHaveBeenLastCalledWith('☆');
+      expect(stars[0]!.setText).toHaveBeenLastCalledWith('★');
+      expect(stars[1]!.setText).toHaveBeenLastCalledWith('★');
+      expect(stars[2]!.setText).toHaveBeenLastCalledWith('★');
+      expect(stars[3]!.setText).toHaveBeenLastCalledWith('☆');
+      expect(stars[4]!.setText).toHaveBeenLastCalledWith('☆');
     });
 
     it('sets the filled colour on filled stars and dim colour on empty stars', () => {
       const { bar, stars } = buildBar(5);
       bar.setProgress(2);
 
-      expect(stars[0].setColor).toHaveBeenLastCalledWith('#FBBF24');
-      expect(stars[1].setColor).toHaveBeenLastCalledWith('#FBBF24');
-      expect(stars[2].setColor).toHaveBeenLastCalledWith('#FDE68A');
+      expect(stars[0]!.setColor).toHaveBeenLastCalledWith('#FBBF24');
+      expect(stars[1]!.setColor).toHaveBeenLastCalledWith('#FBBF24');
+      expect(stars[2]!.setColor).toHaveBeenLastCalledWith('#FDE68A');
     });
 
     it('exposes the correct value via the .value getter', () => {
@@ -177,9 +177,9 @@ describe('ProgressBar', () => {
       // prev=0, setProgress(1) → index 0 is newly filled (i === prev === 0)
       bar.setProgress(1);
 
-      expect(stars[0].setScale).toHaveBeenCalledWith(1.4);
+      expect(stars[0]!.setScale).toHaveBeenCalledWith(1.4);
       expect(mockTweensAdd).toHaveBeenCalledWith(
-        expect.objectContaining({ targets: stars[0], scale: 1, duration: 200 })
+        expect.objectContaining({ targets: stars[0]!, scale: 1, duration: 200 })
       );
     });
 

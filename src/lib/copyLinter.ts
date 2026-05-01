@@ -144,7 +144,7 @@ export function lintCopy(input: LintInput): LintViolation[] {
       });
     }
     for (const w of words) {
-      if (w.length > 0 && w[0] !== w[0].toUpperCase()) {
+      if (w.length > 0 && w[0] !== w[0]!.toUpperCase()) {
         violations.push({
           id: input.id,
           reason: 'proper_noun_not_capitalized',

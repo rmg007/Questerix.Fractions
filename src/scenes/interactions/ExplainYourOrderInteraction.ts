@@ -142,7 +142,7 @@ export class ExplainYourOrderInteraction implements Interaction {
         const targetX = startX + best * (cardW + gap) + cardW / 2;
         handle.setPosition(targetX, slotY);
         bar.setPosition(targetX, slotY);
-        slotRects[best].setFillStyle(SELECTED_BG);
+        slotRects[best]!.setFillStyle(SELECTED_BG);
 
         this.ctx.pushEvent({
           type: 'place',

@@ -144,7 +144,7 @@ export class OrderInteraction implements Interaction {
         }
         this.sequence[best] = frac.id;
         handle.setPosition(startX + best * (cardW + gap) + cardW / 2, slotY);
-        slotRects[best].setFillStyle(SELECTED_BG);
+        slotRects[best]!.setFillStyle(SELECTED_BG);
 
         ctx.pushEvent({
           type: 'place',
