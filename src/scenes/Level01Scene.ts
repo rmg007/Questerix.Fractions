@@ -41,6 +41,9 @@ import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
+import { withSpan } from '../lib/observability/withSpan';
+import { tracerService } from '../lib/observability/tracer';
+import { SPAN_NAMES } from '../lib/observability/span-names';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -206,6 +209,14 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    return withSpan(
+      SPAN_NAMES.SCENE.CREATE,
+      { 'scene.name': 'Level01Scene', 'scene.level': 1 },
+      () => this._createImpl()
+    );
+  }
+
+  private async _createImpl(): Promise<void> {
     log.scene('create_start');
     // Clear any stale sentinels from prior scenes
     TestHooks.unmountAll();
@@ -967,7 +978,15 @@ export class Level01Scene extends Phaser.Scene {
     // C6: persist before showing feedback. If recordAttempt fails (quota,
     // schema), the user must not see "Correct!" on a never-recorded answer.
     // Mirrors LevelScene.ts:560-561.
-    await this.recordAttempt(result, responseMs, input);
+    await withSpan(
+      SPAN_NAMES.QUESTION.SUBMIT,
+      {
+        'question.archetype': 'partition',
+        'question.outcome': result.outcome,
+        'scene.level': 1,
+      },
+      () => this.recordAttempt(result, responseMs, input)
+    );
     this.showOutcome(result);
   }
 
@@ -1146,9 +1165,18 @@ export class Level01Scene extends Phaser.Scene {
     // Fix 3 (BUG-04): hintLadder.next() advances the index each call (capped at max tier).
     // The HintLadder class owns this logic; we just ensure we call next() once per press.
     const tier = this.hintLadder.next();
-    log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
-    this.mascot?.setState('think');
-    void this.showHintForTierAndRecord(tier);
+    const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
+      'hint.tier': tier,
+      'scene.level': 1,
+      'question.archetype': 'partition',
+    });
+    try {
+      log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+      this.mascot?.setState('think');
+      void this.showHintForTierAndRecord(tier);
+    } finally {
+      span.end();
+    }
   }
 
   /**
