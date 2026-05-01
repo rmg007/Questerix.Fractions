@@ -39,7 +39,7 @@ The codebase is **healthier than it looks at first glance**. The pure layers —
 
 3. **Pipeline parity contract** — TS validators (`src/validators/`) are hand-mirrored in Python (`pipeline/validators_py.py`) with **no codegen, no shared schema, and no CI gate**. Of 15 validator variants, only 5 have parity fixtures (33% coverage). `.github/workflows/ci.yml` does not invoke `pipeline/parity_test.py`. Every validator edit silently risks parity drift.
 
-### Three architectural recommendations (substantive pushback)
+### Four architectural recommendations (substantive pushback)
 
 These are the plan's load-bearing positions. The prior plans hedge on each; this plan does not.
 
@@ -48,6 +48,10 @@ These are the plan's load-bearing positions. The prior plans hedge on each; this
 - **A2 — Replace Python parity with a single executable contract.** Hand-mirroring TS validators in Python is a permanent labor tax with negative leverage: every validator edit means writing it twice, every CI gap means silent drift. Three options ordered by elegance: (a) move the pipeline's validation step to TypeScript (the pipeline's *content generation* stays in Python; only the validation step moves), (b) execute TS validators from Python via Pyodide at pipeline time, (c) generate Python from TS via codegen. **Recommendation: option (a).** It eliminates parity entirely rather than enforcing it.
 
 - **A3 — Enforce engine dependency direction at lint level.** Adoption of `engine/ports.ts` is voluntary today. Make it mandatory: add an `eslint-plugin-import` rule (or a custom rule) that **fails the build if `src/engine/*` imports from `src/persistence/*`, `src/scenes/*`, or calls `Math.random` / `Date.now()` / `crypto.randomUUID` directly**. The lint rule is the architecture; without it, the architecture is a suggestion.
+
+- **A4 (NEW v3 · forensic): Delete or finish, never scaffold.** Multiple abstractions are in a "Phase 2 partial" state — `ports.ts` (0 injection sites despite 6 interfaces), `engine/adapters/*` (50 LOC of unused production adapters), the OpenTelemetry stack (3 spans across 10 packages, no consumer), the i18n ICU/tone-tag helpers (multi-locale infrastructure for an English-only app per D-27), the branded-ID smart constructors (0 callers vs. 126 `as` casts), and the misconception detectors (write-only — UI consumes 0 flags). **~1,500 LOC of speculative over-engineering.** Each Stage 1 PR must either complete an abstraction or delete it. The half-built state is worse than no abstraction because future readers assume it works.
+
+> **§12 Forensic Synthesis (v3) names the deeper finding:** the Original Sin of this codebase is that the Phaser `Scene` became the application architecture. There is no Domain layer; scenes accreted ~77% non-rendering responsibility (state, persistence, business logic, lifecycle); duplication, untyped boundaries, scattered state, and 9 of 10 verified pathological scenarios all trace back to this single missing seam. The 16-phase plan above is now framed as **Stage 1 of a 4-stage architectural evolution** — see §12 for the Ideal State, the migration staging (Stages 1→4, ~245 hr total), and the substantive critique of recommendations A1–A3 from a structural rather than tactical lens.
 
 ---
 
@@ -842,6 +846,344 @@ If approved, this plan produces:
 7. Closure of `harden-and-polish-2026-04-30.md` (Phase 10).
 
 ---
+
+---
+
+## 12. Forensic synthesis: the Original Sin, ripple effects, and Ideal State
+
+The v2 plan above is **tactical**: 60 findings, 16 phases, file:line precision. This section is **strategic**: it names the single foundational design choice that is producing the cascade of secondary issues, and contrasts the current architecture with an Ideal State.
+
+This synthesis was added in v3 after a fourth audit pass (forensic / systemic). It includes substantive pushback against three of v2's own recommendations.
+
+### 12.1 The Original Sin: the Phaser Scene became the application architecture
+
+**Claim:** every CRITICAL and HIGH finding in §1–§4.5 traces back to a single foundational design choice — **the Phaser `Scene` was loaded with non-rendering responsibilities that don't belong on a View object, because there is no Domain layer to hold them.**
+
+**Evidence (forensic measurement of `Level01Scene.ts`, 1604 LOC):**
+
+| Responsibility | LOC | What lives here |
+| --- | --- | --- |
+| State management | ~500 | `studentId`, `sessionId`, `attemptCount`, `currentQuestion`, `currentMasteryEstimate`, `hintLadder`, `currentQuestionHintIds` as scene-class fields |
+| Persistence orchestration (CRUD) | ~280 | `openSession` (408–474), `recordAttempt` (1276–1428), `closeSession` (1537–1575), `hintEvent` record (1173–1191), `mastery upsert` (1343–1397), `misconceptionFlag` write (1399–1423) |
+| Business logic | ~200 | BKT-aware question selection (600–662), snap tolerance (611–615), difficulty-tier mapping (601–605), misconception detection orchestration (1405), next-level routing (1464–1480) |
+| Lifecycle orchestration | ~150 | `init`, `create`, `loadQuestion`, `showSessionComplete`, `closeSession`, `preDestroy` (1331–1338) |
+| UI rendering & input | ~450 | shape drawing (724–812), drag handles (816–865), partition lines (788–812), hint visualization (1124–1257), prompt/feedback text |
+| Validation & feedback | ~180 | `onSubmit` (869–951), `showOutcome` (1024–1078), feedback overlay orchestration |
+
+**~77% of the file is non-rendering work.** Scenes were a Phaser implementation detail (a way to organize render passes, input handlers, and tween lifecycles); the codebase upgraded them to "the application unit." Once that happened, four pathologies followed by structural necessity:
+
+1. **Scenes don't compose.** Phaser scenes are containers, not classes you can `extends` or compose. You can have a scene reference another scene, but you cannot share *behavior* across them. So the question loop, the hint ladder, the mastery update, and the attempt recording each got **copy-pasted** between `Level01Scene` and `LevelScene` — that's the ~500 LOC, 9-cluster duplication from §1.1.
+
+2. **Scenes are hard to test.** Mounting a scene requires a Phaser game instance, a canvas, a renderer. So the codebase tests *around* scenes (validators pure, BKT pure, repos pure) and only smoke-tests the scenes via Playwright. Hence the test-pyramid imbalance from §6 (50 unit tests well-covering pure layers; 4 scene tests; everything else E2E). The `MenuScene.test.ts:5` TODO ("add a lightweight canvas shim") is the literal scar of this constraint.
+
+3. **State scattered across three tiers.** Without a domain entity owning it, session state lives simultaneously in scene fields (the live truth), in Dexie rows (the persisted truth, written async), and in localStorage (the legacy side-channel). When the scene crashes mid-write, the three tiers disagree, and the recovery contract is undocumented (Q55). **BUG-02 is exactly what happens when there is no entity with a state-transition invariant** — the scene's pre-incremented `attemptCount` is read before the post-increment, and no FSM is there to forbid that ordering.
+
+4. **Domain logic leaks into the View.** When a designer wants to change BKT priors, the diff lands in the scene file. When a curriculum author wants a new misconception, the diff lands in `misconceptionDetectors.ts:9-15` — a module that already mixes ID generation, 16 detector functions, and an aggregator. **Adding a misconception requires editing a 850-LOC file because there is no domain entity called `Misconception` with a registry table and a `detect(snapshot)` method.**
+
+**The surface findings are symptoms of one disease:** there is no Domain layer. The scene is the only place behavior lives, and the scene is the wrong place. Every other finding — the duplication, the untyped scene init, the branded-ID bypass, the localStorage side-channels, the silent validator-registry fallback — is downstream of this single missing seam.
+
+### 12.2 Ripple-effect cascade
+
+Visual map of how the Original Sin propagates outward through the codebase. Read top-to-bottom: each layer is *caused by* the layer above.
+
+```
+                    ┌─────────────────────────────────────┐
+                    │  ORIGINAL SIN: no Domain layer.     │
+                    │  Phaser Scene = application unit.   │
+                    └─────────────────┬───────────────────┘
+                                      │
+        ┌─────────────────────────────┼─────────────────────────────┐
+        ▼                             ▼                             ▼
+  ┌─────────────┐            ┌────────────────┐           ┌──────────────────┐
+  │ Scenes can't│            │ Scenes hard to │           │ Domain logic must│
+  │   compose   │            │     test       │           │ live somewhere   │
+  └──────┬──────┘            └────────┬───────┘           └────────┬─────────┘
+         │                            │                            │
+         ▼                            ▼                            ▼
+  Copy-paste duplication      Test pyramid skews          Logic leaks into:
+  — 9 method clusters          — 50 unit tests on          • engine/* (BKT, detectors)
+  — ~500 LOC, 45% overlap        pure layers               • scene fields (state)
+  — L01 vs LevelScene          — 4 scene tests             • engine/ports.ts (half-built)
+                               — rest E2E (slow,           • lib/observability/* (dormant)
+         │                       brittle)                   • lib/i18n/* (over-spec)
+         ▼                            │                            │
+  Maintenance multiplier            ▼                              ▼
+  every behavior change       MenuScene.test.ts:5         Adding behavior touches
+  needs 2x edits              "TODO add canvas shim"      the wrong layer:
+                              never resolved.             — new archetype: 8 files
+                                                          — new misconception: edits
+                                                            850-LOC detectors file
+                                                          — new selection strategy:
+                                                            modifies a function body
+```
+
+**Concrete ripple measurements (from forensic dependency map, 2026-05-01):**
+
+| If you change…                                  | Touch sites                                                 |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| `Level01Scene.ts` rename                        | 4 sites (3 `fadeAndStart` literal-string callers + 1 barrel export). Phaser's dynamic `scene.start(key, data)` doesn't catch typos at build time. |
+| `updateMastery()` signature                     | 2 sites (Level01Scene:1369, LevelScene:965). Must adapt in lockstep. Neither uses `engine/ports.ts`. |
+| `Attempt` type (29 fields)                      | 1 constructor (Level01Scene:1297-1325) + 1 mirror (LevelScene). Manual object literal — easy to forget a field. |
+| `ValidatorResult` shape                         | 3 consumers per scene × 2 scenes (Level01 + Level) = 6 sites; pervasive. |
+| `SkillId` brand                                 | 5+ `as SkillId` cast sites; **0** smart-constructor calls. The brand is theater. |
+| Dexie `levelProgression` schema                 | 4 consumers (Menu, Level01, Level, LevelMap). Cross-cutting; v6 has no migration callback. |
+| Pipeline `questionTemplate` shape               | 2 scene-level destructurings × 8 archetypes; payload schema is opaque. |
+| Scene transition data                           | 6 distinct contracts, 0 type validation. Phaser's `init(data)` is `unknown`. |
+
+**Hidden coupling hot spots** (no static import; only discoverable by grep):
+
+1. **Skill-ID literal duplicated 3 times.** `MenuScene.ts:75-78`, `LevelMapScene.ts:55-58`, `Level01Scene.ts:1346` each independently compute `if (level === 1) return 'skill.partition_halves'`. Three places must change in lockstep when the skill schema changes.
+2. **Scene-key magic strings.** `'Level01Scene'` appears in 3 callers + 1 class definition. Rename = grep + pray.
+3. **Validator registry silent fallback.** `Level01Scene.ts:912-922` looks up `validatorRegistry.get(currentQuestion.id)`; on miss, **silently falls back to `partitionEqualAreas`**. Wrong validator runs, no error surfaces.
+4. **localStorage side-channels.** `suggestedLevel:*` (Level01:1477), `streak:*` (streak.ts), `onboardingSeen` (OnboardingScene:415), `LOG` (lib/log.ts:40). Each is a state-leak that bypasses repos.
+5. **`HintEvent.attemptId` placeholder.** Hints are recorded with `attemptId: '' as unknown as AttemptId` *before* the attempt exists; a retroactive update at `Level01Scene:1334` links them. If the update throws, the hint orphans permanently.
+
+This is the cascade. Fixing the surface findings one at a time (the v2 phase plan) is correct, but it leaves the Original Sin in place. **Future change will keep generating findings at the same rate** unless the underlying seam is repaired.
+
+### 12.3 Pathological state — verified failure simulations
+
+Ten high-entropy scenarios were traced through the actual code paths on 2026-05-01. **9 of 10 are CONFIRMED**: they produce silent data loss, corrupt state, or unrecoverable UI conditions under realistic conditions on a K-2 student device. The Original Sin makes each one harder to fix than it should be, because the failure boundary cuts across scene + persistence + engine all at once.
+
+| #   | Scenario                                | Status     | Effect                                                                 | Where                                           |
+| --- | --------------------------------------- | ---------- | ---------------------------------------------------------------------- | ----------------------------------------------- |
+| P1  | Rapid double-tap submit race            | CONFIRMED  | Two attempt rows; `updateMastery` runs twice with stale priors        | `Level01Scene.ts:869-873, 1047-1048` (re-entry guard releases on async feedback callback, not on transaction completion) |
+| P2  | Scene tear-down mid-write               | CONFIRMED  | In-flight Dexie write orphaned; attempt may be lost                   | `Level01Scene.ts:1276-1428` await; `:1596-1603` preDestroy doesn't await pending promises |
+| P3  | `QuotaExceededError` mid-session        | CONFIRMED  | UI shows success; DB has no record; mastery state diverges from DB    | `Level01Scene.ts:1424-1426` — error logged via `log.error` and ignored |
+| P4  | localStorage cleared mid-session        | CONFIRMED  | Stale `studentId` on in-flight scene; insert fails silently           | `SettingsScene.ts:276-284` deletes DB; `Level01Scene.ts:1281` reads stale field |
+| P5  | Schema upgrade tab-close                | PARTIAL    | v6 has no `.upgrade()` callback; safe today (metadata-only) but **fragile** for v7 | `db.ts:176-204` |
+| P6  | Detector throw cascades                 | CONFIRMED  | First throwing detector aborts the pass; #2-16 skipped silently        | `misconceptionDetectors.ts:791-848` — sequential calls, no per-detector try/catch |
+| P7  | SW update mid-session                   | REFUTED    | Validators are bundled, not DB-resident; fallback path absorbs        | `Level01Scene.ts:914-924` |
+| P8  | Memory leak via preDestroy gaps          | CONFIRMED  | 4 components untracked: `dragHandle`, `shapeGraphics`, `partitionLine`, `mascot` | `Level01Scene.ts:1596-1603`; created at `:310, 314-315, 829` |
+| P9  | Hint event orphaned                     | CONFIRMED  | Hints recorded with `attemptId: '' as unknown as AttemptId`; retroactive link can fail silently | `Level01Scene.ts:1177-1185` (placeholder), `:1334-1339` (link can throw and is swallowed) |
+| P10 | Replay determinism                      | CONFIRMED  | `Math.random` at 4+ sites blocks reproducibility for any debug session | `selection.ts:86-88`; `Level01Scene.ts:632, 642`; user drag input |
+
+**The pattern:** every failure mode is a **boundary failure** — the thing that crosses scene ↔ persistence, scene ↔ engine, or scene ↔ side-channel localStorage. A Domain layer with explicit state-transition invariants and an event log would make each one structurally hard:
+
+- **P1** would be impossible if attempt submission were a `Session.submit(answer)` command on a domain entity that emits `AttemptSubmitted` exactly once per call (FSM blocks re-entry until the previous transition completes).
+- **P2** would be impossible if the scene didn't own the persistence write — the application service would, and the scene's destruction would have no effect on the in-flight command.
+- **P3** would surface to UI if the application service treated `QuotaExceededError` as a domain failure (`SessionWriteRefused` event) rather than a swallowed try/catch.
+- **P9** would be impossible because `HintShown` would emit before the attempt exists; the event log would order them naturally and the linking would be a projection, not a retroactive update.
+- **P10** would be trivially fixable because the application service's `selectNextQuestion` use case would receive an injected RNG.
+
+These are not coincidences. They are the structural footprint of the missing Domain layer.
+
+### 12.4 Architectural debt vs velocity — what's earning, what's speculative
+
+A separate forensic pass (2026-05-01) measured eight major abstractions for "complexity tax vs. value delivered." **Total speculative over-engineering: ~1,500 LOC across 6 abstractions that are dormant, half-built, or theatrical.**
+
+This is direct **pushback on the v2 plan**, which assumed all eight abstractions were earning their cost. They are not.
+
+| Abstraction                                  | LOC  | Actual usage                                  | Verdict          | Recommended action                                                          |
+| -------------------------------------------- | ---- | --------------------------------------------- | ---------------- | --------------------------------------------------------------------------- |
+| **`engine/ports.ts`** (DIP interfaces)       | 85   | **0** injected; 114 direct global calls bypass it | **HALF-BUILT**   | Either complete the port-injection refactor (Phase 2, 4, 12) or **delete** until ready. Current state creates false confidence of an abstraction that doesn't exist. |
+| **OpenTelemetry stack** (10 npm packages)    | ~80  | **3 spans** (all Dexie middleware). Zero traces consumed. `VITE_OTLP_URL` never set. | **DORMANT**      | **Delete the 10 packages and `tracer.ts`.** Re-introduce when there is an actual consumer. The dormant build cost is real even with lazy imports (~50 KB API ships). |
+| **Sentry (`errorReporter.ts`)**              | 91   | 21 emission sites; lazy-loaded; gated by `VITE_SENTRY_DSN` | **EARNING**      | Keep. Only observability primitive earning its cost. |
+| **i18n catalog + format helpers**            | 572  | Centralized strings used (good); ICU plurals, tone tags, copyLinter all unused | **HALF-BUILT**   | Keep the catalog (centralized strings still earn). **Strip ICU/tone-tag/linter complexity** — saves ~150 LOC. Re-add when multi-locale ships (per D-27, never). |
+| **BKT (`engine/bkt.ts`)**                    | 137  | 2 call sites; **K-2 sessions feed 5-10 observations**, BKT converges at ~20+ | **EARNING but OVER-SPEC** | Keep. Document priors as placeholder. **Add a convergence test** for K-2 skill ladders. If it fails, replace with `recentAccuracy > 0.8 ∧ consecutiveCorrect ≥ 2` heuristic. |
+| **Misconception detectors** (16 functions)   | 849  | runAllDetectors called per submit, **but UI consumes 0 flags** (no hint adjustment, no mastery boost, no UX surfacing) | **DORMANT (write-only)** | **Lazy-import behind a flag.** Stop writing flags to Dexie until the consumer exists. Reclaim the 849 LOC when the hint-adjustment feature ships. |
+| **Branded-ID system** (`types/branded.ts`)   | 55   | 0 smart-constructor calls; 126 `as` casts bypass | **OVER-SPEC**    | **Delete the smart-constructor functions.** Keep the type definitions (cheap nominal-typing). The brand was a compile-time guardrail; the casts are everywhere. The illusion is worse than no brand. |
+| **Engine adapters** (commit `3dd038b`)       | 50   | 0 wired to scenes                             | **HALF-BUILT**   | Same fate as `ports.ts`: complete the wiring or delete the scaffolding. Do not ship "partial Phase 2" as a permanent state. |
+
+**Total speculative debt:** ~1,500 LOC across ports, OTel, half of i18n, misconception write-only path, branded constructors, and adapters. **Genuinely earning:** Sentry (91 LOC), BKT math (137 LOC, conditionally), and the i18n catalog *as a centralized strings registry* (~400 LOC).
+
+#### Substantive pushback on v2 recommendations
+
+The v2 plan made three recommendations (A1–A3). The forensic audit reveals that two of them are **tactically correct but strategically incomplete**:
+
+- **A1 — Sunset Level01Scene.** Still correct as a deletion target. But framing matters: the duplication is *caused by* the Original Sin, not the cause itself. Deleting Level01Scene removes the symptom. **The deeper fix is extracting a Domain layer; once that exists, Level01Scene and LevelScene become identical thin views and the deletion is mechanical.**
+
+- **A2 — Eliminate Python parity.** Correct under the current architecture. But under the Ideal State (§12.5), validators become **domain methods on the `Question` entity**, executed by the same TS code in both runtime and pipeline contexts via Pyodide or a Node subprocess. The parity question doesn't get *enforced*; it *dissolves*.
+
+- **A3 — Lint-enforce engine DIP.** Correct as a backstop. But lint rules are how you *prevent* drift in a properly layered system; they're a poor substitute for the layering itself. **The real fix is moving engine logic into the Domain layer, where DIP is structural rather than lint-enforced.** Lint as a boundary is a smell — it means the module structure didn't make the wrong code uncompileable.
+
+#### New architectural recommendation A4: delete or finish, but stop scaffolding
+
+The codebase has multiple "phase 2 partial" states (commit `3dd038b`, the i18n catalog over-spec, the OTel dormancy). **Each partial abstraction is worse than no abstraction** because future readers assume it works. Either complete each one in this plan's scope or delete it explicitly. **No more "we'll finish it later" scaffolding** — the half-built state is the trap.
+
+### 12.5 The Ideal State: layered architecture with domain events
+
+The Ideal State is not exotic. It is the **standard four-layer hexagonal architecture** with an event log on top. Most of the building blocks already exist in the codebase — they are just in the wrong layer.
+
+```
+╔══════════════════════════════════════════════════════════════════════╗
+║                    PRESENTATION LAYER (Phaser)                        ║
+║   src/scenes/*  src/components/*                                      ║
+║   • Render. Input. Tween lifecycle.                                   ║
+║   • Subscribe to domain events. Dispatch commands.                    ║
+║   • Zero state ownership. Zero persistence calls. Zero business rules.║
+╚════════════════════════════╤══════════════════════════════╤══════════╝
+                             │ commands                     │ events
+                             ▼                              ▲
+╔══════════════════════════════════════════════════════════════════════╗
+║                   APPLICATION LAYER (use-cases)                       ║
+║   src/app/*  (NEW)                                                    ║
+║   • SessionCoordinator (FSM)                                          ║
+║   • SubmitAnswerUseCase, ShowHintUseCase, AdvanceLevelUseCase         ║
+║   • Threads ports through to the domain. Owns transactions.          ║
+╚════════════════════════════╤══════════════════════════════╤══════════╝
+                             │                              │
+                             ▼                              ▲
+╔══════════════════════════════════════════════════════════════════════╗
+║                          DOMAIN LAYER                                 ║
+║   src/domain/*  (NEW)                                                 ║
+║   • Session: entity with FSM (loading→ready→presenting→awaiting→     ║
+║     validating→feedback→recording→complete). Invariant: state         ║
+║     transitions are explicit; UI cannot read pre-increment state.    ║
+║   • Question: entity with .validate(input) method (replaces validator ║
+║     registry). Holds payload + validator + skill context.            ║
+║   • Attempt: entity. Constructed by Session.submit(); immutable.      ║
+║   • Mastery: aggregate root over a skill. updateWith(attempt) method.║
+║   • MisconceptionRule: data table interpreted by domain service.     ║
+║   • Hint: entity. emitted before attempt; orphaning impossible.      ║
+║   • All domain types use branded IDs constructed via factories.       ║
+║   • Pure: no Phaser, no Dexie, no globals. Tests: zero mocks needed. ║
+╚════════════════════════════╤══════════════════════════════╤══════════╝
+                             │                              │
+                             ▼                              ▲
+╔══════════════════════════════════════════════════════════════════════╗
+║                       INFRASTRUCTURE LAYER                            ║
+║   src/persistence/*  src/curriculum/*  src/lib/observability/*        ║
+║   • Dexie repositories (already exist)                                ║
+║   • Curriculum loader (already exists)                                ║
+║   • Sentry / OTel (lazy, gated; OTel deletable per §12.4)             ║
+║   • Pipeline (Python content gen; TS validation per A2)               ║
+║   • Adapters: ClockAdapter, RngAdapter, IdGeneratorAdapter            ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+                    ┌──────────────────────────────────┐
+                    │  CROSS-CUTTING: DOMAIN EVENT LOG │
+                    │  src/domain/events/* (NEW)       │
+                    │  Append-only. Every transition   │
+                    │  emits a typed event:            │
+                    │   • SessionStarted               │
+                    │   • QuestionPresented            │
+                    │   • HintShown                    │
+                    │   • AttemptSubmitted             │
+                    │   • AttemptValidated             │
+                    │   • MasteryUpdated               │
+                    │   • MisconceptionFlagged         │
+                    │   • SessionCompleted             │
+                    │  Repositories become projections │
+                    │  off this log. Misconception     │
+                    │  detection is an event handler.  │
+                    │  BKT update is an event handler. │
+                    │  Replay = re-process the log.    │
+                    └──────────────────────────────────┘
+```
+
+#### Why this resolves the cascade
+
+- **Scene duplication (§1.1) → vanishes.** Both scenes become thin views over the same `SessionCoordinator`. Their only differences are visual (the L1 scene has a colorful tutorial mascot; L9 doesn't). Deleting Level01Scene becomes a 1-PR cleanup, not a 14-hour migration.
+- **Untyped scene init (Q57) → vanishes.** Scenes don't pass session state to each other; they subscribe to the application service. Scene constructors take only the `SessionId` to render.
+- **Branded-ID bypass (Q56) → vanishes.** Domain entities are constructed only via factories; `as *Id` casts become impossible because the types never escape the persistence boundary as raw strings.
+- **State scattered (Q55) → vanishes.** The domain `Session` entity is the single source of truth. Scene fields cache *projections* of it for rendering, never the truth.
+- **BUG-02 progress-bar pre-increment → impossible.** The FSM forbids reading post-increment state until the transition completes. The UI subscribes to `AttemptSubmitted` events, which carry the new count; pre-increment state is unreachable.
+- **Detector throw cascade (P6) → vanishes.** Detectors become event handlers; each subscribes independently to `AttemptValidated`. One handler's exception cannot affect the others.
+- **Replay (P10) → free.** Replay is "process the event log into a fresh projection state." Math.random gets injected at the application service boundary; given a seed and an event log, the entire session reproduces.
+- **Pipeline parity (Q11) → dissolves.** Validators are domain methods on `Question`. The pipeline calls the same TS code as the runtime via Pyodide or Node subprocess. There is nothing to mirror.
+
+#### What gets deleted
+
+- `engine/ports.ts` (85 LOC) — replaced by domain interfaces
+- `engine/adapters/index.ts` (50 LOC) — replaced by infrastructure adapters
+- `engine/misconceptionDetectors.ts` 850 LOC of imperative code → ~50 LOC interpreter + a data table
+- `Level01Scene.ts` (1604 LOC) — entire file
+- ~600 LOC of duplicated state/persistence/business logic from `LevelScene.ts`
+- `pipeline/validators_py.py` (~400 LOC) and `pipeline/parity_test.py` — Python parity machinery
+- OpenTelemetry stack (~80 LOC + 10 npm packages) — until a consumer exists
+- ICU/tone-tag/copyLinter complexity in i18n (~150 LOC) — until multi-locale ships
+- Branded-ID smart constructors (10 functions, ~30 LOC) — replaced by domain factories
+
+**Total deletion:** ~3,400 LOC removed. **Total addition** (domain layer + application layer + event types): ~1,200 LOC. **Net:** ~2,200 LOC smaller, with significantly more behavior expressed declaratively.
+
+### 12.6 Migration staging — current 16 phases mapped to a 4-stage evolution
+
+The v2 plan's 16 phases are not invalidated by this synthesis; they are **re-contextualized as Stage 1 of a 4-stage architectural evolution**. The forensic findings above don't replace the tactical work — they situate it.
+
+#### Stage 1 — Stabilize the current architecture (≈115 hr · v2 plan as written)
+
+Ship Phases 0, 0.6, 1, 2, 5, 7, 11, 13 in parallel. Then 3, 4, 6, 8, 12. Then 9, 10. Acceptance criteria per the v2 §8 Definition of Done.
+
+**Strategic value:** keeps the codebase shippable, fixes the active bugs, gates the security CVEs, closes C5, makes the engine deterministic. **Does not address the Original Sin**, but reduces the rate of new findings to roughly zero so Stage 2 can proceed without firefighting.
+
+**Critical Stage 1 modifications informed by §12.4:**
+- **Phase 4.x (misconception data-ification):** mark detectors as DORMANT in `CLAUDE.md`; lazy-import them; **stop writing flags to Dexie until the consumer exists.** Reclaim 849 LOC at Stage 3.
+- **Phase 7 (bundle/observability):** **delete the 10 `@opentelemetry/*` packages** rather than just lazy-loading them. Sentry stays. -50 KB unpacked, -8 chunks, simpler bundle picture.
+- **Phase 8.7 (branded-ID hardening):** **delete the smart-constructor functions** (currently 0 callers). Keep the type definitions. The casts are everywhere; there's no point pretending otherwise. Real validation happens at the persistence/curriculum boundary.
+- **Phase 8 i18n cleanup (NEW):** strip ICU format, tone tags, and copyLinter from `lib/i18n/`. Keep the catalog as a centralized strings registry. Saves ~150 LOC.
+- **Recommendation A4 (NEW):** every Stage 1 PR must either complete an abstraction or delete it. **No more "Phase 2 partial" merges.**
+
+#### Stage 2 — Extract the Domain layer (≈60 hr · 2-3 weeks)
+
+Build `src/domain/*` and `src/app/*`. Start narrow:
+
+1. Define domain types: `Session`, `Question`, `Attempt`, `Mastery`, `Hint`, `MisconceptionRule`. ~400 LOC.
+2. Build `SessionCoordinator` FSM. States: `loading | ready | presenting | awaiting | validating | feedback | recording | complete`. State transitions are explicit functions; preconditions enforced.
+3. Build use cases: `SubmitAnswer`, `ShowHint`, `AdvanceLevel`. Each one accepts injected ports (RNG, clock, repositories).
+4. Migrate validation logic out of `engine/` into `Question.validate(input)`. The validator registry becomes a domain factory.
+5. Migrate BKT update out of `engine/bkt.ts` into `Mastery.updateWith(attempt)`.
+6. **Refactor LevelScene** to consume the application layer. Scene becomes ~400 LOC of pure rendering + input.
+7. **Delete Level01Scene** (its entire content collapses into `LevelScene` + a domain `Session` with L1 metadata).
+8. Production wiring: scenes inject the application service via Phaser scene `init(data)`; data carries a `SessionId`, not a state bag.
+
+**Acceptance:**
+- `LevelScene.ts` ≤ 500 LOC
+- `Level01Scene.ts` deleted
+- `src/domain/*` is testable in pure Vitest with zero Phaser, zero Dexie
+- Unit-test coverage on domain ≥ 90%
+- All v2 §8 Definition of Done #1-15 still hold
+
+#### Stage 3 — Introduce the event log (≈40 hr · 1-2 weeks)
+
+1. Define event types in `src/domain/events/*`. Each event is a typed record (`SessionStarted`, `AttemptSubmitted`, `MasteryUpdated`, etc.).
+2. Add an append-only `eventLog` table in Dexie. Every command emits one or more events. Repositories become projections off the log.
+3. Migrate misconception detectors from imperative aggregator to **event handlers** subscribed to `AttemptValidated`. Each detector is a 20-LOC handler.
+4. Migrate BKT update from synchronous call to event handler subscribed to `AttemptValidated`.
+5. Replay tooling: a `replaySession(sessionId)` command rebuilds projection state from the event log. Used for QA, support, and audit.
+6. Delete `engine/misconceptionDetectors.ts` (850 LOC of imperative pattern-matching).
+7. Delete `engine/ports.ts` and `engine/adapters/*` — replaced by domain interfaces and infrastructure adapters in their proper layers.
+
+**Acceptance:**
+- Replay test: a recorded session reproduces byte-for-byte deterministically
+- Adding a new misconception is a single-row addition to a rule table + a 1-line event handler subscription
+- ~1,000 LOC net deletion from this stage
+
+#### Stage 4 — Polish & dissolve parity (≈30 hr · optional, 1 week)
+
+1. Move pipeline validation to TypeScript (recommendation A2 from v2 / Phase 9). Pyodide or Node subprocess.
+2. Delete `pipeline/validators_py.py` and `pipeline/parity_test.py`.
+3. Decommission `validator-parity-checker` subagent.
+4. Convergence-test BKT for K-2 ladder. If priors don't converge in 5-10 observations, swap for the recent-accuracy heuristic. Either keep the rich BKT (validated) or simplify (replaced) — no more theoretical pseudo-correctness.
+
+**Acceptance:**
+- One validator implementation, executed in two contexts
+- BKT either validated for K-2 sample size or replaced with a heuristic
+- Phase 9 of v2 fully closed
+
+#### Stage timeline
+
+```
+Stage 1 ─────────────► Stage 2 ─────► Stage 3 ──► Stage 4
+(115 hr · 3 weeks)    (60 hr · 2 wk)  (40 hr · 1 wk) (30 hr · 1 wk)
+                                              
+[stabilize]            [domain layer]   [event log]    [parity]
+```
+
+**Total commitment:** ~245 hr / ~7 weeks for one engineer to reach the Ideal State. This is a real investment; it should be weighed against the cost of *not* doing it (every new feature compounds the Original Sin).
+
+**Stage 1 alone is shippable** — it does not commit to Stages 2-4. But it should be designed to *not block* them. The largest risk: shipping Stage 1 phase 3 (sunset Level01Scene) via Path B (`QuestionLoopController` extraction) creates a *new* abstraction in the wrong layer, which then has to be unwound during Stage 2. **Recommend Stage 1 Phase 3 = Path A (delete Level01Scene cleanly), not Path B.** Path B is a Stage-1 hedge that costs Stage-2 velocity.
+
+### 12.7 Closing argument
+
+The codebase is healthier than its surface suggests, but its trajectory is not. The Original Sin (Phaser Scene as application unit, no Domain layer) is generating findings at a steady rate; each sprint that doesn't address it raises the cost of the eventual fix.
+
+**Three things to commit to today:**
+
+1. **Stage 1 (the v2 plan as written, with the §12.4 modifications).** Tactical, ~3 weeks, ships independently.
+2. **A decision on Stage 2** — yes / defer / no. If yes, scope it now so Stage 1's choices don't preclude it. If no, document the architectural ceiling that is being accepted (which would mean: every new level, every new mechanic, every new interaction will accrue duplication and state-leak debt at the current rate).
+3. **Recommendation A4 (delete or finish, never scaffold).** Apply retroactively to ports.ts, adapters, OTel, ICU helpers, branded-ID constructors. The half-built state is the problem.
+
+The rest follows.
 
 **End of plan.**
 
