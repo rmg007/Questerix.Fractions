@@ -5,6 +5,7 @@
 
 import * as Phaser from 'phaser';
 import { HEX } from '../scenes/utils/colors';
+import { BODY_FONT } from '../scenes/utils/levelTheme';
 
 export interface SymbolicFractionOptions {
   fontSize?: string;
@@ -26,7 +27,7 @@ export class SymbolicFractionDisplay {
   ) {
     const {
       fontSize = '24px',
-      fontFamily = '"Lexend", "Nunito", system-ui, sans-serif',
+      fontFamily = BODY_FONT,
       color = HEX.neutral900,
       align = 'center',
     } = options;

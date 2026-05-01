@@ -7,6 +7,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from './utils/colors';
+import { BODY_FONT } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
@@ -51,7 +52,7 @@ export class SettingsScene extends Phaser.Scene {
     this.add
       .text(cx, 100, 'Settings', {
         fontSize: '40px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.primary,
       })
@@ -184,7 +185,7 @@ export class SettingsScene extends Phaser.Scene {
     const resetText = this.add
       .text(cx, y, 'Reset Device', {
         fontSize: '22px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#DC2626',
       })
@@ -226,7 +227,7 @@ export class SettingsScene extends Phaser.Scene {
     const label = this.add
       .text(cx, baseY - 20, 'Reset Device — are you sure?\nThis deletes everything.', {
         fontSize: '18px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         color: '#DC2626',
         align: 'center',
       })
@@ -242,7 +243,7 @@ export class SettingsScene extends Phaser.Scene {
     const yesText = this.add
       .text(cx - 95, baseY + 74, 'Yes, reset', {
         fontSize: '18px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#FFFFFF',
       })
@@ -265,7 +266,7 @@ export class SettingsScene extends Phaser.Scene {
     const cancelText = this.add
       .text(cx + 95, baseY + 74, 'Cancel', {
         fontSize: '18px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#374151',
       })
@@ -330,7 +331,7 @@ export class SettingsScene extends Phaser.Scene {
     this.exportStatusText = this.add
       .text(CW / 2, 680, msg, {
         fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         color: '#059669',
       })
       .setOrigin(0.5)
@@ -375,7 +376,7 @@ export class SettingsScene extends Phaser.Scene {
     this.refreshStatusText = this.add
       .text(CW / 2, 935, msg, {
         fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         color: '#059669',
       })
       .setOrigin(0.5)
@@ -431,7 +432,7 @@ export class SettingsScene extends Phaser.Scene {
     this.restoreStatusText = this.add
       .text(CW / 2, 770, msg, {
         fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         color: isError ? '#DC2626' : '#059669',
       })
       .setOrigin(0.5)
@@ -448,7 +449,7 @@ export class SettingsScene extends Phaser.Scene {
     const text = this.add
       .text(cx, y, 'Privacy Notice →', {
         fontSize: '16px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
       })
       .setOrigin(0.5)
@@ -467,7 +468,7 @@ export class SettingsScene extends Phaser.Scene {
     this.add
       .text(cx, y, label, {
         fontSize: '22px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.neutral600,
       })
@@ -494,7 +495,7 @@ export class SettingsScene extends Phaser.Scene {
     this.add
       .text(x, y, label, {
         fontSize: '22px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: textColor,
       })

@@ -15,6 +15,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
+import { BODY_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { checkReduceMotion } from '../lib/preferences';
 
@@ -66,7 +67,7 @@ export class UpdateBanner {
     this.label = scene.add
       .text(width / 2, startY, message, {
         fontSize: '22px',
-        fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.neutral0,
         align: 'center',

@@ -6,6 +6,8 @@
  * per interaction-model.md §9 (keyboard/switch access)
  */
 
+import { BODY_FONT } from '../scenes/utils/levelTheme';
+
 const SKIP_LINK_ID = 'qf-skip-link';
 // R12 audit: CANVAS_ID matches the id set by labelCanvas() on the Phaser <canvas>.
 // MenuScene.create() calls labelCanvas() then injectSkipLink() in that order, so the
@@ -59,7 +61,7 @@ export function injectSkipLink(): void {
       padding: '8px 16px',
       background: '#ffffff',
       color: '#1a1a2e',
-      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+      fontFamily: BODY_FONT,
       fontSize: '16px',
       fontWeight: 'bold',
       borderRadius: '4px',

@@ -14,6 +14,8 @@
  * per WCAG 2.1 AA — Name/Role/Value (4.1.2), Keyboard (2.1.1), Bypass Blocks (2.4.1)
  */
 
+import { BODY_FONT } from '../scenes/utils/levelTheme';
+
 const CONTAINER_ID_PREFIX = 'qf-a11y-layer-';
 const STYLE_ID = 'qf-a11y-style';
 const LIVE_REGION_ID = 'qf-a11y-live';
@@ -51,7 +53,7 @@ const STYLE = `
   color: #ffffff;
   border: 3px solid #1E3A8A;
   border-radius: 8px;
-  font-family: "Lexend", "Nunito", system-ui, sans-serif;
+  font-family: ${BODY_FONT};
   font-size: 18px;
   font-weight: bold;
   outline: none;

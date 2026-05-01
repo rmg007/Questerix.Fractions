@@ -7,14 +7,13 @@ import * as Phaser from 'phaser';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
-  NAVY,
+  BODY_FONT,
+  createActionButton,
   OPTION_BG,
   OPTION_BORDER,
   SELECTED_BG,
-  SKY_BG,
-  TEXT_BODY,
+  SELECTED_BORDER,
   TEXT_HEADING,
-  TEXT_ON_FILL,
 } from '../utils/levelTheme';
 
 interface IdentifyOption {
@@ -51,8 +50,8 @@ export class IdentifyInteraction implements Interaction {
 
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private selectedIndex: number = -1;
-  private submitBtn: Phaser.GameObjects.Rectangle | null = null;
-  private submitLabel: Phaser.GameObjects.Text | null = null;
+  private submitContainer: Phaser.GameObjects.Container | null = null;
+  private optionBackgrounds: Phaser.GameObjects.Rectangle[] = [];
 
   mount(ctx: InteractionContext): void {
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
@@ -66,14 +65,16 @@ export class IdentifyInteraction implements Interaction {
     const startX = centerX - totalW / 2;
     const cardY = centerY - 60;
 
+    this.optionBackgrounds = [];
     options.forEach((opt, i) => {
       const x = startX + i * (cardW + spacing) + cardW / 2;
       const bg = scene.add.rectangle(x, cardY, cardW, cardH, OPTION_BG).setDepth(5);
       bg.setStrokeStyle(2, OPTION_BORDER);
+      this.optionBackgrounds.push(bg);
       const label = scene.add
         .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
           fontSize: '14px',
-          fontFamily: '"Nunito", system-ui, sans-serif',
+          fontFamily: BODY_FONT,
           color: TEXT_HEADING,
           align: 'center',
           wordWrap: { width: cardW - 16 },
@@ -88,18 +89,32 @@ export class IdentifyInteraction implements Interaction {
 
       const select = () => {
         // Deselect all
-        this.gameObjects
-          .filter(
-            (o): o is Phaser.GameObjects.Rectangle =>
-              o instanceof Phaser.GameObjects.Rectangle && o !== hit
-          )
-          .forEach((r) => r.setFillStyle(OPTION_BG));
+        this.optionBackgrounds.forEach((otherBg, idx) => {
+          if (idx !== i) {
+            otherBg.setFillStyle(OPTION_BG);
+            otherBg.setStrokeStyle(2, OPTION_BORDER);
+            scene.tweens.add({
+              targets: otherBg,
+              scaleX: 1.0,
+              scaleY: 1.0,
+              duration: 80,
+            });
+          }
+        });
+
+        // Select this one
         bg.setFillStyle(SELECTED_BG);
+        bg.setStrokeStyle(3, SELECTED_BORDER);
+        scene.tweens.add({
+          targets: bg,
+          scaleX: 1.06,
+          scaleY: 1.06,
+          duration: 100,
+          ease: 'Power1',
+        });
+
         this.selectedIndex = i;
-        if (this.submitBtn) {
-          this.submitBtn.setFillStyle(NAVY);
-          this.submitLabel?.setColor(TEXT_ON_FILL);
-        }
+        this.submitContainer?.setAlpha(1);
       };
 
       hit.on('pointerup', select);
@@ -116,47 +131,31 @@ export class IdentifyInteraction implements Interaction {
 
     // Submit button
     const submitY = cardY + cardH / 2 + 60;
-    const sbg = scene.add.rectangle(centerX, submitY, 280, 56, SKY_BG).setDepth(5);
-    const slbl = scene.add
-      .text(centerX, submitY, 'Check', {
-        fontSize: '20px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
-        fontStyle: 'bold',
-        color: TEXT_BODY,
-      })
-      .setOrigin(0.5)
-      .setDepth(6);
-    const shit = scene.add
-      .rectangle(centerX, submitY, 280, 56, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(7);
-
     const submit = () => {
       if (this.selectedIndex >= 0) {
         onCommit({ selectedIndex: this.selectedIndex });
       }
     };
 
-    shit.on('pointerup', submit);
+    this.submitContainer = createActionButton(scene, centerX, submitY, 'Check ✓', submit, 8);
+    this.submitContainer.setAlpha(0.4);
 
     TestHooks.mountInteractive(`identify-submit`, submit, {
       top: `${(submitY / 1280) * 100}%`,
       left: `${(centerX / 800) * 100}%`,
-      width: '280px',
-      height: '56px',
+      width: '320px',
+      height: '64px',
     });
 
-    this.submitBtn = sbg;
-    this.submitLabel = slbl;
-    this.gameObjects.push(sbg, slbl, shit);
+    this.gameObjects.push(this.submitContainer);
   }
 
   unmount(): void {
     this.gameObjects.forEach((o) => o.destroy());
     this.gameObjects = [];
     this.selectedIndex = -1;
-    this.submitBtn = null;
-    this.submitLabel = null;
+    this.submitContainer = null;
+    this.optionBackgrounds = [];
     TestHooks.unmountAll(); // Interaction owns its ephemeral hooks
   }
 }

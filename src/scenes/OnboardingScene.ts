@@ -21,8 +21,10 @@ import {
   createActionButton,
   TITLE_FONT,
   BODY_FONT,
+  NAVY,
   NAVY_HEX,
   PATH_BLUE,
+  ACTION_FILL,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
@@ -75,6 +77,7 @@ export class OnboardingScene extends Phaser.Scene {
   private actionBtn!: Phaser.GameObjects.Container;
   private handPointer!: Phaser.GameObjects.Text;
   private skipText!: Phaser.GameObjects.Text;
+  private stepDots: Phaser.GameObjects.Graphics[] = [];
 
   constructor() {
     super({ key: 'OnboardingScene' });
@@ -124,13 +127,22 @@ export class OnboardingScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(5);
 
+    // ── Step dots ─────────────────────────────────────────────────────────────
+    const startX = CW / 2 - 32;
+    for (let i = 0; i < 3; i++) {
+      const dot = this.add.graphics().setDepth(5);
+      dot.setPosition(startX + i * 32, 165);
+      this.stepDots.push(dot);
+    }
+    this.updateStepDots(0);
+
     // ── Mascot ────────────────────────────────────────────────────────────────
-    this.mascot = new Mascot(this, 715, 155, 0.75);
+    this.mascot = new Mascot(this, 715, 185, 0.75);
     this.mascot.setState('idle');
 
     // ── Instruction text ──────────────────────────────────────────────────────
     this.instructionText = this.add
-      .text(CW / 2, 215, '', {
+      .text(CW / 2, 245, '', {
         fontSize: '24px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
@@ -163,14 +175,24 @@ export class OnboardingScene extends Phaser.Scene {
     // ── Skip link ─────────────────────────────────────────────────────────────
     this.skipText = this.add
       .text(CW / 2, CH - 90, 'Skip tutorial', {
-        fontSize: '18px',
+        fontSize: '20px',
         fontFamily: BODY_FONT,
-        color: '#64748B',
-        padding: { x: 12, y: 6 },
+        color: NAVY_HEX,
+        padding: { x: 12, y: 12 },
       })
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({ useHandCursor: true });
+
+    // Subtle navy underline/border
+    const skipUnderline = this.add.graphics().setDepth(5);
+    skipUnderline.lineStyle(2, NAVY, 0.5);
+    skipUnderline.lineBetween(
+      CW / 2 - this.skipText.width / 2,
+      CH - 90 + this.skipText.height / 2 - 8,
+      CW / 2 + this.skipText.width / 2,
+      CH - 90 + this.skipText.height / 2 - 8
+    );
 
     this.skipText.on('pointerup', () => this.completeOnboarding());
 
@@ -240,6 +262,7 @@ export class OnboardingScene extends Phaser.Scene {
   private startWatchStep(): void {
     this.step = 'watch';
     this.stepBadge.setText('Step 1 of 3');
+    this.updateStepDots(0);
     this.inputLocked = true;
 
     const msg = 'Watch! Drag the line to the middle to cut the shape in half.';
@@ -307,6 +330,7 @@ export class OnboardingScene extends Phaser.Scene {
   private startTryStep(): void {
     this.step = 'try';
     this.stepBadge.setText('Step 2 of 3');
+    this.updateStepDots(1);
     this.handPointer.setVisible(false);
 
     const msg = 'Your turn! Drag the line to the middle of the shape.';
@@ -395,6 +419,7 @@ export class OnboardingScene extends Phaser.Scene {
   private showDoneStep(): void {
     this.step = 'done';
     this.stepBadge.setText('Step 3 of 3');
+    this.updateStepDots(2);
     this.inputLocked = true;
 
     const msg = 'Amazing! You did it! Ready to play the game?';
@@ -405,9 +430,25 @@ export class OnboardingScene extends Phaser.Scene {
     // Change button label to "Let's Play!"
     const txt = this.actionBtn.getAt(2) as Phaser.GameObjects.Text;
     txt.setText("Let's Play! 🎉");
+    txt.setFontSize('32px');
 
     // Hide skip — no longer needed once tutorial is complete
     this.skipText.setVisible(false);
+  }
+
+  // ── Step dots ─────────────────────────────────────────────────────────────
+
+  private updateStepDots(activeIndex: number): void {
+    const RADIUS = 14;
+    this.stepDots.forEach((dot, i) => {
+      dot.clear();
+      if (i === activeIndex) {
+        dot.fillStyle(ACTION_FILL, 1);
+        dot.fillCircle(0, 0, RADIUS);
+      }
+      dot.lineStyle(2, NAVY, 1);
+      dot.strokeCircle(0, 0, RADIUS);
+    });
   }
 
   // ── Completion ───────────────────────────────────────────────────────────

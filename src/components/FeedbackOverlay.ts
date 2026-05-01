@@ -12,6 +12,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
+import { TITLE_FONT, BODY_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
@@ -85,7 +86,7 @@ export class FeedbackOverlay {
     this.iconGO = scene.add
       .text(cx - 220, cy, '✓', {
         fontSize: '48px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontFamily: TITLE_FONT,
         color: HEX.success,
       })
       .setOrigin(0.5)
@@ -96,7 +97,7 @@ export class FeedbackOverlay {
     this.label = scene.add
       .text(cx + 20, cy, '', {
         fontSize: '28px',
-        fontFamily: '"Nunito", system-ui, sans-serif',
+        fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.neutral900,
       })

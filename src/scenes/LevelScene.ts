@@ -498,11 +498,13 @@ export class LevelScene extends Phaser.Scene {
 
     // Level title — centred, Fredoka One
     this.add
-      .text(CW / 2, 57, `Level ${this.levelNumber}`, {
-        fontSize: '38px',
+      .text(CW / 2, 60, `Level ${this.levelNumber}`, {
+        fontSize: '32px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
+        stroke: '#FFFFFF',
+        strokeThickness: 3,
       })
       .setOrigin(0.5)
       .setDepth(5);
@@ -512,12 +514,12 @@ export class LevelScene extends Phaser.Scene {
       BACK_H = 52;
     const backG = this.add.graphics().setDepth(5);
     backG.fillStyle(SKY_BG, 1);
-    backG.fillRoundedRect(18, 27, BACK_W, BACK_H, 14);
+    backG.fillRoundedRect(18, 34, BACK_W, BACK_H, 14);
     backG.lineStyle(2, NAVY, 1);
-    backG.strokeRoundedRect(18, 27, BACK_W, BACK_H, 14);
+    backG.strokeRoundedRect(18, 34, BACK_W, BACK_H, 14);
 
     const backBtn = this.add
-      .text(18 + BACK_W / 2, 27 + BACK_H / 2, '← Menu', {
+      .text(18 + BACK_W / 2, 34 + BACK_H / 2, '← Menu', {
         fontSize: '17px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
@@ -544,7 +546,7 @@ export class LevelScene extends Phaser.Scene {
     const CTR_W = 118,
       CTR_H = 52;
     const ctrX = CW - 18 - CTR_W;
-    const ctrY = 27;
+    const ctrY = 34;
     const ctrG = this.add.graphics().setDepth(5);
     ctrG.fillStyle(SKY_BG, 1);
     ctrG.fillRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);

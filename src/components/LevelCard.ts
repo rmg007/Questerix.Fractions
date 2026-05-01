@@ -226,7 +226,14 @@ export class LevelCard extends Phaser.GameObjects.Container {
 
     // Lock icon for locked levels
     if (!this.unlocked) {
-      this.add(s.add.text(0, -36, '🔒', { fontSize: '22px' }).setOrigin(0.5));
+      // Semi-transparent overlay (dark rectangle at alpha 0.35)
+      const overlay = s.add.graphics();
+      overlay.fillStyle(0x000000, 0.35);
+      overlay.fillRoundedRect(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, CARD_RADIUS);
+      this.add(overlay);
+
+      // Lock emoji - at least 32px font size
+      this.add(s.add.text(0, -20, '🔒', { fontSize: '42px' }).setOrigin(0.5));
     }
 
     // Star badge for completed levels — top-right corner circle
@@ -268,6 +275,18 @@ export class LevelCard extends Phaser.GameObjects.Container {
           })
           .setOrigin(0.5)
       );
+
+      // Subtle breathing scale animation (scale 1.0 → 1.03 → 1.0 over 1800ms, yoyo: true, repeat: -1)
+      if (!this.reducedMotion) {
+        s.tweens.add({
+          targets: this,
+          scale: this.scale * 1.03,
+          duration: 900, // half of 1800ms because of yoyo
+          ease: 'Sine.easeInOut',
+          yoyo: true,
+          repeat: -1,
+        });
+      }
     }
 
     // Hit zone — ≥44×44 per accessibility.md

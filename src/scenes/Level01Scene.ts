@@ -9,7 +9,6 @@
  */
 
 import * as Phaser from 'phaser';
-import { CLR } from './utils/colors';
 import {
   drawAdventureBackground,
   createActionButton,
@@ -1255,7 +1254,7 @@ export class Level01Scene extends Phaser.Scene {
   /** Tier 2: faint dashed center-line overlay. per interaction-model.md §4 */
   private drawCenterOverlay(): void {
     const overlay = this.add.graphics().setDepth(8).setAlpha(0.4);
-    overlay.lineStyle(3, CLR.neutral600, 1);
+    overlay.lineStyle(3, NAVY, 1);
     overlay.lineBetween(
       SHAPE_CX,
       SHAPE_CY - SHAPE_H / 2 - 20,

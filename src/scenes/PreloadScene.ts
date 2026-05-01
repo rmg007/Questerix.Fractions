@@ -31,6 +31,7 @@ const CH = 1280;
 export class PreloadScene extends Phaser.Scene {
   private progressBar!: Phaser.GameObjects.Rectangle;
   private loadingText!: Phaser.GameObjects.Text;
+  private loadingDotsEvent?: Phaser.Time.TimerEvent;
   private lastStudentId: string | null = null;
 
   constructor() {
@@ -47,7 +48,6 @@ export class PreloadScene extends Phaser.Scene {
     // Wire Phaser load progress events
     this.load.on('progress', (value: number) => {
       this.progressBar.width = CW * 0.6 * value;
-      this.loadingText.setText(`Loading… ${Math.floor(value * 100)}%`);
 
       // Update fraction tiles in splash screen as loader progresses
       const tiles = document.querySelectorAll('#fraction-tiles svg');
@@ -59,6 +59,9 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     this.load.on('complete', () => {
+      if (this.loadingDotsEvent) {
+        this.loadingDotsEvent.destroy();
+      }
       this.loadingText.setText('Ready!');
     });
 
@@ -115,7 +118,7 @@ export class PreloadScene extends Phaser.Scene {
 
     // Status text — navy matching level scene body text
     this.loadingText = this.add
-      .text(cx, cy + 48, 'Loading…', {
+      .text(cx, cy + 48, 'Loading', {
         fontSize: '20px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
@@ -124,8 +127,34 @@ export class PreloadScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(5);
 
+    // Animate loading dots — cycle through "", ".", "..", "..."
+    let dotCount = 0;
+    this.loadingDotsEvent = this.time.addEvent({
+      delay: 500,
+      loop: true,
+      callback: () => {
+        dotCount = (dotCount + 1) % 4;
+        const dots = '.'.repeat(dotCount);
+        // We only update if we aren't showing the percentage from the progress listener,
+        // or we could append it. The task says cycle "Loading", "Loading.", etc.
+        // The progress listener also updates this text.
+        // Let's make it consistent.
+        this.updateLoadingText(dots);
+      },
+    });
+
     // Static mascot — shown while loading, no tweens
     new Mascot(this, cx + 220, cy - 160, 0.75);
+  }
+
+  private updateLoadingText(dots: string): void {
+    const progress = this.load.progress;
+    const percent = Math.floor(progress * 100);
+    if (progress >= 1) {
+      this.loadingText.setText('Ready!');
+    } else {
+      this.loadingText.setText(`Loading${dots} ${percent}%`);
+    }
   }
 
   /** Create 1×1 Phaser textures for each palette token (used by shapes later). */

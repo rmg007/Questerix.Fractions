@@ -27,6 +27,7 @@ export class PartitionInteraction implements Interaction {
   private shapeGraphics!: Phaser.GameObjects.Graphics;
   private partitionLine!: Phaser.GameObjects.Graphics;
   private dragHandle!: DragHandle;
+  private dragAffordance: Phaser.GameObjects.Text | null = null;
   private handlePos!: number;
   private cutLineHint: Phaser.GameObjects.Graphics | null = null;
   private shapeCenterX!: number;
@@ -93,6 +94,9 @@ export class PartitionInteraction implements Interaction {
         }
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);
+        if (this.dragAffordance) {
+          this.dragAffordance.setX(pos);
+        }
       },
       onCommit: (pos) => {
         const pct = Math.round(((pos - minX) / SHAPE_W) * 100);
@@ -106,11 +110,26 @@ export class PartitionInteraction implements Interaction {
         dragStartPos = pos;
         this.handlePos = pos;
         this.updatePartitionLine(pos, centerY);
+        if (this.dragAffordance) {
+          this.dragAffordance.setX(pos);
+        }
         // Drop = commit to LevelScene (which auto-submits). Without this the
         // Check button is dead — lastPayload stays null and onSubmit returns.
         ctx.onCommit(buildInput());
       },
     });
+
+    // Fix 3: drag handle clarity affordance
+    this.dragAffordance = this.scene.add
+      .text(this.handlePos, centerY, '▲\n▼', {
+        fontFamily: 'BODY_FONT',
+        fontSize: '16px',
+        color: '#1e3a8a', // NAVY
+        align: 'center',
+        lineSpacing: -4,
+      })
+      .setOrigin(0.5)
+      .setDepth(10);
 
     // partition-target: transparent button that triggers submit
     TestHooks.mountInteractive(
@@ -129,6 +148,8 @@ export class PartitionInteraction implements Interaction {
     this.partitionLine?.destroy();
     this.cutLineHint?.destroy();
     this.cutLineHint = null;
+    this.dragAffordance?.destroy();
+    this.dragAffordance = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
   }

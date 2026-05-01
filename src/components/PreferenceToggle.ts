@@ -7,6 +7,7 @@
 
 import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import type { DeviceMeta } from '../types';
+import { BODY_FONT } from '../scenes/utils/levelTheme';
 
 export type PrefKey = keyof DeviceMeta['preferences'];
 
@@ -83,7 +84,7 @@ export class PreferenceToggle {
     this.labelEl.id = labelId;
     this.labelEl.textContent = opts.label;
     Object.assign(this.labelEl.style, {
-      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+      fontFamily: BODY_FONT,
       fontSize: '18px',
       color: '#374151',
       minWidth: '180px',
@@ -141,7 +142,7 @@ export class PreferenceToggle {
     // Value display (for read-only or status)
     this.valueEl = document.createElement('span');
     Object.assign(this.valueEl.style, {
-      fontFamily: '"Lexend", "Nunito", system-ui, sans-serif',
+      fontFamily: BODY_FONT,
       fontSize: '14px',
       color: '#6B7280',
     });

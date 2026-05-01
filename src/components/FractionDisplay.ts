@@ -21,6 +21,7 @@
 
 import * as Phaser from 'phaser';
 import { HEX } from '../scenes/utils/colors';
+import { BODY_FONT } from '../scenes/utils/levelTheme';
 
 export type FractionMode = 'stacked' | 'inline';
 
@@ -39,7 +40,7 @@ export interface FractionDisplayOptions {
   depth?: number;
 }
 
-const DEFAULT_FONT_FAMILY = '"Lexend", "Nunito", system-ui, sans-serif';
+const DEFAULT_FONT_FAMILY = BODY_FONT;
 
 /** Parse a string like "3/5" or "½" or "1" into {num, den}. */
 export function parseFraction(value: string): { num: number; den: number } | null {
