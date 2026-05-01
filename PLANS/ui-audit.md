@@ -153,13 +153,24 @@ Everything the child needs to do lives between y=200 and y=820 — one comfortab
 **Problem:** 28 px tagline at y=270 between title (y=140) and the path (y=420). 150 px of canvas doing nothing.  
 **Fix:** Replace with a Quest speech bubble: **"Hi! I'm Quest. Let's learn about halves!"** Establishes character + purpose in 2 seconds. (Reuses `showSpeechBubble` from T14 if shipped.)
 
-### UI-M4 — Number-line fraction badges confuse, don't teach 🟡 Medium
+### UI-M4 (RESOLVED) — Replace fraction badges with icon + label 🟡 Medium
 
 **File:** `src/scenes/MenuScene.ts` → `_renderFractionBadge` (or equivalent)  
-**Problem:** Wavy path with "0", "½", "1" badges. A teacher would love it; a 5-year-old sees three numbers on a squiggle with no context. The pedagogical metaphor is invisible to the actual user.  
-**Fix (pick one — discuss with user):**
-- A: replace fraction badges with icons — 🎮 (Play), ⚙ (Settings), 📍 (Continue).
-- B: keep badges but enlarge to 48 px and add a one-line explainer overlay on first visit.
+**Decision (2026-05-01):** Strip the "0 / ½ / 1" fraction badges. Replace each station with an icon + a one-word label in Fredoka One. Keep the wavy number-line path (visual journey).
+
+| Station | Icon | Label |
+|---|---|---|
+| Continue | 📍 | "Continue" |
+| Settings | ⚙ | "Settings" |
+| Play | 🎮 (or ▶) | "Play" |
+
+**Why:** The number-line metaphor is clever for adults. A 5-year-old doesn't arrive with a 0→½→1 mental model — they'd need to be taught it before the menu is legible. That's the UI pre-teaching notation before the game starts, which is a code smell. A first-visit explainer overlay is a mandatory tutorial for navigation, which is worse. Icons are universally understood at age 5; the label handles early readers and parents looking over a shoulder.
+
+The pedagogy of fraction notation belongs *inside the levels*, not on the menu.
+
+**Spec:** Icon ~48 px, label ~24–28 px Fredoka One, label below icon. Match station hit-zone sizing to ≥ 88×88 px (touch-target).
+
+**Effort:** 1–2 h.
 
 ### UI-M5 — Streak text is below the fold 🟡 Medium
 

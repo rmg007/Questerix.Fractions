@@ -245,13 +245,50 @@ Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 - `src/scenes/Level01Scene.ts`, `src/scenes/LevelScene.ts` — gate `markComplete` on `correctCount >= 3 || consecutiveFailedSessions >= 3`; show "Let's practice a little more!" screen otherwise.
 - `src/scenes/SettingsScene.ts` — hidden version-tap toggle setting `unlockGateBypass`.
 
+#### D-audio ✅ — Defer audio pipeline to post-MVP (2026-05-01)
+
+**Decision:** Don't build the OpenAI `gpt-4o-mini-tts` pre-render pipeline now. Ship MVP with the existing Web Speech runtime TTS as the placeholder.
+
+Audio architecture (provider, build-time pre-rendering, instruction-style voice control) remains the chosen direction — it just doesn't ship in this release. The pipeline becomes v1.1 work after the first real-child playtest validates that audio matters at all.
+
+**Implication:** Don't include audio polish items inside P5. T4 (decouple TTS from Reduce Motion), T5 (wrong-answer SFX synthesis), UI-10 (drag scrub sound) are all still in scope — they use the existing SFX synthesis path (Web Audio API), not the pre-rendered Quest-voice catalog.
+
+#### D-agent-tooling ✅ — Approve Phase 2, 7, 8 (2026-05-01)
+
+**Decision:** Of the agent-tooling phases pending in `PLANS/_archive/agent-tooling-2026-05-01.md`, approve only the high-ROI remainder:
+
+- **Phase 2 — Blast-radius preflight.** Branch-prefix routes to gate level. Doc-only PRs (`docs/`, `chore/` for `PLANS/`-only changes) skip the 90 s typecheck+lint+test+build pipeline and run a 5 s lint-only fast-path instead. Keeps full pipeline for `feat/`, `fix/`, `refactor/`.
+- **Phase 7 — PR template + branch enforcement.** Codify the structure recent PRs already follow into `.github/pull_request_template.md` + a CI check that fails PRs without a populated Test Plan section. Stop relying on convention.
+- **Phase 8 — Token telemetry.** Measure session token cost via `CLAUDE_CODE_DIAGNOSTICS_FILE` parsing into `_session-log.md`; the `/economy` and `/retro-weekly` commands then have real data to summarize.
+
+**Skip:** Phase 1 (auto-invoke skills already in CLAUDE.md), Phase 3 (already shipped — both subagents present), Phase 4 (not blocking), Phase 5 (root cause already fixed in PR #36), Phase 6 (already shipped — learnings discipline at SessionStart).
+
+**Effort:** Phase 2 ~3 h · Phase 7 ~1 h · Phase 8 ~4 h. Total ~8 h.
+
+#### D-menu-fraction-badges ✅ — Icons + word labels (2026-05-01)
+
+**Decision:** UI-M4 — Option A (icons), with a label addition. Strip the "0 / ½ / 1" fraction badges from the menu stations entirely. Replace each station with an icon **plus a one-word label** in Fredoka One:
+
+| Station | Icon | Label |
+|---|---|---|
+| Continue | 📍 | "Continue" |
+| Settings | ⚙ | "Settings" |
+| Play | 🎮 (or ▶) | "Play" |
+
+**Why:** The number-line metaphor (0 → ½ → 1) is genuinely clever — for adults. A 5-year-old doesn't arrive with a mental model of fraction-progression-as-axis; they'd need to be taught that metaphor before the menu is legible. Asking the UI to pre-teach a notation system before the game starts is a code smell. A first-visit explainer overlay (Option B) just makes the problem worse — it's a mandatory tutorial for navigation.
+
+Icons are universally understood at age 5. The single-word label handles early readers and parents looking over a shoulder. No tutorial, no metaphor to decode.
+
+**Keep:** the wavy number-line path itself stays. It gives the menu visual structure and a sense of journey. The pedagogy of fraction notation belongs *inside* the levels, not on the menu.
+
+**Files to touch:**
+- `src/scenes/MenuScene.ts` — remove the fraction-badge render path; add icon + label render at each station. Match Fredoka One sizing to the rest of the scene (~24–28 px label, ~48 px icon).
+
+**Effort:** 1–2 h.
+
 ### Open
 
-| ID | Decision | Blocks |
-|---|---|---|
-| D-audio | Audio pre-rendering (OpenAI `gpt-4o-mini-tts`) pipeline: start now or after MVP? | Audio in P5 group A/D |
-| D-agent-tooling | Agent tooling phases 1–8 (auto-invoke layer, blast-radius preflight, 2 new subagents, PR template enforcement): approve which phases? | None — infra only |
-| D-menu-fraction-badges | UI-M4 — replace fraction badges with icons (🎮 ⚙ 📍) or enlarge with first-visit explainer? | UI-M4 implementation |
+*No open decisions — all resolved 2026-05-01.*
 
 ---
 
