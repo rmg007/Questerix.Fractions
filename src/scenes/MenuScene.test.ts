@@ -17,35 +17,27 @@ import type { LevelId, SkillId, SkillMastery } from '@/types';
 // ── MenuScene smoke tests (canvas shim above enables module-level checks) ──────
 
 describe('MenuScene module smoke tests', () => {
-  it(
-    'MenuScene module can be imported without error',
-    async () => {
-      // Dynamic import avoids Phaser instantiation at module scope;
-      // the canvas shim above stubs getContext so Phaser does not throw.
-      const mod = await import('./MenuScene').catch(() => null);
-      // Either the import succeeds or it is null (Phaser env not available);
-      // what we must NOT get is an unhandled crash before this assertion.
-      expect(true).toBe(true);
-      if (mod !== null) {
-        expect(typeof mod).toBe('object');
-      }
-    },
-    15000
-  );
+  it('MenuScene module can be imported without error', async () => {
+    // Dynamic import avoids Phaser instantiation at module scope;
+    // the canvas shim above stubs getContext so Phaser does not throw.
+    const mod = await import('./MenuScene').catch(() => null);
+    // Either the import succeeds or it is null (Phaser env not available);
+    // what we must NOT get is an unhandled crash before this assertion.
+    expect(true).toBe(true);
+    if (mod !== null) {
+      expect(typeof mod).toBe('object');
+    }
+  }, 15000);
 
-  it(
-    'MenuScene class is exported when the module loads successfully',
-    async () => {
-      try {
-        const mod = await import('./MenuScene');
-        expect(mod.MenuScene).toBeDefined();
-        expect(typeof mod.MenuScene).toBe('function');
-      } catch {
-        // Phaser env not available in Vitest — acceptable in unit context
-      }
-    },
-    15000
-  );
+  it('MenuScene class is exported when the module loads successfully', async () => {
+    try {
+      const mod = await import('./MenuScene');
+      expect(mod.MenuScene).toBeDefined();
+      expect(typeof mod.MenuScene).toBe('function');
+    } catch {
+      // Phaser env not available in Vitest — acceptable in unit context
+    }
+  }, 15000);
 });
 
 // ── LEVEL_META ─────────────────────────────────────────────────────────────
