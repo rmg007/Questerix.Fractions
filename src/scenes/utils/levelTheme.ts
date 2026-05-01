@@ -17,7 +17,7 @@ export const PATH_BLUE = 0x93c5fd; // #93C5FD — light blue path / partition li
 
 const WHITE = 0xffffff;
 const WHITE_HEX = '#FFFFFF';
-const NAVY = 0x1e3a8a;
+export const NAVY = 0x1e3a8a;
 export const NAVY_HEX = '#1E3A8A';
 
 // Action ("Check") button — amber, matching the Play! station

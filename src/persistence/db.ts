@@ -24,6 +24,7 @@ import type {
   HintTemplate,
   MisconceptionFlag,
   ProgressionStat,
+  LevelProgression,
 } from '../types';
 
 // ── DB class ───────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ export class QuesterixDB extends Dexie {
   hintEvents!: Table<HintEvent, number>;
   misconceptionFlags!: Table<MisconceptionFlag, string>;
   progressionStat!: Table<ProgressionStat, [string, string]>;
+  levelProgression!: Table<LevelProgression, string>;
 
   constructor() {
     super('questerix-fractions');
@@ -112,6 +114,7 @@ export class QuesterixDB extends Dexie {
     // Schema version 4 — adds [archetype+submittedAt] compound index on attempts for BKT/
     // misconception queries over recent sessions (G-DB1), and validatorId index on
     // questionTemplates for validator-pipeline lookups (G-DB2). per architecture-review §G-DB1/G-DB2.
+    // (carried through as-is in v5 below)
     this.version(4).stores({
       // Static curriculum stores (unchanged)
       curriculumPacks: 'id',
@@ -137,6 +140,35 @@ export class QuesterixDB extends Dexie {
       hintEvents: '++id, attemptId',
       misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
       progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+    });
+
+    // Schema version 5 — adds levelProgression store to replace localStorage keys.
+    // per C5 constraint and R13 (Dexie dual-write migration). Keypath is &studentId (primary key).
+    this.version(5).stores({
+      // Static curriculum stores (carried from v4)
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      // Dynamic stores (carried from v4)
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      hintEvents: '++id, attemptId',
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      // New store for v5 — replace localStorage unlockedLevels/completedLevels
+      levelProgression: '&studentId',
     });
   }
 }

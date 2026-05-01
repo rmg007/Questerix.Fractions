@@ -17,6 +17,7 @@
 import * as Phaser from 'phaser';
 import { injectSkipLink, labelCanvas } from '../components/SkipLink';
 import { TestHooks } from './utils/TestHooks';
+import { StudentId } from '../types/branded';
 
 interface MenuData {
   lastStudentId: string | null;
@@ -329,9 +330,15 @@ export class MenuScene extends Phaser.Scene {
       .on('pointerup', () => void this._openLevelChooser());
   }
 
-  /** Read unlocked levels from localStorage (with optional studentId prefix). */
-  private _getUnlockedLevels(): Set<number> {
+  /**
+   * Read unlocked levels from both localStorage (backward compat) and Dexie,
+   * merging the two sources. Dexie is the authoritative new path; localStorage
+   * is kept for compatibility during the dual-write transition (R13).
+   */
+  private async _getUnlockedLevels(): Promise<Set<number>> {
     const unlocked = new Set<number>([1]); // Level 1 always unlocked
+
+    // Legacy localStorage path — kept for backward compat during transition
     try {
       const key = this.lastStudentId ? `unlockedLevels:${this.lastStudentId}` : 'unlockedLevels';
       const raw = localStorage.getItem(key);
@@ -340,13 +347,34 @@ export class MenuScene extends Phaser.Scene {
         arr.forEach((n) => unlocked.add(n));
       }
     } catch {
-      // Ignore storage errors — default to level 1 only
+      // Ignore storage errors — fall through to Dexie
     }
+
+    // New Dexie path — merge any additional unlocked levels
+    if (this.lastStudentId) {
+      try {
+        const { levelProgressionRepo } = await import(
+          '../persistence/repositories/levelProgression'
+        );
+        const dexieUnlocked = await levelProgressionRepo.getUnlockedLevels(
+          StudentId(this.lastStudentId)
+        );
+        dexieUnlocked.forEach((n) => unlocked.add(n));
+      } catch {
+        // Ignore Dexie errors — localStorage values already in set
+      }
+    }
+
     return unlocked;
   }
 
-  /** Persist that a level was completed so the next one unlocks. */
-  static markLevelComplete(levelNumber: number, studentId: string | null): void {
+  /**
+   * Persist that a level was completed so the next one unlocks.
+   * Dual-write: keeps the existing localStorage path for backward compat
+   * and additionally writes to Dexie (R13 migration step).
+   */
+  static async markLevelComplete(levelNumber: number, studentId: string | null): Promise<void> {
+    // Legacy localStorage path — kept for backward compat during transition
     try {
       const key = studentId ? `unlockedLevels:${studentId}` : 'unlockedLevels';
       const raw = localStorage.getItem(key);
@@ -359,11 +387,23 @@ export class MenuScene extends Phaser.Scene {
     } catch {
       // Ignore storage errors
     }
+
+    // New Dexie path — dual-write alongside localStorage
+    if (studentId) {
+      try {
+        const { levelProgressionRepo } = await import(
+          '../persistence/repositories/levelProgression'
+        );
+        await levelProgressionRepo.complete(StudentId(studentId), levelNumber);
+      } catch {
+        // Ignore Dexie errors — localStorage write already succeeded
+      }
+    }
   }
 
   private async _openLevelChooser(): Promise<void> {
-    // Build the unlocked set — also query Dexie if we have a studentId
-    const unlocked = this._getUnlockedLevels();
+    // Build the unlocked set — reads from localStorage + Dexie merged
+    const unlocked = await this._getUnlockedLevels();
     if (this.lastStudentId) {
       try {
         const { sessionRepo } = await import('../persistence/repositories/session');
@@ -378,7 +418,7 @@ export class MenuScene extends Phaser.Scene {
           }
         }
       } catch {
-        // Fall back to localStorage-only unlock state
+        // Fall back to localStorage+Dexie unlock state already in set
       }
     }
 

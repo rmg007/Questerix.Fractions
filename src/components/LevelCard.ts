@@ -19,7 +19,13 @@ export interface LevelCardOptions {
   meta: LevelMeta;
   unlocked: boolean;
   suggested: boolean;
+  /** Whether the player has completed this level (used for mastery ribbon). */
+  completed?: boolean;
+  /** Whether the player has mastered this level (BKT masteryEstimate >= threshold). */
+  mastered?: boolean;
   onTap: (levelNumber: number) => void;
+  /** Optional explicit scale applied to the card container. */
+  containerScale?: number;
 }
 
 export class LevelCard extends Phaser.GameObjects.Container {
