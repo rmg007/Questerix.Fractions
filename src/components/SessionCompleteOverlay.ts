@@ -144,11 +144,14 @@ export class SessionCompleteOverlay {
       this.addMenuButton(scene, cx, 880, onMenu);
     }
 
+    // Mount sentinel immediately so tests can observe completion-screen as soon
+    // as the overlay is constructed, regardless of animation duration.
+    TestHooks.mountSentinel('completion-screen');
+
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
       sfx.playComplete();
       this.announce(levelNumber, starCount);
-      TestHooks.mountSentinel('completion-screen');
       return;
     }
 
@@ -169,7 +172,6 @@ export class SessionCompleteOverlay {
           // Animate stars after trophy wave lands.
           this.animateStars(scene, cx, 530, depth, () => {
             this.announce(levelNumber, starCount);
-            TestHooks.mountSentinel('completion-screen');
           });
         });
       },

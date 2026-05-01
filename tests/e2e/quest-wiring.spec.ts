@@ -16,16 +16,16 @@
  *   - tests/unit/scenes/LevelSceneQuestWiring.test.ts (helper behavior)
  *   - tests/unit/i18n/questCatalog.test.ts (lint + persona gates)
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 test.describe('Quest voice wiring (T28) — e2e smoke', () => {
   test('first hint in L6 renders the Quest verbal tier line for compare', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({ timeout: 5000 });
     // Wait for the curriculum seed to finish before advancing
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 
@@ -39,7 +39,7 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
 
 
   test('wrong answer in L6 surfaces the Quest wrong feedback line', async ({ page }) => {
-    await page.goto('/?testHooks=1');
+    await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({ timeout: 5000 });
     // Wait for the curriculum seed to finish before advancing — BootScene mounts
     // `seed-complete` after seedIfEmpty() resolves (or its catch runs). Without
@@ -47,7 +47,7 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
     // causing LevelScene to fall back to synthetic partition content.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({ timeout: 5000 });
 

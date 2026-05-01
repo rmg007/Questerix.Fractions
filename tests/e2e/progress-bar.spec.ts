@@ -9,7 +9,7 @@
 // Storage is cleared before each test so prior sessions cannot make the
 // assertion pass spuriously via session-restoration (aria-valuenow would
 // otherwise be set to the restored attemptCount rather than a new correct answer).
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 import { navigateToLevel01 } from './test-helpers';
 
 test.describe('ProgressBar sentinel — star progress smoke test', () => {

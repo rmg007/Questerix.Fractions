@@ -29,6 +29,8 @@
       "Bash(npm run measure-bundle:*)",
       "Bash(npm run validate\\:curriculum:*)",
       "Bash(npm run preview:*)",
+      "Bash(npm run gen\\:workflows:*)",
+      "Bash(npm run lint\\:ci:*)",
 
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
@@ -127,6 +129,15 @@
           {
             "type": "command",
             "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) STAGED=$(git log -1 --name-only --pretty=format: 2>/dev/null | grep -v '^$'); if echo \"$STAGED\" | grep -q '^src/' && ! echo \"$STAGED\" | grep -qE '(CHANGELOG|PLANS/|learnings\\.md)'; then echo '◇ Source changed but no CHANGELOG/PLANS/learnings update — consider /retro before pushing.' >&2; fi ;; esac; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); case \"$FILE\" in *vite.config.ts*|*playwright.config.ts*|*src/config/shared.ts*|*scripts/workflows/generator.mjs*) echo '▶ Config file changed — checking workflow consistency...'; npm run gen:workflows 2>/dev/null; if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then echo 'WARNING: Workflow drift detected — commit the regenerated YAML with: git add .github/workflows && git commit' >&2; fi ;; esac; exit 0"
           }
         ]
       }

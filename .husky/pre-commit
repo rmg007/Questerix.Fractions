@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Quick pre-commit check — typecheck only (fast, ~3s)
+npm run typecheck

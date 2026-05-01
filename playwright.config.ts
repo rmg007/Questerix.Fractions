@@ -1,14 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
+import { DEV_PORT, BROWSERS } from './src/config/shared';
 
 export default defineConfig({
   testDir: 'tests/e2e',
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5000?testHooks=1',
+    baseURL: `http://localhost:${DEV_PORT}`,
   },
   webServer: {
     command: 'npm run dev',
-    port: 5000,
+    port: DEV_PORT,
     reuseExistingServer: !process.env['CI'],
   },
   projects: [

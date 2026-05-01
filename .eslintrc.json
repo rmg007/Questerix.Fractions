@@ -25,6 +25,18 @@
       "rules": {
         "no-restricted-syntax": "off"
       }
+    },
+    {
+      "files": ["tests/e2e/**/*.spec.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "name": "@playwright/test",
+            "message": "Import from tests/e2e/_fixture.ts instead to ensure testHooks=1 is auto-injected"
+          }
+        ]
+      }
     }
   ],
   "ignorePatterns": ["dist", "node_modules", "build", ".venv", "pipeline"]

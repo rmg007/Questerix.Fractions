@@ -3,7 +3,7 @@
  * per test-strategy.md §1.3 (E2E happy path)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 test.describe('Settings scene', () => {
   test('navigates Boot → Menu → Settings, renders settings-scene sentinel', async ({ page }) => {
