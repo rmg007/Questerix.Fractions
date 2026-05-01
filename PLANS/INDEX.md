@@ -23,6 +23,16 @@ End-of-session handoff for the agent picking up after the 2026-05-01 architectur
 
 ---
 
+## 🆕 Agent Tooling (2026-05-01)
+
+### [agent-tooling-2026-05-01.md](agent-tooling-2026-05-01.md) — AGENT TOOLING & AUTO-INVOCATION
+
+Plan for making Claude agents run smoothly, produce high-quality output, and save tokens — without the user having to remember slash commands. Phase 0 (cleanup of Roadie + `_archive/`) landed in this commit. Phases 1–8 awaiting approval.
+
+**Use it for:** auto-invoke layer (hooks + skills), blast-radius gates, missing specialist subagents, CI subagent integration, auto-close-PR runbook, learnings discipline, PR template + branch enforcement, token telemetry.
+
+---
+
 ## ⭐ Start Here (2026-04-26)
 
 ### [master-plan-2026-04-26.md](master-plan-2026-04-26.md) — MASTER BACKLOG
