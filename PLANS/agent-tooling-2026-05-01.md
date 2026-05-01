@@ -471,36 +471,159 @@ npm run typecheck
 
 ---
 
-## Phase 3 — Two missing specialist subagents
+## Phase 3 — Two missing specialist subagents (concrete artifacts)
 
-**Goal:** Cover gaps recent PRs exposed.
+**Goal:** Cover gaps recent PRs exposed. Both subagents add VALUE by *explaining what to do* (which port to inject, which command to run), not by re-running existing automation.
 
-### 3a. `engine-determinism-auditor`
+### 3.1 New file: `.claude/agents/engine-determinism-auditor.md`
 
-**Triggers on:** any diff touching `src/engine/**`.
-**Checks:** no `Math.random`, no `Date.now()`, no `crypto.randomUUID()` outside `src/engine/ports.ts`.
-**Why a subagent when ESLint already enforces this?** ESLint output is hard for agents to read in a structured way. The subagent gives a one-paragraph summary: "Engine layer determinism contract violated at <file:line>. Inject the corresponding port (Rng / Clock / IdGenerator) per `src/engine/ports.ts`. See PR #16, #17, #29 for prior examples."
+```markdown
+---
+name: engine-determinism-auditor
+description: Audits diffs touching src/engine/** for direct host-global calls (Math.random, Date.now, crypto.randomUUID) and points to the correct port in src/engine/ports.ts. Use proactively whenever engine code changes.
+tools: Read, Grep, Glob, Bash
+---
 
-### 3b. `curriculum-byte-parity`
+You are the engine determinism auditor. The engine layer (`src/engine/**`) is the bottom of the dependency graph and must remain pure and deterministic so replays, property-based tests, and calibrated fixtures stay reproducible. ESLint already blocks the three forbidden host calls — your job is to translate any violation (or near-miss) into a structured advisory the author can act on without re-reading lint output.
 
-**Triggers on:** any diff with `public/curriculum/v1.json` or `src/curriculum/bundle.json`.
-**Checks:** the two files are byte-identical (sha256 match).
-**Failure message:** "Curriculum drift. Run `npm run build:curriculum` to regenerate both files from `pipeline/output/`. Per CLAUDE.md curriculum dual-file rule and `.claude/learnings.md` 2026-04-30."
+## Forbidden host calls and the ports that replace them
 
-### 3c. Document trigger discipline in CLAUDE.md
+The bans are encoded in `.eslintrc.json` under the `src/engine/**` override (excluding `src/engine/ports.ts`):
 
-Add a "When subagents fire automatically" section:
+| Forbidden call           | ESLint message anchor                                                | Port to inject (from `src/engine/ports.ts`) | Threaded via       |
+|--------------------------|----------------------------------------------------------------------|---------------------------------------------|--------------------|
+| `Date.now()`             | "Engine code must consume a Clock port … breaks deterministic replay." | `Clock.now()` / `Clock.monotonic()`         | `DetectorContext.clock` |
+| `crypto.randomUUID()`    | "Engine code must consume an IdGenerator port … prevents test-time fixtures." | `IdGenerator.generate()`                    | `DetectorContext.ids`   |
+| `Math.random` (member)   | "Engine code must inject a seedable Rng port … breaks determinism and replay." | `Rng.random()`                              | explicit `rng` param    |
 
-| Subagent | Always fires when... |
-|---|---|
-| `c1-c10-auditor` | persistence, network, dependency, or new top-level UI changes |
-| `bundle-watcher` | `package.json` or `package-lock.json` changes; large feature merges |
-| `validator-parity-checker` | `src/validators/*.ts` changes |
-| `a11y-auditor` | new interactive components or scene-level UI additions |
-| `engine-determinism-auditor` | `src/engine/**` changes (NEW) |
-| `curriculum-byte-parity` | curriculum bundle files changed (NEW) |
+Each rule references `PLANS/forensic-deep-dive-2026-05-01.md` §1.5 / §4.2 / Phase 4.4 for context.
 
-**Acceptance:** Both new subagents drop into `.claude/agents/` as `.md` files following the existing agent-definition convention. The CLAUDE.md trigger table is up-to-date.
+Prior PRs that established or applied this pattern (cite when relevant):
+- **PR #16** introduced the `Rng` port + first `Math.random` removal in selection logic.
+- **PR #17** introduced `Clock` and `IdGenerator` ports and threaded `DetectorContext`.
+- **PR #29** converted misconception detectors to a rules-data interpreter that consumes the same context — the canonical example for new engine code.
+
+## Process
+
+1. Identify the diff scope: `git diff --name-only main...HEAD -- 'src/engine/**'`. If empty, report "no engine changes" and stop.
+2. For every changed engine file (excluding `src/engine/ports.ts`), grep for the three forbidden patterns:
+   ```bash
+   git diff main...HEAD -- 'src/engine/**' | grep -nE '\b(Math\.random|Date\.now|crypto\.randomUUID)\b'
+   ```
+   Also scan added lines for indirect leaks: `new Date()` (use `clock.now()`), `performance.now()` (use `clock.monotonic()`), `Math.floor(Math.random()*n)` (still `Math.random`).
+3. For every hit, locate the surrounding function/class and determine which port should be injected. If the function does not yet receive a `DetectorContext` or `rng` parameter, the fix is two-step (thread the dep through the call site, then consume).
+4. Confirm `src/engine/ports.ts` itself is unchanged — or, if it changed, note that adapters in `src/lib/adapters/` and the composition root in `src/main.ts` must be updated in lockstep.
+5. Sanity-run the engine ESLint slice locally if the environment allows: `npx eslint 'src/engine/**/*.ts' --max-warnings 0`. Surface the verbatim ESLint message alongside the structured advisory.
+
+## Report format
+
+```
+## Engine Determinism Audit — <scope>
+
+### Violations
+- <file:line> — `<offending call>` inside `<function/class>`
+  - Port to inject: <Clock|IdGenerator|Rng>  (member: clock.now / ids.generate / rng.random)
+  - Threading: <already has DetectorContext> | <needs DetectorContext added to signature> | <needs explicit rng param>
+  - Reference: PR #<16|17|29>
+
+### Near-misses (advisory)
+- <file:line> — `new Date()` / `performance.now()` / etc. — prefer the Clock port for symmetry.
+
+### Verified clean
+- <files scanned with no host-global calls>
+
+### Action required
+1. <minimal patch description per violation>
+2. <if signature change needed> Update call sites: <list>
+3. Re-run `npx eslint 'src/engine/**/*.ts' --max-warnings 0` to confirm.
+```
+
+Read and report only — never edit the engine files. If the diff has no engine changes, say so plainly in one line.
+```
+
+### 3.2 New file: `.claude/agents/curriculum-byte-parity.md`
+
+```markdown
+---
+name: curriculum-byte-parity
+description: Confirms public/curriculum/v1.json and src/curriculum/bundle.json are byte-identical (sha256 match). Use whenever a diff touches either curriculum bundle file or pipeline output.
+tools: Read, Bash, Grep
+---
+
+You are the curriculum byte-parity auditor. The runtime fetches `public/curriculum/v1.json`; the static-import fallback uses `src/curriculum/bundle.json`. They MUST be byte-identical, and the only sanctioned writer is `npm run build:curriculum` (which is also wired as `prebuild` in `package.json`). Hand-edits silently desync the two bundles and produce loader behavior that depends on which path Vite resolves first.
+
+References:
+- Root `CLAUDE.md` → "Architecture" → curriculum dual-file rule.
+- `.claude/learnings.md` 2026-04-30 setup entry: *"Curriculum lives in TWO files … They MUST be byte-identical — only `npm run build:curriculum` writes them."*
+
+## Process
+
+1. Identify the trigger: `git diff --name-only main...HEAD | grep -E '^(public/curriculum/v1\.json|src/curriculum/bundle\.json|pipeline/output/)'`. If empty, report "no curriculum changes" and stop.
+2. Compute and compare hashes on the working tree:
+   ```bash
+   PUB=$(sha256sum public/curriculum/v1.json | awk '{print $1}')
+   SRC=$(sha256sum src/curriculum/bundle.json | awk '{print $1}')
+   echo "public: $PUB"
+   echo "src:    $SRC"
+   [ "$PUB" = "$SRC" ] && echo "MATCH" || echo "DRIFT"
+   ```
+3. If `DRIFT`: also compare sizes (`wc -c`) and the top-level keys (`jq -r 'keys[]' <file> | sort | diff …`) so the report names what diverged (whole-file vs. key-set vs. tail-bytes).
+4. If `DRIFT`: confirm whether either side was hand-edited by checking the diff for both files. A diff on only one of the two is the typical fingerprint.
+5. Run `npm run validate:curriculum` to confirm the schema is at least intact on both copies (catches the case where an editor saved a half-broken JSON).
+
+## Report format
+
+```
+## Curriculum Byte-Parity Audit
+
+### Hashes
+- public/curriculum/v1.json:   <sha256>  (<bytes> B)
+- src/curriculum/bundle.json:  <sha256>  (<bytes> B)
+- Result: MATCH | DRIFT
+
+### Schema validation
+- npm run validate:curriculum: PASS | FAIL — <error>
+
+### Diff fingerprint (only if DRIFT)
+- Files changed in PR: <one-of-two | both>
+- Top-level keys diverging: <list, or "identical key-set; payload differs">
+
+### Action required (only if DRIFT)
+- DO NOT hand-edit either file. Run:
+    npm run build:curriculum
+  This is the only sanctioned writer (also runs as `prebuild`). It regenerates BOTH files from `pipeline/output/`.
+- After regeneration, re-run this auditor to confirm MATCH.
+- Per root CLAUDE.md curriculum dual-file rule and `.claude/learnings.md` 2026-04-30.
+```
+
+Read and report only — never write either curriculum file directly. The single allowed remediation is the documented npm script.
+```
+
+### 3.3 CLAUDE.md trigger-table replacement
+
+Replace the current "Specialist subagents" section in root `CLAUDE.md` with:
+
+```markdown
+## Specialist subagents (in `.claude/agents/`)
+
+Delegate to these via the Agent tool when scope warrants. Auto-fire triggers (Phase 4 wires CI to match):
+
+| Subagent                       | Auto-fires when…                                                              |
+|--------------------------------|-------------------------------------------------------------------------------|
+| `c1-c10-auditor`               | persistence, network, dependency, or new top-level UI changes                |
+| `bundle-watcher`               | `package.json` / `package-lock.json` change; large feature merge             |
+| `validator-parity-checker`     | any `src/validators/*.ts` change                                             |
+| `a11y-auditor`                 | new interactive component or scene-level UI addition                         |
+| `engine-determinism-auditor`   | any `src/engine/**` change (excluding `src/engine/ports.ts`)                 |
+| `curriculum-byte-parity`       | `public/curriculum/v1.json` or `src/curriculum/bundle.json` (or pipeline output) changes |
+```
+
+### 3.4 Acceptance for Phase 3
+
+- Both new subagent files exist at `.claude/agents/engine-determinism-auditor.md` and `.claude/agents/curriculum-byte-parity.md`.
+- `node scripts/agent-doctor.mjs` exits 0 (frontmatter validates).
+- A test PR introducing `Math.random()` in `src/engine/router.ts` produces an `engine-determinism-auditor` finding citing the file and line.
+- Root CLAUDE.md "Specialist subagents" table lists all 6 agents with trigger conditions.
 
 **Effort:** 3 hr.
 
