@@ -29,7 +29,7 @@
  * In production builds (import.meta.env.PROD) only WARN/ERROR are emitted.
  */
 
-import { logger } from './observability';
+import { errorReporter, logger } from './observability';
 
 const START = Date.now();
 
@@ -58,7 +58,7 @@ function ts(): string {
   return `+${(ms / 1000).toFixed(3)}s`;
 }
 
-type ConsoleFn = 'log' | 'warn' | 'error';
+type ConsoleFn = 'log' | 'warn' | 'error' | 'fatal';
 
 const STYLES: Record<string, string> = {
   SCENE: 'color:#7c3aed;font-weight:700',
@@ -82,7 +82,16 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
   // Always log to observability logger (it handles its own filtering/consent)
   const logData =
     typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined;
-  if (fn === 'error') {
+  if (fn === 'fatal') {
+    // Phase 12.4: `fatal` is the session-ending severity. Route through
+    // `errorReporter.report()` so Sentry capture happens unconditionally
+    // (no consent gate — fatals are the user's last breadcrumb of a crash
+    // they cannot opt out of). errorReporter.report() forwards to
+    // logger.error() under the hood for the local ring buffer / console.
+    const err = data instanceof Error ? data : new Error(event);
+    const ctx = logData !== undefined ? { category, ...logData } : { category };
+    errorReporter.report(err, ctx);
+  } else if (fn === 'error') {
     if (logData !== undefined) {
       logger.error(event, { category, data: logData });
     } else {
@@ -102,17 +111,20 @@ function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): v
     }
   }
 
-  if (!enabled) return;
+  if (!enabled && fn !== 'fatal') return;
 
   const cat = category.toUpperCase().padEnd(5);
   const style = STYLES[cat.trim()] ?? 'color:#374151;font-weight:700';
   const prefix = `%c[${ts()}] ${cat}%c ${event}`;
   const reset = 'color:inherit;font-weight:normal';
 
+  // Console: `fatal` lands on console.error so it's visible even when LOG=off.
+  const consoleFn: 'log' | 'warn' | 'error' = fn === 'fatal' ? 'error' : fn;
+
   if (data !== undefined) {
-    (console[fn] as (...a: unknown[]) => void)(prefix, style, reset, data);
+    (console[consoleFn] as (...a: unknown[]) => void)(prefix, style, reset, data);
   } else {
-    (console[fn] as (...a: unknown[]) => void)(prefix, style, reset);
+    (console[consoleFn] as (...a: unknown[]) => void)(prefix, style, reset);
   }
 }
 
@@ -133,6 +145,13 @@ export const log = {
   perf: (event: string, data?: unknown) => emit('log', 'PERF', event, data),
   warn: (category: string, event: string, data?: unknown) => emit('warn', category, event, data),
   error: (category: string, event: string, data?: unknown) => emit('error', category, event, data),
+  /**
+   * Phase 12.4 — session-ending severity. Always invokes
+   * `errorReporter.report()` so Sentry receives the event when initialized,
+   * regardless of telemetry-consent state (a crash is by definition not
+   * something the user can opt out of breadcrumbing).
+   */
+  fatal: (category: string, event: string, data?: unknown) => emit('fatal', category, event, data),
 };
 
 // Expose globally for console-based inspection during dev
