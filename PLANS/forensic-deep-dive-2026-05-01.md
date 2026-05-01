@@ -8,7 +8,7 @@
 
 ## Why this file exists
 
-`code-quality-2026-05-01.md` v3 contains a 16-phase tactical plan plus a forensic synthesis (§12) proposing a 4-stage migration to a hexagonal + event-sourced Ideal State. That file is now 1189 lines.
+`code-quality-2026-05-01.md` v3 contains a 16-phase tactical plan plus a forensic synthesis (§12) proposing a 4-stage migration to a hexagonal + event-sourced Ideal State. That file is already substantial.
 
 **This file is not a continuation of v3** — it is a deeper, more honest re-examination of three questions v3 only partly answered:
 
