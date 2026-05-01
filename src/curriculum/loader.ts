@@ -10,6 +10,13 @@
  *     the request). This does NOT activate for non-TypeError errors so test mocks that
  *     throw `new Error(...)` still receive a graceful empty result, preserving the
  *     existing test contract.
+ *
+ * Phase 11.2: when fetch fails AND the bundled fallback can't recover the data
+ * (e.g. service-worker cache miss while offline), the loader emits
+ * `curriculumLoadFailed` on `loaderEvents` and stores the detail on a
+ * module-level slot so scenes that mount after boot can still discover the
+ * failure. The exported function signature is unchanged — callers that don't
+ * subscribe still receive the same empty bundle as before.
  */
 
 import type {
@@ -24,6 +31,55 @@ import type {
   HintTemplate,
 } from '@/types';
 import bundledData from './bundle.json';
+import { safeParseQuestionTemplate } from './schemas';
+import { log } from '../lib/log';
+
+// ── Phase 11.2 — failure-signal channel ─────────────────────────────────────
+
+export type CurriculumLoadFailureReason = 'network' | 'fallback_parse' | 'http_error';
+
+export interface CurriculumLoadFailedDetail {
+  reason: CurriculumLoadFailureReason;
+  url: string;
+  message: string;
+}
+
+/**
+ * Lightweight EventTarget rather than a Phaser emitter so this module remains
+ * Phaser-free (the loader also runs in Node/Vitest). Scenes subscribe with
+ * `loaderEvents.addEventListener('curriculumLoadFailed', …)` and unsubscribe
+ * in `shutdown()` to avoid leaks.
+ */
+export const loaderEvents: EventTarget =
+  typeof EventTarget !== 'undefined' ? new EventTarget() : ({} as EventTarget);
+
+let lastFailure: CurriculumLoadFailedDetail | null = null;
+
+/**
+ * Most recent boot-time failure detail, or `null` if the last load succeeded
+ * or hasn't run. Boot-time failures fire before scene listeners exist, so
+ * scenes also poll this on mount.
+ */
+export function getLastCurriculumLoadFailure(): CurriculumLoadFailedDetail | null {
+  return lastFailure;
+}
+
+/** Reset the cached failure (e.g. after the toast has been shown). */
+export function clearLastCurriculumLoadFailure(): void {
+  lastFailure = null;
+}
+
+function emitFailure(detail: CurriculumLoadFailedDetail): void {
+  lastFailure = detail;
+  if (typeof CustomEvent === 'undefined' || typeof loaderEvents.dispatchEvent !== 'function') {
+    return;
+  }
+  try {
+    loaderEvents.dispatchEvent(new CustomEvent('curriculumLoadFailed', { detail }));
+  } catch {
+    /* dispatch failure is non-fatal — `lastFailure` still records it */
+  }
+}
 
 export interface CurriculumBundle {
   version: number;
@@ -72,23 +128,25 @@ function makeEmpty(): ParsedBundle {
   };
 }
 
-/** R19: Validate that a QuestionTemplate has required fields before use. */
-function isValidTemplate(row: unknown): row is QuestionTemplate {
-  if (!row || typeof row !== 'object') return false;
-  const t = row as Record<string, unknown>;
-  const promptValid =
-    typeof t.prompt === 'string' ||
-    (typeof t.prompt === 'object' &&
-      t.prompt !== null &&
-      typeof (t.prompt as Record<string, unknown>).text === 'string');
-  return (
-    typeof t.id === 'string' &&
-    promptValid &&
-    t.payload != null &&
-    typeof t.validatorId === 'string' &&
-    Array.isArray(t.skillIds) &&
-    t.skillIds.length > 0
-  );
+/**
+ * Phase 7.4 / harden R19: Zod-backed per-row validator for QuestionTemplate.
+ * Replaces a hand-rolled structural guard with the canonical schema in
+ * `./schemas.ts`. Failures are emitted via the structured `log.warn`
+ * (category 'CURRICULUM') so a future telemetry pipeline can surface them
+ * without a code change. Returns the input row narrowed on success.
+ */
+function validateTemplateRow(row: unknown): row is QuestionTemplate {
+  const result = safeParseQuestionTemplate(row);
+  if (result.ok) return true;
+  const id =
+    row && typeof row === 'object' && 'id' in row && typeof (row as { id: unknown }).id === 'string'
+      ? (row as { id: string }).id
+      : '<unknown>';
+  log.warn('CURRICULUM', 'questionTemplate.invalid', {
+    id,
+    issues: result.message,
+  });
+  return false;
 }
 
 /**
@@ -131,13 +189,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
 
   // Parse comprehensive format (preferred)
   if (bundle.questionTemplates || bundle.skills) {
-    const validatedTemplates = (bundle.questionTemplates ?? []).filter((row) => {
-      if (!isValidTemplate(row)) {
-        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
-        return false;
-      }
-      return true;
-    });
+    const validatedTemplates = (bundle.questionTemplates ?? []).filter(validateTemplateRow);
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: bundle.curriculumPacks ?? [],
@@ -155,13 +207,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
   // Parse legacy format (levels: {level -> QuestionTemplate[]})
   if (bundle.levels && typeof bundle.levels === 'object') {
     const allTemplates = Object.values(bundle.levels).flat();
-    const validatedTemplates = allTemplates.filter((row) => {
-      if (!isValidTemplate(row)) {
-        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
-        return false;
-      }
-      return true;
-    });
+    const validatedTemplates = allTemplates.filter(validateTemplateRow);
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: [],
@@ -200,6 +246,12 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
       console.warn(
         `[loadCurriculumBundle] Fetch returned ${response.status} for ${url} — skipping seed`
       );
+      // Phase 11.2: signal the HTTP error so scenes can render a toast.
+      emitFailure({
+        reason: 'http_error',
+        url,
+        message: `HTTP ${response.status}`,
+      });
       return empty;
     }
 
@@ -220,11 +272,26 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
         return parseBundle(bundledData as CurriculumBundle, empty);
       } catch (parseErr) {
         console.warn('[loadCurriculumBundle] Bundled curriculum parse failed:', parseErr);
+        // Phase 11.2: only emit when the static fallback is also unusable —
+        // i.e. the level genuinely isn't available offline. The TypeError +
+        // valid bundled-fallback path stays silent because the player can
+        // still play.
+        emitFailure({
+          reason: 'fallback_parse',
+          url,
+          message: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        });
       }
     } else {
       // Non-TypeError (e.g., explicit Error thrown by test mocks, JSON parse errors).
       // Degrade gracefully without falling back — preserves test contract.
       console.warn('[loadCurriculumBundle] Failed to load curriculum bundle:', err);
+      // Phase 11.2: still emit so any subscriber can react.
+      emitFailure({
+        reason: 'network',
+        url,
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
     return empty;
   }

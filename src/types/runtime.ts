@@ -296,6 +296,25 @@ export interface DeviceMeta {
   /** Always 0 during MVP. */
   pendingSyncCount: number;
   syncState: SyncState;
+  /**
+   * Whether the user has completed the onboarding flow at least once on this
+   * device. Replaces the `questerix.onboardingSeen` localStorage key (C5).
+   * Defaults to `false` for new installs and for v6→v7 upgrades that lack the field.
+   */
+  onboardingComplete: boolean;
+}
+
+// ── StreakRecord ───────────────────────────────────────────────────────────
+
+/**
+ * Daily-play streak counter, one row per student.
+ * Replaces the `questerix.streak:${studentId}` localStorage key (C5).
+ * `studentId` is the primary key; `lastDate` is ISO YYYY-MM-DD.
+ */
+export interface StreakRecord {
+  studentId: StudentId;
+  count: number;
+  lastDate: string;
 }
 
 // ── Bookmark ───────────────────────────────────────────────────────────────

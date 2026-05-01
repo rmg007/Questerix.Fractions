@@ -41,6 +41,10 @@ import { Mascot } from '../components/Mascot';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
+import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
+import { withSpan } from '../lib/observability/withSpan';
+import { tracerService } from '../lib/observability/tracer';
+import { SPAN_NAMES } from '../lib/observability/span-names';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -125,6 +129,14 @@ export class LevelScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    return withSpan(
+      SPAN_NAMES.SCENE.CREATE,
+      { 'scene.name': 'LevelScene', 'scene.level': this.levelNumber },
+      () => this._createImpl()
+    );
+  }
+
+  private async _createImpl(): Promise<void> {
     log.scene('create_start', { level: this.levelNumber });
     TestHooks.unmountAll();
 
@@ -138,6 +150,21 @@ export class LevelScene extends Phaser.Scene {
 
     // Load templates
     await this.loadTemplates();
+
+    // Phase 11.2 — offline-curriculum affordance.
+    // If the boot-time curriculum fetch failed AND we have no usable templates,
+    // surface a user-facing toast and fall back to MenuScene rather than
+    // entering the synthetic-fallback path silently.
+    const loadFailure = getLastCurriculumLoadFailure();
+    if (loadFailure && this.templatePool.length === 0) {
+      log.warn('TMPL', 'offline_uncached', {
+        level: this.levelNumber,
+        reason: loadFailure.reason,
+      });
+      clearLastCurriculumLoadFailure();
+      this.showOfflineCurriculumToast();
+      return;
+    }
 
     // Open session record
     await this.openSession();
@@ -209,6 +236,51 @@ export class LevelScene extends Phaser.Scene {
     }
 
     this.loadQuestion(0);
+  }
+
+  // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
+
+  /**
+   * Render a non-blocking toast informing the player that this level isn't
+   * available offline. Auto-dismisses to MenuScene after ~3.5s. No existing
+   * toast component lives in `src/components/` yet, so we paint the panel
+   * directly with Phaser primitives — keeps the diff small while still
+   * giving a clear, kid-friendly affordance.
+   */
+  private showOfflineCurriculumToast(): void {
+    const cx = CW / 2;
+    const cy = CH / 2;
+    const TOAST_DEPTH = 2000;
+    const message = "This level isn't available offline yet — please connect to download";
+
+    const panel = this.add
+      .rectangle(cx, cy, CW - 80, 220, NAVY, 0.94)
+      .setDepth(TOAST_DEPTH)
+      .setStrokeStyle(3, PATH_BLUE, 1);
+
+    const text = this.add
+      .text(cx, cy, message, {
+        fontSize: '24px',
+        fontFamily: BODY_FONT,
+        color: '#FFFFFF',
+        align: 'center',
+        wordWrap: { width: CW - 140 },
+      })
+      .setOrigin(0.5)
+      .setDepth(TOAST_DEPTH + 1);
+
+    // Test sentinel + a11y mirror so screen readers and Playwright pick it up.
+    TestHooks.mountSentinel('offline-curriculum-toast');
+    TestHooks.setText('offline-curriculum-toast', message);
+
+    const dismiss = (): void => {
+      panel.destroy();
+      text.destroy();
+      TestHooks.unmount('offline-curriculum-toast');
+      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
+    };
+
+    this.time.delayedCall(3500, dismiss);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────
@@ -557,7 +629,15 @@ export class LevelScene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
-    await this.recordAttempt(result, responseMs);
+    await withSpan(
+      SPAN_NAMES.QUESTION.SUBMIT,
+      {
+        'question.archetype': this.currentTemplate.archetype,
+        'question.outcome': result.outcome,
+        'scene.level': this.levelNumber,
+      },
+      () => this.recordAttempt(result, responseMs)
+    );
     this.showOutcome(result);
   }
 
@@ -759,14 +839,23 @@ export class LevelScene extends Phaser.Scene {
 
   private onHintRequest(): void {
     const tier = this.hintLadder.next();
-    log.hint('request', {
-      tier,
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
+    const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
+      'hint.tier': tier,
+      'scene.level': this.levelNumber,
+      'question.archetype': this.currentTemplate?.archetype,
     });
-    this.mascot?.setState('think');
-    void this.showHintForTier(tier);
+    try {
+      log.hint('request', {
+        tier,
+        level: this.levelNumber,
+        questionIndex: this.questionIndex,
+        wrongCount: this.wrongCount,
+      });
+      this.mascot?.setState('think');
+      void this.showHintForTier(tier);
+    } finally {
+      span.end();
+    }
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
@@ -904,11 +993,28 @@ export class LevelScene extends Phaser.Scene {
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
     if (!this.studentId || !this.sessionId) return;
+
+    const studentIdTyped = this.studentId as import('@/types').StudentId;
+    const sessionIdTyped = this.sessionId as import('@/types').SessionId;
+
+    // Phase 6.3: wrap attempt + mastery in a single Dexie transaction so
+    // partial state (attempt persisted but mastery not updated, or vice versa)
+    // is impossible. Misconception detection stays separate / best-effort —
+    // detector failures must not roll back the attempt itself.
     try {
+      const { db } = await import('../persistence/db');
       const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+      const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
       const attemptId = crypto.randomUUID() as import('@/types').AttemptId;
+      const isCorrect = result.outcome === 'correct';
+      const skillIds = this.currentTemplate.skillIds ?? [];
+      const skillId = (skillIds[0] ??
+        `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
+
       log.atmp('record_start', {
         attemptId,
         outcome,
@@ -916,44 +1022,35 @@ export class LevelScene extends Phaser.Scene {
         questionId: this.currentTemplate.id,
         hintsUsed: this.currentQuestionHintIds.length,
       });
-      await attemptRepo.record({
-        id: attemptId,
-        sessionId: this.sessionId as import('@/types').SessionId,
-        studentId: this.studentId as import('@/types').StudentId,
-        questionTemplateId: this.currentTemplate.id,
-        archetype: this.currentTemplate.archetype,
-        roundNumber: this.questionIndex + 1,
-        attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
-        startedAt: Date.now() - responseMs,
-        submittedAt: Date.now(),
-        responseMs,
-        studentAnswerRaw: this.lastPayload,
-        correctAnswerRaw: null,
-        outcome,
-        errorMagnitude: null,
-        pointsEarned: result.score,
-        hintsUsedIds: [...this.currentQuestionHintIds],
-        hintsUsed: [],
-        roundEvents: [...this.currentRoundEvents],
-        flaggedMisconceptionIds: [],
-        validatorPayload: result,
-        syncState: 'local',
-      });
 
-      // Fix G-E1: update BKT mastery after every attempt
-      try {
-        const isCorrect = result.outcome === 'correct';
-        const skillIds = this.currentTemplate.skillIds ?? [];
-        const skillId = (skillIds[0] ??
-          `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
-        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
-        const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+      await db.transaction('rw', [db.attempts, db.skillMastery], async () => {
+        await attemptRepo.record({
+          id: attemptId,
+          sessionId: sessionIdTyped,
+          studentId: studentIdTyped,
+          questionTemplateId: this.currentTemplate.id,
+          archetype: this.currentTemplate.archetype,
+          roundNumber: this.questionIndex + 1,
+          attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
+          startedAt: Date.now() - responseMs,
+          submittedAt: Date.now(),
+          responseMs,
+          studentAnswerRaw: this.lastPayload,
+          correctAnswerRaw: null,
+          outcome,
+          errorMagnitude: null,
+          pointsEarned: result.score,
+          hintsUsedIds: [...this.currentQuestionHintIds],
+          hintsUsed: [],
+          roundEvents: [...this.currentRoundEvents],
+          flaggedMisconceptionIds: [],
+          validatorPayload: result,
+          syncState: 'local',
+        });
 
-        const existing = await skillMasteryRepo.get(
-          this.studentId as import('@/types').StudentId,
-          skillId
-        );
-        const studentIdTyped = this.studentId as import('@/types').StudentId;
+        // Fix G-E1: update BKT mastery after every attempt — same transaction
+        // as the attempt write so they are atomic.
+        const existing = await skillMasteryRepo.get(studentIdTyped, skillId);
         const prev: import('@/types').SkillMastery = existing ?? {
           studentId: studentIdTyped,
           skillId,
@@ -991,36 +1088,49 @@ export class LevelScene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
-      } catch (err) {
-        log.warn('BKT', 'mastery_update_error', { level: this.levelNumber, error: String(err) });
-      }
+      });
+    } catch (err) {
+      // Transaction rolled back. Don't run detectors on a non-durable attempt.
+      log.error('ATMP', 'record_failed', { error: String(err) });
+      return;
+    }
 
-      // C7.2: Run misconception detectors and upsert flags
-      try {
-        const recentAttempts = await attemptRepo.listForStudent(
-          this.studentId as import('@/types').StudentId
-        );
-        // Limit to recent 10 for performance
-        const limitedAttempts = recentAttempts.slice(-10);
-        const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
+    // C7.2: Run misconception detectors and upsert flags. Best-effort —
+    // detector failures must not roll back the attempt+mastery transaction
+    // above (per Phase 6.3 design). Wrapped in its own transaction so the
+    // flag writes are atomic with each other.
+    try {
+      const { db } = await import('../persistence/db');
+      const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const recentAttempts = await attemptRepo.listForStudent(
+        this.studentId as import('@/types').StudentId
+      );
+      // Limit to recent 10 for performance
+      const limitedAttempts = recentAttempts.slice(-10);
+      const { runAllDetectors } = await import('../engine/misconceptionDetectors');
+      const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+        await import('../lib/adapters');
+      const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
+        clock: SystemClock,
+        ids: CryptoUuidGenerator,
+        logger: ConsoleEngineLogger,
+      });
 
-        if (flags.length > 0) {
-          const { misconceptionFlagRepo } =
-            await import('../persistence/repositories/misconceptionFlag');
+      if (flags.length > 0) {
+        const { misconceptionFlagRepo } =
+          await import('../persistence/repositories/misconceptionFlag');
+        await db.transaction('rw', [db.misconceptionFlags], async () => {
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
-          log.misc('flags_detected', {
-            count: flags.length,
-            ids: flags.map((f) => f.misconceptionId),
-          });
-        }
-      } catch (err) {
-        log.warn('MISC', 'detection_error', { error: String(err) });
+        });
+        log.misc('flags_detected', {
+          count: flags.length,
+          ids: flags.map((f) => f.misconceptionId),
+        });
       }
     } catch (err) {
-      log.error('ATMP', 'record_failed', { error: String(err) });
+      log.warn('MISC', 'detection_error', { error: String(err) });
     }
   }
 
@@ -1100,9 +1210,7 @@ export class LevelScene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId(`level_${this.levelNumber}`);
@@ -1140,8 +1248,7 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy =
-        this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
+      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
@@ -1190,8 +1297,19 @@ export class LevelScene extends Phaser.Scene {
 
   preDestroy(): void {
     log.scene('destroy', { level: this.levelNumber });
-    AccessibilityAnnouncer.destroy();
+    // R7: destroy all managed components to prevent memory leaks and dangling listeners.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, hint
+    // pulse tween) require explicit cleanup. killAll() catches any in-flight tween
+    // (badge bounce, hint pulse) when the scene shuts down.
+    this.tweens.killAll();
     this.activeInteraction?.unmount();
+    this.feedbackOverlay?.destroy();
+    this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
+    AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();
   }

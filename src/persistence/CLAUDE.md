@@ -26,6 +26,13 @@ All progression data lives here. localStorage is **not** an option (C5).
 4. Re-export from `repositories/index.ts` if you have one, or wire callers directly.
 5. Add unit tests; use `fake-indexeddb/auto` to set up a real Dexie instance in tests.
 
-## Known C5 deviation
+## C5 status
 
-`MenuScene.ts` and `LevelMapScene.ts` currently read/write `unlockedLevels:<studentId>` and `completedLevels:<studentId>` keys in localStorage. This is a TODO: those should move to a Dexie `progressionStat` row. Until then, do not extend the localStorage usage further.
+As of 2026-05-01, all known localStorage uses outside the documented `lastUsedStudentId` exception have been migrated to IndexedDB:
+
+- `unlockedLevels:<studentId>` and `completedLevels:<studentId>` — migrated to `levelProgression` table (v6)
+- `questerix.streak:<studentId>` — migrated to `streakRecord` table (v7)
+- `questerix.onboardingSeen` — migrated to `DeviceMeta.onboardingComplete` field (v7)
+- `DEBUG_VITALS` (dev flag) — moved to `sessionStorage` (session-scoped, not progress data)
+
+Migration is handled by upgrade callbacks in `db.ts` (best-effort; tolerates absent localStorage). Run `/c5-check` to verify the constraint holds — only `lastUsedStudentId` should appear.

@@ -231,19 +231,17 @@ Full strategy: `docs/30-architecture/test-strategy.md`
 
 ---
 
-## Active bugs (as of 2026-04-30)
+## Active bugs (as of 2026-05-01)
 
-All 5 Sprint 0 bugs confirmed fixed in `Level01Scene.ts` (see inline `Fix N (BUG-XX)` comments):
+**No active Sprint 0 bugs.** All 5 (BUG-01, BUG-02, BUG-04, G-E1, G-C7) verified fixed against the current `Level01Scene.ts`:
 
-| ID     | Symptom | Status |
-|--------|---------|--------|
-| BUG-01 | Wrong prompt — "identify" archetype shown on a "partition" scene | **FIXED** — filter enforces `archetype === 'partition'` |
-| BUG-02 | Validation never passes — progress stuck at 0/5 | **FIXED** — validator registry wired via `validatorId` |
-| BUG-04 | Hint tiers never advance past Tier 1 | **FIXED** — `hintLadder.next()` called on each wrong attempt |
-| G-E1   | `updateMastery()` never called — BKT built but wired to nothing | **FIXED** — called after every attempt commit |
-| G-C7   | "Keep going" loops L1 instead of advancing to L2 (`LevelScene.ts`) | **FIXED** — `fadeAndStart` to `LevelScene { levelNumber: 2 }` |
+- BUG-01: filtered to partition archetype at `Level01Scene.ts:231` (`// Fix 1 (BUG-01)`)
+- BUG-02: progress increment + session-complete check land in correct order at `Level01Scene.ts:1058,1105-1106,1114`
+- BUG-04: hint tiers advance via `hintLadder.next()` at `Level01Scene.ts:1125-1135` (`// Fix 3 (BUG-04)`)
+- G-E1: `updateMastery()` is called at `Level01Scene.ts:1348-1369`
+- G-C7: "Play Again" routes through `LevelScene { levelNumber: ... }` at `Level01Scene.ts:1518,1542` — no longer re-enters `Level01Scene` directly
 
-Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab. **Met.**
+Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab.
 
 ---
 

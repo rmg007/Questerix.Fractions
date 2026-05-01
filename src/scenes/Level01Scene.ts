@@ -41,6 +41,9 @@ import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
+import { withSpan } from '../lib/observability/withSpan';
+import { tracerService } from '../lib/observability/tracer';
+import { SPAN_NAMES } from '../lib/observability/span-names';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -206,6 +209,14 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    return withSpan(
+      SPAN_NAMES.SCENE.CREATE,
+      { 'scene.name': 'Level01Scene', 'scene.level': 1 },
+      () => this._createImpl()
+    );
+  }
+
+  private async _createImpl(): Promise<void> {
     log.scene('create_start');
     // Clear any stale sentinels from prior scenes
     TestHooks.unmountAll();
@@ -260,21 +271,16 @@ export class Level01Scene extends Phaser.Scene {
         'Sorry, we could not start your session. Please reload the page.'
       );
       this.add
-        .text(
-          CW / 2,
-          CH / 2,
-          'Could not start session.\nPlease reload the page.',
-          {
-            fontSize: '24px',
-            fontFamily: BODY_FONT,
-            fontStyle: 'bold',
-            color: '#b91c1c',
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            padding: { x: 20, y: 14 },
-            align: 'center',
-            wordWrap: { width: 600 },
-          }
-        )
+        .text(CW / 2, CH / 2, 'Could not start session.\nPlease reload the page.', {
+          fontSize: '24px',
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          color: '#b91c1c',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: { x: 20, y: 14 },
+          align: 'center',
+          wordWrap: { width: 600 },
+        })
         .setOrigin(0.5)
         .setDepth(100);
       // Block play — do not proceed with UI or question loading.
@@ -969,8 +975,19 @@ export class Level01Scene extends Phaser.Scene {
       attemptNumber: this.wrongCount + 1,
     });
 
+    // C6: persist before showing feedback. If recordAttempt fails (quota,
+    // schema), the user must not see "Correct!" on a never-recorded answer.
+    // Mirrors LevelScene.ts:560-561.
+    await withSpan(
+      SPAN_NAMES.QUESTION.SUBMIT,
+      {
+        'question.archetype': 'partition',
+        'question.outcome': result.outcome,
+        'scene.level': 1,
+      },
+      () => this.recordAttempt(result, responseMs, input)
+    );
     this.showOutcome(result);
-    await this.recordAttempt(result, responseMs, input);
   }
 
   /**
@@ -1148,9 +1165,18 @@ export class Level01Scene extends Phaser.Scene {
     // Fix 3 (BUG-04): hintLadder.next() advances the index each call (capped at max tier).
     // The HintLadder class owns this logic; we just ensure we call next() once per press.
     const tier = this.hintLadder.next();
-    log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
-    this.mascot?.setState('think');
-    void this.showHintForTierAndRecord(tier);
+    const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
+      'hint.tier': tier,
+      'scene.level': 1,
+      'question.archetype': 'partition',
+    });
+    try {
+      log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });
+      this.mascot?.setState('think');
+      void this.showHintForTierAndRecord(tier);
+    } finally {
+      span.end();
+    }
   }
 
   /**
@@ -1307,12 +1333,28 @@ export class Level01Scene extends Phaser.Scene {
   ): Promise<void> {
     if (!this.studentId || !this.sessionId) return;
 
+    const studentIdTyped = this.studentId as import('@/types').StudentId;
+    const sessionIdTyped = this.sessionId as import('@/types').SessionId;
+
+    let masteryEstimate: number | null = null;
+
+    // Phase 6.3: wrap attempt + hint-link + mastery in a single Dexie transaction
+    // so partial state is impossible. The attempt, the hint events linked to it,
+    // and the BKT mastery update either all commit or all roll back. Misconception
+    // detection runs separately (best-effort) so detector failures don't roll back.
     try {
+      const { db } = await import('../persistence/db');
       const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
+      const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
+      const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
+
       const outcome: import('@/types').AttemptOutcome =
         result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
-
       const attemptId = crypto.randomUUID() as import('@/types').AttemptId;
+      const isCorrect = outcome === 'EXACT';
+      const skillId = 'skill.partition_halves' as import('@/types').SkillId;
+
       log.atmp('record_start', {
         attemptId,
         outcome,
@@ -1321,61 +1363,47 @@ export class Level01Scene extends Phaser.Scene {
         hintsUsed: this.currentQuestionHintIds.length,
       });
 
-      await attemptRepo.record({
-        id: attemptId,
-        sessionId: this.sessionId as import('@/types').SessionId,
-        studentId: this.studentId as import('@/types').StudentId,
-        questionTemplateId: this.currentQuestion.id as import('@/types').QuestionTemplateId,
-        archetype: 'partition' as import('@/types').ArchetypeId,
-        roundNumber: this.questionIndex + 1,
-        attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
-        startedAt: Date.now() - responseMs,
-        submittedAt: Date.now(),
-        responseMs,
-        studentAnswerRaw: input,
-        correctAnswerRaw: null,
-        outcome,
-        errorMagnitude: null,
-        pointsEarned: result.score,
-        // Fix 6 (G-E3): real hint IDs accumulated during this question
-        hintsUsedIds: [...this.currentQuestionHintIds],
-        hintsUsed: [],
-        flaggedMisconceptionIds: [],
-        validatorPayload: result,
-        payload: {
-          shapeType: this.currentQuestion.shapeType,
-          targetPartitions: 2,
-          snapMode: this.currentQuestion.snapMode,
-          areaTolerance: this.currentQuestion.areaTolerance,
-        },
-        syncState: 'local',
-      });
+      await db.transaction('rw', [db.attempts, db.hintEvents, db.skillMastery], async () => {
+        await attemptRepo.record({
+          id: attemptId,
+          sessionId: sessionIdTyped,
+          studentId: studentIdTyped,
+          questionTemplateId: this.currentQuestion.id as import('@/types').QuestionTemplateId,
+          archetype: 'partition' as import('@/types').ArchetypeId,
+          roundNumber: this.questionIndex + 1,
+          attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
+          startedAt: Date.now() - responseMs,
+          submittedAt: Date.now(),
+          responseMs,
+          studentAnswerRaw: input,
+          correctAnswerRaw: null,
+          outcome,
+          errorMagnitude: null,
+          pointsEarned: result.score,
+          // Fix 6 (G-E3): real hint IDs accumulated during this question
+          hintsUsedIds: [...this.currentQuestionHintIds],
+          hintsUsed: [],
+          flaggedMisconceptionIds: [],
+          validatorPayload: result,
+          payload: {
+            shapeType: this.currentQuestion.shapeType,
+            targetPartitions: 2,
+            snapMode: this.currentQuestion.snapMode,
+            areaTolerance: this.currentQuestion.areaTolerance,
+          },
+          syncState: 'local',
+        });
 
-      log.atmp('record_ok', { attemptId, outcome, points: result.score });
-
-      // R3: link orphan hint events to this attempt now that attemptId is known
-      if (this.currentQuestionHintIds.length > 0) {
-        try {
-          const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
+        // R3: link orphan hint events to this attempt now that attemptId is known.
+        // Same transaction as the attempt write — the join is meaningless if
+        // either side rolls back.
+        if (this.currentQuestionHintIds.length > 0) {
           await hintEventRepo.linkToAttempt(this.currentQuestionHintIds, attemptId);
-          log.hint('link_ok', { count: this.currentQuestionHintIds.length, attemptId });
-        } catch (linkErr) {
-          log.warn('HINT', 'link_error', { error: String(linkErr) });
         }
-      }
 
-      // Fix 4 (G-E1): update BKT mastery after every attempt
-      try {
-        const isCorrect = outcome === 'EXACT';
-        const skillId = 'skill.partition_halves' as import('@/types').SkillId;
-        const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
-        const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
-
-        const existing = await skillMasteryRepo.get(
-          this.studentId as import('@/types').StudentId,
-          skillId
-        );
-        const studentIdTyped = this.studentId as import('@/types').StudentId;
+        // Fix 4 (G-E1): update BKT mastery after every attempt — same transaction
+        // as the attempt + hint-link writes, so the four operations are atomic.
+        const existing = await skillMasteryRepo.get(studentIdTyped, skillId);
         const prev: import('@/types').SkillMastery = existing ?? {
           studentId: studentIdTyped,
           skillId,
@@ -1413,41 +1441,57 @@ export class Level01Scene extends Phaser.Scene {
           justMastered: !!withMeta.masteredAt && !prev.masteredAt,
         });
         await skillMasteryRepo.upsert(withMeta);
-        // Keep live estimate in sync so the next question in this session
-        // uses the updated mastery for difficulty and snap tolerance selection.
-        this.currentMasteryEstimate = withMeta.masteryEstimate;
-      } catch (err) {
-        log.warn('BKT', 'mastery_update_error', { error: String(err) });
+        masteryEstimate = withMeta.masteryEstimate;
+      });
+
+      log.atmp('record_ok', { attemptId, outcome, points: result.score });
+
+      // Keep live estimate in sync so the next question in this session uses
+      // the updated mastery for difficulty + snap-tolerance selection. Only
+      // commit to memory after the transaction durably persisted the new value.
+      if (masteryEstimate !== null) {
+        this.currentMasteryEstimate = masteryEstimate;
       }
+    } catch (err) {
+      // Transaction rolled back. Don't run detectors on a non-durable attempt.
+      log.error('ATMP', 'record_failed', { error: String(err) });
+      return;
+    }
 
-      // Fix 5 (G-E2): run misconception detectors on recent attempts
-      try {
-        const recentAttempts = await attemptRepo.listForStudent(
-          this.studentId as import('@/types').StudentId
-        );
-        const limitedAttempts = recentAttempts.slice(-10);
-        const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, 1);
+    // Fix 5 (G-E2): run misconception detectors on recent attempts. Best-effort
+    // — detector failures must not roll back the attempt+mastery transaction
+    // above (per Phase 6.3 design).
+    try {
+      const { db } = await import('../persistence/db');
+      const { attemptRepo } = await import('../persistence/repositories/attempt');
+      const recentAttempts = await attemptRepo.listForStudent(studentIdTyped);
+      const limitedAttempts = recentAttempts.slice(-10);
+      const { runAllDetectors } = await import('../engine/misconceptionDetectors');
+      const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+        await import('../lib/adapters');
+      const flags = await runAllDetectors(limitedAttempts, 1, {
+        clock: SystemClock,
+        ids: CryptoUuidGenerator,
+        logger: ConsoleEngineLogger,
+      });
 
-        if (flags.length > 0) {
-          const { misconceptionFlagRepo } =
-            await import('../persistence/repositories/misconceptionFlag');
+      if (flags.length > 0) {
+        const { misconceptionFlagRepo } =
+          await import('../persistence/repositories/misconceptionFlag');
+        await db.transaction('rw', [db.misconceptionFlags], async () => {
           for (const flag of flags) {
             await misconceptionFlagRepo.upsert(flag);
           }
-          log.misc('flags_detected', {
-            count: flags.length,
-            ids: flags.map((f) => f.misconceptionId),
-          });
-        } else {
-          log.misc('no_flags', { checkedAttempts: 'last10' });
-        }
-      } catch (err) {
-        log.warn('MISC', 'detection_error', { error: String(err) });
+        });
+        log.misc('flags_detected', {
+          count: flags.length,
+          ids: flags.map((f) => f.misconceptionId),
+        });
+      } else {
+        log.misc('no_flags', { checkedAttempts: 'last10' });
       }
     } catch (err) {
-      // Never crash on persistence failure per task spec
-      log.error('ATMP', 'record_failed', { error: String(err) });
+      log.warn('MISC', 'detection_error', { error: String(err) });
     }
   }
 
@@ -1562,7 +1606,6 @@ export class Level01Scene extends Phaser.Scene {
     await this.closeSession();
   }
 
-
   /**
    * G-5: Write (or update) a ProgressionStat row in IndexedDB marking Level 1 as
    * completed and advancing to Level 2.
@@ -1571,9 +1614,7 @@ export class Level01Scene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId('level_1');
@@ -1608,7 +1649,7 @@ export class Level01Scene extends Phaser.Scene {
     if (!this.sessionId) return;
     try {
       const { updateStreak } = await import('../lib/streak');
-      updateStreak(this.studentId);
+      await updateStreak(this.studentId);
     } catch {
       // Non-critical
     }
@@ -1666,11 +1707,17 @@ export class Level01Scene extends Phaser.Scene {
   preDestroy(): void {
     log.scene('destroy');
     // R7: destroy all managed components to prevent memory leaks and dangling listeners.
-    // feedbackOverlay, dragHandle, progressBar all expose destroy() via Phaser base classes.
-    // hintLadder is a plain state-machine (no Phaser objects), so no destroy needed.
+    // Phaser auto-destroys child display objects, but custom classes that hold tweens,
+    // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, etc.)
+    // require explicit cleanup. killAll() catches any tween still in flight (worked-
+    // example overlay, hint pulse, badge bounce) when the scene shuts down.
+    this.tweens.killAll();
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();
+    this.mascot?.destroy();
+    this.hintButton?.destroy();
+    this.submitButtonContainer?.destroy();
     AccessibilityAnnouncer.destroy();
     TestHooks.unmountAll();
     A11yLayer.unmountAll();

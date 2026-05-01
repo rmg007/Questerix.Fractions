@@ -11,9 +11,33 @@ import {
   detectWHB02,
   runAllDetectors,
 } from '../../../src/engine/misconceptionDetectors';
+import type { DetectorContext } from '../../../src/engine/ports';
 import type { Attempt } from '@/types';
 
 describe('Misconception Detectors', () => {
+  // Deterministic test context — fixed clock + sequential IDs make flag
+  // outputs reproducible without depending on Date.now() / crypto.randomUUID().
+  const FIXED_NOW = 1_700_000_000_000;
+  const makeCtx = (): DetectorContext => {
+    let n = 0;
+    return {
+      clock: {
+        now: () => FIXED_NOW,
+        monotonic: () => FIXED_NOW,
+      },
+      ids: {
+        generate: () => `mc-test-${++n}`,
+      },
+      logger: {
+        debug: () => undefined,
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+      },
+    };
+  };
+  const ctx = makeCtx();
+
   const mockAttempt = (overrides: Partial<Attempt>): Attempt => ({
     id: `a-${Math.random()}` as any,
     sessionId: 's-1' as any,
@@ -67,7 +91,7 @@ describe('Misconception Detectors', () => {
         }),
       ];
 
-      const flag = detectEOL01(attempts, 1);
+      const flag = detectEOL01(attempts, 1, ctx);
       expect(flag).toBeDefined();
       expect(flag?.misconceptionId).toBe('MC-EOL-01');
       expect(flag?.observationCount).toBe(3);
@@ -89,13 +113,13 @@ describe('Misconception Detectors', () => {
         }),
       ];
 
-      const flag = detectEOL01(attempts, 1);
+      const flag = detectEOL01(attempts, 1, ctx);
       expect(flag).toBeNull();
     });
 
     it('should return null if < 4 attempts', () => {
       const attempts = [mockAttempt({ archetype: 'equal_or_not', outcome: 'WRONG' })];
-      const flag = detectEOL01(attempts, 1);
+      const flag = detectEOL01(attempts, 1, ctx);
       expect(flag).toBeNull();
     });
   });
@@ -129,7 +153,7 @@ describe('Misconception Detectors', () => {
         }),
       ];
 
-      const flags = await runAllDetectors(eolAttempts, 1);
+      const flags = await runAllDetectors(eolAttempts, 1, ctx);
       expect(Array.isArray(flags)).toBe(true);
       expect(flags.length).toBeGreaterThan(0);
       expect(flags[0]?.misconceptionId).toBe('MC-EOL-01');
@@ -137,7 +161,7 @@ describe('Misconception Detectors', () => {
 
     it('should return empty array if no flags detected', async () => {
       const attempts = [mockAttempt({ outcome: 'EXACT' })];
-      const flags = await runAllDetectors(attempts, 1);
+      const flags = await runAllDetectors(attempts, 1, ctx);
       expect(flags).toEqual([]);
     });
   });

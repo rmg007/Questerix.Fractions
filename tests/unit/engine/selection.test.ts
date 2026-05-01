@@ -10,8 +10,26 @@
 import { describe, it, expect } from 'vitest';
 import { selectNextQuestion, RECENCY_WINDOW } from '@/engine/selection';
 import type { SelectionArgs } from '@/engine/selection';
+import type { Rng } from '@/engine/ports';
 import type { QuestionTemplate, SkillMastery } from '@/types';
 import { SkillId, QuestionTemplateId, StudentId, ValidatorId, ActivityId } from '@/types';
+
+/** Math.random-backed RNG for tests that don't care about determinism. */
+const PROD_RNG: Rng = { random: () => Math.random() };
+
+/** Seedable RNG for determinism tests — Mulberry32, deterministic per seed. */
+function seededRng(seed: number): Rng {
+  let s = seed >>> 0;
+  return {
+    random: () => {
+      s = (s + 0x6d2b79f5) >>> 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    },
+  };
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -53,6 +71,7 @@ function makeArgs(overrides: Partial<SelectionArgs> = {}): SelectionArgs {
     candidates: [],
     studentMastery: new Map(),
     recentTemplateIds: new Set(),
+    rng: PROD_RNG,
     ...overrides,
   };
 }
@@ -203,5 +222,46 @@ describe('deterministic invariants', () => {
   it('returns null only when candidates array is empty', () => {
     expect(selectNextQuestion(makeArgs({ candidates: [] }))).toBeNull();
     expect(selectNextQuestion(makeArgs({ candidates: [makeTemplate('q1', ['SK-01'])] }))).not.toBeNull();
+  });
+});
+
+// ── Determinism with seeded RNG ──────────────────────────────────────────────
+
+describe('seeded RNG determinism', () => {
+  it('produces an identical sequence of selections for a given seed', () => {
+    const candidates = Array.from({ length: 10 }, (_, i) => makeTemplate(`q${i}`, ['SK-01']));
+    const mastery = new Map([[SkillId('SK-01'), makeMastery('SK-01', 0.5)]]);
+
+    function runSequence(seed: number): string[] {
+      const rng = seededRng(seed);
+      const results: string[] = [];
+      for (let i = 0; i < 20; i++) {
+        const r = selectNextQuestion(makeArgs({ candidates, studentMastery: mastery, rng }));
+        results.push(r ? String(r.id) : '<null>');
+      }
+      return results;
+    }
+
+    const seqA = runSequence(42);
+    const seqB = runSequence(42);
+    const seqDifferentSeed = runSequence(99);
+
+    expect(seqA).toEqual(seqB);
+    expect(seqA).not.toEqual(seqDifferentSeed);
+  });
+
+  it('different seeds yield different distributions (smoke check)', () => {
+    const candidates = Array.from({ length: 5 }, (_, i) => makeTemplate(`q${i}`, ['SK-01']));
+    const mastery = new Map([[SkillId('SK-01'), makeMastery('SK-01', 0.5)]]);
+
+    function firstPick(seed: number): string {
+      const rng = seededRng(seed);
+      const r = selectNextQuestion(makeArgs({ candidates, studentMastery: mastery, rng }));
+      return r ? String(r.id) : '<null>';
+    }
+
+    const picks = new Set([firstPick(1), firstPick(2), firstPick(3), firstPick(4), firstPick(5)]);
+    // With 5 candidates and 5 different seeds we expect at least 2 distinct picks.
+    expect(picks.size).toBeGreaterThanOrEqual(2);
   });
 });

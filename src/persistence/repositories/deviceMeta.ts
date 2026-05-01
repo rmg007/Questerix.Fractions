@@ -28,6 +28,7 @@ const DEFAULT_META: DeviceMeta = {
   lastRestoredAt: null,
   pendingSyncCount: 0,
   syncState: 'local',
+  onboardingComplete: false,
 };
 
 export const deviceMetaRepo = {
@@ -65,6 +66,27 @@ export const deviceMetaRepo = {
     } catch (err) {
       return false;
     }
+  },
+
+  /**
+   * Whether the user has completed the onboarding flow on this device.
+   * Replaces the `questerix.onboardingSeen` localStorage key (C5).
+   */
+  async getOnboardingComplete(): Promise<boolean> {
+    try {
+      const meta = await deviceMetaRepo.get();
+      return meta.onboardingComplete === true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Mark the onboarding flow complete (or reset it) for this device.
+   * Returns true on success.
+   */
+  async setOnboardingComplete(value: boolean): Promise<boolean> {
+    return deviceMetaRepo.update({ onboardingComplete: value });
   },
 
   /**

@@ -25,6 +25,7 @@ import type {
   MisconceptionFlag,
   ProgressionStat,
   LevelProgression,
+  StreakRecord,
   TelemetryEvent,
 } from '../types';
 import { observabilityMiddleware } from './middleware';
@@ -55,6 +56,7 @@ export class QuesterixDB extends Dexie {
   misconceptionFlags!: Table<MisconceptionFlag, string>;
   progressionStat!: Table<ProgressionStat, [string, string]>;
   levelProgression!: Table<LevelProgression, string>;
+  streakRecord!: Table<StreakRecord, string>;
   telemetryEvents!: Table<TelemetryEvent, number>;
 
   constructor() {
@@ -202,6 +204,91 @@ export class QuesterixDB extends Dexie {
       // New store for v6 — replace localStorage unlockedLevels/completedLevels
       levelProgression: '&studentId',
     });
+
+    // Schema version 7 — adds streakRecord store + DeviceMeta.onboardingComplete
+    // field. Migrates the `questerix.streak:${studentId}` and
+    // `questerix.onboardingSeen` localStorage keys into IndexedDB (C5 closeout).
+    this.version(7)
+      .stores({
+        // Carry all v6 stores forward unchanged
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        hintEvents: '++id, attemptId',
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+        telemetryEvents: '++id, timestamp, event, severity, syncState',
+        levelProgression: '&studentId',
+        // New store for v7
+        streakRecord: '&studentId',
+      })
+      .upgrade(async (tx) => {
+        // 1) Migrate `questerix.streak:${studentId}` → streakRecord rows.
+        // 2) Migrate `questerix.onboardingSeen` → deviceMeta.onboardingComplete.
+        // localStorage may not be available (SSR, sandbox); guard accordingly.
+        try {
+          if (typeof localStorage === 'undefined') return;
+
+          // Streak migration
+          const streakPrefix = 'questerix.streak:';
+          const streakKeys: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(streakPrefix)) streakKeys.push(k);
+          }
+          for (const key of streakKeys) {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            try {
+              const parsed = JSON.parse(raw) as { count?: number; lastDate?: string };
+              const studentIdRaw = key.slice(streakPrefix.length);
+              if (
+                studentIdRaw &&
+                studentIdRaw !== 'anon' &&
+                typeof parsed.count === 'number' &&
+                typeof parsed.lastDate === 'string'
+              ) {
+                await tx.table('streakRecord').put({
+                  studentId: studentIdRaw,
+                  count: parsed.count,
+                  lastDate: parsed.lastDate,
+                });
+              }
+            } catch {
+              // malformed JSON — skip and proceed
+            }
+            localStorage.removeItem(key);
+          }
+
+          // Onboarding migration
+          const onboardingFlag = localStorage.getItem('questerix.onboardingSeen');
+          if (onboardingFlag === '1') {
+            await tx
+              .table('deviceMeta')
+              .toCollection()
+              .modify((row: DeviceMeta) => {
+                row.onboardingComplete = true;
+              });
+            localStorage.removeItem('questerix.onboardingSeen');
+          }
+        } catch {
+          // Migration is best-effort; failures must not block the schema upgrade.
+        }
+      });
   }
 }
 

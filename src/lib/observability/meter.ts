@@ -3,8 +3,17 @@ import { logger } from './logger';
 
 class MeterService {
   init() {
-    // Only track vitals if in production or explicitly enabled
-    if (import.meta.env.PROD || localStorage.getItem('DEBUG_VITALS')) {
+    // Only track vitals if in production or explicitly enabled.
+    // DEBUG_VITALS is a session-scoped dev flag (sessionStorage, not localStorage)
+    // per C5 — only `lastUsedStudentId` may persist in localStorage.
+    let debugFlag = false;
+    try {
+      debugFlag =
+        typeof sessionStorage !== 'undefined' && sessionStorage.getItem('DEBUG_VITALS') !== null;
+    } catch {
+      // sessionStorage unavailable (sandboxed iframe, etc.) — fall through
+    }
+    if (import.meta.env.PROD || debugFlag) {
       this.trackVitals();
     }
   }
