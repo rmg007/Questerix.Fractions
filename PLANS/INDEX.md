@@ -1,6 +1,6 @@
 # Questerix Fractions — Planning Documents Index
 
-**Last updated:** 2026-04-30
+**Last updated:** 2026-05-01
 **Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
 
 > **Naming convention:** all plan files must be named `<slug>-YYYY-MM-DD.md` where the date is the day the file was created. Files without a date are non-compliant and must be renamed. Full rules: `docs/00-foundation/git-workflow.md`.
@@ -77,6 +77,21 @@ The authoritative pedagogical and structural roadmap for the Questerix curriculu
 - Reviewing level specifications
 - Understanding the BKT/Mastery model requirements
 - Validating new item templates
+
+---
+
+## 🆕 Architectural Audit (2026-05-01)
+
+### [code-quality-2026-05-01.md](code-quality-2026-05-01.md) — CODE QUALITY & ARCHITECTURAL HARDENING
+
+Principal-architect audit across four dimensions (Architectural Cohesion, Computational Performance, Defensive Engineering, Modularity & Future-Proofing). 35 findings · 10-phase remediation plan · ~78 hr total effort.
+
+**Three substantive recommendations:**
+- A1 — Sunset `Level01Scene.ts` (resolves D-4); KISS over extracted abstraction.
+- A2 — Replace TS↔Python validator parity with single TS executable contract.
+- A3 — Enforce engine dependency direction at lint level; ports.ts adoption becomes mandatory.
+
+**When to use:** structural refactor sequencing, decision D-4 forcing function, complement to `harden-and-polish-2026-04-30.md` (which this plan absorbs in Phase 10).
 
 ---
 
