@@ -258,22 +258,65 @@ export class FeedbackOverlay {
   // ── Entry animations delegated to FeedbackAnimations module ───────────────────
 
   private animateBounceIcon(): void {
-    anim.animateCorrectEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
+    anim.animateCorrectEntry({
+      scene: this.scene,
+      iconGO: this.iconGO,
+      label: this.label,
+      panel: this.panel,
+      showY: this.showY,
+      cx: this.cx,
+      panelW: this.panelW,
+      depth: this.depth,
+      redrawPanel: this.redrawPanel.bind(this),
+    });
   }
 
   private animateShake(): void {
-    anim.animateIncorrectEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
+    anim.animateIncorrectEntry({
+      scene: this.scene,
+      iconGO: this.iconGO,
+      label: this.label,
+      panel: this.panel,
+      showY: this.showY,
+      cx: this.cx,
+      panelW: this.panelW,
+      depth: this.depth,
+      redrawPanel: this.redrawPanel.bind(this),
+    });
   }
 
   private animatePulse(): void {
-    anim.animateCloseEntry({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) });
+    anim.animateCloseEntry({
+      scene: this.scene,
+      iconGO: this.iconGO,
+      label: this.label,
+      panel: this.panel,
+      showY: this.showY,
+      cx: this.cx,
+      panelW: this.panelW,
+      depth: this.depth,
+      redrawPanel: this.redrawPanel.bind(this),
+    });
   }
 
   private burstStarParticles(): void {
     TestHooks.mountSentinel('sparkle-burst');
-    anim.burstStarParticles({ scene: this.scene, iconGO: this.iconGO, label: this.label, panel: this.panel, showY: this.showY, cx: this.cx, panelW: this.panelW, depth: this.depth, redrawPanel: this.redrawPanel.bind(this) }, (e) => {
-      this.activeParticleEmitters.push(e);
-    });
+    anim.burstStarParticles(
+      {
+        scene: this.scene,
+        iconGO: this.iconGO,
+        label: this.label,
+        panel: this.panel,
+        showY: this.showY,
+        cx: this.cx,
+        panelW: this.panelW,
+        depth: this.depth,
+        redrawPanel: this.redrawPanel.bind(this),
+      },
+      (e) => {
+        this.activeParticleEmitters.push(e);
+      }
+    );
   }
 
   // ── Internal ─────────────────────────────────────────────────────────────────
