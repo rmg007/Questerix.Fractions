@@ -30,6 +30,9 @@
     "postdeploy": "node scripts/postdeploy-check.mjs",
     "agent-doctor": "node scripts/agent-doctor.mjs",
     "sync:claude-md": "node scripts/sync-claude-md.mjs",
+    "scaffold:scene": "node scripts/scaffold.mjs scene",
+    "scaffold:validator": "node scripts/scaffold.mjs validator",
+    "scaffold:component": "node scripts/scaffold.mjs component",
     "prepare": "husky"
   },
   "devDependencies": {
