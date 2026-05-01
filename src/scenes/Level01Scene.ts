@@ -1375,6 +1375,11 @@ export class Level01Scene extends Phaser.Scene {
       this.showHintForTier(tier);
     }
 
+    // T7: Auto-hint after 3rd wrong answer — give feedback time before hint appears
+    if (this.wrongCount === 3) {
+      this.time.delayedCall(800, () => this.onHintRequest());
+    }
+
     // per interaction-model.md §5.4 — after 3 wrong, auto-pulse hint button
     if (this.wrongCount >= 3) {
       this.pulseHintButton();
