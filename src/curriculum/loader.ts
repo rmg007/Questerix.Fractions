@@ -24,6 +24,8 @@ import type {
   HintTemplate,
 } from '@/types';
 import bundledData from './bundle.json';
+import { safeParseQuestionTemplate } from './schemas';
+import { log } from '../lib/log';
 
 export interface CurriculumBundle {
   version: number;
@@ -72,23 +74,25 @@ function makeEmpty(): ParsedBundle {
   };
 }
 
-/** R19: Validate that a QuestionTemplate has required fields before use. */
-function isValidTemplate(row: unknown): row is QuestionTemplate {
-  if (!row || typeof row !== 'object') return false;
-  const t = row as Record<string, unknown>;
-  const promptValid =
-    typeof t.prompt === 'string' ||
-    (typeof t.prompt === 'object' &&
-      t.prompt !== null &&
-      typeof (t.prompt as Record<string, unknown>).text === 'string');
-  return (
-    typeof t.id === 'string' &&
-    promptValid &&
-    t.payload != null &&
-    typeof t.validatorId === 'string' &&
-    Array.isArray(t.skillIds) &&
-    t.skillIds.length > 0
-  );
+/**
+ * Phase 7.4 / harden R19: Zod-backed per-row validator for QuestionTemplate.
+ * Replaces a hand-rolled structural guard with the canonical schema in
+ * `./schemas.ts`. Failures are emitted via the structured `log.warn`
+ * (category 'CURRICULUM') so a future telemetry pipeline can surface them
+ * without a code change. Returns the input row narrowed on success.
+ */
+function validateTemplateRow(row: unknown): row is QuestionTemplate {
+  const result = safeParseQuestionTemplate(row);
+  if (result.ok) return true;
+  const id =
+    row && typeof row === 'object' && 'id' in row && typeof (row as { id: unknown }).id === 'string'
+      ? (row as { id: string }).id
+      : '<unknown>';
+  log.warn('CURRICULUM', 'questionTemplate.invalid', {
+    id,
+    issues: result.message,
+  });
+  return false;
 }
 
 /**
@@ -131,13 +135,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
 
   // Parse comprehensive format (preferred)
   if (bundle.questionTemplates || bundle.skills) {
-    const validatedTemplates = (bundle.questionTemplates ?? []).filter((row) => {
-      if (!isValidTemplate(row)) {
-        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
-        return false;
-      }
-      return true;
-    });
+    const validatedTemplates = (bundle.questionTemplates ?? []).filter(validateTemplateRow);
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: bundle.curriculumPacks ?? [],
@@ -155,13 +153,7 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
   // Parse legacy format (levels: {level -> QuestionTemplate[]})
   if (bundle.levels && typeof bundle.levels === 'object') {
     const allTemplates = Object.values(bundle.levels).flat();
-    const validatedTemplates = allTemplates.filter((row) => {
-      if (!isValidTemplate(row)) {
-        console.warn('[loadCurriculumBundle] Invalid question template skipped:', row);
-        return false;
-      }
-      return true;
-    });
+    const validatedTemplates = allTemplates.filter(validateTemplateRow);
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: [],
