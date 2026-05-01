@@ -76,75 +76,99 @@ export class QuesterixDB extends Dexie {
     });
 
     // Schema version 2 — adds questionTemplates static store. per persistence-spec.md §4
-    this.version(2).stores({
-      students: 'id, displayName, createdAt',
-      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts:
-        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
-      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-      deviceMeta: '&installId',
-      bookmarks: 'id, studentId',
-      sessionTelemetry: 'sessionId, studentId',
-      hintEvents: '++id, attemptId',
-      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
-    });
+    this.version(2)
+      .stores({
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        hintEvents: '++id, attemptId',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
+      })
+      .upgrade(async (tx) => {
+        // Force re-indexing of new questionTemplates table (R17)
+        await tx.table('questionTemplates').toCollection().modify(() => {});
+      });
 
     // Schema version 3 — adds full curriculum pack and new dynamic stores. per data-schema.md §6
-    this.version(3).stores({
-      // Static curriculum stores
-      curriculumPacks: 'id',
-      standards: 'id',
-      skills: 'id, gradeLevel',
-      activities: 'id, levelGroup, archetype',
-      activityLevels: 'id, [activityId+levelNumber]',
-      fractionBank: 'id, denominatorFamily, benchmark',
-      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
-      misconceptions: 'id',
-      hints: 'id, [questionTemplateId+order]',
-      // Dynamic stores (carry from v1/v2)
-      students: 'id, displayName, createdAt',
-      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts:
-        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
-      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-      deviceMeta: '&installId',
-      bookmarks: 'id, studentId',
-      sessionTelemetry: 'sessionId, studentId',
-      hintEvents: '++id, attemptId',
-      // New dynamic stores
-      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
-      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
-    });
+    this.version(3)
+      .stores({
+        // Static curriculum stores
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        // Dynamic stores (carry from v1/v2)
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        hintEvents: '++id, attemptId',
+        // New dynamic stores
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      })
+      .upgrade(async (tx) => {
+        // Force re-indexing of curriculum and new dynamic stores (R17)
+        await Promise.all([
+          tx.table('activities').toCollection().modify(() => {}),
+          tx.table('skills').toCollection().modify(() => {}),
+          tx.table('hints').toCollection().modify(() => {}),
+          tx.table('misconceptionFlags').toCollection().modify(() => {}),
+          tx.table('progressionStat').toCollection().modify(() => {}),
+        ]);
+      });
 
     // Schema version 4 — adds [archetype+submittedAt] compound index on attempts for BKT/
     // misconception queries over recent sessions (G-DB1), and validatorId index on
     // questionTemplates for validator-pipeline lookups (G-DB2). per architecture-review §G-DB1/G-DB2.
-    this.version(4).stores({
-      // Static curriculum stores (unchanged)
-      curriculumPacks: 'id',
-      standards: 'id',
-      skills: 'id, gradeLevel',
-      activities: 'id, levelGroup, archetype',
-      activityLevels: 'id, [activityId+levelNumber]',
-      fractionBank: 'id, denominatorFamily, benchmark',
-      // G-DB2: add validatorId index for validator-pipeline queries
-      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
-      misconceptions: 'id',
-      hints: 'id, [questionTemplateId+order]',
-      // Dynamic stores (carry from v3)
-      students: 'id, displayName, createdAt',
-      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      // G-DB1: add [archetype+submittedAt] for efficient BKT / misconception range queries
-      attempts:
-        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
-      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-      deviceMeta: '&installId',
-      bookmarks: 'id, studentId',
-      sessionTelemetry: 'sessionId, studentId',
-      hintEvents: '++id, attemptId',
-      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
-      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
-    });
+    this.version(4)
+      .stores({
+        // Static curriculum stores (unchanged)
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        // G-DB2: add validatorId index for validator-pipeline queries
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        // Dynamic stores (carry from v3)
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        // G-DB1: add [archetype+submittedAt] for efficient BKT / misconception range queries
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        hintEvents: '++id, attemptId',
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      })
+      .upgrade(async (tx) => {
+        // Force re-indexing for new compound indexes (R17)
+        await Promise.all([
+          tx.table('attempts').toCollection().modify(() => {}),
+          tx.table('questionTemplates').toCollection().modify(() => {}),
+        ]);
+      });
 
     // Schema version 5 — adds telemetryEvents store for durable offline buffering.
     // per observability-spec.md §3.2
