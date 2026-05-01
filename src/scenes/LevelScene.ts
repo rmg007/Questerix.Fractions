@@ -418,9 +418,11 @@ export class LevelScene extends Phaser.Scene {
 
     // T16: Quest microcopy at question-load moments
     if (index === 0) {
-      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble('Ready? Let\'s go! 🚀', 2000));
+      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble("Ready? Let's go! 🚀", 2000));
     } else if (index === SESSION_GOAL - 1) {
-      this.time.delayedCall(400, () => this.mascot?.showSpeechBubble('Last one! You\'ve got this!', 2000));
+      this.time.delayedCall(400, () =>
+        this.mascot?.showSpeechBubble("Last one! You've got this!", 2000)
+      );
     }
   }
 
@@ -933,7 +935,13 @@ export class LevelScene extends Phaser.Scene {
     // T16: Quest streak microcopy (after FeedbackOverlay fades ~1600ms)
     const streak = this.correctStreak;
     const streakLine =
-      streak === 1 ? 'Nice one!' : streak === 2 ? "You've got this!" : streak >= 3 ? 'On fire! 🔥' : null;
+      streak === 1
+        ? 'Nice one!'
+        : streak === 2
+          ? "You've got this!"
+          : streak >= 3
+            ? 'On fire! 🔥'
+            : null;
     if (streakLine) {
       this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
     }
@@ -955,7 +963,9 @@ export class LevelScene extends Phaser.Scene {
     const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
     const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
 
-    const PILL_W = 520, PILL_H = 88, PILL_R = 44;
+    const PILL_W = 520,
+      PILL_H = 88,
+      PILL_R = 44;
     const cx = CW / 2;
     const startY = -PILL_H;
     const landY = 140;
@@ -1063,7 +1073,7 @@ export class LevelScene extends Phaser.Scene {
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
     // T16: Quest hint microcopy (only on first/second hint shown per question)
     if (this.wrongCount <= 2) {
-      this.mascot?.showSpeechBubble('Here\'s a secret... 🤫', 2000);
+      this.mascot?.showSpeechBubble("Here's a secret... 🤫", 2000);
     }
 
     const archetype = this.currentTemplate?.archetype ?? 'partition';
@@ -1485,7 +1495,11 @@ export class LevelScene extends Phaser.Scene {
         accuracy,
         avgResponseMs,
         xpEarned: this.correctCount * 10,
-        scaffoldRecommendation: (accuracy >= 0.85 ? 'advance' : accuracy < 0.4 && this.levelNumber > 1 ? 'regress' : 'stay') as 'advance' | 'stay' | 'regress',
+        scaffoldRecommendation: (accuracy >= 0.85
+          ? 'advance'
+          : accuracy < 0.4 && this.levelNumber > 1
+            ? 'regress'
+            : 'stay') as 'advance' | 'stay' | 'regress',
         endLevel: this.levelNumber,
       };
       log.sess('close', { sessionId: this.sessionId, level: this.levelNumber, ...summary });
