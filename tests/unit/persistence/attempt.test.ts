@@ -81,7 +81,10 @@ describe('attemptRepo', () => {
       const fetched = await attemptRepo.get(inserted.id as AttemptId);
 
       expect(fetched).toBeDefined();
-      expect(fetched?.id).toBe(inserted.id);
+      // record() returns id as a string (String(key)); Dexie stores ++id as a number.
+      // get() looks up by Number(id), so the returned row has the numeric key from IndexedDB.
+      // We compare the numeric values rather than the raw type to avoid a string/number mismatch.
+      expect(Number(fetched?.id)).toBe(Number(inserted.id));
       expect(fetched?.outcome).toBe('EXACT');
     });
 
