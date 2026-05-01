@@ -1003,7 +1003,13 @@ export class LevelScene extends Phaser.Scene {
         // Limit to recent 10 for performance
         const limitedAttempts = recentAttempts.slice(-10);
         const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, this.levelNumber);
+        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+          await import('../lib/adapters');
+        const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
+          clock: SystemClock,
+          ids: CryptoUuidGenerator,
+          logger: ConsoleEngineLogger,
+        });
 
         if (flags.length > 0) {
           const { misconceptionFlagRepo } =
@@ -1100,9 +1106,7 @@ export class LevelScene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId(`level_${this.levelNumber}`);
@@ -1140,8 +1144,7 @@ export class LevelScene extends Phaser.Scene {
       const { sessionRepo } = await import('../persistence/repositories/session');
 
       // Fix G-E4: compute real accuracy and avg response time
-      const accuracy =
-        this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
+      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
       const avgResponseMs =
         this.responseTimes.length > 0
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length

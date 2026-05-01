@@ -260,21 +260,16 @@ export class Level01Scene extends Phaser.Scene {
         'Sorry, we could not start your session. Please reload the page.'
       );
       this.add
-        .text(
-          CW / 2,
-          CH / 2,
-          'Could not start session.\nPlease reload the page.',
-          {
-            fontSize: '24px',
-            fontFamily: BODY_FONT,
-            fontStyle: 'bold',
-            color: '#b91c1c',
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            padding: { x: 20, y: 14 },
-            align: 'center',
-            wordWrap: { width: 600 },
-          }
-        )
+        .text(CW / 2, CH / 2, 'Could not start session.\nPlease reload the page.', {
+          fontSize: '24px',
+          fontFamily: BODY_FONT,
+          fontStyle: 'bold',
+          color: '#b91c1c',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: { x: 20, y: 14 },
+          align: 'center',
+          wordWrap: { width: 600 },
+        })
         .setOrigin(0.5)
         .setDepth(100);
       // Block play — do not proceed with UI or question loading.
@@ -1427,7 +1422,13 @@ export class Level01Scene extends Phaser.Scene {
         );
         const limitedAttempts = recentAttempts.slice(-10);
         const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-        const flags = await runAllDetectors(limitedAttempts, 1);
+        const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
+          await import('../lib/adapters');
+        const flags = await runAllDetectors(limitedAttempts, 1, {
+          clock: SystemClock,
+          ids: CryptoUuidGenerator,
+          logger: ConsoleEngineLogger,
+        });
 
         if (flags.length > 0) {
           const { misconceptionFlagRepo } =
@@ -1562,7 +1563,6 @@ export class Level01Scene extends Phaser.Scene {
     await this.closeSession();
   }
 
-
   /**
    * G-5: Write (or update) a ProgressionStat row in IndexedDB marking Level 1 as
    * completed and advancing to Level 2.
@@ -1571,9 +1571,7 @@ export class Level01Scene extends Phaser.Scene {
   private async persistLevelCompletion(): Promise<void> {
     if (!this.studentId) return;
     try {
-      const { progressionStatRepo } = await import(
-        '../persistence/repositories/progressionStat'
-      );
+      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
       const { ActivityId } = await import('../types/branded');
       const studentIdTyped = this.studentId as import('@/types').StudentId;
       const activityId = ActivityId('level_1');

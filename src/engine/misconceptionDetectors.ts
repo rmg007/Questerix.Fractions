@@ -1,25 +1,34 @@
 /**
- * Misconception detectors for L6–L9.
- * Each detector analyzes recent attempts and flags patterns per data-schema.md §3.5.
+ * Misconception detectors for L1–L9.
+ *
+ * Each detector analyses recent attempts and flags patterns per data-schema.md §3.5.
+ *
+ * Engine port adoption (Phase 4.4): every detector — and the `runAllDetectors`
+ * orchestrator — accepts a `DetectorContext` (`{ clock, ids, logger }`) so that
+ * timestamps and flag IDs are produced via injected ports instead of host
+ * globals (`Date.now()`, `crypto.randomUUID()`). Tests inject deterministic
+ * doubles; production callers (`Level01Scene`, `LevelScene`) inject the
+ * `SystemClock` / `CryptoUuidGenerator` / `ConsoleEngineLogger` adapters from
+ * `src/lib/adapters`.
+ *
+ * No host globals are read in this file. The ESLint rule under
+ * `src/engine/**` enforces this at lint time.
  */
 
 import type { Attempt, MisconceptionFlag } from '../types/runtime';
 import type { MisconceptionId } from '../types/branded';
-
-let nanoidFn: () => string;
-(async () => {
-  const { nanoid } = await import('nanoid').catch(() => ({
-    nanoid: () => `mc-${Date.now()}`,
-  }));
-  nanoidFn = nanoid;
-})();
+import type { DetectorContext } from './ports';
 
 /**
  * WHB-01 — Whole-Number Bias (Numerator)
  * Pattern: student picks larger-numerator option ≥ 60% of time on L6+ compare activities.
  * Flags when misconception is high-confidence.
  */
-export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectWHB01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 6 || attempts.length < 5) return null;
 
   // Filter attempts on compare archetype
@@ -44,12 +53,13 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
 
   const rate = evidenceIds.length / compareAttempts.length;
   if (rate >= 0.6) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-WHB-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -65,7 +75,11 @@ export function detectWHB01(attempts: Attempt[], level: number): MisconceptionFl
  * Pattern: student picks larger-denominator option ≥ 60% of time on L7+ compare activities.
  * This is the classic "larger denominator = larger fraction" trap.
  */
-export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectWHB02(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 7 || attempts.length < 5) return null;
 
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
@@ -99,12 +113,13 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
 
   const rate = evidenceIds.length / compareAttempts.length;
   if (rate >= 0.6) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-WHB-02' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -120,7 +135,11 @@ export function detectWHB02(attempts: Attempt[], level: number): MisconceptionFl
  * Pattern: accuracy on hard-tier items < 50% AND avg errorMagnitude > 0.20.
  * Indicates student cannot reason about fraction magnitude across difficulty.
  */
-export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectMAG01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 8 || attempts.length < 5) return null;
 
   const hardAttempts = attempts.filter((a) => a.outcome !== 'ABANDONED');
@@ -133,12 +152,13 @@ export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFl
     hardAttempts.reduce((sum, a) => sum + (a.errorMagnitude ?? 0), 0) / hardAttempts.length;
 
   if (accuracy < 0.5 && avgError > 0.2) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-MAG-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: Math.floor(hardAttempts.length * (1 - accuracy)),
       resolvedAt: null,
       evidenceAttemptIds: hardAttempts.filter((a) => a.outcome !== 'EXACT').map((a) => a.id),
@@ -154,7 +174,11 @@ export function detectMAG01(attempts: Attempt[], level: number): MisconceptionFl
  * Pattern: student places "almost_one" benchmark targets in "half"/"almost_half" zones ≥ 50% of time.
  * Indicates confusion between fractions close to 1 and those close to 0.5.
  */
-export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectPRX01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 8 || attempts.length < 4) return null;
 
   const benchmarkAttempts = attempts.filter((a) => a.archetype === 'benchmark');
@@ -188,12 +212,13 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
 
   const rate = evidenceIds.length / benchmarkAttempts.length;
   if (rate >= 0.5) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-PRX-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -209,7 +234,11 @@ export function detectPRX01(attempts: Attempt[], level: number): MisconceptionFl
  * Pattern: student answers "yes (equal)" ≥ 50% of time on clearly unequal partitions.
  * per misconceptions.md §3.2 MC-EOL-01
  */
-export function detectEOL01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectEOL01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 1 || attempts.length < 4) return null;
 
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
@@ -239,12 +268,13 @@ export function detectEOL01(attempts: Attempt[], level: number): MisconceptionFl
 
   const rate = evidenceIds.length / eolAttempts.length;
   if (rate >= 0.5) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -259,7 +289,11 @@ export function detectEOL01(attempts: Attempt[], level: number): MisconceptionFl
  * NOM-01 — Numerator Over Magnitude
  * Pattern: student consistently chooses options with higher numerators even when magnitude is small.
  */
-export function detectNOM01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectNOM01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 6 || attempts.length < 5) return null;
 
   const compareAttempts = attempts.filter((a) => a.archetype === 'compare');
@@ -284,12 +318,13 @@ export function detectNOM01(attempts: Attempt[], level: number): MisconceptionFl
 
   const rate = evidenceIds.length / compareAttempts.length;
   if (rate >= 0.6) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-NOM-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -303,7 +338,11 @@ export function detectNOM01(attempts: Attempt[], level: number): MisconceptionFl
 /**
  * EOL-02 — Rotated-Halves Confusion
  */
-export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionFlag | null {
+export function detectEOL02(
+  attempts: Attempt[],
+  _level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const rotated = eolAttempts.filter((a) => {
@@ -324,12 +363,13 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
     .map((a) => a.id);
 
   if (evidenceIds.length / rotated.length >= 0.5) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-02' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -342,7 +382,11 @@ export function detectEOL02(attempts: Attempt[], _level: number): MisconceptionF
 /**
  * EOL-03 — Visual-Symmetry-Equals-Equality
  */
-export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionFlag | null {
+export function detectEOL03(
+  attempts: Attempt[],
+  _level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const evidenceIds = eolAttempts
@@ -355,12 +399,13 @@ export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionF
     .map((a) => a.id);
 
   if (evidenceIds.length / eolAttempts.length >= 0.4) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-03' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -373,7 +418,11 @@ export function detectEOL03(attempts: Attempt[], _level: number): MisconceptionF
 /**
  * EOL-04 — Equal Means Identical
  */
-export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionFlag | null {
+export function detectEOL04(
+  attempts: Attempt[],
+  _level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (attempts.length < 3) return null;
   const eolAttempts = attempts.filter((a) => a.archetype === 'equal_or_not');
   const evidenceIds = eolAttempts
@@ -386,12 +435,13 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
     .map((a) => a.id);
 
   if (evidenceIds.length / eolAttempts.length >= 0.5) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-EOL-04' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -404,7 +454,11 @@ export function detectEOL04(attempts: Attempt[], _level: number): MisconceptionF
 /**
  * MAG-02 — Whole Disappears When Divided
  */
-export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectMAG02(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level !== 5 || attempts.length < 3) return null;
   // Specific to compositional fourths in L5
   const compAttempts = attempts.filter((a) => a.skillIds?.includes('KC-PRODUCTION-2'));
@@ -412,12 +466,13 @@ export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFl
 
   const evidenceIds = compAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
   if (evidenceIds.length >= 3) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-MAG-02' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -430,7 +485,11 @@ export function detectMAG02(attempts: Attempt[], level: number): MisconceptionFl
 /**
  * PRX-02 — All Fractions Are Less Than One-Half
  */
-export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectPRX02(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 8 || attempts.length < 5) return null;
   const benchmarkAttempts = attempts.filter((a) => a.archetype === 'benchmark');
   const targetAboveHalf = benchmarkAttempts.filter((a) => {
@@ -451,12 +510,13 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
     .map((a) => a.id);
 
   if (evidenceIds.length / targetAboveHalf.length >= 0.6) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-PRX-02' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -469,7 +529,11 @@ export function detectPRX02(attempts: Attempt[], level: number): MisconceptionFl
 /**
  * SHP-01 — Whole = Circle
  */
-export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectSHP01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level > 2) return null;
   const rectangleAttempts = attempts.filter((a) => {
     const p = a.payload as unknown;
@@ -483,12 +547,13 @@ export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFl
     .map((a) => a.id);
 
   if (evidenceIds.length >= 2) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-SHP-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -501,7 +566,11 @@ export function detectSHP01(attempts: Attempt[], level: number): MisconceptionFl
 /**
  * SHP-02 — Size = Wholeness
  */
-export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectSHP02(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level !== 1) return null;
   const smallShapeAttempts = attempts.filter((a) => {
     const p = a.payload as unknown;
@@ -513,12 +582,13 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
 
   const evidenceIds = smallShapeAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
   if (evidenceIds.length >= 2) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-SHP-02' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -531,18 +601,23 @@ export function detectSHP02(attempts: Attempt[], level: number): MisconceptionFl
 /**
  * VOC-01 — Fourth ≠ Quarter
  */
-export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionFlag | null {
+export function detectVOC01(
+  attempts: Attempt[],
+  _level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   const vocabAttempts = attempts.filter((a) => a.prompt?.text?.toLowerCase().includes('quarter'));
   if (vocabAttempts.length < 2) return null;
 
   const evidenceIds = vocabAttempts.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
   if (evidenceIds.length >= 2) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-VOC-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -555,7 +630,11 @@ export function detectVOC01(attempts: Attempt[], _level: number): MisconceptionF
 /**
  * L5-THIRDS-HALF-01 — Thirds vs Half Confusion
  */
-export function detectL5ThirdsHalf(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectL5ThirdsHalf(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level !== 5) return null;
   const thirdsAttempts = attempts.filter((a) => {
     const p = a.payload as unknown;
@@ -571,12 +650,13 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
     .map((a) => a.id);
 
   if (evidenceIds.length / thirdsAttempts.length >= 0.5) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-THIRDS-HALF-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as import('@/types').AttemptId[],
@@ -589,7 +669,11 @@ export function detectL5ThirdsHalf(attempts: Attempt[], level: number): Misconce
 /**
  * L5-FOURTHS-3CUTS-01 — Fourths by 3 Cuts
  */
-export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectL5Fourths3Cuts(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level !== 5) return null;
   const fourthsAttempts = attempts.filter((a) => a.payload?.targetPartitions === 4);
   const evidenceIds = fourthsAttempts
@@ -597,12 +681,13 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
     .map((a) => a.id);
 
   if (evidenceIds.length >= 1) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-FOURTHS-3CUTS-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
@@ -615,18 +700,23 @@ export function detectL5Fourths3Cuts(attempts: Attempt[], level: number): Miscon
 /**
  * L5-DENSWITCH-01 — Denominator Switch Confusion
  */
-export function detectL5DenSwitch(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectL5DenSwitch(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level !== 5) return null;
   const multiStep = attempts.filter((a) => a.payload?.isMultiStep === true);
   const evidenceIds = multiStep.filter((a) => a.outcome === 'WRONG').map((a) => a.id);
 
   if (evidenceIds.length >= 3) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-L5-DENSWITCH-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds as unknown as import('@/types').AttemptId[],
@@ -642,10 +732,11 @@ export function detectL5DenSwitch(attempts: Attempt[], level: number): Misconcep
  * Level 7 is `compare` archetype — do NOT activate this detector before L9.
  * Future: detect sequential-guessing patterns in fraction ordering tasks.
  */
-export async function detectORD01(
+export function detectORD01(
   attempts: Attempt[],
-  level: number
-): Promise<MisconceptionFlag | null> {
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 9 || attempts.length < 5) return null;
 
   // Filter to ordering attempts only (archetype 'order' at L9+)
@@ -708,12 +799,13 @@ export async function detectORD01(
   // Flag if rate ≥ 50% and at least 3 observations
   const rate = evidenceIds.length / orderingAttempts.length;
   if (rate >= evidenceThreshold && evidenceIds.length >= 3) {
+    const stamp = ctx.clock.now();
     return {
-      id: nanoidFn() as string,
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-ORD-01' as import('@/types').MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds.slice(0, 5) as import('@/types').AttemptId[],
@@ -730,7 +822,11 @@ export async function detectORD01(
  * against slot 1, 2... rather than picking benchmark fractions (1/2, 1) first.
  * Detected from roundEvents telemetry.
  */
-export function detectSTRAT01(attempts: Attempt[], level: number): MisconceptionFlag | null {
+export function detectSTRAT01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
   if (level < 9 || attempts.length < 3) return null;
 
   const orderingAttempts = attempts.filter(
@@ -761,12 +857,13 @@ export function detectSTRAT01(attempts: Attempt[], level: number): Misconception
 
   const rate = evidenceIds.length / orderingAttempts.length;
   if (rate >= 0.7) {
+    const stamp = ctx.clock.now();
     return {
-      id: crypto.randomUUID(),
+      id: ctx.ids.generate(),
       studentId: attempts[0]!.studentId,
       misconceptionId: 'MC-STRAT-01' as MisconceptionId,
-      firstObservedAt: Date.now(),
-      lastObservedAt: Date.now(),
+      firstObservedAt: stamp,
+      lastObservedAt: stamp,
       observationCount: evidenceIds.length,
       resolvedAt: null,
       evidenceAttemptIds: evidenceIds,
@@ -780,69 +877,75 @@ export function detectSTRAT01(attempts: Attempt[], level: number): Misconception
 /**
  * Run all detectors in sequence; return array of all flags found.
  * Called from LevelScene.onCommit() after each question submission.
- * per C7.2 — upsert all flags to misconceptionFlagsRepo
+ * per C7.2 — upsert all flags to misconceptionFlagsRepo.
+ *
+ * The `ctx` argument is the engine-port composition root for this run:
+ * production callers pass `{ clock: SystemClock, ids: CryptoUuidGenerator,
+ * logger: ConsoleEngineLogger }` from `src/lib/adapters`; tests pass
+ * deterministic doubles (e.g. fixed-instant clock + sequential id generator).
  */
 export async function runAllDetectors(
   attempts: Attempt[],
-  level: number
+  level: number,
+  ctx: DetectorContext
 ): Promise<MisconceptionFlag[]> {
   const flags: MisconceptionFlag[] = [];
 
-  const flag1 = detectEOL01(attempts, level);
+  const flag1 = detectEOL01(attempts, level, ctx);
   if (flag1) flags.push(flag1);
 
-  const flag2 = detectWHB01(attempts, level);
+  const flag2 = detectWHB01(attempts, level, ctx);
   if (flag2) flags.push(flag2);
 
-  const flag3 = detectWHB02(attempts, level);
+  const flag3 = detectWHB02(attempts, level, ctx);
   if (flag3) flags.push(flag3);
 
-  const flag4 = detectMAG01(attempts, level);
+  const flag4 = detectMAG01(attempts, level, ctx);
   if (flag4) flags.push(flag4);
 
-  const flag5 = detectPRX01(attempts, level);
+  const flag5 = detectPRX01(attempts, level, ctx);
   if (flag5) flags.push(flag5);
 
-  const flag6 = detectNOM01(attempts, level);
+  const flag6 = detectNOM01(attempts, level, ctx);
   if (flag6) flags.push(flag6);
 
-  const flagEOL02 = detectEOL02(attempts, level);
+  const flagEOL02 = detectEOL02(attempts, level, ctx);
   if (flagEOL02) flags.push(flagEOL02);
 
-  const flagEOL03 = detectEOL03(attempts, level);
+  const flagEOL03 = detectEOL03(attempts, level, ctx);
   if (flagEOL03) flags.push(flagEOL03);
 
-  const flagEOL04 = detectEOL04(attempts, level);
+  const flagEOL04 = detectEOL04(attempts, level, ctx);
   if (flagEOL04) flags.push(flagEOL04);
 
-  const flagMAG02 = detectMAG02(attempts, level);
+  const flagMAG02 = detectMAG02(attempts, level, ctx);
   if (flagMAG02) flags.push(flagMAG02);
 
-  const flagPRX02 = detectPRX02(attempts, level);
+  const flagPRX02 = detectPRX02(attempts, level, ctx);
   if (flagPRX02) flags.push(flagPRX02);
 
-  const flagSHP01 = detectSHP01(attempts, level);
+  const flagSHP01 = detectSHP01(attempts, level, ctx);
   if (flagSHP01) flags.push(flagSHP01);
 
-  const flagSHP02 = detectSHP02(attempts, level);
+  const flagSHP02 = detectSHP02(attempts, level, ctx);
   if (flagSHP02) flags.push(flagSHP02);
 
-  const flagVOC01 = detectVOC01(attempts, level);
+  const flagVOC01 = detectVOC01(attempts, level, ctx);
   if (flagVOC01) flags.push(flagVOC01);
 
-  const flagL5TH = detectL5ThirdsHalf(attempts, level);
+  const flagL5TH = detectL5ThirdsHalf(attempts, level, ctx);
   if (flagL5TH) flags.push(flagL5TH);
 
-  const flagL5F3C = detectL5Fourths3Cuts(attempts, level);
+  const flagL5F3C = detectL5Fourths3Cuts(attempts, level, ctx);
   if (flagL5F3C) flags.push(flagL5F3C);
 
-  const flagL5DS = detectL5DenSwitch(attempts, level);
+  const flagL5DS = detectL5DenSwitch(attempts, level, ctx);
   if (flagL5DS) flags.push(flagL5DS);
 
-  const flag7 = await detectORD01(attempts, level);
+  const flag7 = detectORD01(attempts, level, ctx);
   if (flag7) flags.push(flag7);
 
-  const flag8 = detectSTRAT01(attempts, level);
+  const flag8 = detectSTRAT01(attempts, level, ctx);
   if (flag8) flags.push(flag8);
 
   return flags;

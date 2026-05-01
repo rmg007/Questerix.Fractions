@@ -37,6 +37,23 @@
           }
         ]
       }
+    },
+    {
+      "files": ["src/engine/**/*.ts"],
+      "excludedFiles": ["src/engine/ports.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.object.name='Date'][callee.property.name='now']",
+            "message": "Engine code must consume a Clock port (src/engine/ports.ts) via DetectorContext — direct Date.now() breaks deterministic replay. See PLANS/forensic-deep-dive-2026-05-01.md §1.5 / Phase 4.4."
+          },
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.object.name='crypto'][callee.property.name='randomUUID']",
+            "message": "Engine code must consume an IdGenerator port (src/engine/ports.ts) via DetectorContext — direct crypto.randomUUID() couples to the host runtime and prevents test-time fixtures. See PLANS/forensic-deep-dive-2026-05-01.md §1.5 / Phase 4.4."
+          }
+        ]
+      }
     }
   ],
   "ignorePatterns": ["dist", "node_modules", "build", ".venv", "pipeline"]
