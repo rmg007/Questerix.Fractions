@@ -261,9 +261,7 @@ export class PartitionInteraction implements Interaction {
       const maskG = this.scene.add.graphics().setDepth(5).setAlpha(0);
       maskG.fillStyle(SKY_BG, 0.45);
       maskG.fillRect(cx, cy - SHAPE_W / 2, SHAPE_W / 2, SHAPE_W);
-      this.fractionLabels.push(
-        this.scene.add.text(0, 0, '').setDepth(9)
-      ); // sentinel so maskG gets destroyed with fractionLabels
+      this.fractionLabels.push(this.scene.add.text(0, 0, '').setDepth(9)); // sentinel so maskG gets destroyed with fractionLabels
       maskG.destroy(); // simplified: just fill the whole circle amber for circle shape
     }
 
