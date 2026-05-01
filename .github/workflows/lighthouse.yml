@@ -11,4 +11,8 @@ jobs:
       - run: npm run build
       - run: npm install -g @lhci/cli@0.14.x
       - uses: browser-actions/setup-chrome@latest
+      - name: Start dev server
+        run: npm run dev:app &
+      - name: Wait for server
+        run: npx wait-on http://localhost:5000 --timeout 30000
       - run: lhci autorun
