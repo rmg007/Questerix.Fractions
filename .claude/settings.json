@@ -107,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /preflight /sync-curriculum /diag /learn /retro /sprint-status /c5-check /test-changed /decision\"; echo \"├─ Subagents: c1-c10-auditor bundle-watcher validator-parity-checker a11y-auditor\"; echo \"├─ Skim .claude/learnings.md for non-obvious gotchas\"; echo \"├─ Ignore _archive/ paths during exploration\"; echo \"└─ Active sprint: PLANS/master-plan-2026-04-26.md\""
+            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /learn /retro /sprint-status /c5-check /decision /recreate-pr /economy /retro-weekly\"; echo \"├─ Subagents: c1-c10-auditor bundle-watcher validator-parity-checker a11y-auditor engine-determinism-auditor curriculum-byte-parity\"; echo \"├─ Active sprint: PLANS/master-plan-2026-04-26.md\"; echo \"├─ Recent learnings (3 newest):\"; grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} ' .claude/learnings.md 2>/dev/null | head -3 | sed 's/^/│   • /'; echo \"└─ /learn <text> appends a new one\""
           }
         ]
       }
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p .claude && echo \"[$(date '+%F %H:%M')] pre-compact | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
+            "command": "mkdir -p .claude && TOKENS=\"${CLAUDE_CONTEXT_TOKENS:-unknown}\"; SESSION=\"${CLAUDE_SESSION_ID:-unknown}\"; echo \"[$(date '+%F %H:%M')] pre-compact | session: $SESSION | tokens: $TOKENS | branch: $(git branch --show-current 2>/dev/null) | dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files | last-commit: $(git log -1 --oneline 2>/dev/null)\" >> .claude/_session-log.md 2>/dev/null; exit 0"
           }
         ]
       }
@@ -129,6 +129,10 @@
           {
             "type": "command",
             "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) STAGED=$(git log -1 --name-only --pretty=format: 2>/dev/null | grep -v '^$'); if echo \"$STAGED\" | grep -q '^src/' && ! echo \"$STAGED\" | grep -qE '(CHANGELOG|PLANS/|learnings\\.md)'; then echo '◇ Source changed but no CHANGELOG/PLANS/learnings update — consider /retro before pushing.' >&2; fi ;; esac; exit 0"
+          },
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // empty'); case \"$CMD\" in *'git commit'*) MSG=$(git log -1 --pretty=%B 2>/dev/null); if echo \"$MSG\" | grep -qE '(^|[^a-z])fix\\(|\\bbug\\b'; then echo '▶ Bug fix committed — consider /learn to capture the gotcha.' >&2; fi ;; esac; exit 0"
           }
         ]
       },
@@ -137,7 +141,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); case \"$FILE\" in *vite.config.ts*|*playwright.config.ts*|*src/config/shared.ts*|*scripts/workflows/generator.mjs*) echo '▶ Config file changed — checking workflow consistency...'; npm run gen:workflows 2>/dev/null; if ! git diff --exit-code .github/workflows > /dev/null 2>&1; then echo 'WARNING: Workflow drift detected — commit the regenerated YAML with: git add .github/workflows && git commit' >&2; fi ;; esac; exit 0"
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] && exit 0; case \"$FILE\" in *public/curriculum/v1.json|*src/curriculum/bundle.json) echo 'BLOCKED: curriculum bundles are generated artifacts. Edit pipeline/output/level_*/all.json then run: npm run build:curriculum' >&2; exit 2 ;; *vite.config.ts|*playwright.config.ts|*src/config/shared.ts|*scripts/workflows/generator.mjs) echo '▶ config touched — checking workflow drift...'; npm run gen:workflows >/dev/null 2>&1 || true; git diff --exit-code .github/workflows >/dev/null 2>&1 || echo 'WARNING: workflow drift — run npm run gen:workflows && git add .github/workflows' >&2 ;; *pipeline/output/*) echo '▶ pipeline output changed — syncing curriculum bundles...'; npm run build:curriculum 2>&1 | tail -n 8 >&2 || true ;; *src/persistence/db.ts) echo '◇ db.ts edited — IndexedDB schema-version bump? Add a new .version(N).stores({...}).upgrade(tx => ...) block; never mutate an existing version. See src/persistence/CLAUDE.md.' >&2 ;; *src/persistence/*|*src/scenes/*|*src/lib/*) HITS=$(grep -nE 'localStorage\\.(get|set|remove)Item\\(' \"$FILE\" 2>/dev/null | grep -vE \"['\\\"](lastUsedStudentId|unlockedLevels:|completedLevels:)\" || true); [ -n \"$HITS\" ] && { echo '◇ C5 advisory: new localStorage usage in this file — only lastUsedStudentId is permitted (unlockedLevels:/completedLevels: are grandfathered in MenuScene/LevelMapScene only). Run /c5-check to verify.' >&2; echo \"$HITS\" >&2; } ;; esac; case \"$FILE\" in *.test.ts|*.test.tsx|*__tests__/*|*.spec.ts) : ;; *src/*.ts|*src/*.tsx) DIR=$(dirname \"$FILE\"); BASE=$(basename \"$FILE\" | sed 's/\\.tsx\\?$//'); SIBLING=\"$DIR/$BASE.test.ts\"; NESTED=\"$DIR/__tests__/$BASE.test.ts\"; TEST=''; [ -f \"$SIBLING\" ] && TEST=\"$SIBLING\"; [ -z \"$TEST\" ] && [ -f \"$NESTED\" ] && TEST=\"$NESTED\"; [ -n \"$TEST\" ] && { echo \"▶ running sibling test: $TEST\"; npx vitest run \"$TEST\" --reporter=basic 2>&1 | tail -n 10 >&2 || true; } ;; esac; exit 0"
+          },
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ] && exit 0; LOC=$(wc -l < \"$FILE\" 2>/dev/null | tr -d ' '); BUDGET=0; case \"$FILE\" in *src/scenes/*Scene.ts) BUDGET=600 ;; *src/components/*.ts) BUDGET=300 ;; *src/validators/*.ts) BUDGET=200 ;; *src/engine/*.ts) BUDGET=400 ;; *src/lib/*.ts) BUDGET=300 ;; esac; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt \"$BUDGET\" ]; then case \"$FILE\" in *Level01Scene.ts|*LevelScene.ts) PRE=$(git show HEAD:\"$FILE\" 2>/dev/null | wc -l | tr -d ' ' || echo 0); if [ \"$LOC\" -gt \"$PRE\" ]; then echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget. This is a frozen god file (D-27 deferred sunset) — net-LOC-positive edits are rejected until extraction lands. Bug-fix edits that delete more than they add are allowed. Bypass with --no-verify and a one-line PR-body justification.\" >&2; exit 2; fi ;; *) echo \"BLOCKED: $FILE is $LOC LOC, exceeding the $BUDGET LOC budget for $(echo $FILE | sed 's|.*/||') files. Extract before adding more. See PLANS/agent-tooling-2026-05-01.md → Core principle: Proactive over reactive.\" >&2; exit 2 ;; esac; fi; if [ \"$BUDGET\" -gt 0 ] && [ \"$LOC\" -gt $((BUDGET * 8 / 10)) ]; then echo \"◇ LOC advisory: $FILE is at $LOC/$BUDGET (>80%). Consider extracting before next addition.\" >&2; fi; exit 0"
           }
         ]
       }
