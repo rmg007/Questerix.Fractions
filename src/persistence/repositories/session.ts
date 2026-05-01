@@ -5,12 +5,21 @@
 
 import Dexie from 'dexie';
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { Session, SessionId, StudentId } from '../../types';
 
 export const sessionRepo = {
-  async create(record: Session): Promise<Session> {
-    await db.sessions.add(record);
-    return record;
+  async create(record: Session): Promise<Session | undefined> {
+    try {
+      await db.sessions.add(record);
+      return record;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'sessions' });
+        return undefined;
+      }
+      throw err;
+    }
   },
 
   async get(id: SessionId): Promise<Session | undefined> {

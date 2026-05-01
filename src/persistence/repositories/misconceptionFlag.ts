@@ -5,6 +5,7 @@
 
 import Dexie from 'dexie';
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { MisconceptionFlag, StudentId, MisconceptionId } from '../../types';
 
 export const misconceptionFlagRepo = {
@@ -19,8 +20,12 @@ export const misconceptionFlagRepo = {
   async upsert(flag: MisconceptionFlag): Promise<void> {
     try {
       await db.misconceptionFlags.put(flag);
-    } catch {
-      // swallow
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'misconceptionFlags' });
+        return;
+      }
+      // swallow non-quota write errors
     }
   },
 

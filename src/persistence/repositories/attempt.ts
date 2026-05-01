@@ -6,6 +6,7 @@
 
 import Dexie from 'dexie';
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { Attempt, AttemptId, StudentId, SessionId, QuestionTemplateId } from '../../types';
 
 export const attemptRepo = {
@@ -14,10 +15,18 @@ export const attemptRepo = {
    * cast back to AttemptId for type consistency.
    * per persistence-spec.md §4 — append-only
    */
-  async record(attempt: Omit<Attempt, 'id'> & { id?: AttemptId }): Promise<Attempt> {
+  async record(attempt: Omit<Attempt, 'id'> & { id?: AttemptId }): Promise<Attempt | undefined> {
     const toWrite = { ...attempt, syncState: 'local' as const };
-    const key = await db.attempts.add(toWrite as Attempt);
-    return { ...toWrite, id: String(key) as AttemptId };
+    try {
+      const key = await db.attempts.add(toWrite as Attempt);
+      return { ...toWrite, id: String(key) as AttemptId };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'attempts' });
+        return undefined;
+      }
+      throw err;
+    }
   },
 
   async get(id: AttemptId): Promise<Attempt | undefined> {

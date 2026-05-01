@@ -5,6 +5,7 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { DeviceMeta } from '../../types';
 
 const DEVICE_ID = 'device';
@@ -36,7 +37,14 @@ export const deviceMetaRepo = {
     try {
       const existing = await db.deviceMeta.get(DEVICE_ID);
       if (existing) return existing;
-      await db.deviceMeta.add(DEFAULT_META);
+      try {
+        await db.deviceMeta.add(DEFAULT_META);
+      } catch (writeErr) {
+        if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
+          log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
+        }
+        // Either quota or duplicate-key (race): fall through and return defaults
+      }
       return { ...DEFAULT_META };
     } catch {
       return { ...DEFAULT_META };

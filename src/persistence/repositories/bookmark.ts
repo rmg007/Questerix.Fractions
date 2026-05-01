@@ -4,12 +4,21 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { Bookmark, StudentId } from '../../types';
 
 export const bookmarkRepo = {
-  async save(bookmark: Bookmark): Promise<Bookmark> {
-    await db.bookmarks.put(bookmark);
-    return bookmark;
+  async save(bookmark: Bookmark): Promise<Bookmark | undefined> {
+    try {
+      await db.bookmarks.put(bookmark);
+      return bookmark;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        log.warn('DB', 'quota_exceeded', { table: 'bookmarks' });
+        return undefined;
+      }
+      throw err;
+    }
   },
 
   async get(id: string): Promise<Bookmark | undefined> {

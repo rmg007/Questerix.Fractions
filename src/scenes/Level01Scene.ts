@@ -340,8 +340,13 @@ export class Level01Scene extends Phaser.Scene {
         },
         syncState: 'local',
       });
-      this.sessionId = session.id;
-      log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
+      if (session) {
+        this.sessionId = session.id;
+        log.sess('open_ok', { sessionId: this.sessionId, activityId: 'partition_halves' });
+      } else {
+        // Quota exceeded — volatile mode, session not persisted
+        log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
+      }
     } catch (err) {
       // Volatile mode — continue without session record per runtime-architecture.md §10
       log.warn('SESS', 'open_error', { error: String(err) });
@@ -848,8 +853,12 @@ export class Level01Scene extends Phaser.Scene {
           pointCostApplied: pointCost,
           syncState: 'local',
         });
-        this.currentQuestionHintIds.push(event.id);
-        log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        if (event) {
+          this.currentQuestionHintIds.push(event.id);
+          log.hint('record_ok', { hintId: `hint.partition.${tier}`, pointCost, eventId: event.id });
+        } else {
+          log.warn('HINT', 'record_quota', { hintId: `hint.partition.${tier}` });
+        }
       } catch (err) {
         log.warn('HINT', 'record_error', { error: String(err) });
       }
