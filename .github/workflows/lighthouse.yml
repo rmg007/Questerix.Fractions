@@ -1,5 +1,18 @@
 name: Lighthouse
-on: [pull_request, push]
+# Skip on docs-only diffs — Lighthouse can't audit a markdown change.
+on:
+  pull_request:
+    paths-ignore:
+      - 'PLANS/**'
+      - 'docs/**'
+      - '.claude/**'
+      - '*.md'
+  push:
+    paths-ignore:
+      - 'PLANS/**'
+      - 'docs/**'
+      - '.claude/**'
+      - '*.md'
 jobs:
   lhci:
     runs-on: ubuntu-latest

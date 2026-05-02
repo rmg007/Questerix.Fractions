@@ -56,10 +56,60 @@ jobs:
       - name: Residual lint (timeout consistency + bundle budget)
         run: npm run lint:ci
 
+  # Detect whether the diff includes anything outside docs/plans/.claude/markdown.
+  # If the diff is docs-only, the heavy 'test' job is skipped — typecheck, lint,
+  # unit/integration/E2E/a11y, build, and bundle-size guard are not relevant
+  # signal for a markdown-only change. 'consistency' still runs (branch-name
+  # compliance + workflow-drift guard).
+  detect-changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        name: Detect non-docs changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1 >/dev/null 2>&1 || true
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="${{ github.event.before }}"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              echo "code=true" >> "$GITHUB_OUTPUT"
+              echo "Initial push or unknown base — treating as code change"
+              exit 0
+            fi
+          fi
+
+          if ! git rev-parse "$BASE" >/dev/null 2>&1; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "Cannot resolve base $BASE — treating as code change"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
+          echo "Changed files vs $BASE:"
+          echo "$CHANGED" | sed 's/^/  /'
+
+          # Docs-only safe-list: PLANS/, docs/, .claude/, and top-level *.md
+          # Anything outside this set is treated as code.
+          if echo "$CHANGED" | grep -qvE '^(PLANS/|docs/|\.claude/|[^/]+\.md$)'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "Code change detected — full test suite will run"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "Docs-only diff — test job will be skipped"
+          fi
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: consistency
+    needs: [consistency, detect-changes]
+    if: needs.detect-changes.outputs.code == 'true'
 
     steps:
       - uses: actions/checkout@v4
