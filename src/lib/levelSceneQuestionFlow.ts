@@ -31,6 +31,7 @@ export interface QuestionFlowContext {
   promptText: Phaser.GameObjects.Text;
   hintTextGO: Phaser.GameObjects.Text;
   questionCounterText: Phaser.GameObjects.Text;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
 }
 

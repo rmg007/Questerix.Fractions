@@ -22,7 +22,9 @@ export interface OutcomeFlowContext {
   progressBar: ProgressBar;
   feedbackOverlay: FeedbackOverlay;
   submitButtonContainer: Phaser.GameObjects.Container | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   activeInteraction: any;
 }
 

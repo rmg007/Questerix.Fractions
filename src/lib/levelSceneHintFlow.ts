@@ -16,7 +16,9 @@ export interface HintFlowContext {
   hintLadder: HintLadder;
   hintButton: Phaser.GameObjects.Container;
   hintTextGO: Phaser.GameObjects.Text;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   activeInteraction: any;
 }
 
