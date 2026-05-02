@@ -328,10 +328,10 @@ Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 | Task | Command / File | Done |
 |---|---|---|
 | iPad Safari touch-drag test | Manual — primary K-2 device, never tested | [ ] |
-| Playwright L1 happy-path E2E | `tests/e2e/level01.spec.ts` | [ ] |
+| Playwright L1 happy-path E2E | `tests/e2e/level01.spec.ts` | [x] 2026-05-02 — 2/2 passing in 48s on chromium |
 | Deploy to Cloudflare Pages | `npm run build && npx wrangler pages deploy dist` | [ ] |
 | `npm run agent-doctor` step in CI | `.github/workflows/ci.yml` — add after Install step | [ ] |
-| Lighthouse workflow Node → 24 | `.github/workflows/lighthouse.yml` | [ ] |
+| Lighthouse workflow Node → 24 | `.github/workflows/lighthouse.yml` | [x] already on Node 24 |
 
 **Agent tooling (D-agent-tooling approved phases):**
 - Phase 2 — Blast-radius preflight (~3 h): doc-only PRs skip to 5 s lint-only path
