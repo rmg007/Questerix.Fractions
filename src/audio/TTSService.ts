@@ -24,24 +24,47 @@ export class TTSService {
 
     // R10: iOS TTS onvoiceschanged listener. On iOS Safari, voices load asynchronously.
     // Without waiting for onvoiceschanged, the first speak() call may fire before voices
-    // populate, causing silent failure. Promise resolves once voices are ready.
+    // populate, causing silent failure. Promise resolves once voices are ready, OR after
+    // a 1500 ms watchdog so speak() never deadlocks on browsers where voices stay empty.
     this.voicesReady = new Promise<void>((resolve) => {
       if (!this.synth) {
         resolve();
         return;
       }
-      const checkVoices = () => {
-        if (this.synth!.getVoices().length > 0) {
-          resolve();
-        }
-      };
-      // Check immediately in case voices are already loaded
       if (this.synth.getVoices().length > 0) {
         resolve();
-      } else {
-        // Listen for async voice population (iOS)
-        this.synth.onvoiceschanged = checkVoices;
+        return;
       }
+      const synth = this.synth;
+      let settled = false;
+      let watchdogId: ReturnType<typeof setTimeout> | null = null;
+      const usedAddEventListener = typeof synth.addEventListener === 'function';
+      const onChanged = () => {
+        if (synth.getVoices().length > 0) settle();
+      };
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        if (watchdogId !== null) {
+          clearTimeout(watchdogId);
+          watchdogId = null;
+        }
+        if (usedAddEventListener) {
+          synth.removeEventListener('voiceschanged', onChanged);
+        } else if (synth.onvoiceschanged === onChanged) {
+          synth.onvoiceschanged = null;
+        }
+        resolve();
+      };
+      // Prefer addEventListener so we don't clobber a host page's own handler.
+      if (usedAddEventListener) {
+        synth.addEventListener('voiceschanged', onChanged);
+      } else {
+        synth.onvoiceschanged = onChanged;
+      }
+      // Watchdog: cap waits at 1500 ms so a permanently empty voice list cannot
+      // strand every speak() call. On unsupported browsers we'd otherwise hang.
+      watchdogId = setTimeout(settle, 1500);
     });
   }
 

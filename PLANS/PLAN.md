@@ -299,22 +299,22 @@ Full specs: `PLANS/ui-audit.md`.
 
 ## Phase 4 — Harden
 
-**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). **Sub-phase 4.1 (Level01Scene refactor) ✅ DONE** — 2026-05-02 via PR #57 (commit 9bb3197). Extracted 807 LOC into four focused modules; Level01Scene reduced 2040→1650 LOC (-390 LOC, -19.1%). **Sub-phase 4.2 (LevelScene refactor) ✅ DONE** — 2026-05-02 via PR #59. Extracted Session cluster fully; Layout cluster created but not wired (specialized); Feedback cluster partially wired. LevelScene reduced 1558→1318 LOC (-240 LOC, -15.4%). **Total Phase 4 so far: -630 LOC. Target <800 LOC (need ~518 more from 4.3+).** Sub-phases 4.3–4.8 queued. Items still pending hardening: R10 (iOS TTS), R13 (MenuScene localStorage), R27 (LOG localStorage), R36 (ambient motion).
+**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). **Sub-phase 4.1 (Level01Scene refactor) ✅ DONE** — 2026-05-02 via PR #57 (commit 9bb3197). Extracted 807 LOC into four focused modules; Level01Scene reduced 2040→1650 LOC (-390 LOC, -19.1%). **Sub-phase 4.2 (LevelScene refactor) ✅ DONE** — 2026-05-02 via PR #59. Extracted Session cluster fully; Layout cluster created but not wired (specialized); Feedback cluster partially wired. LevelScene reduced 1558→1318 LOC (-240 LOC, -15.4%). **Sub-phase 4.3 (LevelScene flow wiring) ✅ DONE** — 2026-05-02 via PR #60 (commit 254d38e). Wired loadQuestion/onSubmit/showHintForTier/pulseHintButton as thin delegators to `src/lib/levelScene{Question,Outcome,Hint,Session}*.ts`. LevelScene now 1215 LOC. **Total Phase 4 so far: -733 LOC. Target <800 LOC (need ~415 more from 4.4+).** **R-task closeout:** R10 (iOS TTS) already shipped; this branch added a 1500ms `voicesReady` watchdog so `speak()` cannot deadlock on empty-voice browsers. R13 (unlockedLevels) already migrated to Dexie `levelProgressionRepo`. R27 (LOG key) already on `sessionStorage` (allowed under C5). R36 (ambient motion) — `MenuScene` + `LevelMapScene` `fadeIn` and dash tick are gated on `checkReduceMotion()`; Mascot tweens self-gate. Sub-phases 4.4–4.8 queued.
 **Source:** `PLANS/_archive/harden-and-polish-2026-04-30.md` (full file:line specs)
 
-| ID | Severity | Item | File:Line |
-|---|---|---|---|
-| R6 | CRITICAL | Session creation silent collapse → 30 min of data lost | `Level01Scene.ts:314–379` |
-| R1 | CRITICAL | `seedIfEmpty()` no concurrency guard | `seed.ts:54` |
-| R5 | CRITICAL | `validatorRegistry.get(... as never)` swallows undefined | `Level01Scene.ts:752` |
-| R10 | CRITICAL | iOS Safari TTS: missing `onvoiceschanged` listener | `TTSService.ts:23–38` |
-| R11 | CRITICAL | FeedbackOverlay text/bg fails WCAG 1.4.3 (correct=2.52:1) | `FeedbackOverlay.ts:35–42` |
-| R13 | CRITICAL | localStorage C5 violation: `unlockedLevels:${studentId}` | `MenuScene.ts:348–384` |
-| R27 | HIGH | localStorage `LOG` key violates C5 allowlist | `log.ts:40, 113, 118, 122` |
-| R16 | HIGH | `deviceMeta.updatePreferences()` read-modify-write race | `deviceMeta.ts:64–81` |
-| R30 | HIGH | `settings-btn` testid missing → blocks 6 E2E tests | `MenuScene.ts:214–231` |
-| R21 | HIGH | PreferenceToggle has no `:focus` outline (a11y) | `PreferenceToggle.ts:102–120` |
-| R36 | MEDIUM | Ambient menu animations ignore `prefers-reduced-motion` | `MenuScene.ts:93, 300–301` |
+| ID | Severity | Item | File:Line | Status |
+|---|---|---|---|---|
+| R6 | CRITICAL | Session creation silent collapse → 30 min of data lost | `Level01Scene.ts:314–379` | ✅ PR #56 |
+| R1 | CRITICAL | `seedIfEmpty()` no concurrency guard | `seed.ts:54` | ✅ PR #56 |
+| R5 | CRITICAL | `validatorRegistry.get(... as never)` swallows undefined | `Level01Scene.ts:752` | ✅ PR #56 |
+| R10 | CRITICAL | iOS Safari TTS: missing `onvoiceschanged` listener | `TTSService.ts:21–46` | ✅ shipped + watchdog 2026-05-02 |
+| R11 | CRITICAL | FeedbackOverlay text/bg fails WCAG 1.4.3 (correct=2.52:1) | `FeedbackOverlay.ts:35–42` | ✅ PR #56 |
+| R13 | CRITICAL | localStorage C5 violation: `unlockedLevels:${studentId}` | `MenuScene.ts:348–384` | ✅ migrated to `levelProgressionRepo` |
+| R27 | HIGH | localStorage `LOG` key violates C5 allowlist | `log.ts:40, 113, 118, 122` | ✅ now `sessionStorage` (allowed) |
+| R16 | HIGH | `deviceMeta.updatePreferences()` read-modify-write race | `deviceMeta.ts:64–81` | ✅ PR #56 |
+| R30 | HIGH | `settings-btn` testid missing → blocks 6 E2E tests | `MenuScene.ts:214–231` | ✅ PR #56 |
+| R21 | HIGH | PreferenceToggle has no `:focus` outline (a11y) | `PreferenceToggle.ts:102–120` | ✅ PR #56 |
+| R36 | MEDIUM | Ambient menu animations ignore `prefers-reduced-motion` | `MenuScene.ts:128, 745` + `LevelMapScene.ts:111` | ✅ all gated on `checkReduceMotion()` |
 
 Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 
