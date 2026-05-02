@@ -302,6 +302,8 @@ Sprint 0 exit criteria: student completes a 5-question session at `localhost:500
 | Performance budget breakdown | `docs/30-architecture/performance-budget.md` |
 | Misconception catalog (MC-*) | `docs/10-curriculum/misconceptions.md` |
 | Skill registry (SK-*) | `docs/10-curriculum/skills.md` |
-| Roadmap + sprint plan | `PLANS/PLAN.md` |
+| Roadmap index + closed phases | `PLANS/PLAN.md` |
+| Items requiring a human (Phase 0 walkthrough, iPad, Cloudflare) | `PLANS/MANUAL_VERIFICATION.md` |
+| `test.skip`'d e2e/a11y clusters with fix paths | `PLANS/E2E_FOLLOWUPS.md` |
 | UI/UX design principles | `docs/00-foundation/ui-design-principles.md` |
 | Git branch + PR process | `docs/00-foundation/git-workflow.md` |

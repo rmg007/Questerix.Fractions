@@ -24,6 +24,25 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-31 — 2026-05-02 — Archive PLAN.md; split residual work into manual + e2e trackers
+
+**Decision:** `PLANS/PLAN.md` is no longer a multi-phase sprint plan. Phases 0–5 of the 2026-05-01 plan were closed out across the 2026-05-01 / 2026-05-02 merge trains. The file is now a 40-line index pointing at:
+
+- `PLANS/MANUAL_VERIFICATION.md` — items that require a human in a Chromium tab, on iPad hardware, or with Cloudflare auth (Phase 0 walkthrough, iPad Safari touch-drag, production deploy).
+- `PLANS/E2E_FOLLOWUPS.md` — seven `test.skip`'d e2e/a11y clusters surfaced by the 2026-05-02 fixture-bug closeout (mascot reactions, Quest catalog, L6/L7 chrome interaction, multi-attempt session flake, ProgressBar a11y-snap-center, A11y touch-target audit synthetic violations, skip-link href contract).
+
+The frozen archive lives at `PLANS/_archive/2026-05-02-PLAN.md`.
+
+**Why:** Every phase that could be finished from the terminal landed. The remaining items are (a) human-only or (b) feature-drift clusters that need targeted fixes rather than a sprint structure. Keeping a phased PLAN.md when there's no active phase invites stale `[ ]` checkboxes and confused agent starts.
+
+**Alternatives:**
+- Keep PLAN.md as-is and let it accumulate Phase 6+. Rejected — invites stale state; the next sprint's structure depends on what surfaces first from the trackers, not on a pre-decided phase.
+- Inline MANUAL_VERIFICATION + E2E_FOLLOWUPS into PLAN.md. Rejected — the trackers have different audiences (human operator vs e2e-debug agent) and lifecycles.
+
+**Source:** `PLANS/PLAN.md` (post-archive index), `PLANS/_archive/2026-05-02-PLAN.md` (frozen snapshot), PR #74.
+
+---
+
 ## D-30 — 2026-05-01 — Proactive over reactive — per-directory LOC budgets + frozen god files + scaffolding
 
 **Decision:** Adopt **proactive prevention** as the default agent-tooling posture, replacing the prior reactive (audit-after-merge) model. Concretely:
