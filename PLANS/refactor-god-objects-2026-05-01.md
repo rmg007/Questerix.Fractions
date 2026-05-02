@@ -163,9 +163,9 @@ Update inline as sub-phases complete. Don't open the next sub-phase's section un
 
 | Sub-phase | Status | PR | Final LOC | Modules created | Notes |
 |---|---|---|---|---|---|
-| 4.1 Level01Scene | PENDING | — | — | — | — |
-| 4.2 LevelScene | PENDING | — | — | — | — |
-| 4.3 MenuScene | PENDING | — | — | — | — |
+| 4.1 Level01Scene | DONE | #57 | 1650 | levelSession, levelLayout, levelFeedback, questFeedback | Extraction landed (-390); file remains over budget pending Phase 5 deprecation |
+| 4.2 LevelScene | DONE | #59, #60 | 1215 | session/layout/feedback clusters + question/outcome/hint flows | Extraction landed (-343); file remains over budget |
+| 4.3 MenuScene | DONE | _(this branch)_ | 468 | MenuPath, MenuLevelOverlay, MenuStationButton | **Under 600 budget** — ESLint exclusion removed |
 | 4.4 Mascot | PENDING | — | — | — | — |
 | 4.5 SettingsScene | PENDING | — | — | — | — |
 | 4.7 SessionCompleteOverlay | PENDING | — | — | — | — |

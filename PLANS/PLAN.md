@@ -299,7 +299,7 @@ Full specs: `PLANS/ui-audit.md`.
 
 ## Phase 4 — Harden
 
-**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). **Sub-phase 4.1 (Level01Scene refactor) ✅ DONE** — 2026-05-02 via PR #57 (commit 9bb3197). Extracted 807 LOC into four focused modules; Level01Scene reduced 2040→1650 LOC (-390 LOC, -19.1%). **Sub-phase 4.2 (LevelScene refactor) ✅ DONE** — 2026-05-02 via PR #59. Extracted Session cluster fully; Layout cluster created but not wired (specialized); Feedback cluster partially wired. LevelScene reduced 1558→1318 LOC (-240 LOC, -15.4%). **Total Phase 4 so far: -630 LOC. Target <800 LOC (need ~518 more from 4.3+).** Sub-phases 4.3–4.8 queued. Items still pending hardening: R10 (iOS TTS), R13 (MenuScene localStorage), R27 (LOG localStorage), R36 (ambient motion).
+**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). **Sub-phase 4.1 (Level01Scene refactor) ✅ DONE** — 2026-05-02 via PR #57 (commit 9bb3197). Extracted 807 LOC into four focused modules; Level01Scene reduced 2040→1650 LOC (-390 LOC, -19.1%). **Sub-phase 4.2 (LevelScene refactor) ✅ DONE** — 2026-05-02 via PR #59 + PR #60 wiring. LevelScene reduced 1558→1215 LOC (-343 LOC, -22.0%). **Sub-phase 4.3 (MenuScene refactor) ✅ DONE** — 2026-05-02 (this branch). Extracted MenuPath, MenuLevelOverlay, MenuStationButton; MenuScene 912→468 LOC (-444 LOC, -49%). MenuScene now under the 600 LOC ESLint budget; exclusion entry removed. R13 + R27 confirmed already resolved by PR #56's localStorage migration (only `lastUsedStudentId` remains per C5). **Total Phase 4 so far: -1177 LOC.** Sub-phases 4.4 (Mascot), 4.5 (SettingsScene), 4.7 (SessionCompleteOverlay) queued. Items still pending hardening: R10 (iOS TTS), R36 (ambient motion).
 **Source:** `PLANS/_archive/harden-and-polish-2026-04-30.md` (full file:line specs)
 
 | ID | Severity | Item | File:Line |
@@ -309,8 +309,8 @@ Full specs: `PLANS/ui-audit.md`.
 | R5 | CRITICAL | `validatorRegistry.get(... as never)` swallows undefined | `Level01Scene.ts:752` |
 | R10 | CRITICAL | iOS Safari TTS: missing `onvoiceschanged` listener | `TTSService.ts:23–38` |
 | R11 | CRITICAL | FeedbackOverlay text/bg fails WCAG 1.4.3 (correct=2.52:1) | `FeedbackOverlay.ts:35–42` |
-| R13 | CRITICAL | localStorage C5 violation: `unlockedLevels:${studentId}` | `MenuScene.ts:348–384` |
-| R27 | HIGH | localStorage `LOG` key violates C5 allowlist | `log.ts:40, 113, 118, 122` |
+| R13 | ✅ RESOLVED | localStorage C5 violation: `unlockedLevels:${studentId}` migrated to Dexie `levelProgression` table (v6 schema, see `db.ts:226`) | `MenuScene.ts` (no longer reads/writes localStorage) |
+| R27 | ✅ RESOLVED | LOG key uses `sessionStorage` (per-tab, not persistent) — outside C5's localStorage allowlist scope | `log.ts:42` |
 | R16 | HIGH | `deviceMeta.updatePreferences()` read-modify-write race | `deviceMeta.ts:64–81` |
 | R30 | HIGH | `settings-btn` testid missing → blocks 6 E2E tests | `MenuScene.ts:214–231` |
 | R21 | HIGH | PreferenceToggle has no `:focus` outline (a11y) | `PreferenceToggle.ts:102–120` |
