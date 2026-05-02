@@ -81,14 +81,14 @@ export async function recordAttemptAndMasteryForLevel(
     const isCorrect = outcome === 'EXACT';
     const skillIds = currentTemplate.skillIds ?? [];
     const skillId = (skillIds[0] ?? `skill.level_${levelNumber}`) as SkillId;
+    const attemptId = crypto.randomUUID() as AttemptId;
     log.atmp('record_start', {
-      attemptId: crypto.randomUUID(),
+      attemptId,
       outcome,
       responseMs,
       questionId: currentTemplate.id,
       hintsUsed: currentQuestionHintIds.length,
     });
-    const attemptId = crypto.randomUUID() as AttemptId;
     await db.transaction('rw', [db.attempts, db.skillMastery], async () => {
       await attemptRepo.record({
         id: attemptId,
@@ -237,12 +237,15 @@ export async function persistLevelCompletionForLevel(
     const { ActivityId } = await import('@/types/branded');
     const activityId = ActivityId(`level_${levelNumber}`);
     const existing = await progressionStatRepo.get(studentId, activityId);
-    const nextLevel = levelNumber + 1;
+    const nextLevel = Math.min(levelNumber + 1, 9);
     const updated: import('@/types').ProgressionStat = {
       studentId,
       activityId,
       currentLevel: nextLevel,
-      highestLevelReached: Math.max(nextLevel, existing?.highestLevelReached ?? nextLevel),
+      highestLevelReached: Math.min(
+        Math.max(nextLevel, existing?.highestLevelReached ?? nextLevel),
+        9
+      ),
       sessionsAtCurrentLevel: 0,
       totalSessions: (existing?.totalSessions ?? 0) + 1,
       totalXp: (existing?.totalXp ?? 0) + correctCount * 10,

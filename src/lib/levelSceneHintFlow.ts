@@ -16,6 +16,7 @@ export interface HintFlowContext {
   hintLadder: HintLadder;
   hintButton: Phaser.GameObjects.Container;
   hintTextGO: Phaser.GameObjects.Text;
+  currentQuestionHintIds: string[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,7 +146,7 @@ export async function showHintForTier(
       syncState: 'local',
     });
     if (ev?.id) {
-      callbacks.setCurrentQuestionHintIds([ev.id]);
+      callbacks.setCurrentQuestionHintIds([...ctx.currentQuestionHintIds, ev.id]);
     }
   } catch (err) {
     console.warn('[levelSceneHintFlow] Could not record hint event:', err);

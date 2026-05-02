@@ -186,7 +186,7 @@ export async function submitQuestion(
     result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
   }
 
-  const responseMs = Date.now() - startedAt;
+  const validatorMs = Date.now() - startedAt;
   const totalResponseMs = Date.now() - ctx.questionStartTime;
   callbacks.addResponseTime(totalResponseMs);
 
@@ -194,7 +194,7 @@ export async function submitQuestion(
     outcome: result.outcome,
     score: result.score,
     feedback: result.feedback,
-    validatorMs: responseMs,
+    validatorMs,
     totalResponseMs,
     questionId: ctx.currentTemplate.id,
     attemptNumber: ctx.wrongCount + 1,
@@ -207,7 +207,7 @@ export async function submitQuestion(
       'question.outcome': result.outcome,
       'scene.level': ctx.levelNumber,
     },
-    () => callbacks.recordAttempt(result, responseMs)
+    () => callbacks.recordAttempt(result, totalResponseMs)
   );
 
   callbacks.showOutcome(result);
