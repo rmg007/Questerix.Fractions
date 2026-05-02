@@ -338,43 +338,44 @@ export class QuesterixDB extends Dexie {
         }
       });
 
-    // Schema version 8 — changes hintEvents.id from Dexie auto-increment (++id, number)
-    // to client-generated UUID strings (string) for type consistency with other entities.
-    // Wipes hintEvents table since it's append-only and used only for telemetry/analysis.
-    this.version(8)
-      .stores({
-        // Carry all v7 stores forward unchanged (except hintEvents)
-        curriculumPacks: 'id',
-        standards: 'id',
-        skills: 'id, gradeLevel',
-        activities: 'id, levelGroup, archetype',
-        activityLevels: 'id, [activityId+levelNumber]',
-        fractionBank: 'id, denominatorFamily, benchmark',
-        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
-        misconceptions: 'id',
-        hints: 'id, [questionTemplateId+order]',
-        students: 'id, displayName, createdAt',
-        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-        attempts:
-          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
-        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-        deviceMeta: '&installId',
-        bookmarks: 'id, studentId',
-        sessionTelemetry: 'sessionId, studentId',
-        // Changed: hintEvents now uses string primary key instead of auto-increment
-        hintEvents: 'id, attemptId',
-        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
-        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
-        telemetryEvents: '++id, timestamp, event, severity, syncState',
-        levelProgression: '&studentId',
-        streakRecord: '&studentId',
-      })
-      .upgrade(async (tx) => {
-        // Wipe hintEvents since it's append-only telemetry data with no user-facing state.
-        // Any hint events recorded with the old schema will be lost, but new events will
-        // use the correct UUID-based IDs going forward.
-        await tx.table('hintEvents').clear();
-      });
+    // Schema version 8 — drops the hintEvents store. IndexedDB does not allow
+    // changing a store's keyPath/autoIncrement in-place (Dexie throws
+    // "Not yet support for changing primary key"), so we must drop the store
+    // here and recreate it with the new keyPath in v9. Hint events are
+    // append-only telemetry, so wiping them is acceptable.
+    this.version(8).stores({
+      // Carry all v7 stores forward unchanged.
+      curriculumPacks: 'id',
+      standards: 'id',
+      skills: 'id, gradeLevel',
+      activities: 'id, levelGroup, archetype',
+      activityLevels: 'id, [activityId+levelNumber]',
+      fractionBank: 'id, denominatorFamily, benchmark',
+      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+      misconceptions: 'id',
+      hints: 'id, [questionTemplateId+order]',
+      students: 'id, displayName, createdAt',
+      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+      attempts:
+        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+      deviceMeta: '&installId',
+      bookmarks: 'id, studentId',
+      sessionTelemetry: 'sessionId, studentId',
+      // Drop hintEvents — recreated with string primary key in v9.
+      hintEvents: null,
+      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+      telemetryEvents: '++id, timestamp, event, severity, syncState',
+      levelProgression: '&studentId',
+      streakRecord: '&studentId',
+    });
+
+    // Schema version 9 — recreates hintEvents with a client-generated UUID
+    // string primary key for type consistency with other entities (R4).
+    this.version(9).stores({
+      hintEvents: 'id, attemptId',
+    });
   }
 }
 
