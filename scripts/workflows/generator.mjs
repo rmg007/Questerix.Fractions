@@ -15,7 +15,10 @@ import { fileURLToPath } from 'url'
 
 // Must match src/config/shared.ts
 const DEV_PORT = 5000
-const BROWSERS = ['chromium', 'webkit']
+// CI installs chromium only; webkit is part of the local-only mobile matrix
+// (iPhone SE/12, iPad Mini in playwright.config.ts). See ci.yml comment for
+// why CI is chromium-only.
+const BROWSERS = ['chromium']
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(__dirname, '..', '..')
@@ -95,11 +98,17 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${BROWSERS.join(' ')}
 
+      # Pin CI to the chromium project only — the full 5-device matrix
+      # (chromium + iPhone SE/12 + Pixel 5 + iPad Mini) regularly exceeds the
+      # 20-min job timeout, causing every PR test job to be cancelled rather
+      # than provide a real signal. Run the full matrix locally with
+      # 'npx playwright test' before tagging a release. See PR #64 for the
+      # timeout history.
       - name: E2E tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- --project=chromium
 
       - name: A11y tests
-        run: npm run test:a11y
+        run: npm run test:a11y -- --project=chromium
 
       - name: Production build
         run: npm run build
