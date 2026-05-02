@@ -164,7 +164,10 @@ export async function recordAttemptAndMastery(
             await misconceptionFlagRepo.upsert(flag);
           }
         });
-        log.misc('flags_detected', { count: flags.length, ids: flags.map((f) => f.misconceptionId) });
+        log.misc('flags_detected', {
+          count: flags.length,
+          ids: flags.map((f) => f.misconceptionId),
+        });
       } else {
         log.misc('no_flags', { checkedAttempts: 'last10' });
       }

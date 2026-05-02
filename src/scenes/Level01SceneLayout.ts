@@ -96,15 +96,24 @@ export function createPromptArea(scene: Scene, promptText: string): void {
 }
 
 export function createHintArea(scene: Scene): Phaser.GameObjects.Text {
-  return scene.add.text(CW / 2, 200, '', HINT_TEXT_STYLE).setOrigin(0.5).setDepth(2);
+  return scene.add
+    .text(CW / 2, 200, '', HINT_TEXT_STYLE)
+    .setOrigin(0.5)
+    .setDepth(2);
 }
 
-export function createHintButton(scene: Scene, onRequest: () => void): Phaser.GameObjects.Container {
+export function createHintButton(
+  scene: Scene,
+  onRequest: () => void
+): Phaser.GameObjects.Container {
   const btn = createHintPillButton(scene, CW / 2, 720, onRequest);
   return btn;
 }
 
-export function createSubmitButton(scene: Scene, onSubmit: () => void): Phaser.GameObjects.Container {
+export function createSubmitButton(
+  scene: Scene,
+  onSubmit: () => void
+): Phaser.GameObjects.Container {
   const btn = createActionButton(scene, CW / 2, 820, 'Check', onSubmit);
   return btn;
 }
