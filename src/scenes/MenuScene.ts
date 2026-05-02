@@ -55,8 +55,9 @@ const PLAY_HOVER = 0xf59e0b; // amber-500
 const PLAY_BORDER = 0xb45309; // amber-700
 const PLAY_TEXT = '#78350F'; // amber-900
 
-const CONT_FILL = 0x34d399; // emerald-400
-const CONT_HOVER = 0x10b981; // emerald-500
+// R22 (4.4): emerald-700 for WCAG AA — white text 6.41:1 contrast
+const CONT_FILL = 0x047857; // emerald-700
+const CONT_HOVER = 0x065f46; // emerald-800
 const CONT_BORDER = 0x064e3b; // emerald-900
 const CONT_TEXT = '#FFFFFF';
 
@@ -199,6 +200,16 @@ export class MenuScene extends Phaser.Scene {
       },
       { width: '100px', height: '40px', top: '55%', left: '10%' }
     );
+    // R31: level-card-L2..L5, L8, L9 testids for E2E coverage
+    for (const n of [2, 3, 4, 5, 8, 9] as const) {
+      TestHooks.mountInteractive(
+        `level-card-L${n}`,
+        () => {
+          fadeAndStart(this, 'LevelScene', { levelNumber: n, studentId: this.lastStudentId });
+        },
+        { width: '100px', height: '40px', top: `${50 + (n - 2) * 5}%`, left: '90%' }
+      );
+    }
 
     // R30: settings-btn testid for E2E testing
     TestHooks.mountInteractive(
