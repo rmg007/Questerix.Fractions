@@ -22,7 +22,6 @@ import {
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
-import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
@@ -69,6 +68,7 @@ import {
   loadTemplatesForLevel,
   showOfflineCurriculumToast as showOfflineCurriculumToastLib,
 } from '../lib/levelSceneTemplates';
+import { showSessionCompleteForLevel } from '../lib/levelSceneSessionComplete';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -803,82 +803,41 @@ export class LevelScene extends Phaser.Scene {
   // ── Session complete ─────────────────────────────────────────────────────────
 
   private async showSessionComplete(): Promise<void> {
-    this.inputLocked = true;
-    const accuracy =
-      this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
-    const avgResponseMs =
-      this.responseTimes.length > 0
-        ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
-        : null;
-    log.scene('session_complete', {
-      level: this.levelNumber,
-      attemptCount: this.attemptCount,
-      correctCount: this.correctCount,
-      accuracy,
-      avgResponseMs,
-    });
-
-    // Phase 2a (D-1): gate next-level unlock on correctCount/never-stuck/researcher
-    const { evaluateUnlockGate } = await import('../lib/unlockGate');
-    const gate = await evaluateUnlockGate({
-      studentId: this.studentId,
-      levelNumber: this.levelNumber,
-      correctCount: this.correctCount,
-    });
-    if (gate.passed) MenuScene.markLevelComplete(this.levelNumber, this.studentId);
-    if (gate.passed) void this.persistLevelCompletion();
-
-    const nextLevel =
-      this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
-
-    // T11: Scaffold recommendation. Gate failure forces 'stay' regardless of accuracy.
-    const totalAttempts = this.responseTimes.length;
-    const acc = totalAttempts > 0 ? this.correctCount / totalAttempts : 0;
-    let scaffoldRec: 'advance' | 'stay' | 'regress' = 'stay';
-    if (gate.passed && acc >= 0.8) scaffoldRec = 'advance';
-    else if (gate.passed && acc < 0.4) scaffoldRec = 'regress';
-    const isPerfect = gate.passed && acc === 1 && totalAttempts === SESSION_GOAL;
-
-    new SessionCompleteOverlay({
-      scene: this,
-      levelNumber: this.levelNumber,
-      correctCount: this.correctCount,
-      totalAttempts,
-      width: CW,
-      height: CH,
-      scaffoldRecommendation: scaffoldRec,
-      nextLevelNumber: scaffoldRec === 'advance' && nextLevel !== null ? nextLevel : null,
-      isPerfect,
-      ...(gate.passed && nextLevel !== null
-        ? { onNextLevel: () => fadeAndStart(this, 'LevelScene', { levelNumber: nextLevel, studentId: this.studentId }) } // prettier-ignore
-        : {}),
-      onPlayAgain: () =>
-        fadeAndStart(this, 'LevelScene', {
-          levelNumber: this.levelNumber,
-          studentId: this.studentId,
-        }),
-      onMenu: () =>
-        fadeAndStart(this, 'LevelMapScene', {
-          studentId: this.studentId,
-          postSession: true,
-          levelNumber: this.levelNumber,
-          completedScore: this.correctCount,
-        }),
-    });
-
-    // T16: Quest session-complete speech line
-    let completeLine = 'Great practice! Keep going!';
-    if (!gate.passed) completeLine = "Let's practice a little more!";
-    else if (scaffoldRec === 'advance') completeLine = 'I knew you could do it! ⭐';
-    this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
-
-    if (this.mascot) {
-      this.mascot.setDepth(60);
-      this.mascot.reposition(CW - 120, 400);
-      this.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
-    }
-
-    void this.closeSession();
+    await showSessionCompleteForLevel(
+      {
+        scene: this,
+        levelNumber: this.levelNumber,
+        studentId: this.studentId,
+        attemptCount: this.attemptCount,
+        correctCount: this.correctCount,
+        responseTimes: this.responseTimes,
+        canvasWidth: CW,
+        canvasHeight: CH,
+        mascot: this.mascot,
+      },
+      {
+        setInputLocked: (l) => {
+          this.inputLocked = l;
+        },
+        markLevelComplete: () => MenuScene.markLevelComplete(this.levelNumber, this.studentId),
+        persistCompletion: () => this.persistLevelCompletion(),
+        closeSession: () => this.closeSession(),
+        navigateNextLevel: (next) =>
+          fadeAndStart(this, 'LevelScene', { levelNumber: next, studentId: this.studentId }),
+        navigatePlayAgain: () =>
+          fadeAndStart(this, 'LevelScene', {
+            levelNumber: this.levelNumber,
+            studentId: this.studentId,
+          }),
+        navigateMenu: () =>
+          fadeAndStart(this, 'LevelMapScene', {
+            studentId: this.studentId,
+            postSession: true,
+            levelNumber: this.levelNumber,
+            completedScore: this.correctCount,
+          }),
+      }
+    );
   }
 
   /**
