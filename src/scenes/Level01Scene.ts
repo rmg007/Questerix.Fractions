@@ -50,6 +50,14 @@ import {
   checkAllLevelsComplete,
 } from '../lib/level01SessionLifecycle';
 import { recordAttemptAndMastery } from '../lib/attemptRecorder';
+import {
+  questFeedbackText as getQuestFeedback,
+  questHintText as getQuestHint,
+  determineFeedbackKind,
+  questPersonalityText,
+  playWrongAnswerSound,
+  playCorrectAnswerSound,
+} from './Level01SceneFeedback';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -1074,67 +1082,12 @@ export class Level01Scene extends Phaser.Scene {
     return 2;
   }
 
-  /**
-   * Quest-voiced feedback for the outcome. Mirrors LevelScene.questFeedbackText().
-   * Correct picks the denominator-named line; Level 1 is always halves (2)
-   * so it always resolves to `quest.feedback.correct.half`. Incorrect switches
-   * on archetype exactly as LevelScene does, with the same generic fallback.
-   * null for partial/close outcomes.
-   */
   private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
-    if (kind === 'correct') {
-      const d = this.payloadDenominator();
-      switch (d) {
-        case 2:
-          return getCopy('quest.feedback.correct.half');
-        case 3:
-          return getCopy('quest.feedback.correct.third');
-        case 4:
-          return getCopy('quest.feedback.correct.fourth');
-        default:
-          return getCopy('quest.feedback.correct.equal');
-      }
-    }
-    if (kind === 'incorrect') {
-      const archetype = this.currentArchetype as string | undefined;
-      switch (archetype) {
-        case 'equal_or_not':
-        case 'compare':
-        case 'order':
-        case 'benchmark':
-        case 'label':
-        case 'make':
-        case 'snap_match':
-          try {
-            return getCopy(`quest.feedback.wrong.${archetype}`);
-          } catch {
-            return getCopy('quest.feedback.wrong.unequal');
-          }
-        default:
-          return getCopy('quest.feedback.wrong.unequal');
-      }
-    }
-    return null;
+    return getQuestFeedback(kind, this.currentArchetype as string | undefined);
   }
 
-  /**
-   * Quest-voiced hint for the partition archetype at the given tier.
-   * Level 1 is always halves (denominator 2), so the split2 case resolves to
-   * a tier-specific key (verbal / visual / worked) for progressive escalation.
-   * Other denominators fall back to their generic keys (no tier variation yet).
-   */
   private questHintText(tier: import('@/types').HintTier): string {
-    const d = this.payloadDenominator();
-    switch (d) {
-      case 2:
-        return getCopy(level01HintKeys[tier]);
-      case 3:
-        return getCopy('quest.hint.split3');
-      case 4:
-        return getCopy('quest.hint.split4');
-      default:
-        return getCopy('quest.hint.fallback.verbal');
-    }
+    return getQuestHint(tier);
   }
 
   private showOutcome(result: ValidatorResult): void {
