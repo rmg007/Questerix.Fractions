@@ -64,6 +64,11 @@ import {
   type OutcomeFlowContext,
   type OutcomeFlowCallbacks,
 } from '../lib/levelSceneOutcomeFlow';
+import {
+  makeFallbackTemplate as makeFallbackTemplateLib,
+  loadTemplatesForLevel,
+  showOfflineCurriculumToast as showOfflineCurriculumToastLib,
+} from '../lib/levelSceneTemplates';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -271,91 +276,16 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
 
-  /**
-   * Render a non-blocking toast informing the player that this level isn't
-   * available offline. Auto-dismisses to MenuScene after ~3.5s. No existing
-   * toast component lives in `src/components/` yet, so we paint the panel
-   * directly with Phaser primitives — keeps the diff small while still
-   * giving a clear, kid-friendly affordance.
-   */
   private showOfflineCurriculumToast(): void {
-    const cx = CW / 2;
-    const cy = CH / 2;
-    const TOAST_DEPTH = 2000;
-    const message = "This level isn't available offline yet — please connect to download";
-
-    const panel = this.add
-      .rectangle(cx, cy, CW - 80, 220, NAVY, 0.94)
-      .setDepth(TOAST_DEPTH)
-      .setStrokeStyle(3, PATH_BLUE, 1);
-
-    const text = this.add
-      .text(cx, cy, message, {
-        fontSize: '24px',
-        fontFamily: BODY_FONT,
-        color: '#FFFFFF',
-        align: 'center',
-        wordWrap: { width: CW - 140 },
-      })
-      .setOrigin(0.5)
-      .setDepth(TOAST_DEPTH + 1);
-
-    // Test sentinel + a11y mirror so screen readers and Playwright pick it up.
-    TestHooks.mountSentinel('offline-curriculum-toast');
-    TestHooks.setText('offline-curriculum-toast', message);
-
-    const dismiss = (): void => {
-      panel.destroy();
-      text.destroy();
-      TestHooks.unmount('offline-curriculum-toast');
-      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
-    };
-
-    this.time.delayedCall(3500, dismiss);
+    showOfflineCurriculumToastLib(this, this.studentId, CW, CH);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────
 
   private async loadTemplates(): Promise<void> {
-    log.tmpl('load_start', { level: this.levelNumber });
-    try {
-      const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
-      const all = await questionTemplateRepo.getByLevel(
-        this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-      );
-      log.tmpl('dexie_raw', {
-        level: this.levelNumber,
-        totalReturned: all.length,
-        archetypes: [...new Set(all.map((t) => t.archetype))],
-      });
-      // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
-      const seen = new Set<string>();
-      const picked: QuestionTemplate[] = [];
-      for (const t of all) {
-        if (!seen.has(t.id) && picked.length < SESSION_GOAL) {
-          seen.add(t.id);
-          picked.push(t);
-        }
-      }
-      this.templatePool = picked;
-      if (this.templatePool.length > 0) {
-        log.tmpl('load_ok', {
-          level: this.levelNumber,
-          count: this.templatePool.length,
-          ids: this.templatePool.map((t) => t.id),
-          archetypes: [...new Set(this.templatePool.map((t) => t.archetype))],
-        });
-      } else {
-        log.tmpl('load_empty', { level: this.levelNumber, fallback: 'synthetic' });
-      }
-    } catch (err) {
-      log.warn('TMPL', 'load_error', {
-        level: this.levelNumber,
-        error: String(err),
-        fallback: 'synthetic',
-      });
-      this.templatePool = [];
-    }
+    this.templatePool = await loadTemplatesForLevel(
+      this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    );
   }
 
   // ── Question loading ─────────────────────────────────────────────────────────
@@ -425,85 +355,8 @@ export class LevelScene extends Phaser.Scene {
     await loadQuestionFlow(index, ctx, callbacks);
   }
 
-  private static readonly LEVEL_FALLBACK_OVERRIDES: Record<
-    number,
-    {
-      archetype: import('@/types').ArchetypeId;
-      payload: Record<string, unknown>;
-      validatorId: import('@/types').ValidatorId;
-      prompt: string;
-    }
-  > = {
-    1: {
-      archetype: 'partition',
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 2,
-        snapMode: 'axis',
-        areaTolerance: 0.05,
-      },
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      prompt: 'Cut the shape into 2 equal parts.',
-    },
-    2: {
-      archetype: 'partition',
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 3,
-        snapMode: 'free',
-        areaTolerance: 0.08,
-      },
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      prompt: 'Cut the shape into 3 equal parts.',
-    },
-    3: {
-      archetype: 'equal_or_not',
-      payload: {
-        partitionLines: [
-          [
-            [0.5, 0],
-            [0.5, 1],
-          ],
-        ],
-      },
-      validatorId: 'validator.equal_or_not.areaTolerance' as import('@/types').ValidatorId,
-      prompt: 'Are these two parts equal?',
-    },
-  };
-
   private makeFallbackTemplate(): QuestionTemplate {
-    const override = LevelScene.LEVEL_FALLBACK_OVERRIDES[this.levelNumber];
-
-    if (override) {
-      return {
-        id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
-        archetype: override.archetype,
-        prompt: { text: override.prompt, ttsKey: '' },
-        payload: override.payload,
-        correctAnswer: override.archetype === 'equal_or_not' ? true : null,
-        validatorId: override.validatorId,
-        skillIds: [],
-        misconceptionTraps: [],
-        difficultyTier: 'easy',
-      };
-    }
-
-    return {
-      id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
-      archetype: 'partition',
-      prompt: { text: 'Cut this shape into two equal parts.', ttsKey: '' },
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 2,
-        snapMode: 'axis',
-        areaTolerance: 0.05,
-      },
-      correctAnswer: null,
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      skillIds: [],
-      misconceptionTraps: [],
-      difficultyTier: 'easy',
-    };
+    return makeFallbackTemplateLib(this.levelNumber);
   }
 
   // ── Header / chrome ─────────────────────────────────────────────────────────
