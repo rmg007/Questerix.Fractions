@@ -1,10 +1,11 @@
 import * as Phaser from 'phaser';
 import { log } from './log';
 import { get as getCopy } from './i18n/catalog';
-import type { ValidatorResult, QuestionTemplate } from '@/types';
+import type { ValidatorResult, QuestionTemplate, HintTier } from '@/types';
 import { AccessibilityAnnouncer } from '@/components/AccessibilityAnnouncer';
 import { ProgressBar } from '@/components/ProgressBar';
 import { FeedbackOverlay, type FeedbackKind } from '@/components/FeedbackOverlay';
+import { HintLadder } from '@/components/HintLadder';
 import { sfx } from '@/audio/SFXService';
 
 const CW = 800;
@@ -22,6 +23,7 @@ export interface OutcomeFlowContext {
   progressBar: ProgressBar;
   feedbackOverlay: FeedbackOverlay;
   submitButtonContainer: Phaser.GameObjects.Container | null;
+  hintLadder: HintLadder | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,6 +42,7 @@ export interface OutcomeFlowCallbacks {
   setCurrentQuestionHintIds: (ids: string[]) => void;
   onHintRequest: () => Promise<void>;
   pulseHintButton: () => void;
+  showHintForTier: (tier: HintTier) => void;
 }
 
 function payloadDenominator(template: QuestionTemplate): number | null {
@@ -201,6 +204,13 @@ export async function onWrongAnswer(
 
   if (newWrongCount === 1) {
     ctx.activeInteraction?.showGhostGuide?.();
+  }
+
+  if (ctx.hintLadder) {
+    const tier = ctx.hintLadder.tierForAttemptCount(newWrongCount);
+    if (tier) {
+      callbacks.showHintForTier(tier);
+    }
   }
 
   if (newWrongCount === 3) {

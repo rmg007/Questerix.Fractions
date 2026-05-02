@@ -18,12 +18,10 @@ import {
   SKY_BG,
   PATH_BLUE,
   OPTION_BG,
-  ACTION_FILL,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
-import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
@@ -60,6 +58,17 @@ import {
   type HintFlowContext,
   type HintFlowCallbacks,
 } from '../lib/levelSceneHintFlow';
+import {
+  showOutcome as showOutcomeFlow,
+  type OutcomeFlowContext,
+  type OutcomeFlowCallbacks,
+} from '../lib/levelSceneOutcomeFlow';
+import {
+  makeFallbackTemplate as makeFallbackTemplateLib,
+  loadTemplatesForLevel,
+  showOfflineCurriculumToast as showOfflineCurriculumToastLib,
+} from '../lib/levelSceneTemplates';
+import { showSessionCompleteForLevel } from '../lib/levelSceneSessionComplete';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -267,91 +276,16 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
 
-  /**
-   * Render a non-blocking toast informing the player that this level isn't
-   * available offline. Auto-dismisses to MenuScene after ~3.5s. No existing
-   * toast component lives in `src/components/` yet, so we paint the panel
-   * directly with Phaser primitives — keeps the diff small while still
-   * giving a clear, kid-friendly affordance.
-   */
   private showOfflineCurriculumToast(): void {
-    const cx = CW / 2;
-    const cy = CH / 2;
-    const TOAST_DEPTH = 2000;
-    const message = "This level isn't available offline yet — please connect to download";
-
-    const panel = this.add
-      .rectangle(cx, cy, CW - 80, 220, NAVY, 0.94)
-      .setDepth(TOAST_DEPTH)
-      .setStrokeStyle(3, PATH_BLUE, 1);
-
-    const text = this.add
-      .text(cx, cy, message, {
-        fontSize: '24px',
-        fontFamily: BODY_FONT,
-        color: '#FFFFFF',
-        align: 'center',
-        wordWrap: { width: CW - 140 },
-      })
-      .setOrigin(0.5)
-      .setDepth(TOAST_DEPTH + 1);
-
-    // Test sentinel + a11y mirror so screen readers and Playwright pick it up.
-    TestHooks.mountSentinel('offline-curriculum-toast');
-    TestHooks.setText('offline-curriculum-toast', message);
-
-    const dismiss = (): void => {
-      panel.destroy();
-      text.destroy();
-      TestHooks.unmount('offline-curriculum-toast');
-      fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId });
-    };
-
-    this.time.delayedCall(3500, dismiss);
+    showOfflineCurriculumToastLib(this, this.studentId, CW, CH);
   }
 
   // ── Template loading ────────────────────────────────────────────────────────
 
   private async loadTemplates(): Promise<void> {
-    log.tmpl('load_start', { level: this.levelNumber });
-    try {
-      const { questionTemplateRepo } = await import('../persistence/repositories/questionTemplate');
-      const all = await questionTemplateRepo.getByLevel(
-        this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-      );
-      log.tmpl('dexie_raw', {
-        level: this.levelNumber,
-        totalReturned: all.length,
-        archetypes: [...new Set(all.map((t) => t.archetype))],
-      });
-      // Deduplicate by archetype rotation: pick up to SESSION_GOAL distinct templates
-      const seen = new Set<string>();
-      const picked: QuestionTemplate[] = [];
-      for (const t of all) {
-        if (!seen.has(t.id) && picked.length < SESSION_GOAL) {
-          seen.add(t.id);
-          picked.push(t);
-        }
-      }
-      this.templatePool = picked;
-      if (this.templatePool.length > 0) {
-        log.tmpl('load_ok', {
-          level: this.levelNumber,
-          count: this.templatePool.length,
-          ids: this.templatePool.map((t) => t.id),
-          archetypes: [...new Set(this.templatePool.map((t) => t.archetype))],
-        });
-      } else {
-        log.tmpl('load_empty', { level: this.levelNumber, fallback: 'synthetic' });
-      }
-    } catch (err) {
-      log.warn('TMPL', 'load_error', {
-        level: this.levelNumber,
-        error: String(err),
-        fallback: 'synthetic',
-      });
-      this.templatePool = [];
-    }
+    this.templatePool = await loadTemplatesForLevel(
+      this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    );
   }
 
   // ── Question loading ─────────────────────────────────────────────────────────
@@ -421,85 +355,8 @@ export class LevelScene extends Phaser.Scene {
     await loadQuestionFlow(index, ctx, callbacks);
   }
 
-  private static readonly LEVEL_FALLBACK_OVERRIDES: Record<
-    number,
-    {
-      archetype: import('@/types').ArchetypeId;
-      payload: Record<string, unknown>;
-      validatorId: import('@/types').ValidatorId;
-      prompt: string;
-    }
-  > = {
-    1: {
-      archetype: 'partition',
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 2,
-        snapMode: 'axis',
-        areaTolerance: 0.05,
-      },
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      prompt: 'Cut the shape into 2 equal parts.',
-    },
-    2: {
-      archetype: 'partition',
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 3,
-        snapMode: 'free',
-        areaTolerance: 0.08,
-      },
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      prompt: 'Cut the shape into 3 equal parts.',
-    },
-    3: {
-      archetype: 'equal_or_not',
-      payload: {
-        partitionLines: [
-          [
-            [0.5, 0],
-            [0.5, 1],
-          ],
-        ],
-      },
-      validatorId: 'validator.equal_or_not.areaTolerance' as import('@/types').ValidatorId,
-      prompt: 'Are these two parts equal?',
-    },
-  };
-
   private makeFallbackTemplate(): QuestionTemplate {
-    const override = LevelScene.LEVEL_FALLBACK_OVERRIDES[this.levelNumber];
-
-    if (override) {
-      return {
-        id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
-        archetype: override.archetype,
-        prompt: { text: override.prompt, ttsKey: '' },
-        payload: override.payload,
-        correctAnswer: override.archetype === 'equal_or_not' ? true : null,
-        validatorId: override.validatorId,
-        skillIds: [],
-        misconceptionTraps: [],
-        difficultyTier: 'easy',
-      };
-    }
-
-    return {
-      id: `q:ph:L${this.levelNumber}:fallback` as import('@/types').QuestionTemplateId,
-      archetype: 'partition',
-      prompt: { text: 'Cut this shape into two equal parts.', ttsKey: '' },
-      payload: {
-        shapeType: 'rectangle',
-        targetPartitions: 2,
-        snapMode: 'axis',
-        areaTolerance: 0.05,
-      },
-      correctAnswer: null,
-      validatorId: 'validator.partition.equalAreas' as import('@/types').ValidatorId,
-      skillIds: [],
-      misconceptionTraps: [],
-      difficultyTier: 'easy',
-    };
+    return makeFallbackTemplateLib(this.levelNumber);
   }
 
   // ── Header / chrome ─────────────────────────────────────────────────────────
@@ -740,52 +597,57 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private showOutcome(result: ValidatorResult): void {
-    const kind =
-      result.outcome === 'correct'
-        ? 'correct'
-        : result.outcome === 'partial'
-          ? 'close'
-          : 'incorrect';
-
-    if (kind === 'correct') {
-      this.progressBar.setProgress(this.attemptCount + 1);
-    }
-
-    const questText = questFeedbackTextLib(
-      kind,
-      this.currentTemplate?.archetype as string | undefined,
-      this.payloadDenominator()
-    );
-
-    this.feedbackOverlay.show(
-      kind,
-      () => {
-        this.inputLocked = false;
-        this.submitButtonContainer?.setAlpha(1);
-        if (kind === 'correct') {
-          this.onCorrectAnswer();
-        } else {
-          this.onWrongAnswer();
-        }
+    const ctx: OutcomeFlowContext = {
+      scene: this,
+      levelNumber: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      attemptCount: this.attemptCount,
+      correctCount: this.correctCount,
+      correctStreak: this.correctStreak,
+      currentTemplate: this.currentTemplate,
+      progressBar: this.progressBar,
+      feedbackOverlay: this.feedbackOverlay,
+      submitButtonContainer: this.submitButtonContainer,
+      hintLadder: this.hintLadder ?? null,
+      mascot: this.mascot,
+      activeInteraction: this.activeInteraction,
+    };
+    const callbacks: OutcomeFlowCallbacks = {
+      setWrongCount: (c) => {
+        this.wrongCount = c;
       },
-      questText ?? undefined
-    );
-
-    if (kind === 'correct') {
-      this.mascot?.setState('cheer');
-      this.activeInteraction?.showCorrectFeedback?.();
-    } else if (kind === 'incorrect') {
-      this.mascot?.setState('oops');
-    }
-
-    const announcement =
-      questText ??
-      (kind === 'correct'
-        ? 'Correct! Great work.'
-        : kind === 'close'
-          ? 'Almost! Try a tiny adjustment.'
-          : 'Not quite — try again.');
-    AccessibilityAnnouncer.announce(announcement);
+      setAttemptCount: (c) => {
+        this.attemptCount = c;
+      },
+      setCorrectCount: (c) => {
+        this.correctCount = c;
+      },
+      setCorrectStreak: (s) => {
+        this.correctStreak = s;
+      },
+      setInputLocked: (l) => {
+        this.inputLocked = l;
+      },
+      setLastPayload: (p) => {
+        this.lastPayload = p;
+      },
+      loadQuestion: (i) => {
+        void this.loadQuestion(i);
+      },
+      showSessionComplete: () => this.showSessionComplete(),
+      setCurrentQuestionHintIds: (ids) => {
+        this.currentQuestionHintIds = ids;
+      },
+      onHintRequest: async () => {
+        this.onHintRequest();
+      },
+      pulseHintButton: () => this.pulseHintButton(),
+      showHintForTier: (tier) => {
+        void this.showHintForTier(tier);
+      },
+    };
+    void showOutcomeFlow(result, ctx, callbacks);
   }
 
   private payloadDenominator(): number | null {
@@ -837,134 +699,6 @@ export class LevelScene extends Phaser.Scene {
       this.currentTemplate?.archetype as string | undefined,
       this.payloadDenominator()
     );
-  }
-
-  private onCorrectAnswer(): void {
-    this.activeInteraction?.showCorrectFeedback?.();
-    this.attemptCount++;
-    this.correctCount++;
-    this.correctStreak++;
-    this.progressBar.setProgress(this.attemptCount);
-    this.lastPayload = null;
-    log.q('correct', {
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      attemptCount: this.attemptCount,
-      progress: `${this.attemptCount}/${SESSION_GOAL}`,
-      wrongCountThisQ: this.wrongCount,
-    });
-
-    const streak = this.correctStreak;
-    const streakLine =
-      streak === 1
-        ? 'Nice one!'
-        : streak === 2
-          ? "You've got this!"
-          : streak >= 3
-            ? 'On fire! 🔥'
-            : null;
-    if (streakLine) {
-      this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
-    }
-
-    if (streak === 3 || streak === 5) {
-      this.time.delayedCall(1800, () => this.showStreakBanner(streak));
-    }
-
-    if (this.attemptCount >= SESSION_GOAL) {
-      void this.showSessionComplete();
-    } else {
-      void this.loadQuestion(this.questionIndex + 1);
-    }
-  }
-
-  private showStreakBanner(streak: number): void {
-    const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
-    const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
-    const PILL_W = 520,
-      PILL_H = 88,
-      PILL_R = 44;
-    const cx = CW / 2,
-      startY = -PILL_H,
-      landY = 140;
-
-    const g = this.add.graphics().setDepth(90);
-    g.fillStyle(bannerBg, 1);
-    g.fillRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
-    g.lineStyle(3, NAVY, 0.4);
-    g.strokeRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
-
-    const txt = this.add
-      .text(cx, startY, bannerText, {
-        fontFamily: TITLE_FONT,
-        fontSize: '32px',
-        color: NAVY_HEX,
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5)
-      .setDepth(91);
-
-    sfx.playStreak();
-    this.mascot?.setState('cheer-big');
-    const container = this.add.container(0, 0, [g, txt]).setDepth(90);
-
-    this.tweens.add({
-      targets: [g, txt],
-      y: `+=${landY - startY}`,
-      duration: 400,
-      ease: 'Back.easeOut',
-      onComplete: () => {
-        this.time.delayedCall(1600, () => {
-          this.tweens.add({
-            targets: [g, txt],
-            y: `-=${landY - startY}`,
-            duration: 350,
-            ease: 'Back.easeIn',
-            onComplete: () => {
-              container.destroy();
-            },
-          });
-        });
-      },
-    });
-  }
-
-  private onWrongAnswer(): void {
-    this.correctStreak = 0;
-    this.wrongCount++;
-    this.inputLocked = false;
-    this.lastPayload = null;
-    log.q('wrong', {
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
-      questionId: this.currentTemplate.id,
-    });
-
-    if (this.wrongCount === 1) {
-      this.time.delayedCall(1400, () => this.mascot?.showSpeechBubble('Oops! Try again 💪', 2000));
-    } else if (this.wrongCount === 2) {
-      this.time.delayedCall(1400, () =>
-        this.mascot?.showSpeechBubble("Almost... I'll give you a hint!", 2000)
-      );
-    }
-
-    if (this.wrongCount === 1) {
-      this.activeInteraction?.showGhostGuide?.();
-    }
-
-    const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
-    if (tier) {
-      void this.showHintForTier(tier);
-    }
-
-    if (this.wrongCount === 3) {
-      this.time.delayedCall(800, () => this.onHintRequest());
-    }
-
-    if (this.wrongCount >= 3) {
-      this.pulseHintButton();
-    }
   }
 
   // ── Hints ────────────────────────────────────────────────────────────────────
@@ -1069,82 +803,41 @@ export class LevelScene extends Phaser.Scene {
   // ── Session complete ─────────────────────────────────────────────────────────
 
   private async showSessionComplete(): Promise<void> {
-    this.inputLocked = true;
-    const accuracy =
-      this.attemptCount > 0 ? +(this.correctCount / this.attemptCount).toFixed(3) : null;
-    const avgResponseMs =
-      this.responseTimes.length > 0
-        ? Math.round(this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length)
-        : null;
-    log.scene('session_complete', {
-      level: this.levelNumber,
-      attemptCount: this.attemptCount,
-      correctCount: this.correctCount,
-      accuracy,
-      avgResponseMs,
-    });
-
-    // Phase 2a (D-1): gate next-level unlock on correctCount/never-stuck/researcher
-    const { evaluateUnlockGate } = await import('../lib/unlockGate');
-    const gate = await evaluateUnlockGate({
-      studentId: this.studentId,
-      levelNumber: this.levelNumber,
-      correctCount: this.correctCount,
-    });
-    if (gate.passed) MenuScene.markLevelComplete(this.levelNumber, this.studentId);
-    if (gate.passed) void this.persistLevelCompletion();
-
-    const nextLevel =
-      this.levelNumber < 9 ? ((this.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
-
-    // T11: Scaffold recommendation. Gate failure forces 'stay' regardless of accuracy.
-    const totalAttempts = this.responseTimes.length;
-    const acc = totalAttempts > 0 ? this.correctCount / totalAttempts : 0;
-    let scaffoldRec: 'advance' | 'stay' | 'regress' = 'stay';
-    if (gate.passed && acc >= 0.8) scaffoldRec = 'advance';
-    else if (gate.passed && acc < 0.4) scaffoldRec = 'regress';
-    const isPerfect = gate.passed && acc === 1 && totalAttempts === SESSION_GOAL;
-
-    new SessionCompleteOverlay({
-      scene: this,
-      levelNumber: this.levelNumber,
-      correctCount: this.correctCount,
-      totalAttempts,
-      width: CW,
-      height: CH,
-      scaffoldRecommendation: scaffoldRec,
-      nextLevelNumber: scaffoldRec === 'advance' && nextLevel !== null ? nextLevel : null,
-      isPerfect,
-      ...(gate.passed && nextLevel !== null
-        ? { onNextLevel: () => fadeAndStart(this, 'LevelScene', { levelNumber: nextLevel, studentId: this.studentId }) } // prettier-ignore
-        : {}),
-      onPlayAgain: () =>
-        fadeAndStart(this, 'LevelScene', {
-          levelNumber: this.levelNumber,
-          studentId: this.studentId,
-        }),
-      onMenu: () =>
-        fadeAndStart(this, 'LevelMapScene', {
-          studentId: this.studentId,
-          postSession: true,
-          levelNumber: this.levelNumber,
-          completedScore: this.correctCount,
-        }),
-    });
-
-    // T16: Quest session-complete speech line
-    let completeLine = 'Great practice! Keep going!';
-    if (!gate.passed) completeLine = "Let's practice a little more!";
-    else if (scaffoldRec === 'advance') completeLine = 'I knew you could do it! ⭐';
-    this.time.delayedCall(800, () => this.mascot?.showSpeechBubble(completeLine, 3000));
-
-    if (this.mascot) {
-      this.mascot.setDepth(60);
-      this.mascot.reposition(CW - 120, 400);
-      this.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
-    }
-
-    void this.closeSession();
+    await showSessionCompleteForLevel(
+      {
+        scene: this,
+        levelNumber: this.levelNumber,
+        studentId: this.studentId,
+        attemptCount: this.attemptCount,
+        correctCount: this.correctCount,
+        responseTimes: this.responseTimes,
+        canvasWidth: CW,
+        canvasHeight: CH,
+        mascot: this.mascot,
+      },
+      {
+        setInputLocked: (l) => {
+          this.inputLocked = l;
+        },
+        markLevelComplete: () => MenuScene.markLevelComplete(this.levelNumber, this.studentId),
+        persistCompletion: () => this.persistLevelCompletion(),
+        closeSession: () => this.closeSession(),
+        navigateNextLevel: (next) =>
+          fadeAndStart(this, 'LevelScene', { levelNumber: next, studentId: this.studentId }),
+        navigatePlayAgain: () =>
+          fadeAndStart(this, 'LevelScene', {
+            levelNumber: this.levelNumber,
+            studentId: this.studentId,
+          }),
+        navigateMenu: () =>
+          fadeAndStart(this, 'LevelMapScene', {
+            studentId: this.studentId,
+            postSession: true,
+            levelNumber: this.levelNumber,
+            completedScore: this.correctCount,
+          }),
+      }
+    );
   }
 
   /**
