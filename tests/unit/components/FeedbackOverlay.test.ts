@@ -153,9 +153,7 @@ describe('FeedbackOverlay — sparkle burst', () => {
     expect(calls).not.toContain('sparkle-burst');
   });
 
-  it.skip('does NOT mount sparkle-burst when texture is missing', () => {
-    // TODO: FeedbackOverlay.ts is 365 LOC (exceeds 300 budget); cannot remove TestHooks.mountSentinel
-    // line to fix this test without refactoring. Fix when extracting FeedbackOverlay into smaller units.
+  it('does NOT mount sparkle-burst when texture is missing', () => {
     Object.defineProperty(window, 'matchMedia', {
       value: vi.fn().mockReturnValue({ matches: false }),
       writable: true,
