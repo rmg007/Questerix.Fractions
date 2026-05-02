@@ -59,7 +59,8 @@ function tierFor(branch) {
 
 function run(script) {
   process.stdout.write(`  → npm run ${script}\n`);
-  const r = spawnSync('npm', ['run', script], { stdio: 'inherit' });
+  // shell: true is required on Windows so `npm` resolves to `npm.cmd`.
+  const r = spawnSync('npm', ['run', script], { stdio: 'inherit', shell: true });
   if (r.status !== 0) {
     console.error(`\n✗ preflight failed at: npm run ${script}`);
     process.exit(1);
