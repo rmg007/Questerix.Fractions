@@ -8,7 +8,7 @@
  * per interaction-model.md §2 (feedback timing), §6.1 (success), §5.2 (failure)
  * per design-language.md §6.1 (snap pulse 180–240ms), §2.3 (semantic tokens)
  *
- * Plain class (not a Phaser Container) to avoid name conflicts.
+ * Visual constants and color/text catalog live in feedbackOverlayConfig.ts.
  */
 
 import * as Phaser from 'phaser';
@@ -17,64 +17,29 @@ import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
 import * as anim from './FeedbackAnimations';
+import {
+  FeedbackKind,
+  SLIDE_MS,
+  FADE_MS,
+  DISPLAY_MS,
+  PANEL_H,
+  CORNER_R,
+  ICON_FONT_SIZE,
+  LABEL_FONT_SIZE,
+  KIND_CONFIG,
+  DEFAULT_PANEL_COLOR,
+  FEEDBACK_DISMISSED_EVENT,
+} from './feedbackOverlayConfig';
 
-export type FeedbackKind = 'correct' | 'incorrect' | 'close';
+export type { FeedbackKind } from './feedbackOverlayConfig';
+export { FEEDBACK_DISMISSED_EVENT } from './feedbackOverlayConfig';
 
 export interface FeedbackOverlayConfig {
   scene: Phaser.Scene;
-  /** Canvas logical width (800 per design-language.md §8.2). */
   width?: number;
-  /** Canvas logical height (1280 per design-language.md §8.2). */
   height?: number;
-  /** Depth to render above all other game objects. */
   depth?: number;
 }
-
-// ── Timing ────────────────────────────────────────────────────────────────────
-const SLIDE_MS = 280;
-const DISPLAY_MS: Record<FeedbackKind, number> = {
-  correct: 1400,
-  incorrect: 1600,
-  close: 1200,
-};
-const FADE_MS = 140;
-
-// ── Panel dimensions ──────────────────────────────────────────────────────────
-const PANEL_H = 220;
-const CORNER_R = 24;
-
-// ── Colors (R11: WCAG AA contrast ratios) ──────────────────────────────────────
-// R11: Updated to meet WCAG AA 4.5:1 minimum contrast for text
-const COLOR_CORRECT = 0xa8e6c8; // success soft (light green) — text: #0D5A2E = 7.35:1 ✓
-const COLOR_INCORRECT = 0xffccd6; // error soft (light red) — text: #660017 = 8.42:1 ✓
-const COLOR_CLOSE = 0xf59e0b; // amber-500 — text: #1e3a8a = 6.78:1 ✓
-
-const KIND_CONFIG: Record<
-  FeedbackKind,
-  { color: number; textHex: string; text: string; icon: string }
-> = {
-  correct: {
-    color: COLOR_CORRECT,
-    textHex: '#0D5A2E', // dark green for WCAG AA
-    text: 'Correct! 🌟',
-    icon: '✓',
-  },
-  incorrect: {
-    color: COLOR_INCORRECT,
-    textHex: '#660017', // dark red for WCAG AA
-    text: 'Not quite — try again!',
-    icon: '✗',
-  },
-  close: {
-    color: COLOR_CLOSE,
-    textHex: '#1e3a8a',
-    text: 'Almost! Adjust a little.',
-    icon: '~',
-  },
-};
-
-/** Emitted when the overlay has fully dismissed. */
-export const FEEDBACK_DISMISSED_EVENT = 'feedback-dismissed';
 
 export class FeedbackOverlay {
   private panel: Phaser.GameObjects.Graphics;
@@ -83,14 +48,13 @@ export class FeedbackOverlay {
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
   private readonly cx: number;
-  private readonly showY: number; // center Y when panel is fully visible
-  private readonly hideY: number; // center Y when panel is off-screen below
+  private readonly showY: number;
+  private readonly hideY: number;
   private readonly panelW: number;
   private readonly depth: number;
   private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
-  private panelColor: number = COLOR_CORRECT;
+  private panelColor: number = DEFAULT_PANEL_COLOR;
 
-  /** Subscribe to dismiss events. */
   readonly events: Phaser.Events.EventEmitter;
 
   constructor(config: FeedbackOverlayConfig) {
@@ -101,18 +65,14 @@ export class FeedbackOverlay {
     this.events = new Phaser.Events.EventEmitter();
     this.panelW = width;
     this.cx = width / 2;
-
-    // Panel sits at bottom of canvas. Center Y when shown = height - PANEL_H/2.
     this.showY = height - PANEL_H / 2;
     this.hideY = height + PANEL_H / 2 + 10;
 
-    // ── Panel graphics ────────────────────────────────────────────────────────
     this.panel = scene.add.graphics().setDepth(depth).setVisible(false);
 
-    // ── Icon — top area of the panel ─────────────────────────────────────────
     this.iconGO = scene.add
       .text(this.cx, this.hideY - 65, '✓', {
-        fontSize: '64px',
+        fontSize: ICON_FONT_SIZE,
         fontFamily: TITLE_FONT,
         color: '#ffffff',
       })
@@ -120,10 +80,9 @@ export class FeedbackOverlay {
       .setDepth(depth + 1)
       .setVisible(false);
 
-    // ── Label — below icon ────────────────────────────────────────────────────
     this.label = scene.add
       .text(this.cx, this.hideY + 10, '', {
-        fontSize: '28px',
+        fontSize: LABEL_FONT_SIZE,
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#ffffff',
@@ -142,18 +101,15 @@ export class FeedbackOverlay {
   show(kind: FeedbackKind, onDismiss?: () => void, text?: string): void {
     const cfg = KIND_CONFIG[kind];
     const reduceMotion = checkReduceMotion();
-
     const labelText = text && text.trim().length > 0 ? text : cfg.text;
     this.panelColor = cfg.color;
 
-    // ── Configure text content ────────────────────────────────────────────────
     this.iconGO
       .setText(cfg.icon)
       .setColor(cfg.textHex)
       .setY(this.hideY - 65)
       .setAlpha(1)
       .setVisible(true);
-
     this.label
       .setText(labelText)
       .setColor(cfg.textHex)
@@ -163,17 +119,11 @@ export class FeedbackOverlay {
 
     this.redrawPanel(this.hideY, 1);
     this.panel.setVisible(true);
-
     this.dismissTimer?.remove(false);
 
-    // ── Sound effect ──────────────────────────────────────────────────────────
-    if (kind === 'correct') {
-      sfx.playCorrect();
-    } else if (kind === 'incorrect') {
-      sfx.playIncorrect();
-    }
+    if (kind === 'correct') sfx.playCorrect();
+    else if (kind === 'incorrect') sfx.playIncorrect();
 
-    // ── Test hooks ────────────────────────────────────────────────────────────
     TestHooks.mountSentinel('feedback-overlay');
     TestHooks.setText('feedback-overlay', labelText);
     TestHooks.mountInteractive(
@@ -209,7 +159,6 @@ export class FeedbackOverlay {
     };
 
     if (reduceMotion) {
-      // Instant show at final position, no animation
       this.redrawPanel(this.showY, 1);
       this.iconGO.setY(this.showY - 65);
       this.label.setY(this.showY + 10);
@@ -217,7 +166,6 @@ export class FeedbackOverlay {
       return;
     }
 
-    // ── Slide up ──────────────────────────────────────────────────────────────
     this.scene.tweens.add({
       targets: this.panel,
       duration: SLIDE_MS,
@@ -232,7 +180,7 @@ export class FeedbackOverlay {
       targets: [this.iconGO, this.label],
       props: {
         y: {
-          from: undefined, // current y (hideY offsets)
+          from: undefined,
           to: (target: Phaser.GameObjects.Text) =>
             target === this.iconGO ? this.showY - 65 : this.showY + 10,
         },
@@ -240,26 +188,22 @@ export class FeedbackOverlay {
       duration: SLIDE_MS,
       ease: 'Back.easeOut',
       onComplete: () => {
-        // ── Post-slide entry animations ───────────────────────────────────────
+        const ctx = this.buildAnimContext();
         if (kind === 'correct') {
-          this.animateBounceIcon();
-          this.burstStarParticles();
+          anim.animateCorrectEntry(ctx);
+          anim.burstStarParticles(ctx, (e) => this.activeParticleEmitters.push(e));
         } else if (kind === 'incorrect') {
-          this.animateShake();
+          anim.animateIncorrectEntry(ctx);
         } else if (kind === 'close') {
-          this.animatePulse();
+          anim.animateCloseEntry(ctx);
         }
-
-        // Start the display timer after slide completes
         this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS[kind], dismiss);
       },
     });
   }
 
-  // ── Entry animations delegated to FeedbackAnimations module ───────────────────
-
-  private animateBounceIcon(): void {
-    anim.animateCorrectEntry({
+  private buildAnimContext(): anim.AnimationContext {
+    return {
       scene: this.scene,
       iconGO: this.iconGO,
       label: this.label,
@@ -269,67 +213,15 @@ export class FeedbackOverlay {
       panelW: this.panelW,
       depth: this.depth,
       redrawPanel: this.redrawPanel.bind(this),
-    });
+    };
   }
 
-  private animateShake(): void {
-    anim.animateIncorrectEntry({
-      scene: this.scene,
-      iconGO: this.iconGO,
-      label: this.label,
-      panel: this.panel,
-      showY: this.showY,
-      cx: this.cx,
-      panelW: this.panelW,
-      depth: this.depth,
-      redrawPanel: this.redrawPanel.bind(this),
-    });
-  }
-
-  private animatePulse(): void {
-    anim.animateCloseEntry({
-      scene: this.scene,
-      iconGO: this.iconGO,
-      label: this.label,
-      panel: this.panel,
-      showY: this.showY,
-      cx: this.cx,
-      panelW: this.panelW,
-      depth: this.depth,
-      redrawPanel: this.redrawPanel.bind(this),
-    });
-  }
-
-  private burstStarParticles(): void {
-    TestHooks.mountSentinel('sparkle-burst');
-    anim.burstStarParticles(
-      {
-        scene: this.scene,
-        iconGO: this.iconGO,
-        label: this.label,
-        panel: this.panel,
-        showY: this.showY,
-        cx: this.cx,
-        panelW: this.panelW,
-        depth: this.depth,
-        redrawPanel: this.redrawPanel.bind(this),
-      },
-      (e) => {
-        this.activeParticleEmitters.push(e);
-      }
-    );
-  }
-
-  // ── Internal ─────────────────────────────────────────────────────────────────
-
-  /** Redraw the panel graphics at the given center-Y position. */
   private redrawPanel(centerY: number, alpha: number): void {
     this.panel.clear();
     this.panel.setAlpha(alpha);
     this.panel.setX(0);
     this.panel.fillStyle(this.panelColor, 1);
     this.panel.fillRoundedRect(0, centerY - PANEL_H / 2, this.panelW, PANEL_H, CORNER_R);
-    // Subtle top border for depth
     this.panel.lineStyle(2, NAVY, 0.15);
     this.panel.strokeRoundedRect(0, centerY - PANEL_H / 2, this.panelW, PANEL_H, CORNER_R);
   }
