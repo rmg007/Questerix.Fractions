@@ -474,18 +474,16 @@ export class Level01Scene extends Phaser.Scene {
       .setDepth(5);
 
     const backBtn = this.add
-      .text(52, 60, '← Menu', {
-        fontSize: '18px',
+      .text(52, 60, '🏠', {
+        fontSize: '36px',
         fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: NAVY_HEX,
         backgroundColor: 'rgba(255,255,255,0.75)',
         padding: { x: 10, y: 6 },
       })
       .setOrigin(0.5)
       .setDepth(5)
       .setInteractive({
-        hitArea: new Phaser.Geom.Rectangle(-28, -20, 56, 40),
+        hitArea: new Phaser.Geom.Rectangle(-32, -28, 64, 56),
         hitAreaCallback: Phaser.Geom.Rectangle.Contains,
         useHandCursor: true,
       });
@@ -496,13 +494,13 @@ export class Level01Scene extends Phaser.Scene {
     const resetMenuBtn = () => {
       menuConfirmPending = false;
       menuConfirmTimer = null;
-      backBtn.setText('← Menu').setColor(NAVY_HEX);
+      backBtn.setText('🏠').setStyle({ color: undefined });
     };
 
     backBtn.on('pointerup', () => {
       if (!menuConfirmPending) {
         menuConfirmPending = true;
-        backBtn.setText('Leave? ✕').setColor('#b45309');
+        backBtn.setText('✕ Leave?').setStyle({ fontSize: '20px', color: '#b45309' });
         menuConfirmTimer = this.time.delayedCall(2000, resetMenuBtn);
         // Any tap outside the button resets it
         this.input.once('pointerdown', (ptr: Phaser.Input.Pointer, _objs: unknown[]) => {

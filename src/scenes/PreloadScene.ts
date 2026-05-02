@@ -143,8 +143,17 @@ export class PreloadScene extends Phaser.Scene {
       },
     });
 
-    // Static mascot — shown while loading, no tweens
-    new Mascot(this, cx + 220, cy - 160, 0.75);
+    // Bouncing mascot — gentle yoyo scale signals "I'm alive"
+    const loadMascot = new Mascot(this, cx + 220, cy - 160, 0.75);
+    this.tweens.add({
+      targets: loadMascot,
+      scaleX: 0.8,
+      scaleY: 0.8,
+      duration: 600,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1,
+    });
   }
 
   private updateLoadingText(dots: string): void {

@@ -183,11 +183,12 @@ export function createActionButton(
   return container;
 }
 
-// ── Chunky hint button — amber pill ─────────────────────────────────────────
+// ── Chunky hint button — blue pill ───────────────────────────────────────────
 
 /**
- * Amber 3-D pill button (100×60 px) — Phase 3 layout compression (S).
- * Directly above the Check button at y≈720.
+ * Blue 3-D pill button (160×60 px) — Phase 3 layout compression (S).
+ * Directly above the Check button at y≈720. Blue distinguishes it from the
+ * amber Check button so children don't tap the wrong primary action.
  * Returns the container so callers can tween it for the pulse hint.
  */
 export function createHintPillButton(
@@ -197,22 +198,22 @@ export function createHintPillButton(
   onTap: () => void,
   depth = 10
 ): Phaser.GameObjects.Container {
-  const W = 100,
+  const W = 160,
     H = 60,
     SHADOW = 5,
     R = 30;
 
   const shadow = scene.add.graphics();
-  shadow.fillStyle(ACTION_BORDER, 1);
+  shadow.fillStyle(HINT_BORDER, 1);
   shadow.fillRoundedRect(-W / 2, -H / 2 + SHADOW, W, H, R);
 
   const face = scene.add.graphics();
 
   const txt = scene.add
-    .text(0, 0, '?', {
+    .text(0, 0, '💡 Hint', {
       fontFamily: TITLE_FONT,
-      fontSize: '24px',
-      color: ACTION_TEXT,
+      fontSize: '22px',
+      color: HINT_TEXT_CLR,
       fontStyle: 'bold',
     })
     .setOrigin(0.5);
@@ -222,11 +223,11 @@ export function createHintPillButton(
 
   const draw = () => {
     face.clear();
-    const color = isHovering ? ACTION_HOVER : ACTION_FILL;
+    const color = isHovering ? HINT_HOVER : HINT_FILL;
     const dy = isPressed ? SHADOW : 0;
     face.fillStyle(color, 1);
     face.fillRoundedRect(-W / 2, -H / 2 + dy, W, H, R);
-    face.lineStyle(4, ACTION_BORDER, 1);
+    face.lineStyle(4, HINT_BORDER, 1);
     face.strokeRoundedRect(-W / 2, -H / 2 + dy, W, H, R);
     txt.setY(dy);
   };
