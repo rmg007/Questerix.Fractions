@@ -29,6 +29,7 @@ import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
 import { getStreak } from '../lib/streak';
+import { samplePath, drawPath, drawSoftGlow, drawTaglinePill } from './utils/MenuPath';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -44,7 +45,6 @@ const CH = 1280;
 
 // ── Number Line Quest palette (mockup-approved) ───────────────────────────
 const SKY_BG = 0xe0f2fe; // #E0F2FE pale sky
-const PATH_BLUE = 0x93c5fd; // #93C5FD light blue path
 const WHITE = 0xffffff;
 const WHITE_HEX = '#FFFFFF';
 const NAVY = 0x1e3a8a;
@@ -213,8 +213,8 @@ export class MenuScene extends Phaser.Scene {
     this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);
 
     // Decorative soft glows (multi-layer ellipses fake the blur)
-    this.drawSoftGlow(120, CH - 120, 280, GLOW_EMERALD, 0.45);
-    this.drawSoftGlow(CW - 80, 480, 320, GLOW_BLUE, 0.45);
+    drawSoftGlow(this, 120, CH - 120, 280, GLOW_EMERALD, 0.45);
+    drawSoftGlow(this, CW - 80, 480, 320, GLOW_BLUE, 0.45);
 
     // ── Title ─────────────────────────────────────────────────────────────
     this.add
@@ -238,11 +238,16 @@ export class MenuScene extends Phaser.Scene {
       .setDepth(20);
 
     // Tagline pill (rotated slightly like the mockup)
-    this.drawTaglinePill(CW / 2, 270, 'A math adventure! 🚀');
+    drawTaglinePill(this, CW / 2, 270, 'A math adventure! 🚀');
 
     // ── The number line path ──────────────────────────────────────────────
-    const pathPts = this.samplePath();
-    this.drawPath(pathPts);
+    const pathPts = samplePath({
+      stationX: STATION_X,
+      playY: PLAY_Y,
+      continueY: CONT_Y,
+      settingsY: SET_Y,
+    });
+    this.dashTickHandler = drawPath(this, pathPts, this.reduceMotion);
 
     // ── Stations ──────────────────────────────────────────────────────────
     const hasContinue = !!this.lastStudentId;
@@ -267,7 +272,7 @@ export class MenuScene extends Phaser.Scene {
         fadeAndStart(this, 'SettingsScene');
       },
     });
-    this.drawTaglinePill(STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
+    drawTaglinePill(this, STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
 
     // Continue — middle of the line (only if returning student).
     if (hasContinue) {
@@ -638,149 +643,6 @@ export class MenuScene extends Phaser.Scene {
     } catch (err) {
       // Ignore storage errors — caller will retry on next session
     }
-  }
-
-  // ── Drawing helpers ───────────────────────────────────────────────────────
-
-  /**
-   * Approximate a CSS-style blur by stacking translucent ellipses. Faster and
-   * more reliable across browsers than Phaser blur shaders.
-   */
-  private drawSoftGlow(cx: number, cy: number, radius: number, color: number, alpha: number): void {
-    const g = this.add.graphics().setDepth(1);
-    const layers = 5;
-    for (let i = 0; i < layers; i++) {
-      const t = (i + 1) / layers;
-      g.fillStyle(color, alpha * (1 - t * 0.6));
-      g.fillCircle(cx, cy, radius * t);
-    }
-  }
-
-  /**
-   * Sample the snake-like number-line path into points so we can draw both
-   * the wide colored line AND the marching white dashes from one source of
-   * truth. Phaser 4 Graphics has no bezierCurveTo, so we sample manually.
-   *
-   * Path mirrors the SVG from the approved mockup:
-   *   start at PLAY (bottom)
-   *   curve LEFT up to CONTINUE (middle)
-   *   curve RIGHT up to SETTINGS (top)
-   */
-  private samplePath(): { x: number; y: number }[] {
-    const segments: [number, number, number, number, number, number, number, number][] = [
-      // start, ctrl1, ctrl2, end
-      [STATION_X, PLAY_Y, 200, PLAY_Y - 100, 200, CONT_Y + 100, STATION_X, CONT_Y],
-      [STATION_X, CONT_Y, 600, CONT_Y - 100, 600, SET_Y + 100, STATION_X, SET_Y],
-    ];
-    const pts: { x: number; y: number }[] = [];
-    pts.push({ x: segments[0]![0]!, y: segments[0]![1]! });
-    for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1] of segments) {
-      const steps = 48;
-      for (let i = 1; i <= steps; i++) {
-        const t = i / steps;
-        const u = 1 - t;
-        const px = u * u * u * x0 + 3 * u * u * t * cx1 + 3 * u * t * t * cx2 + t * t * t * x1;
-        const py = u * u * u * y0 + 3 * u * u * t * cy1 + 3 * u * t * t * cy2 + t * t * t * y1;
-        pts.push({ x: px, y: py });
-      }
-    }
-    return pts;
-  }
-
-  private drawPath(pathPts: { x: number; y: number }[]): void {
-    // Wide light-blue base stroke
-    const base = this.add.graphics().setDepth(2);
-    base.lineStyle(28, PATH_BLUE, 1);
-    base.beginPath();
-    base.moveTo(pathPts[0]!.x, pathPts[0]!.y);
-    for (let i = 1; i < pathPts.length; i++) base.lineTo(pathPts[i]!.x, pathPts[i]!.y);
-    base.strokePath();
-    // Round caps via filled circles at endpoints
-    base.fillStyle(PATH_BLUE, 1);
-    base.fillCircle(pathPts[0]!.x, pathPts[0]!.y, 14);
-    base.fillCircle(pathPts[pathPts.length - 1]!.x, pathPts[pathPts.length - 1]!.y, 14);
-
-    // Marching white dashes on top
-    const dashG = this.add.graphics().setDepth(3);
-    const dashLen = 14;
-    const gapLen = 14;
-    const cycle = dashLen + gapLen;
-
-    const drawDashes = (offset: number) => {
-      dashG.clear();
-      dashG.lineStyle(10, WHITE, 1);
-      let traveled = -offset;
-      for (let i = 1; i < pathPts.length; i++) {
-        const a = pathPts[i - 1]!;
-        const b = pathPts[i]!;
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const segLen = Math.hypot(dx, dy);
-        if (segLen === 0) continue;
-        const ux = dx / segLen;
-        const uy = dy / segLen;
-        // Find the first dash start in this segment
-        let local = -traveled;
-        // Snap to cycle so dashes are continuous across segments
-        while (local < 0) local += cycle;
-        while (local < segLen) {
-          const dashStart = local;
-          const dashEnd = Math.min(segLen, local + dashLen);
-          if (dashEnd > dashStart) {
-            dashG.lineBetween(
-              a.x + ux * dashStart,
-              a.y + uy * dashStart,
-              a.x + ux * dashEnd,
-              a.y + uy * dashEnd
-            );
-          }
-          local += cycle;
-        }
-        traveled += segLen;
-      }
-    };
-
-    drawDashes(0);
-
-    if (!this.reduceMotion) {
-      let phase = 0;
-      const tick = () => {
-        phase = (phase + 0.6) % cycle;
-        drawDashes(phase);
-      };
-      this.events.on('update', tick);
-      this.dashTickHandler = tick;
-    }
-  }
-
-  private drawTaglinePill(
-    cx: number,
-    cy: number,
-    text: string,
-    fontSize = 30,
-    bgAlpha = 0.95
-  ): void {
-    const padX = 22;
-    const padY = 12;
-    const txt = this.add
-      .text(0, 0, text, {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: `${fontSize}px`,
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5);
-    const w = txt.width + padX * 2;
-    const h = txt.height + padY * 2;
-
-    const bg = this.add.graphics();
-    bg.fillStyle(WHITE, bgAlpha);
-    bg.fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
-    bg.lineStyle(4, NAVY, 1);
-    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, h / 2);
-
-    const container = this.add.container(cx, cy, [bg, txt]).setDepth(20);
-    if (text.includes('!')) container.setAngle(-2.5); // only rotate the "fun" tagline
   }
 
   /**
