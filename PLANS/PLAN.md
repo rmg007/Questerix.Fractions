@@ -299,7 +299,7 @@ Full specs: `PLANS/ui-audit.md`.
 
 ## Phase 4 — Harden
 
-**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). Refactor sub-phases 4.1–4.8 now active — see **`PLANS/refactor-god-objects-2026-05-01.md`** for the per-file extraction plan and gate criteria. Items still pending hardening: R10 (iOS TTS), R13 (MenuScene localStorage), R27 (LOG localStorage), R36 (ambient motion).
+**Status:** R-task hardening shipped via PR #56 (R1–R8, R11–R12, R14, R16–R21, R24, R30). **Sub-phase 4.1 (Level01Scene refactor) ✅ DONE** — 2026-05-02 via PR #57 (commit 9bb3197). Extracted 807 LOC into four focused modules (level01SessionLifecycle, attemptRecorder, Level01SceneLayout, Level01SceneFeedback); Level01Scene reduced 2040→1650 LOC. Sub-phases 4.2–4.8 queued using same 3-cluster pattern. Items still pending hardening: R10 (iOS TTS), R13 (MenuScene localStorage), R27 (LOG localStorage), R36 (ambient motion).
 **Source:** `PLANS/_archive/harden-and-polish-2026-04-30.md` (full file:line specs)
 
 | ID | Severity | Item | File:Line |

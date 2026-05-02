@@ -53,9 +53,7 @@ export function questHintText(tier: import('@/types').HintTier): string {
 /**
  * Determine feedback kind from validator outcome.
  */
-export function determineFeedbackKind(
-  outcome: string
-): 'correct' | 'incorrect' | 'close' {
+export function determineFeedbackKind(outcome: string): 'correct' | 'incorrect' | 'close' {
   if (outcome === 'correct') return 'correct';
   if (outcome === 'partial') return 'close';
   return 'incorrect';
@@ -180,4 +178,3 @@ export function logHintRequest(tier: import('@/types').HintTier): void {
     tier,
   });
 }
-
