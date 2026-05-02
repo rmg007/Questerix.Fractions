@@ -330,12 +330,12 @@ Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 | iPad Safari touch-drag test | Manual — primary K-2 device, never tested | [ ] |
 | Playwright L1 happy-path E2E | `tests/e2e/level01.spec.ts` | [x] 2026-05-02 — 2/2 passing in 48s on chromium |
 | Deploy to Cloudflare Pages | `npm run build && npx wrangler pages deploy dist` | [ ] |
-| `npm run agent-doctor` step in CI | `.github/workflows/ci.yml` — add after Install step | [ ] |
+| `npm run agent-doctor` step in CI | `.github/workflows/ci.yml` — add after Install step | [x] already wired (ci.yml:48-49) |
 | Lighthouse workflow Node → 24 | `.github/workflows/lighthouse.yml` | [x] already on Node 24 |
 
 **Agent tooling (D-agent-tooling approved phases):**
 - Phase 2 — Blast-radius preflight (~3 h): doc-only PRs skip to 5 s lint-only path
-- Phase 7 — PR template + branch enforcement (~1 h)
+- Phase 7 — PR template + branch enforcement ✅ DONE 2026-05-02 (template was already present at `.github/PULL_REQUEST_TEMPLATE.md`; CI branch-name check added to the `consistency` job, mirroring the pre-push regex so `--no-verify` pushes are caught at PR time)
 - Phase 8 — Token telemetry via `CLAUDE_CODE_DIAGNOSTICS_FILE` (~4 h)
 
 ---
