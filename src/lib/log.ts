@@ -33,6 +33,82 @@ import { errorReporter, logger } from './observability';
 
 const START = Date.now();
 
+// ── Phase 10: ring buffer + ambient context + perf helpers ───────────────────
+
+export const RING_SIZE = 500;
+
+export interface RingEntry {
+  ts: number;
+  lvl: 'log' | 'warn' | 'error' | 'fatal';
+  cat: string;
+  event: string;
+  data?: unknown;
+  ctx?: Record<string, unknown>;
+}
+
+const _ring: RingEntry[] = [];
+
+export function getRing(): RingEntry[] {
+  return _ring;
+}
+
+let _ctx: Record<string, unknown> = {};
+
+export function setContext(ctx: Record<string, unknown>): void {
+  _ctx = { ...ctx };
+}
+
+export function patchContext(patch: Record<string, unknown>): void {
+  Object.assign(_ctx, patch);
+}
+
+export function getContext(): Record<string, unknown> {
+  return { ..._ctx };
+}
+
+function pushRing(entry: RingEntry): void {
+  _ring.push(entry);
+  if (_ring.length > RING_SIZE) {
+    _ring.splice(0, _ring.length - RING_SIZE);
+  }
+}
+
+export function perfMark(label: string): void {
+  try {
+    performance.mark(label);
+  } catch {
+    // safe to swallow — performance.mark may not exist in some test envs
+  }
+}
+
+export async function timed<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  const t0 = performance.now();
+  try {
+    return await fn();
+  } finally {
+    const ms = +(performance.now() - t0).toFixed(2);
+    emit('log', 'PERF', label, { ms });
+  }
+}
+
+export function timedSync<T>(label: string, fn: () => T): T {
+  const t0 = performance.now();
+  try {
+    return fn();
+  } finally {
+    const ms = +(performance.now() - t0).toFixed(2);
+    emit('log', 'PERF', label, { ms });
+  }
+}
+
+export function logAssert(condition: unknown, message: string, data?: unknown): void {
+  if (condition) return;
+  emit('error', 'ASSERT', message, data);
+  if (import.meta.env.DEV) {
+    throw new Error(`[ASSERT] ${message}`);
+  }
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getFilter(): string {
@@ -76,6 +152,19 @@ const STYLES: Record<string, string> = {
 };
 
 function emit(fn: ConsoleFn, category: string, event: string, data?: unknown): void {
+  // Phase 10: always push to ring buffer regardless of filter (forensic tail)
+  const ringCat = category.toUpperCase();
+  const ctxSnapshot = Object.keys(_ctx).length > 0 ? { ..._ctx } : undefined;
+  const entry: RingEntry = {
+    ts: Date.now() - START,
+    lvl: fn,
+    cat: ringCat,
+    event,
+    ...(data !== undefined ? { data } : {}),
+    ...(ctxSnapshot ? { ctx: ctxSnapshot } : {}),
+  };
+  pushRing(entry);
+
   // We keep the isEnabled check for console filtering
   const enabled = isEnabled(category);
 
@@ -143,6 +232,15 @@ export const log = {
   bkt: (event: string, data?: unknown) => emit('log', 'BKT', event, data),
   misc: (event: string, data?: unknown) => emit('log', 'MISC', event, data),
   perf: (event: string, data?: unknown) => emit('log', 'PERF', event, data),
+  // Phase 10 categories
+  lifecycle: (event: string, data?: unknown) => emit('log', 'LIFECYCLE', event, data),
+  net: (event: string, data?: unknown) => emit('log', 'NET', event, data),
+  pwa: (event: string, data?: unknown) => emit('log', 'PWA', event, data),
+  a11y: (event: string, data?: unknown) => emit('log', 'A11Y', event, data),
+  tts: (event: string, data?: unknown) => emit('log', 'TTS', event, data),
+  storage: (event: string, data?: unknown) => emit('log', 'STORAGE', event, data),
+  migrate: (event: string, data?: unknown) => emit('log', 'MIGRATE', event, data),
+  errBoundary: (event: string, data?: unknown) => emit('log', 'ERR_BOUNDARY', event, data),
   warn: (category: string, event: string, data?: unknown) => emit('warn', category, event, data),
   error: (category: string, event: string, data?: unknown) => emit('error', category, event, data),
   /**

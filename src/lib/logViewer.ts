@@ -98,7 +98,7 @@ function buildPanel(): HTMLElement {
       `# entries: ${ring.length}`,
       '',
       ...ring.map((e) => {
-        const dt = new Date(e.t).toISOString().slice(11, 23);
+        const dt = new Date(e.ts).toISOString().slice(11, 23);
         const dataStr = e.data !== undefined ? ` ${JSON.stringify(e.data)}` : '';
         return `${dt} [${e.lvl.padEnd(5)}] ${e.cat.padEnd(11)} ${e.event}${dataStr}`;
       }),
