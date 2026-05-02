@@ -6,8 +6,10 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
   test('Menu scene — zero axe violations', async ({ page }) => {
     await page.goto('/');
+    // CI dev-server cold-start needs more headroom than dev mode.
+    await expect(page.locator('[data-testid="boot-start-btn"]')).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
 
     const results = await new AxeBuilder({ page })
       // Target only critical and serious violations as committed in accessibility.md §7
@@ -19,13 +21,13 @@ test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
 
   test('Level01 scene — zero axe violations', async ({ page }) => {
     await page.goto('/');
+    await expect(page.locator('[data-testid="boot-start-btn"]')).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
-    // level-card-L1 opens the Adventure Map; select Level 1 from there
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
     await page.locator('[data-testid="level-card-L1"]').click();
-    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 10000 });
     await page.locator('[data-testid="map-level-1"]').click();
-    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 10000 });
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
