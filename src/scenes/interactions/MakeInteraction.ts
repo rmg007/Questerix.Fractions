@@ -147,11 +147,11 @@ export class MakeInteraction implements Interaction {
       })
       .setOrigin(0.5)
       .setDepth(8);
-    const shit = scene.add
+    const submitHit = scene.add
       .rectangle(centerX, sy, 240, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    shit.on('pointerup', () => {
+    submitHit.on('pointerup', () => {
       const leftArea = this.handlePos - minX;
       const rightArea = maxX - this.handlePos;
       onCommit({
@@ -162,7 +162,7 @@ export class MakeInteraction implements Interaction {
       });
     });
 
-    this.gameObjects.push(bbg, blbl, bhit, sbg, shit);
+    this.gameObjects.push(bbg, blbl, bhit, sbg, submitHit);
   }
 
   unmount(): void {

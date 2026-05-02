@@ -167,12 +167,12 @@ export class ExplainYourOrderInteraction implements Interaction {
       })
       .setOrigin(0.5)
       .setDepth(8);
-    const shit = scene.add
+    const hit = scene.add
       .rectangle(centerX, sy, 220, 56, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
-    shit.on('pointerup', () => {
+    hit.on('pointerup', () => {
       const filled = this.sequence.every((s) => s !== null);
       if (filled) {
         this.renderExplainingPhase();
@@ -195,7 +195,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       }
     );
 
-    this.gameObjects.push(sbg, stxt, shit);
+    this.gameObjects.push(sbg, stxt, hit);
   }
 
   private renderExplainingPhase(): void {

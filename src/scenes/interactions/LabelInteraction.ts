@@ -1,7 +1,6 @@
 /**
- * LabelInteraction — drag word-tile onto highlighted region.
+ * LabelInteraction — drag fraction-label tiles onto divided shape regions.
  * per activity-archetypes.md §3 (L2, L3)
- * Stubbed: visual matching with basic drag-drop tile.
  */
 
 import * as Phaser from 'phaser';
@@ -30,6 +29,7 @@ interface LabelPayload {
 export class LabelInteraction implements Interaction {
   readonly archetype = 'label' as const;
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
+  /** labelId → regionId currently placed on it (the validator key). */
   private placements: Record<string, string> = {};
   private _scene!: Phaser.Scene;
   private _cx = 0;
@@ -51,22 +51,38 @@ export class LabelInteraction implements Interaction {
     this._cy = centerY;
     this._regionCount = regions.length;
 
-    // Draw region boxes
+    // Region geometry — pre-compute centers for snap distance checks below.
     const regionW = 140;
     const regionH = 140;
+    const regionY = centerY - 60;
+    const regionXs: number[] = regions.map(
+      (_reg, i) => centerX - (regions.length - 1) * 80 + i * 160
+    );
+
     regions.forEach((reg, i) => {
-      const x = centerX - (regions.length - 1) * 80 + i * 160;
-      const box = scene.add.rectangle(x, centerY - 60, regionW, regionH, OPTION_BG).setDepth(5);
+      const rx = regionXs[i]!;
+      const box = scene.add.rectangle(rx, regionY, regionW, regionH, OPTION_BG).setDepth(5);
       box.setStrokeStyle(2, OPTION_BORDER);
       scene.add
-        .text(x, centerY - 60, reg.alt ?? reg.id, {
+        .text(rx, regionY, reg.alt ?? reg.id, {
           fontSize: '13px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_BODY,
         })
         .setOrigin(0.5)
         .setDepth(6);
-      this.gameObjects.push(box);
+      // Drop-target placeholder — populated when a tile snaps in.
+      const dropText = scene.add
+        .text(rx, regionY, '', {
+          fontSize: '20px',
+          fontFamily: '"Nunito", system-ui, sans-serif',
+          color: NAVY_HEX,
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5)
+        .setDepth(7)
+        .setName(`drop-${reg.id}`);
+      this.gameObjects.push(box, dropText);
     });
 
     // Label tiles
@@ -86,30 +102,53 @@ export class LabelInteraction implements Interaction {
         .setOrigin(0.5)
         .setDepth(8);
 
-      const snapToFirst = () => {
-        // Mock drag-drop by snapping to first region for e2e simplicity
-        const firstRegionId = regions[0]!.id;
-        this.placements[lbl.id] = firstRegionId;
-        tile.setStrokeStyle(4, NAVY);
-      };
-
       tile.on('drag', (_ptr: unknown, dx: number, dy: number) => {
         tile.setPosition(dx, dy);
         ttext.setPosition(dx, dy);
       });
 
       tile.on('dragend', () => {
-        // Simple: snap to nearest region
-        const nearestIdx = regions.reduce((best, _reg, ri) => {
-          const rx = centerX - (regions.length - 1) * 80 + ri * 160;
-          const dist = Math.abs(tile.x - rx);
-          const bdist = Math.abs(tile.x - (centerX - (regions.length - 1) * 80 + best * 160));
-          return dist < bdist ? ri : best;
-        }, 0);
-        this.placements[lbl.id] = regions[nearestIdx]!.id;
+        // Snap to nearest region by 2D distance, not just x — diagonals matter.
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        regionXs.forEach((rx, ri) => {
+          const d = Math.hypot(tile.x - rx, tile.y - regionY);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = ri;
+          }
+        });
+        const snappedRegionId = regions[bestIdx]!.id;
+        this.placements[lbl.id] = snappedRegionId;
+
+        // Snap visually + flag the active placement.
+        tile.setPosition(regionXs[bestIdx]!, regionY);
+        ttext.setPosition(regionXs[bestIdx]!, regionY);
+        tile.setStrokeStyle(4, NAVY);
+
+        // Show the label text inside the region's drop-target slot.
+        const dropText = scene.children.getByName(
+          `drop-${snappedRegionId}`
+        ) as Phaser.GameObjects.Text | null;
+        if (dropText) dropText.setText(lbl.text);
       });
 
-      TestHooks.mountInteractive(`label-tile-${i}`, snapToFirst, {
+      // TestHook: snap tile i to region (i % regionCount). Rotating across regions
+      // gives multi-region tests meaningful coverage instead of always-region-0.
+      const hookRegionIdx = i % regions.length;
+      const hookRegionId = regions[hookRegionIdx]!.id;
+      const snapForTest = () => {
+        this.placements[lbl.id] = hookRegionId;
+        tile.setPosition(regionXs[hookRegionIdx]!, regionY);
+        ttext.setPosition(regionXs[hookRegionIdx]!, regionY);
+        tile.setStrokeStyle(4, NAVY);
+        const dropText = scene.children.getByName(
+          `drop-${hookRegionId}`
+        ) as Phaser.GameObjects.Text | null;
+        if (dropText) dropText.setText(lbl.text);
+      };
+
+      TestHooks.mountInteractive(`label-tile-${i}`, snapForTest, {
         top: `${(ty / 1280) * 100}%`,
         left: `${(tx / 800) * 100}%`,
         width: '120px',
@@ -131,20 +170,21 @@ export class LabelInteraction implements Interaction {
       })
       .setOrigin(0.5)
       .setDepth(8);
-    const shit = scene.add
+    const hit = scene.add
       .rectangle(centerX, sy, 240, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
     const submit = () => {
-      const mappings = Object.entries(this.placements).map(([labelId, regionId]) => ({
+      // Validator (`src/validators/label.ts`) keys on `studentMappings`.
+      const studentMappings = Object.entries(this.placements).map(([labelId, regionId]) => ({
         labelId,
         regionId,
       }));
-      onCommit({ mappings });
+      onCommit({ studentMappings });
     };
 
-    shit.on('pointerup', submit);
+    hit.on('pointerup', submit);
 
     TestHooks.mountInteractive(`label-submit`, submit, {
       top: `${(sy / 1280) * 100}%`,
@@ -153,7 +193,7 @@ export class LabelInteraction implements Interaction {
       height: '52px',
     });
 
-    this.gameObjects.push(sbg, slbl, shit);
+    this.gameObjects.push(sbg, slbl, hit);
   }
 
   unmount(): void {
@@ -166,7 +206,7 @@ export class LabelInteraction implements Interaction {
   }
 
   showVisualOverlay(): void {
-    // Highlight each region box with an amber outline to show where labels belong.
+    // Hint tier 2: amber outline around each region to guide placement.
     const regionW = 140;
     const regionH = 140;
     const overlay = this._scene.add.graphics().setDepth(12).setAlpha(0.7);

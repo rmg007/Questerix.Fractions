@@ -169,12 +169,12 @@ export class SnapMatchInteraction implements Interaction {
       })
       .setOrigin(0.5)
       .setDepth(8);
-    const shit = scene.add
+    const hit = scene.add
       .rectangle(centerX, sy, 200, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    shit.on('pointerup', () => onCommit({ pairs: this.pairs }));
-    this.gameObjects.push(sbg, stxt, shit);
+    hit.on('pointerup', () => onCommit({ pairs: this.pairs }));
+    this.gameObjects.push(sbg, stxt, hit);
   }
 
   unmount(): void {
