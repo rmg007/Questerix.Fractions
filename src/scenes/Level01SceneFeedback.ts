@@ -1,15 +1,12 @@
 /**
- * Level01SceneFeedback — feedback orchestration, hint tiers, animations, and outcome logic.
+ * Level01SceneFeedback — feedback orchestration helpers and logging utilities.
  * Extracted from Level01Scene.ts for testability and reuse.
- * Handles validation outcomes, hint escalation, mascot reactions, and streaks.
+ * Handles feedback text selection, personality copy, and outcome logging.
  */
 
 import { log } from '../lib/log';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { level01HintKeys } from '../lib/mascotCopy';
-import { sfx } from '../audio/SFXService';
-import { fadeAndStart } from './utils/sceneTransition';
-import type { ValidatorResult } from '@/types';
 
 /**
  * Compute quest-voiced feedback for outcome kind.
@@ -184,35 +181,3 @@ export function logHintRequest(tier: import('@/types').HintTier): void {
   });
 }
 
-/**
- * Play wrong-answer feedback sound.
- */
-export function playWrongAnswerSound(): void {
-  try {
-    sfx.playWrongAnswer?.();
-  } catch {
-    // Non-critical SFX failure
-  }
-}
-
-/**
- * Play correct-answer feedback sound.
- */
-export function playCorrectAnswerSound(): void {
-  try {
-    sfx.playCorrectAnswer?.();
-  } catch {
-    // Non-critical SFX failure
-  }
-}
-
-/**
- * Play hint reveal sound.
- */
-export function playHintRevealSound(): void {
-  try {
-    sfx.playHintReveal?.();
-  } catch {
-    // Non-critical SFX failure
-  }
-}

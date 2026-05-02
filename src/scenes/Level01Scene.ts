@@ -53,10 +53,6 @@ import { recordAttemptAndMastery } from '../lib/attemptRecorder';
 import {
   questFeedbackText as getQuestFeedback,
   questHintText as getQuestHint,
-  determineFeedbackKind,
-  questPersonalityText,
-  playWrongAnswerSound,
-  playCorrectAnswerSound,
 } from './Level01SceneFeedback';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
