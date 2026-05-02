@@ -11,10 +11,17 @@ export function determineFeedbackKind(outcome: string): 'correct' | 'incorrect' 
 export function questFeedbackText(
   kind: 'correct' | 'incorrect' | 'close',
   currentArchetype: string | undefined,
-  levelNumber: number
+  denominator: number | null
 ): string | null {
   if (kind === 'correct') {
-    const denomKey = levelNumber === 1 ? 'half' : levelNumber === 2 ? 'third' : 'fourth';
+    const denomKey =
+      denominator === 2
+        ? 'half'
+        : denominator === 3
+          ? 'third'
+          : denominator === 4
+            ? 'fourth'
+            : 'equal';
     return getCopy(`quest.feedback.correct.${denomKey}`);
   }
   if (kind === 'incorrect') {

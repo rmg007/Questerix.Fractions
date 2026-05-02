@@ -52,6 +52,7 @@ import {
   closeSessionForLevel,
   persistLevelCompletionForLevel,
 } from '../lib/levelSceneSession';
+import { questFeedbackText as questFeedbackTextLib } from '../lib/levelSceneFeedback';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -820,46 +821,10 @@ export class LevelScene extends Phaser.Scene {
     AccessibilityAnnouncer.announce(announcement);
   }
 
-  /**
-   * Quest-voiced feedback for the outcome. correct picks the denominator-
-   * named line (halves/thirds/fourths, else equal); incorrect switches on
-   * archetype (like questHintText) so Quest speaks to what the question
-   * actually asked. null for partial/close outcomes.
-   */
   private questFeedbackText(kind: FeedbackKind): string | null {
-    if (kind === 'correct') {
-      const d = this.payloadDenominator();
-      switch (d) {
-        case 2:
-          return getCopy('quest.feedback.correct.half');
-        case 3:
-          return getCopy('quest.feedback.correct.third');
-        case 4:
-          return getCopy('quest.feedback.correct.fourth');
-        default:
-          return getCopy('quest.feedback.correct.equal');
-      }
-    }
-    if (kind === 'incorrect') {
-      const archetype = this.currentTemplate?.archetype as string | undefined;
-      switch (archetype) {
-        case 'equal_or_not':
-        case 'compare':
-        case 'order':
-        case 'benchmark':
-        case 'label':
-        case 'make':
-        case 'snap_match':
-          try {
-            return getCopy(`quest.feedback.wrong.${archetype}`);
-          } catch {
-            return getCopy('quest.feedback.wrong.unequal');
-          }
-        default:
-          return getCopy('quest.feedback.wrong.unequal');
-      }
-    }
-    return null;
+    const archetype = this.currentTemplate?.archetype as string | undefined;
+    const denominator = this.payloadDenominator();
+    return questFeedbackTextLib(kind, archetype, denominator);
   }
 
   /**
