@@ -46,6 +46,13 @@ import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '..
 import { withSpan } from '../lib/observability/withSpan';
 import { tracerService } from '../lib/observability/tracer';
 import { SPAN_NAMES } from '../lib/observability/span-names';
+import {
+  openSessionForLevel,
+  recordAttemptAndMasteryForLevel,
+  closeSessionForLevel,
+  persistLevelCompletionForLevel,
+} from '../lib/levelSceneSession';
+import { questFeedbackText as questFeedbackTextLib } from '../lib/levelSceneFeedback';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -814,46 +821,10 @@ export class LevelScene extends Phaser.Scene {
     AccessibilityAnnouncer.announce(announcement);
   }
 
-  /**
-   * Quest-voiced feedback for the outcome. correct picks the denominator-
-   * named line (halves/thirds/fourths, else equal); incorrect switches on
-   * archetype (like questHintText) so Quest speaks to what the question
-   * actually asked. null for partial/close outcomes.
-   */
   private questFeedbackText(kind: FeedbackKind): string | null {
-    if (kind === 'correct') {
-      const d = this.payloadDenominator();
-      switch (d) {
-        case 2:
-          return getCopy('quest.feedback.correct.half');
-        case 3:
-          return getCopy('quest.feedback.correct.third');
-        case 4:
-          return getCopy('quest.feedback.correct.fourth');
-        default:
-          return getCopy('quest.feedback.correct.equal');
-      }
-    }
-    if (kind === 'incorrect') {
-      const archetype = this.currentTemplate?.archetype as string | undefined;
-      switch (archetype) {
-        case 'equal_or_not':
-        case 'compare':
-        case 'order':
-        case 'benchmark':
-        case 'label':
-        case 'make':
-        case 'snap_match':
-          try {
-            return getCopy(`quest.feedback.wrong.${archetype}`);
-          } catch {
-            return getCopy('quest.feedback.wrong.unequal');
-          }
-        default:
-          return getCopy('quest.feedback.wrong.unequal');
-      }
-    }
-    return null;
+    const archetype = this.currentTemplate?.archetype as string | undefined;
+    const denominator = this.payloadDenominator();
+    return questFeedbackTextLib(kind, archetype, denominator);
   }
 
   /**
@@ -1161,202 +1132,33 @@ export class LevelScene extends Phaser.Scene {
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
     try {
-      // C7.5-C7.6: Record lastUsedStudentId for session resumption
-      const { lastUsedStudent } = await import('../persistence/lastUsedStudent');
-      lastUsedStudent.set(this.studentId as import('@/types').StudentId);
-
-      // Resolve the Quest-facing display name once, here, before any
-      // gameplay can fire `showSessionComplete()`. Failures are non-fatal —
-      // `resolveQuestName(null)` falls back to "friend" at render time.
-      try {
-        const { studentRepo } = await import('../persistence/repositories/student');
-        const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
-        this.studentDisplayName = student?.displayName ?? null;
-      } catch (err) {
-        log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
-        this.studentDisplayName = null;
-      }
-
-      const { sessionRepo } = await import('../persistence/repositories/session');
-      const id = crypto.randomUUID() as import('@/types').SessionId;
-      const session = await sessionRepo.create({
-        id,
-        studentId: this.studentId as import('@/types').StudentId,
-        activityId: `level_${this.levelNumber}` as import('@/types').ActivityId,
-        levelNumber: this.levelNumber,
-        scaffoldLevel: 1,
-        startedAt: Date.now(),
-        endedAt: null,
-        totalAttempts: 0,
-        correctAttempts: 0,
-        accuracy: null,
-        avgResponseMs: null,
-        xpEarned: 0,
-        scaffoldRecommendation: null,
-        endLevel: this.levelNumber,
-        device: {
-          type: 'unknown',
-          viewport: { width: window.innerWidth, height: window.innerHeight },
-        },
-        syncState: 'local',
-      });
-      if (session) {
-        this.sessionId = session.id;
-        log.sess('open_ok', {
-          sessionId: this.sessionId,
-          level: this.levelNumber,
-          activityId: `level_${this.levelNumber}`,
-        });
-      } else {
-        // Quota exceeded — volatile mode, session not persisted
-        log.warn('SESS', 'open_quota', { level: this.levelNumber });
-      }
+      const { studentRepo } = await import('@/persistence/repositories/student');
+      const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
+      this.studentDisplayName = student?.displayName ?? null;
     } catch (err) {
-      log.warn('SESS', 'open_error', { level: this.levelNumber, error: String(err) });
+      log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
+      this.studentDisplayName = null;
     }
+    this.sessionId = await openSessionForLevel(
+      this.studentId as import('@/types').StudentId,
+      this.levelNumber
+    );
   }
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
-    if (!this.studentId || !this.sessionId) return;
-
-    const studentIdTyped = this.studentId as import('@/types').StudentId;
-    const sessionIdTyped = this.sessionId as import('@/types').SessionId;
-
-    // Phase 6.3: wrap attempt + mastery in a single Dexie transaction so
-    // partial state (attempt persisted but mastery not updated, or vice versa)
-    // is impossible. Misconception detection stays separate / best-effort —
-    // detector failures must not roll back the attempt itself.
-    try {
-      const { db } = await import('../persistence/db');
-      const { attemptRepo } = await import('../persistence/repositories/attempt');
-      const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
-      const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
-
-      const outcome: import('@/types').AttemptOutcome =
-        result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
-      const attemptId = crypto.randomUUID() as import('@/types').AttemptId;
-      const isCorrect = result.outcome === 'correct';
-      const skillIds = this.currentTemplate.skillIds ?? [];
-      const skillId = (skillIds[0] ??
-        `skill.level_${this.levelNumber}`) as import('@/types').SkillId;
-
-      log.atmp('record_start', {
-        attemptId,
-        outcome,
-        responseMs,
-        questionId: this.currentTemplate.id,
-        hintsUsed: this.currentQuestionHintIds.length,
-      });
-
-      await db.transaction('rw', [db.attempts, db.skillMastery], async () => {
-        await attemptRepo.record({
-          id: attemptId,
-          sessionId: sessionIdTyped,
-          studentId: studentIdTyped,
-          questionTemplateId: this.currentTemplate.id,
-          archetype: this.currentTemplate.archetype,
-          roundNumber: this.questionIndex + 1,
-          attemptNumber: Math.min(this.wrongCount + 1, 4) as 1 | 2 | 3 | 4,
-          startedAt: Date.now() - responseMs,
-          submittedAt: Date.now(),
-          responseMs,
-          studentAnswerRaw: this.lastPayload,
-          correctAnswerRaw: null,
-          outcome,
-          errorMagnitude: null,
-          pointsEarned: result.score,
-          hintsUsedIds: [...this.currentQuestionHintIds],
-          hintsUsed: [],
-          roundEvents: [...this.currentRoundEvents],
-          flaggedMisconceptionIds: [],
-          validatorPayload: result,
-          syncState: 'local',
-        });
-
-        // Fix G-E1: update BKT mastery after every attempt — same transaction
-        // as the attempt write so they are atomic.
-        const existing = await skillMasteryRepo.get(studentIdTyped, skillId);
-        const prev: import('@/types').SkillMastery = existing ?? {
-          studentId: studentIdTyped,
-          skillId,
-          compositeKey: [studentIdTyped, skillId],
-          masteryEstimate: DEFAULT_PRIORS.pInit,
-          state: 'NOT_STARTED',
-          consecutiveCorrectUnassisted: 0,
-          totalAttempts: 0,
-          correctAttempts: 0,
-          lastAttemptAt: Date.now(),
-          masteredAt: null,
-          decayedAt: null,
-          syncState: 'local',
-        };
-        const updated = updateMastery(prev, isCorrect);
-        const withMeta: import('@/types').SkillMastery = {
-          ...updated,
-          compositeKey: [studentIdTyped, skillId],
-          lastAttemptAt: Date.now(),
-          masteredAt:
-            updated.masteryEstimate >= MASTERY_THRESHOLD && !prev.masteredAt
-              ? Date.now()
-              : (prev.masteredAt ?? null),
-          decayedAt: prev.decayedAt ?? null,
-          syncState: 'local',
-        };
-        log.bkt('mastery_update', {
-          skill: skillId,
-          isCorrect,
-          prevEstimate: +prev.masteryEstimate.toFixed(4),
-          nextEstimate: +withMeta.masteryEstimate.toFixed(4),
-          state: withMeta.state,
-          totalAttempts: withMeta.totalAttempts,
-          correctAttempts: withMeta.correctAttempts,
-          justMastered: !!withMeta.masteredAt && !prev.masteredAt,
-        });
-        await skillMasteryRepo.upsert(withMeta);
-      });
-    } catch (err) {
-      // Transaction rolled back. Don't run detectors on a non-durable attempt.
-      log.error('ATMP', 'record_failed', { error: String(err) });
-      return;
-    }
-
-    // C7.2: Run misconception detectors and upsert flags. Best-effort —
-    // detector failures must not roll back the attempt+mastery transaction
-    // above (per Phase 6.3 design). Wrapped in its own transaction so the
-    // flag writes are atomic with each other.
-    try {
-      const { db } = await import('../persistence/db');
-      const { attemptRepo } = await import('../persistence/repositories/attempt');
-      const recentAttempts = await attemptRepo.listForStudent(
-        this.studentId as import('@/types').StudentId
-      );
-      // Limit to recent 10 for performance
-      const limitedAttempts = recentAttempts.slice(-10);
-      const { runAllDetectors } = await import('../engine/misconceptionDetectors');
-      const { SystemClock, CryptoUuidGenerator, ConsoleEngineLogger } =
-        await import('../lib/adapters');
-      const flags = await runAllDetectors(limitedAttempts, this.levelNumber, {
-        clock: SystemClock,
-        ids: CryptoUuidGenerator,
-        logger: ConsoleEngineLogger,
-      });
-
-      if (flags.length > 0) {
-        const { misconceptionFlagRepo } =
-          await import('../persistence/repositories/misconceptionFlag');
-        await db.transaction('rw', [db.misconceptionFlags], async () => {
-          for (const flag of flags) {
-            await misconceptionFlagRepo.upsert(flag);
-          }
-        });
-        log.misc('flags_detected', {
-          count: flags.length,
-          ids: flags.map((f) => f.misconceptionId),
-        });
-      }
-    } catch (err) {
-      log.warn('MISC', 'detection_error', { error: String(err) });
-    }
+    await recordAttemptAndMasteryForLevel(
+      this.studentId as import('@/types').StudentId,
+      this.sessionId as import('@/types').SessionId,
+      this.levelNumber,
+      this.currentTemplate,
+      this.questionIndex,
+      this.wrongCount,
+      result,
+      responseMs,
+      this.lastPayload,
+      this.currentQuestionHintIds,
+      this.currentRoundEvents
+    );
   }
 
   // ── Session complete ─────────────────────────────────────────────────────────
@@ -1446,71 +1248,21 @@ export class LevelScene extends Phaser.Scene {
    * This is a best-effort write — persistence failure never blocks gameplay.
    */
   private async persistLevelCompletion(): Promise<void> {
-    if (!this.studentId) return;
-    try {
-      const { progressionStatRepo } = await import('../persistence/repositories/progressionStat');
-      const { ActivityId } = await import('../types/branded');
-      const studentIdTyped = this.studentId as import('@/types').StudentId;
-      const activityId = ActivityId(`level_${this.levelNumber}`);
-      const nextLevel = Math.min(this.levelNumber + 1, 9);
-
-      const existing = await progressionStatRepo.get(studentIdTyped, activityId);
-      const now = Date.now();
-      const updated: import('@/types').ProgressionStat = {
-        studentId: studentIdTyped,
-        activityId,
-        currentLevel: nextLevel,
-        highestLevelReached: Math.max(nextLevel, existing?.highestLevelReached ?? nextLevel),
-        sessionsAtCurrentLevel: 0,
-        totalSessions: (existing?.totalSessions ?? 0) + 1,
-        totalXp: (existing?.totalXp ?? 0) + this.correctCount * 10,
-        lastSessionAt: now,
-        consecutiveRegressEvents: existing?.consecutiveRegressEvents ?? 0,
-        syncState: 'local',
-      };
-      await progressionStatRepo.upsert(updated);
-      log.scene('progression_stat_upserted', {
-        level: this.levelNumber,
-        nextLevel,
-        activityId,
-        totalSessions: updated.totalSessions,
-      });
-    } catch (err) {
-      log.warn('PROG', 'progression_stat_error', { level: this.levelNumber, error: String(err) });
-    }
+    await persistLevelCompletionForLevel(
+      this.studentId as import('@/types').StudentId,
+      this.levelNumber,
+      this.correctCount
+    );
   }
 
   private async closeSession(): Promise<void> {
-    if (!this.sessionId) return;
-    try {
-      const { sessionRepo } = await import('../persistence/repositories/session');
-
-      // Fix G-E4: compute real accuracy and avg response time
-      const accuracy = this.attemptCount > 0 ? this.correctCount / this.attemptCount : 1;
-      const avgResponseMs =
-        this.responseTimes.length > 0
-          ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
-          : null;
-
-      const summary = {
-        endedAt: Date.now(),
-        totalAttempts: this.responseTimes.length,
-        correctAttempts: this.correctCount,
-        accuracy,
-        avgResponseMs,
-        xpEarned: this.correctCount * 10,
-        scaffoldRecommendation: (accuracy >= 0.85
-          ? 'advance'
-          : accuracy < 0.4 && this.levelNumber > 1
-            ? 'regress'
-            : 'stay') as 'advance' | 'stay' | 'regress',
-        endLevel: this.levelNumber,
-      };
-      log.sess('close', { sessionId: this.sessionId, level: this.levelNumber, ...summary });
-      await sessionRepo.close(this.sessionId as import('@/types').SessionId, summary);
-    } catch (err) {
-      log.warn('SESS', 'close_error', { level: this.levelNumber, error: String(err) });
-    }
+    await closeSessionForLevel(
+      this.sessionId as import('@/types').SessionId,
+      this.levelNumber,
+      this.attemptCount,
+      this.correctCount,
+      this.responseTimes
+    );
   }
 
   // ── Utilities ────────────────────────────────────────────────────────────────
