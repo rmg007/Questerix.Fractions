@@ -176,7 +176,10 @@ export async function recordAttemptAndMasteryForLevel(
         });
         log.misc('flags_detected', {
           count: flags.length,
-          ids: flags.map((f: any) => f.misconceptionId),
+          ids: flags.map((f) => {
+            const flag = f as unknown as { misconceptionId: string };
+            return flag.misconceptionId;
+          }),
         });
       }
     } catch (err) {
