@@ -110,6 +110,41 @@ confirm it still triggers `onSubmit` and that submission increments
 
 ---
 
+## Cluster F — A11y touch-target audit
+
+**File:** `tests/a11y/wcag.spec.ts` (lines 40–97 describe block)
+**Skipped:** `Menu scene` and `Level01 scene` touch-target audits.
+**Symptom:** the DOM scan finds interactive elements with `width < 44` or
+`height < 44` CSS px on both scenes. Real WCAG 2.5.5 enhanced violations.
+
+**Likely cause:** TestHooks-mounted invisible interactive overlays
+(`mountInteractive` defaults to `width: '80px', height: '80px'` but specific
+shortcuts use smaller boxes — e.g. `level-card-L6` is `100×40`, below the
+44px floor on the height axis).
+
+**Fix path:** widen the height of the smaller test-hook overlays to ≥44px,
+or filter the audit to skip `data-testid`-bearing test-only overlays so it
+only flags real production controls.
+
+---
+
+## Cluster G — A11y skip link href
+
+**File:** `tests/a11y/wcag.spec.ts` (lines 99–128 describe block)
+**Skipped:** `Menu scene — skip link present and target canvas exists`.
+**Symptom:** `#qf-skip-link` is in the DOM but `getAttribute('href')` returns
+`null`. The skip-link target therefore can't resolve, breaking WCAG 2.4.1
+Bypass Blocks.
+
+**Likely cause:** `src/components/SkipLink.ts` constructor mounts the
+element but the `href` set call may have been dropped during a refactor.
+
+**Fix path:** verify `SkipLink.ts` calls `el.setAttribute('href', '#qf-canvas')`
+on construction, or rely on `el.href = ...` setter. Add a unit test that
+asserts the href.
+
+---
+
 ## Acceptance criteria (when this tracker can be deleted)
 
 - All currently-skipped tests are either:
