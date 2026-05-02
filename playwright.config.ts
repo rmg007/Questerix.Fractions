@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 import { DEV_PORT, BROWSERS } from './src/config/shared';
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests',
+  testMatch: ['**/e2e/**/*.spec.ts', '**/a11y/**/*.spec.ts'],
   reporter: 'html',
   use: {
     baseURL: `http://localhost:${DEV_PORT}`,

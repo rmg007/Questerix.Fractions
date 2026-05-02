@@ -33,6 +33,23 @@ const DEFAULT_META: DeviceMeta = {
   onboardingComplete: false,
 };
 
+/**
+ * Read the legacy `questerix.onboardingSeen` localStorage flag. The v7
+ * upgrade callback in db.ts handles the migration for installs that already
+ * have a deviceMeta row, but fresh installs reach this lazy-create branch
+ * with an empty table — the upgrade's `.modify()` was a no-op there. Honoring
+ * the flag here closes that gap so e2e tests (and any user upgrading after a
+ * DB wipe) skip onboarding consistently.
+ */
+function readLegacyOnboardingFlag(): boolean {
+  try {
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem('questerix.onboardingSeen') === '1';
+  } catch {
+    return false;
+  }
+}
+
 export const deviceMetaRepo = {
   /**
    * Returns the singleton DeviceMeta, creating it lazily with defaults if absent.
@@ -42,15 +59,23 @@ export const deviceMetaRepo = {
     try {
       const existing = await db.deviceMeta.get(DEVICE_ID);
       if (existing) return existing;
+      const seed: DeviceMeta = readLegacyOnboardingFlag()
+        ? { ...DEFAULT_META, onboardingComplete: true }
+        : { ...DEFAULT_META };
       try {
-        await db.deviceMeta.add(DEFAULT_META);
+        await db.deviceMeta.add(seed);
+        return seed;
       } catch (writeErr) {
         if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
           log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
         }
-        // Either quota or duplicate-key (race): fall through and return defaults
+        // Duplicate-key race: another caller created the row first. Re-read
+        // so we return the canonical persisted values rather than our seed
+        // (which could differ if the other caller used different defaults).
+        const raced = await db.deviceMeta.get(DEVICE_ID);
+        if (raced) return raced;
+        return seed;
       }
-      return { ...DEFAULT_META };
     } catch (err) {
       return { ...DEFAULT_META };
     }
@@ -100,23 +125,32 @@ export const deviceMetaRepo = {
   async updatePreferences(prefPatch: Partial<DeviceMeta['preferences']>): Promise<boolean> {
     try {
       return await db.transaction('rw', db.deviceMeta, async () => {
-        // Atomically read-modify-write within the transaction
+        // Atomically read-modify-write within the transaction.
         let existing = await db.deviceMeta.get(DEVICE_ID);
         if (!existing) {
-          // Lazy create with defaults if absent
+          // Lazy create. Honor the legacy onboarding flag here too — when
+          // BootScene's `updatePreferences({ persistGranted })` is the first
+          // path to materialize the row (which is the common case on a fresh
+          // install), `get()`'s legacy-flag branch never runs. Without this,
+          // e2e specs that pre-seed `questerix.onboardingSeen=1` would still
+          // see `onboardingComplete: false`.
+          const seed: DeviceMeta = readLegacyOnboardingFlag()
+            ? { ...DEFAULT_META, onboardingComplete: true }
+            : { ...DEFAULT_META };
           try {
-            await db.deviceMeta.add(DEFAULT_META);
-            existing = DEFAULT_META;
+            await db.deviceMeta.add(seed);
+            existing = seed;
           } catch (writeErr) {
             if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
               log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
             }
-            // Either quota or duplicate-key (race): use defaults and attempt update anyway
-            existing = DEFAULT_META;
+            // Duplicate-key race: another caller created the row first.
+            const raced = await db.deviceMeta.get(DEVICE_ID);
+            existing = raced ?? seed;
           }
         }
 
-        // Merge the patch into preferences and update
+        // Merge the patch into preferences and update.
         const updated = await db.deviceMeta.update(DEVICE_ID, {
           preferences: { ...existing.preferences, ...prefPatch },
         });
