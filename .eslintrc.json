@@ -61,11 +61,7 @@
     },
     {
       "files": ["src/scenes/*Scene.ts"],
-      "excludedFiles": [
-        "src/scenes/Level01Scene.ts",
-        "src/scenes/LevelScene.ts",
-        "src/scenes/MenuScene.ts"
-      ],
+      "excludedFiles": ["src/scenes/Level01Scene.ts", "src/scenes/LevelScene.ts"],
       "rules": {
         "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": true }]
       }

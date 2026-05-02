@@ -24,10 +24,11 @@ import { MenuLevelOverlay } from '../components/MenuLevelOverlay';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { StudentId } from '../types/branded';
-import { BODY_FONT } from './utils/levelTheme';
+import { BODY_FONT, TITLE_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
 import { getStreak } from '../lib/streak';
 import { samplePath, drawPath, drawSoftGlow, drawTaglinePill } from './utils/MenuPath';
+import { createStationButton } from '../components/MenuStationButton';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -66,30 +67,11 @@ const SET_TEXT = '#1E3A8A';
 const GLOW_EMERALD = 0x6ee7b7; // emerald-300
 const GLOW_BLUE = 0x93c5fd; // blue-300
 
-const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
-
 // Layout: stations sit on a wavy path from bottom (0) to top (1)
 const PLAY_Y = 1100;
 const CONT_Y = 700;
 const SET_Y = 420;
 const STATION_X = CW / 2;
-
-interface StationButtonOpts {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  label: string;
-  iconChar?: string;
-  fillColor: number;
-  hoverColor: number;
-  borderColor: number;
-  textColor: string;
-  fontSize: number;
-  shadowOffset: number;
-  rounded: boolean; // true = pill, false = circle
-  onTap: () => void;
-}
 
 export class MenuScene extends Phaser.Scene {
   private lastStudentId: string | null = null;
@@ -248,7 +230,7 @@ export class MenuScene extends Phaser.Scene {
 
     // Settings — top of the line (icon + word label, no fraction badge —
     // see file header comment + 2026-05-01 menu-pedagogy decision).
-    this.createStationButton({
+    createStationButton(this, {
       x: STATION_X,
       y: SET_Y,
       w: 100,
@@ -270,7 +252,7 @@ export class MenuScene extends Phaser.Scene {
 
     // Continue — middle of the line (only if returning student).
     if (hasContinue) {
-      this.createStationButton({
+      createStationButton(this, {
         x: STATION_X,
         y: CONT_Y,
         w: 360,
@@ -291,7 +273,7 @@ export class MenuScene extends Phaser.Scene {
     }
 
     // Play — bottom of the line (always shown).
-    this.createStationButton({
+    createStationButton(this, {
       x: STATION_X,
       y: PLAY_Y,
       w: 440,
@@ -451,102 +433,6 @@ export class MenuScene extends Phaser.Scene {
     } catch (err) {
       // Ignore storage errors — caller will retry on next session
     }
-  }
-
-  /**
-   * A station on the number line — either a pill (Play, Continue) or a
-   * circle (Settings). All buttons share the same chunky 3D-shadow look
-   * with hover/press states.
-   */
-  private createStationButton(opts: StationButtonOpts): void {
-    const { x, y, w, h, fillColor, hoverColor, borderColor, textColor, shadowOffset, rounded } =
-      opts;
-
-    const container = this.add.container(x, y).setDepth(15);
-    const radius = rounded ? h / 2 : Math.min(w, h) / 2;
-    const half = { w: w / 2, h: h / 2 };
-
-    const draw = (color: number, dy: number) => {
-      face.clear();
-      // Shadow stays put; we move the face down on press
-      face.fillStyle(color, 1);
-      if (rounded) {
-        face.fillRoundedRect(-half.w, -half.h + dy, w, h, radius);
-      } else {
-        face.fillCircle(0, dy, radius);
-      }
-      face.lineStyle(5, borderColor, 1);
-      if (rounded) {
-        face.strokeRoundedRect(-half.w, -half.h + dy, w, h, radius);
-      } else {
-        face.strokeCircle(0, dy, radius);
-      }
-    };
-
-    // Shadow layer (behind, doesn't move)
-    const shadow = this.add.graphics();
-    shadow.fillStyle(borderColor, 1);
-    if (rounded) {
-      shadow.fillRoundedRect(-half.w, -half.h + shadowOffset, w, h, radius);
-    } else {
-      shadow.fillCircle(0, shadowOffset, radius);
-    }
-    container.add(shadow);
-
-    const face = this.add.graphics();
-    container.add(face);
-    draw(fillColor, 0);
-
-    // Icon + label as a single text (icon on left)
-    const display = opts.iconChar
-      ? opts.label
-        ? `${opts.iconChar}  ${opts.label}`
-        : opts.iconChar
-      : opts.label;
-    const txt = this.add
-      .text(0, 0, display, {
-        fontFamily: TITLE_FONT,
-        fontSize: `${opts.fontSize}px`,
-        color: textColor,
-      })
-      .setOrigin(0.5);
-    container.add(txt);
-
-    // Hit area covers the full button
-    container.setSize(w, h + shadowOffset);
-    container.setInteractive(
-      new Phaser.Geom.Rectangle(-half.w, -half.h, w, h + shadowOffset),
-      Phaser.Geom.Rectangle.Contains
-    );
-    container.input!.cursor = 'pointer';
-
-    let isHovering = false;
-    let isPressed = false;
-    const update = () => {
-      const dy = isPressed ? shadowOffset : 0;
-      const color = isHovering ? hoverColor : fillColor;
-      draw(color, dy);
-      txt.setY(dy);
-    };
-
-    container.on('pointerover', () => {
-      isHovering = true;
-      update();
-    });
-    container.on('pointerout', () => {
-      isHovering = false;
-      isPressed = false;
-      update();
-    });
-    container.on('pointerdown', () => {
-      isPressed = true;
-      update();
-    });
-    container.on('pointerup', () => {
-      isPressed = false;
-      update();
-      opts.onTap();
-    });
   }
 
   /**
