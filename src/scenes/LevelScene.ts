@@ -831,12 +831,12 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  questFeedbackText(
-    kind: FeedbackKind,
-    archetype: string | undefined,
-    denominator: number | null
-  ): string | null {
-    return questFeedbackTextLib(kind, archetype, denominator);
+  questFeedbackText(kind: FeedbackKind): string | null {
+    return questFeedbackTextLib(
+      kind,
+      this.currentTemplate?.archetype as string | undefined,
+      this.payloadDenominator()
+    );
   }
 
   private onCorrectAnswer(): void {
