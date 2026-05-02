@@ -89,4 +89,27 @@ describe('TTSService', () => {
     svc.stop();
     expect(mockSynth.cancel).toHaveBeenCalledOnce();
   });
+
+  it('speak() resolves via watchdog when getVoices() stays empty (R10)', async () => {
+    vi.useFakeTimers();
+    try {
+      const mockSynth = {
+        speaking: false,
+        speak: vi.fn(),
+        cancel: vi.fn(),
+        getVoices: vi.fn(() => [] as Array<{ name: string; lang: string }>),
+        addEventListener: vi.fn(),
+        onvoiceschanged: null,
+      };
+      installMocks(mockSynth as unknown as ReturnType<typeof makeMockSynth>);
+      const svc = new TTSService();
+      const speakPromise = svc.speak('hello');
+      // Advance past the 1500ms watchdog so voicesReady resolves.
+      await vi.advanceTimersByTimeAsync(1500);
+      await speakPromise;
+      expect(mockSynth.speak).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
