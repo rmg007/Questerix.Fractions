@@ -37,8 +37,6 @@ import { MenuScene } from './MenuScene';
 import { log } from '../lib/log';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
-import { get as getCopy } from '../lib/i18n/catalog';
-import { level01HintKeys } from '../lib/mascotCopy';
 import { Mascot } from '../components/Mascot';
 import { withSpan } from '../lib/observability/withSpan';
 import { tracerService } from '../lib/observability/tracer';
@@ -1068,14 +1066,6 @@ export class Level01Scene extends Phaser.Scene {
       () => this.recordAttempt(result, responseMs, input)
     );
     this.showOutcome(result);
-  }
-
-  /**
-   * Level 1 is always partition_halves (targetPartitions = 2).
-   * Matching the LevelScene helper pattern for symmetry.
-   */
-  private payloadDenominator(): number {
-    return 2;
   }
 
   private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
