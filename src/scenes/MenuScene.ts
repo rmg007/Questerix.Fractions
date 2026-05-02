@@ -20,9 +20,7 @@ import { A11yLayer } from '../components/A11yLayer';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { Mascot } from '../components/Mascot';
-import { LevelCard } from '../components/LevelCard';
-import { LEVEL_META } from './utils/levelMeta';
-import { skillMasteryRepo } from '../persistence/repositories/skillMastery';
+import { MenuLevelOverlay } from '../components/MenuLevelOverlay';
 import { levelProgressionRepo } from '../persistence/repositories/levelProgression';
 import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { StudentId } from '../types/branded';
@@ -70,16 +68,6 @@ const GLOW_BLUE = 0x93c5fd; // blue-300
 
 const TITLE_FONT = '"Fredoka One", "Nunito", system-ui, sans-serif';
 
-// ── Choose-level overlay ───────────────────────────────────────────────────
-const OVERLAY_CARD_SCALE = 0.8;
-const OVERLAY_DEPTH = 50;
-const OVERLAY_MASTERY_THRESHOLD = 0.8; // PLAN.md Phase 2d — gold star at masteryEstimate >= 0.8
-// Skill ID mapping mirrors LevelMapScene — Level 1 uses a named skill.
-function menuSkillIdForLevel(level: number): string {
-  if (level === 1) return 'skill.partition_halves';
-  return `skill.level_${level}`;
-}
-
 // Layout: stations sit on a wavy path from bottom (0) to top (1)
 const PLAY_Y = 1100;
 const CONT_Y = 700;
@@ -109,7 +97,7 @@ export class MenuScene extends Phaser.Scene {
   private ambientTweens: Phaser.Tweens.Tween[] = [];
   private dashTickHandler: (() => void) | null = null;
   private mascot: Mascot | null = null;
-  private _overlayObjects: Phaser.GameObjects.GameObject[] = [];
+  private levelOverlay: MenuLevelOverlay | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -123,6 +111,12 @@ export class MenuScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.reduceMotion = checkReduceMotion();
+    this.levelOverlay = new MenuLevelOverlay({
+      scene: this,
+      getStudentId: () => this.lastStudentId,
+      onSelectLevel: (level) => this._startLevel(level),
+      onOpenMap: () => fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId }),
+    });
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
     if (!this.reduceMotion) {
@@ -160,7 +154,7 @@ export class MenuScene extends Phaser.Scene {
       fadeAndStart(this, 'SettingsScene');
     });
     A11yLayer.mountAction('a11y-choose-level', 'Choose a level to play', () => {
-      void this._openChooseLevelOverlay();
+      void this.levelOverlay?.open();
     });
     A11yLayer.announce(
       'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to open the Adventure Map.'
@@ -349,6 +343,8 @@ export class MenuScene extends Phaser.Scene {
         this.events.off('update', this.dashTickHandler);
         this.dashTickHandler = null;
       }
+      this.levelOverlay?.close();
+      this.levelOverlay = null;
     });
   }
 
@@ -384,7 +380,7 @@ export class MenuScene extends Phaser.Scene {
       .rectangle(bx, by, W, H, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(18)
-      .on('pointerup', () => void this._openChooseLevelOverlay());
+      .on('pointerup', () => void this.levelOverlay?.open());
   }
 
   /**
@@ -422,194 +418,6 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(26);
-  }
-
-  /**
-   * Show an in-scene modal with a 3×3 grid of LevelCards.
-   * Mastered levels (BKT estimate ≥ 0.85) display the gold ribbon.
-   * Tapping a card starts that level; the × closes the overlay.
-   */
-  private async _openChooseLevelOverlay(): Promise<void> {
-    // Close any existing overlay first.
-    this._closeChooseLevelOverlay();
-
-    const unlocked = await this._getUnlockedLevels();
-    const completedLevels = await this._getCompletedLevels();
-
-    // Query mastery estimates from IndexedDB.
-    const masteredLevels = new Set<number>();
-    try {
-      if (this.lastStudentId) {
-        const records = await skillMasteryRepo.getAllForStudent(StudentId(this.lastStudentId));
-        for (const rec of records) {
-          if (rec.masteryEstimate < OVERLAY_MASTERY_THRESHOLD) continue;
-          for (const meta of LEVEL_META) {
-            if (rec.skillId === menuSkillIdForLevel(meta.number)) {
-              masteredLevels.add(meta.number);
-              break;
-            }
-          }
-        }
-      }
-    } catch {
-      // Overlay renders without ribbons on any error.
-    }
-
-    // If the scene was destroyed while we awaited, bail out.
-    if (!this.scene || !this.scene.isActive()) return;
-
-    const track = <T extends Phaser.GameObjects.GameObject>(obj: T): T => {
-      this._overlayObjects.push(obj);
-      return obj;
-    };
-
-    // ── Dark scrim ───────────────────────────────────────────────────────────
-    const scrim = this.add
-      .rectangle(CW / 2, CH / 2, CW, CH, 0x000000, 0.7)
-      .setDepth(OVERLAY_DEPTH)
-      .setInteractive(); // block clicks below
-    track(scrim);
-
-    // ── White panel ──────────────────────────────────────────────────────────
-    const panelW = 760,
-      panelH = 600;
-    const panelX = CW / 2,
-      panelY = 600;
-    const panelG = this.add.graphics().setDepth(OVERLAY_DEPTH + 1);
-    panelG.fillStyle(WHITE, 1);
-    panelG.fillRoundedRect(panelX - panelW / 2, panelY - panelH / 2, panelW, panelH, 20);
-    panelG.lineStyle(4, NAVY, 1);
-    panelG.strokeRoundedRect(panelX - panelW / 2, panelY - panelH / 2, panelW, panelH, 20);
-    track(panelG);
-
-    // ── Title ────────────────────────────────────────────────────────────────
-    track(
-      this.add
-        .text(panelX, panelY - panelH / 2 + 44, 'Choose a Level', {
-          fontFamily: TITLE_FONT,
-          fontSize: '38px',
-          color: NAVY_HEX,
-        })
-        .setOrigin(0.5)
-        .setDepth(OVERLAY_DEPTH + 2)
-    );
-
-    // ── Close button (×) ─────────────────────────────────────────────────────
-    const closeX = panelX + panelW / 2 - 36;
-    const closeY = panelY - panelH / 2 + 36;
-    const closeBg = this.add.graphics().setDepth(OVERLAY_DEPTH + 2);
-    closeBg.fillStyle(0xe2e8f0, 1);
-    closeBg.fillCircle(closeX, closeY, 24);
-    track(closeBg);
-    track(
-      this.add
-        .text(closeX, closeY, '×', {
-          fontFamily: BODY_FONT,
-          fontStyle: 'bold',
-          fontSize: '34px',
-          color: NAVY_HEX,
-        })
-        .setOrigin(0.5, 0.5)
-        .setDepth(OVERLAY_DEPTH + 3)
-    );
-    const closeHit = this.add
-      .circle(closeX, closeY, 28, 0x000000, 0)
-      .setDepth(OVERLAY_DEPTH + 4)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerup', () => this._closeChooseLevelOverlay());
-    track(closeHit);
-
-    // ── Unlocked-only card grid ───────────────────────────────────────────────
-    // Show only unlocked levels so the overlay acts as a quick-pick for
-    // levels the player can actually play (not a full browse-all view).
-    // At OVERLAY_CARD_SCALE=0.8: 220*0.8=176px wide, 160*0.8=128px tall.
-    // Columns centred at x=160, 400, 640 (240px apart).
-    // Rows centred at y=470, 620, 770 (150px apart).
-    const colX = [160, 400, 640];
-    const rowY = [470, 620, 770];
-
-    const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
-
-    // "Suggested next" = lowest unlocked and not-yet-completed level.
-    const suggestedLevel = unlockedMeta.find((m) => !completedLevels.has(m.number))?.number ?? null;
-
-    for (let i = 0; i < unlockedMeta.length; i++) {
-      const meta = unlockedMeta[i]!;
-      const cx = colX[i % 3]!;
-      const cy = rowY[Math.floor(i / 3)]!;
-      const card = new LevelCard({
-        scene: this,
-        x: cx,
-        y: cy,
-        meta,
-        unlocked: true,
-        suggested: meta.number === suggestedLevel,
-        mastered: masteredLevels.has(meta.number),
-        containerScale: OVERLAY_CARD_SCALE,
-        testHookPrefix: 'overlay-card',
-        onTap: (levelNumber) => {
-          this._closeChooseLevelOverlay();
-          this._startLevel(levelNumber);
-        },
-      });
-      card.setScale(OVERLAY_CARD_SCALE).setDepth(OVERLAY_DEPTH + 2);
-      track(card);
-    }
-
-    // ── "Full Adventure Map →" link ──────────────────────────────────────────
-    const mapY = panelY + panelH / 2 - 38;
-    const mapLinkBg = this.add.graphics().setDepth(OVERLAY_DEPTH + 2);
-    mapLinkBg.fillStyle(NAVY, 0.12);
-    mapLinkBg.fillRoundedRect(panelX - 140, mapY - 20, 280, 40, 20);
-    track(mapLinkBg);
-    const mapLink = this.add
-      .text(panelX, mapY, '🗺 Full Adventure Map →', {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '20px',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(OVERLAY_DEPTH + 3);
-    track(mapLink);
-    const mapHit = this.add
-      .rectangle(panelX, mapY, 280, 40, 0x000000, 0)
-      .setDepth(OVERLAY_DEPTH + 4)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerup', () => {
-        this._closeChooseLevelOverlay();
-        fadeAndStart(this, 'LevelMapScene', { studentId: this.lastStudentId });
-      });
-    track(mapHit);
-
-    // TestHook sentinel so E2E tests can confirm the overlay opened.
-    TestHooks.mountSentinel('choose-level-overlay');
-  }
-
-  /** Tear down all objects created by _openChooseLevelOverlay. */
-  private _closeChooseLevelOverlay(): void {
-    for (const obj of this._overlayObjects) {
-      if (obj && (obj as Phaser.GameObjects.GameObject & { scene: unknown }).scene) {
-        obj.destroy();
-      }
-    }
-    this._overlayObjects = [];
-    // Unmount overlay-specific TestHooks
-    TestHooks.unmount('choose-level-overlay');
-    for (const meta of LEVEL_META) {
-      TestHooks.unmount(`overlay-card-L${meta.number}`);
-    }
-  }
-
-  /** Read completed levels from IndexedDB. */
-  private async _getCompletedLevels(): Promise<Set<number>> {
-    if (!this.lastStudentId) return new Set();
-    try {
-      return await levelProgressionRepo.getCompletedLevels(StudentId(this.lastStudentId));
-    } catch {
-      // Ignore storage errors — default to empty set
-      return new Set();
-    }
   }
 
   /** Read unlocked levels from IndexedDB. */
