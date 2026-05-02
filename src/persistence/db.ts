@@ -381,6 +381,38 @@ export class QuesterixDB extends Dexie {
 export const db = new QuesterixDB();
 db.use(observabilityMiddleware);
 
+// ── R9: Quota guard ──────────────────────────────────────────────────────
+
+let _volatile = false;
+
+export function isVolatile(): boolean {
+  return _volatile;
+}
+
+function isQuotaError(err: unknown): boolean {
+  if (err instanceof DOMException && err.name === 'QuotaExceededError') return true;
+  const msg = err instanceof Error ? err.message : String(err ?? '');
+  return /QuotaExceededError|quota/i.test(msg);
+}
+
+/**
+ * Wrap a persistence write. Quota-exhaustion errors flip the volatile flag
+ * and resolve with `null` so callers can keep gameplay flowing without a
+ * crash; non-quota errors rethrow.
+ */
+export async function withQuotaGuard<T>(op: () => Promise<T>): Promise<T | null> {
+  try {
+    return await op();
+  } catch (err) {
+    if (isQuotaError(err)) {
+      _volatile = true;
+      console.warn('[db] QuotaExceededError — entering volatile mode');
+      return null;
+    }
+    throw err;
+  }
+}
+
 // ── Persistence grant helper ───────────────────────────────────────────────
 
 /** sessionStorage key used to suppress repeated persistence warnings across page reloads. */

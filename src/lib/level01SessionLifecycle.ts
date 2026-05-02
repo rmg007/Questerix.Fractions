@@ -45,44 +45,12 @@ export async function openSessionOrResume(
     }
 
     const { sessionRepo } = await import('../persistence/repositories/session');
+    const { withQuotaGuard } = await import('../persistence/db');
     const id = crypto.randomUUID() as SessionId;
 
-    const session = await sessionRepo.create({
-      id,
-      studentId,
-      activityId: 'partition_halves' as ActivityId,
-      levelNumber: 1,
-      scaffoldLevel: 1,
-      startedAt: Date.now(),
-      endedAt: null,
-      totalAttempts: 0,
-      correctAttempts: 0,
-      accuracy: null,
-      avgResponseMs: null,
-      xpEarned: 0,
-      scaffoldRecommendation: null,
-      endLevel: 1,
-      device: {
-        type: 'unknown',
-        viewport: { width: window.innerWidth, height: window.innerHeight },
-      },
-      syncState: 'local',
-    });
-
-    if (session) {
-      log.sess('open_ok', { sessionId: session.id, activityId: 'partition_halves' });
-      return session.id as SessionId;
-    } else {
-      log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
-      return null;
-    }
-  } catch (err) {
-    log.error('SESS', 'open_error_initial', { error: String(err) });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const { sessionRepo } = await import('../persistence/repositories/session');
-      const id = crypto.randomUUID() as SessionId;
-      const session = await sessionRepo.create({
+    // R9: wrap with quota guard so iOS Safari ITP eviction enters volatile mode (no crash)
+    const session = await withQuotaGuard(() =>
+      sessionRepo.create({
         id,
         studentId,
         activityId: 'partition_halves' as ActivityId,
@@ -102,7 +70,46 @@ export async function openSessionOrResume(
           viewport: { width: window.innerWidth, height: window.innerHeight },
         },
         syncState: 'local',
-      });
+      })
+    );
+
+    if (session) {
+      log.sess('open_ok', { sessionId: session.id, activityId: 'partition_halves' });
+      return session.id as SessionId;
+    } else {
+      log.warn('SESS', 'open_quota', { activityId: 'partition_halves' });
+      return null;
+    }
+  } catch (err) {
+    log.error('SESS', 'open_error_initial', { error: String(err) });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { sessionRepo } = await import('../persistence/repositories/session');
+      const { withQuotaGuard } = await import('../persistence/db');
+      const id = crypto.randomUUID() as SessionId;
+      const session = await withQuotaGuard(() =>
+        sessionRepo.create({
+          id,
+          studentId,
+          activityId: 'partition_halves' as ActivityId,
+          levelNumber: 1,
+          scaffoldLevel: 1,
+          startedAt: Date.now(),
+          endedAt: null,
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracy: null,
+          avgResponseMs: null,
+          xpEarned: 0,
+          scaffoldRecommendation: null,
+          endLevel: 1,
+          device: {
+            type: 'unknown',
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+          },
+          syncState: 'local',
+        })
+      );
       if (session) {
         log.sess('open_retry_ok', { sessionId: session.id });
         return session.id as SessionId;
