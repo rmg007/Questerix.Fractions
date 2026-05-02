@@ -336,7 +336,7 @@ Full list (48 items) in `PLANS/_archive/harden-and-polish-2026-04-30.md`.
 **Agent tooling (D-agent-tooling approved phases):**
 - Phase 2 — Blast-radius preflight (~3 h): doc-only PRs skip to 5 s lint-only path
 - Phase 7 — PR template + branch enforcement ✅ DONE 2026-05-02 (template was already present at `.github/PULL_REQUEST_TEMPLATE.md`; CI branch-name check added to the `consistency` job, mirroring the pre-push regex so `--no-verify` pushes are caught at PR time)
-- Phase 8 — Token telemetry via `CLAUDE_CODE_DIAGNOSTICS_FILE` (~4 h)
+- Phase 8 — Token telemetry via `CLAUDE_CODE_DIAGNOSTICS_FILE` ✅ DONE 2026-05-02. PreCompact hook now extracts `claudemd_length`, `memory_files.total_content_length`, `hook_spawn_completed` count, and diagnostics file size from the JSONL log; `/economy` exposes a live diagnostics snapshot for the current session; `/retro-weekly` ranks on `diag-size` since the env contract has no live token field (verified with v2.1.42 — see `.claude/learnings.md` 2026-05-02 entry). `tokens:` field stays in the log line as `unknown` for backward-compat with any downstream parser; new structured fields are pure additions.
 
 ---
 
