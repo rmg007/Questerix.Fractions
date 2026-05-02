@@ -18,7 +18,6 @@ import {
   SKY_BG,
   PATH_BLUE,
   OPTION_BG,
-  ACTION_FILL,
 } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
@@ -60,6 +59,11 @@ import {
   type HintFlowContext,
   type HintFlowCallbacks,
 } from '../lib/levelSceneHintFlow';
+import {
+  showOutcome as showOutcomeFlow,
+  type OutcomeFlowContext,
+  type OutcomeFlowCallbacks,
+} from '../lib/levelSceneOutcomeFlow';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -740,52 +744,57 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private showOutcome(result: ValidatorResult): void {
-    const kind =
-      result.outcome === 'correct'
-        ? 'correct'
-        : result.outcome === 'partial'
-          ? 'close'
-          : 'incorrect';
-
-    if (kind === 'correct') {
-      this.progressBar.setProgress(this.attemptCount + 1);
-    }
-
-    const questText = questFeedbackTextLib(
-      kind,
-      this.currentTemplate?.archetype as string | undefined,
-      this.payloadDenominator()
-    );
-
-    this.feedbackOverlay.show(
-      kind,
-      () => {
-        this.inputLocked = false;
-        this.submitButtonContainer?.setAlpha(1);
-        if (kind === 'correct') {
-          this.onCorrectAnswer();
-        } else {
-          this.onWrongAnswer();
-        }
+    const ctx: OutcomeFlowContext = {
+      scene: this,
+      levelNumber: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      attemptCount: this.attemptCount,
+      correctCount: this.correctCount,
+      correctStreak: this.correctStreak,
+      currentTemplate: this.currentTemplate,
+      progressBar: this.progressBar,
+      feedbackOverlay: this.feedbackOverlay,
+      submitButtonContainer: this.submitButtonContainer,
+      hintLadder: this.hintLadder ?? null,
+      mascot: this.mascot,
+      activeInteraction: this.activeInteraction,
+    };
+    const callbacks: OutcomeFlowCallbacks = {
+      setWrongCount: (c) => {
+        this.wrongCount = c;
       },
-      questText ?? undefined
-    );
-
-    if (kind === 'correct') {
-      this.mascot?.setState('cheer');
-      this.activeInteraction?.showCorrectFeedback?.();
-    } else if (kind === 'incorrect') {
-      this.mascot?.setState('oops');
-    }
-
-    const announcement =
-      questText ??
-      (kind === 'correct'
-        ? 'Correct! Great work.'
-        : kind === 'close'
-          ? 'Almost! Try a tiny adjustment.'
-          : 'Not quite — try again.');
-    AccessibilityAnnouncer.announce(announcement);
+      setAttemptCount: (c) => {
+        this.attemptCount = c;
+      },
+      setCorrectCount: (c) => {
+        this.correctCount = c;
+      },
+      setCorrectStreak: (s) => {
+        this.correctStreak = s;
+      },
+      setInputLocked: (l) => {
+        this.inputLocked = l;
+      },
+      setLastPayload: (p) => {
+        this.lastPayload = p;
+      },
+      loadQuestion: (i) => {
+        void this.loadQuestion(i);
+      },
+      showSessionComplete: () => this.showSessionComplete(),
+      setCurrentQuestionHintIds: (ids) => {
+        this.currentQuestionHintIds = ids;
+      },
+      onHintRequest: async () => {
+        this.onHintRequest();
+      },
+      pulseHintButton: () => this.pulseHintButton(),
+      showHintForTier: (tier) => {
+        void this.showHintForTier(tier);
+      },
+    };
+    void showOutcomeFlow(result, ctx, callbacks);
   }
 
   private payloadDenominator(): number | null {
@@ -837,134 +846,6 @@ export class LevelScene extends Phaser.Scene {
       this.currentTemplate?.archetype as string | undefined,
       this.payloadDenominator()
     );
-  }
-
-  private onCorrectAnswer(): void {
-    this.activeInteraction?.showCorrectFeedback?.();
-    this.attemptCount++;
-    this.correctCount++;
-    this.correctStreak++;
-    this.progressBar.setProgress(this.attemptCount);
-    this.lastPayload = null;
-    log.q('correct', {
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      attemptCount: this.attemptCount,
-      progress: `${this.attemptCount}/${SESSION_GOAL}`,
-      wrongCountThisQ: this.wrongCount,
-    });
-
-    const streak = this.correctStreak;
-    const streakLine =
-      streak === 1
-        ? 'Nice one!'
-        : streak === 2
-          ? "You've got this!"
-          : streak >= 3
-            ? 'On fire! 🔥'
-            : null;
-    if (streakLine) {
-      this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
-    }
-
-    if (streak === 3 || streak === 5) {
-      this.time.delayedCall(1800, () => this.showStreakBanner(streak));
-    }
-
-    if (this.attemptCount >= SESSION_GOAL) {
-      void this.showSessionComplete();
-    } else {
-      void this.loadQuestion(this.questionIndex + 1);
-    }
-  }
-
-  private showStreakBanner(streak: number): void {
-    const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
-    const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
-    const PILL_W = 520,
-      PILL_H = 88,
-      PILL_R = 44;
-    const cx = CW / 2,
-      startY = -PILL_H,
-      landY = 140;
-
-    const g = this.add.graphics().setDepth(90);
-    g.fillStyle(bannerBg, 1);
-    g.fillRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
-    g.lineStyle(3, NAVY, 0.4);
-    g.strokeRoundedRect(cx - PILL_W / 2, startY - PILL_H / 2, PILL_W, PILL_H, PILL_R);
-
-    const txt = this.add
-      .text(cx, startY, bannerText, {
-        fontFamily: TITLE_FONT,
-        fontSize: '32px',
-        color: NAVY_HEX,
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5)
-      .setDepth(91);
-
-    sfx.playStreak();
-    this.mascot?.setState('cheer-big');
-    const container = this.add.container(0, 0, [g, txt]).setDepth(90);
-
-    this.tweens.add({
-      targets: [g, txt],
-      y: `+=${landY - startY}`,
-      duration: 400,
-      ease: 'Back.easeOut',
-      onComplete: () => {
-        this.time.delayedCall(1600, () => {
-          this.tweens.add({
-            targets: [g, txt],
-            y: `-=${landY - startY}`,
-            duration: 350,
-            ease: 'Back.easeIn',
-            onComplete: () => {
-              container.destroy();
-            },
-          });
-        });
-      },
-    });
-  }
-
-  private onWrongAnswer(): void {
-    this.correctStreak = 0;
-    this.wrongCount++;
-    this.inputLocked = false;
-    this.lastPayload = null;
-    log.q('wrong', {
-      level: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
-      questionId: this.currentTemplate.id,
-    });
-
-    if (this.wrongCount === 1) {
-      this.time.delayedCall(1400, () => this.mascot?.showSpeechBubble('Oops! Try again 💪', 2000));
-    } else if (this.wrongCount === 2) {
-      this.time.delayedCall(1400, () =>
-        this.mascot?.showSpeechBubble("Almost... I'll give you a hint!", 2000)
-      );
-    }
-
-    if (this.wrongCount === 1) {
-      this.activeInteraction?.showGhostGuide?.();
-    }
-
-    const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
-    if (tier) {
-      void this.showHintForTier(tier);
-    }
-
-    if (this.wrongCount === 3) {
-      this.time.delayedCall(800, () => this.onHintRequest());
-    }
-
-    if (this.wrongCount >= 3) {
-      this.pulseHintButton();
-    }
   }
 
   // ── Hints ────────────────────────────────────────────────────────────────────
