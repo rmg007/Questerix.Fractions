@@ -1,0 +1,702 @@
+[
+  {
+    "id": "q:pt:L5:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-15"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 8 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-16",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 4 equal parts.",
+      "ttsKey": "tts.pt.l5.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 4 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 4 equal parts.",
+      "ttsKey": "tts.pt.l5.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0007",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l5.0007"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-15"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0008",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0008"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-16",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0009",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l5.0009"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0010",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0010"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L5:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 4 equal parts.",
+      "ttsKey": "tts.pt.l5.0001"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-15"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 6 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 6,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-16",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the square into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0003"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 3 equal parts.",
+      "ttsKey": "tts.pt.l5.0004"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 3,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split the square into 4 equal parts.",
+      "ttsKey": "tts.pt.l5.0006"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0007",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 6 equal parts.",
+      "ttsKey": "tts.pt.l5.0007"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 6,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0008",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split the rectangle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0008"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0009",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 3 equal pieces on the square.",
+      "ttsKey": "tts.pt.l5.0009"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 3,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0010",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0010"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L5:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 8 equal pieces.",
+      "ttsKey": "tts.pt.l5.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0002"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 8 equal pieces.",
+      "ttsKey": "tts.pt.l5.0003"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 8 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0005"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 8 equal pieces.",
+      "ttsKey": "tts.pt.l5.0006"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0007",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 8 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0007"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0008",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 8 equal parts.",
+      "ttsKey": "tts.pt.l5.0008"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0009",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 8 equal pieces.",
+      "ttsKey": "tts.pt.l5.0009"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L5:0010",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 8 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l5.0010"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

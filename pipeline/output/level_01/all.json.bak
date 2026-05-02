@@ -1,0 +1,945 @@
+[
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal parts on the rectangle.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rotated rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the circle.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this square into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the square.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the wide rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this irregular shape into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rotated rectangle.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts, ignoring the markers.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the wide rectangle into 2 equal parts, carefully.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts, paying attention to symmetry.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/2.",
+      "ttsKey": "tts.id.l1.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:1/4",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 1/3 shaded?",
+      "ttsKey": "tts.id.l1.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/4",
+        "frac:2/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 1/4.",
+      "ttsKey": "tts.id.l1.0003"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 1/2 colored in.",
+      "ttsKey": "tts.id.l1.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 1/3.",
+      "ttsKey": "tts.id.l1.0005"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/4",
+        "frac:2/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture that shows 3/4.",
+      "ttsKey": "tts.id.l1.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:2/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the shape with 2/3 shaded.",
+      "ttsKey": "tts.id.l1.0007"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L1:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/2.",
+      "ttsKey": "tts.id.l1.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:1/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which rectangle has 1/3 shaded?",
+      "ttsKey": "tts.id.l1.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:2/3",
+        "frac:1/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-NOM-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the circle that shows 2/3.",
+      "ttsKey": "tts.id.l1.0003"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the square with 1/4 colored in.",
+      "ttsKey": "tts.id.l1.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:2/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the bar that shows 3/4.",
+      "ttsKey": "tts.id.l1.0005"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:2/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-NOM-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/2.",
+      "ttsKey": "tts.id.l1.0006"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 2/3 shaded?",
+      "ttsKey": "tts.id.l1.0007"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:1/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L1:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/2.",
+      "ttsKey": "tts.id.l1.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which rectangle has 1/3 shaded?",
+      "ttsKey": "tts.id.l1.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:1/2",
+        "frac:2/3",
+        "frac:1/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 2/3.",
+      "ttsKey": "tts.id.l1.0003"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:3/4",
+        "frac:1/2"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 1/4 colored in.",
+      "ttsKey": "tts.id.l1.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 1/2.",
+      "ttsKey": "tts.id.l1.0005"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 3/4.",
+      "ttsKey": "tts.id.l1.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/2",
+        "frac:2/3",
+        "frac:1/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L1:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which square has 2/3 shaded?",
+      "ttsKey": "tts.id.l1.0007"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:3/4",
+        "frac:1/2"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

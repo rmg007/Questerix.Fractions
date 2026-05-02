@@ -1,0 +1,199 @@
+[
+  {
+    "id": "q:en:L3:0001",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these equal parts?",
+      "ttsKey": "tts.en.l3.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "partitionLines": [
+        [[0.5, 0.0], [0.5, 1.0]]
+      ]
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-08"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:en:L3:0002",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Do these lines make equal parts?",
+      "ttsKey": "tts.en.l3.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "partitionLines": [
+        [[0.0, 0.5], [1.0, 0.5]]
+      ]
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-08"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:en:L3:0003",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these equal parts?",
+      "ttsKey": "tts.en.l3.0003"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "partitionLines": [
+        [[0.5, 0.0], [0.5, 1.0]]
+      ]
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-09"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:en:L3:0004",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Do these lines divide the shape equally?",
+      "ttsKey": "tts.en.l3.0004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "partitionLines": [
+        [[0.3333, 0.0], [0.3333, 1.0]],
+        [[0.6667, 0.0], [0.6667, 1.0]]
+      ]
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-08", "SK-10"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:en:L3:0005",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these 4 parts equal?",
+      "ttsKey": "tts.en.l3.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "partitionLines": [
+        [[0.25, 0.0], [0.25, 1.0]],
+        [[0.5,  0.0], [0.5,  1.0]],
+        [[0.75, 0.0], [0.75, 1.0]]
+      ]
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-09", "SK-10"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:en:L3:0006",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these equal parts?",
+      "ttsKey": "tts.en.l3.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "partitionLines": [
+        [[0.3, 0.0], [0.3, 1.0]]
+      ]
+    },
+    "correctAnswer": false,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-08"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:en:L3:0007",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Do these lines make equal parts?",
+      "ttsKey": "tts.en.l3.0007"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "partitionLines": [
+        [[0.2, 0.0], [0.2, 1.0]]
+      ]
+    },
+    "correctAnswer": false,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-09"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:en:L3:0008",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these 3 parts equal?",
+      "ttsKey": "tts.en.l3.0008"
+    },
+    "payload": {
+      "shapeType": "square",
+      "partitionLines": [
+        [[0.25, 0.0], [0.25, 1.0]],
+        [[0.6,  0.0], [0.6,  1.0]]
+      ]
+    },
+    "correctAnswer": false,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-08", "SK-10"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:en:L3:0009",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Are these 4 parts equal?",
+      "ttsKey": "tts.en.l3.0009"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "partitionLines": [
+        [[0.2, 0.0], [0.2, 1.0]],
+        [[0.5, 0.0], [0.5, 1.0]],
+        [[0.8, 0.0], [0.8, 1.0]]
+      ]
+    },
+    "correctAnswer": false,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-09", "SK-10"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:en:L3:0010",
+    "archetype": "equal_or_not",
+    "prompt": {
+      "text": "Do these lines divide the circle into equal parts?",
+      "ttsKey": "tts.en.l3.0010"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "partitionLines": [
+        [[0.5, 0.0], [0.5, 1.0]],
+        [[0.0, 0.4], [1.0, 0.4]]
+      ]
+    },
+    "correctAnswer": false,
+    "validatorId": "validator.equal_or_not.areaTolerance",
+    "skillIds": ["SK-07", "SK-09"],
+    "misconceptionTraps": ["MC-WHB-01"],
+    "difficultyTier": "hard"
+  }
+]

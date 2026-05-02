@@ -1,0 +1,1139 @@
+[
+  {
+    "id": "q:bmk:L8:0001",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.25
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0002",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:1/2 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0003",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:1/8.",
+      "ttsKey": "tts.bmk.l8.0003"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0004",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0004"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0005",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:7/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.0005"
+    },
+    "payload": {
+      "fractionId": "frac:7/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.875
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0006",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:1/3.",
+      "ttsKey": "tts.bmk.l8.0006"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.333
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0007",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0007"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.667
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0008",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:1/2 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.0008"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0009",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:3/4.",
+      "ttsKey": "tts.bmk.l8.0009"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:0010",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0010"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bm:L8:0001",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bm.l8.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.25
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0002",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does 1/3 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.3333333333333333
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-26",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0003",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for 3/4.",
+      "ttsKey": "tts.bm.l8.0003"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0004",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is 2/3 closer to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0004"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.6666666666666666
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-26",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0005",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does 7/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0005"
+    },
+    "payload": {
+      "fractionId": "frac:7/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.875
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0006",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for 1/8.",
+      "ttsKey": "tts.bm.l8.0006"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-26",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0007",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is 1/2 closest to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0007"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0008",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does 3/4 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0008"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-26",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0009",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for 2/3.",
+      "ttsKey": "tts.bm.l8.0009"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.6666666666666666
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0010",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is 1/8 closer to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0010"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-26",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bm:L8:0001",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:1/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0002",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is frac:1/4 closer to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.25
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0003",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:2/3.",
+      "ttsKey": "tts.bm.l8.0003"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.6666666666666666
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0004",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:3/4 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0004"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0005",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is frac:1/3 closer to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0005"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.3333333333333333
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0006",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:1/2.",
+      "ttsKey": "tts.bm.l8.0006"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0007",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:7/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0007"
+    },
+    "payload": {
+      "fractionId": "frac:7/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.875
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0008",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is frac:1/8 closer to zero, one half, or one?",
+      "ttsKey": "tts.bm.l8.0008"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0009",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:3/4.",
+      "ttsKey": "tts.bm.l8.0009"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bm:L8:0010",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:2/3 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bm.l8.0010"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.6666666666666666
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bmk:L8:1001",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.1001"
+    },
+    "payload": {
+      "fractionId": "frac:1/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.167
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:1002",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:4/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.1002"
+    },
+    "payload": {
+      "fractionId": "frac:4/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:1003",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:5/6.",
+      "ttsKey": "tts.bmk.l8.1003"
+    },
+    "payload": {
+      "fractionId": "frac:5/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.833
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-PRX-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:1004",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.1004"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:bmk:L8:1005",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:3/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.1005"
+    },
+    "payload": {
+      "fractionId": "frac:3/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.375
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bmk:L8:1006",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.1006"
+    },
+    "payload": {
+      "fractionId": "frac:5/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.625
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-PRX-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bmk:L8:1007",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:6/8.",
+      "ttsKey": "tts.bmk.l8.1007"
+    },
+    "payload": {
+      "fractionId": "frac:6/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-PRX-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bmk:L8:1008",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:2/6 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.1008"
+    },
+    "payload": {
+      "fractionId": "frac:2/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.333
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:bmk:L8:1009",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.1009"
+    },
+    "payload": {
+      "fractionId": "frac:3/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bmk:L8:1010",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Pick the closest landmark for frac:4/6.",
+      "ttsKey": "tts.bmk.l8.1010"
+    },
+    "payload": {
+      "fractionId": "frac:4/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.667
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-PRX-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bmk:L8:1011",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Where does frac:7/8 sit — near zero, near one half, or near one?",
+      "ttsKey": "tts.bmk.l8.1011"
+    },
+    "payload": {
+      "fractionId": "frac:7/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.875
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-25",
+      "SK-26"
+    ],
+    "misconceptionTraps": [
+      "MC-PRX-01",
+      "MC-MAG-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:bmk:L8:1012",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.1012"
+    },
+    "payload": {
+      "fractionId": "frac:2/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.25
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-MAG-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

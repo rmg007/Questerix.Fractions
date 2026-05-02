@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-04-26T10:18:00.260727",
+  "phase": "0b-1",
+  "summary": {
+    "l8_benchmarks": 28,
+    "l9_order": 13,
+    "l9_placement": 13,
+    "total_templates": 54
+  },
+  "files_created": {
+    "l8_hand_authored": "pipeline/output/level_08\\hand-authored.json",
+    "l9_hand_authored_order": "pipeline/output/level_09\\hand-authored-order.json",
+    "l9_hand_authored_placement": "pipeline/output/level_09\\hand-authored-placement.json"
+  },
+  "distractor_strategies": {
+    "l8_benchmark": [
+      "Off-by-one numerator (WHB-01)",
+      "Same numerator, different denom",
+      "Inverse fraction"
+    ],
+    "l9_order": [
+      "Same denominator confusion",
+      "Whole-number bias (WHB-02)"
+    ],
+    "l9_placement": [
+      "Denominator-first placement",
+      "Decimal conversion errors"
+    ]
+  }
+}

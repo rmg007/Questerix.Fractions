@@ -1,0 +1,121 @@
+[
+  {
+    "mc_id": "MC-EOL-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 54,
+    "status": "ok"
+  },
+  {
+    "mc_id": "MC-EOL-02",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-EOL-03",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-EOL-04",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-L5-DENSWITCH-01",
+    "doc": false,
+    "detector": "unknown",
+    "templates_baiting": 3,
+    "status": "fail: missing doc"
+  },
+  {
+    "mc_id": "MC-L5-FOURTHS-3CUTS-01",
+    "doc": false,
+    "detector": "unknown",
+    "templates_baiting": 1,
+    "status": "fail: missing doc"
+  },
+  {
+    "mc_id": "MC-L5-THIRDS-HALF-01",
+    "doc": false,
+    "detector": "unknown",
+    "templates_baiting": 4,
+    "status": "fail: missing doc"
+  },
+  {
+    "mc_id": "MC-MAG-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 65,
+    "status": "ok"
+  },
+  {
+    "mc_id": "MC-MAG-02",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 3,
+    "status": "fail: insufficient baiting (3 < 5)"
+  },
+  {
+    "mc_id": "MC-NOM-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 5,
+    "status": "ok"
+  },
+  {
+    "mc_id": "MC-PRX-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 18,
+    "status": "ok"
+  },
+  {
+    "mc_id": "MC-PRX-02",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-SHP-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-SHP-02",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-VOC-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 0,
+    "status": "fail: insufficient baiting (0 < 5)"
+  },
+  {
+    "mc_id": "MC-WHB-01",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 75,
+    "status": "ok"
+  },
+  {
+    "mc_id": "MC-WHB-02",
+    "doc": true,
+    "detector": "active",
+    "templates_baiting": 7,
+    "status": "ok"
+  }
+]

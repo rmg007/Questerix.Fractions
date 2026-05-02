@@ -1,0 +1,542 @@
+[
+  {
+    "id": "h:pt:L1:0001:T1",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:pt:L1:0001:T2",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:pt:L1:0001:T3",
+    "questionTemplateId": "q:pt:L1:0001",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0001.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:pt:L1:0002:T1",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0002.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:pt:L1:0002:T2",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0002.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:pt:L1:0002:T3",
+    "questionTemplateId": "q:pt:L1:0002",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0002.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:pt:L1:0003:T1",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0003.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:pt:L1:0003:T2",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0003.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:pt:L1:0003:T3",
+    "questionTemplateId": "q:pt:L1:0003",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0003.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:pt:L1:0004:T1",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0004.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:pt:L1:0004:T2",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0004.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:pt:L1:0004:T3",
+    "questionTemplateId": "q:pt:L1:0004",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.pt.l1.0004.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L1:0005:T1",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0005.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L1:0005:T2",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0005.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L1:0005:T3",
+    "questionTemplateId": "q:id:L1:0001",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0005.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L1:0006:T1",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0006.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L1:0006:T2",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0006.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L1:0006:T3",
+    "questionTemplateId": "q:id:L1:0002",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0006.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L1:0007:T1",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0007.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L1:0007:T2",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0007.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L1:0007:T3",
+    "questionTemplateId": "q:id:L1:0003",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0007.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L1:0008:T1",
+    "questionTemplateId": "q:id:L1:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0008.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L1:0008:T2",
+    "questionTemplateId": "q:id:L1:0004",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0008.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L1:0008:T3",
+    "questionTemplateId": "q:id:L1:0004",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l1.0008.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L2:0009:T1",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0009.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L2:0009:T2",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0009.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L2:0009:T3",
+    "questionTemplateId": "q:id:L2:0001",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0009.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L2:0010:T1",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0010.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L2:0010:T2",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0010.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L2:0010:T3",
+    "questionTemplateId": "q:id:L2:0002",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0010.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L2:0011:T1",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0011.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L2:0011:T2",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0011.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L2:0011:T3",
+    "questionTemplateId": "q:id:L2:0003",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0011.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:id:L2:0012:T1",
+    "questionTemplateId": "q:id:L2:0004",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0012.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:id:L2:0012:T2",
+    "questionTemplateId": "q:id:L2:0004",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0012.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:id:L2:0012:T3",
+    "questionTemplateId": "q:id:L2:0004",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.id.l2.0012.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:lb:L2:0013:T1",
+    "questionTemplateId": "q:lb:L2:0001",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0013.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:lb:L2:0013:T2",
+    "questionTemplateId": "q:lb:L2:0001",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0013.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:lb:L2:0013:T3",
+    "questionTemplateId": "q:lb:L2:0001",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0013.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:lb:L2:0014:T1",
+    "questionTemplateId": "q:lb:L2:0002",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0014.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:lb:L2:0014:T2",
+    "questionTemplateId": "q:lb:L2:0002",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0014.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:lb:L2:0014:T3",
+    "questionTemplateId": "q:lb:L2:0002",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0014.t3"
+    },
+    "pointCost": 20
+  },
+  {
+    "id": "h:lb:L2:0015:T1",
+    "questionTemplateId": "q:lb:L2:0003",
+    "type": "verbal",
+    "order": 1,
+    "content": {
+      "text": "What does the prompt ask you to do?",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0015.t1"
+    },
+    "pointCost": 10
+  },
+  {
+    "id": "h:lb:L2:0015:T2",
+    "questionTemplateId": "q:lb:L2:0003",
+    "type": "verbal",
+    "order": 2,
+    "content": {
+      "text": "Try making pieces that are the same size.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0015.t2"
+    },
+    "pointCost": 15
+  },
+  {
+    "id": "h:lb:L2:0015:T3",
+    "questionTemplateId": "q:lb:L2:0003",
+    "type": "verbal",
+    "order": 3,
+    "content": {
+      "text": "Draw a line from top to bottom to divide equally.",
+      "assetUrl": null,
+      "ttsKey": "tts.hint.lb.l2.0015.t3"
+    },
+    "pointCost": 20
+  }
+]

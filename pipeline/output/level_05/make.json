@@ -1,0 +1,417 @@
+[
+  {
+    "id": "q:mk:L5:0001",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this square to show one half.",
+      "ttsKey": "tts.mk.l5.0001"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 2,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/2"
+    },
+    "correctAnswer": {
+      "targetPartitions": 2,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L5:0002",
+    "archetype": "make",
+    "prompt": {
+      "text": "Shade one half of this rectangle.",
+      "ttsKey": "tts.mk.l5.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/2"
+    },
+    "correctAnswer": {
+      "targetPartitions": 2,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-15"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L5:0003",
+    "archetype": "make",
+    "prompt": {
+      "text": "Make one half by folding and shading.",
+      "ttsKey": "tts.mk.l5.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/2"
+    },
+    "correctAnswer": {
+      "targetPartitions": 2,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L5:0004",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this rectangle to show three quarters.",
+      "ttsKey": "tts.mk.l5.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "targetNumerator": 3,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:3/4"
+    },
+    "correctAnswer": {
+      "targetPartitions": 4,
+      "targetNumerator": 3
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L5:0005",
+    "archetype": "make",
+    "prompt": {
+      "text": "Shade one quarter of this square.",
+      "ttsKey": "tts.mk.l5.0005"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/4"
+    },
+    "correctAnswer": {
+      "targetPartitions": 4,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:mk:L5:0001",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this shape to show 3/8.",
+      "ttsKey": "tts.mk.l5.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 3,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:3/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 3
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14",
+      "SK-15"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L5:0002",
+    "archetype": "make",
+    "prompt": {
+      "text": "Shade 5/8 of this rectangle.",
+      "ttsKey": "tts.mk.l5.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 5,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:5/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 5
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-16",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L5:0003",
+    "archetype": "make",
+    "prompt": {
+      "text": "Make 2/8 by folding and shading.",
+      "ttsKey": "tts.mk.l5.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 2,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:2/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 2
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L5:0004",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this shape to show 1/8.",
+      "ttsKey": "tts.mk.l5.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L5:0005",
+    "archetype": "make",
+    "prompt": {
+      "text": "Shade 7/8 of this rectangle.",
+      "ttsKey": "tts.mk.l5.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 7,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:7/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 7
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:mk:L5:0001",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this rectangle to show 3/8.",
+      "ttsKey": "tts.mk.l5.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 3,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:3/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 3
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-15",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:mk:L5:0002",
+    "archetype": "make",
+    "prompt": {
+      "text": "Shade 5/8 of this rectangle.",
+      "ttsKey": "tts.mk.l5.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 5,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:5/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 5
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:mk:L5:0003",
+    "archetype": "make",
+    "prompt": {
+      "text": "Make 2/8 by folding and shading.",
+      "ttsKey": "tts.mk.l5.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 2,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:2/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 2
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:mk:L5:0004",
+    "archetype": "make",
+    "prompt": {
+      "text": "Fold this rectangle to show 6/8.",
+      "ttsKey": "tts.mk.l5.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 6,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:6/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 6
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-14",
+      "SK-16"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:mk:L5:0005",
+    "archetype": "make",
+    "prompt": {
+      "text": "Make 1/8 by folding and shading.",
+      "ttsKey": "tts.mk.l5.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 8,
+      "targetNumerator": 1,
+      "areaTolerance": 0.05,
+      "fractionId": "frac:1/8"
+    },
+    "correctAnswer": {
+      "targetPartitions": 8,
+      "targetNumerator": 1
+    },
+    "validatorId": "validator.make.foldAlignment",
+    "skillIds": [
+      "SK-15",
+      "SK-17"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

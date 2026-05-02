@@ -1,0 +1,272 @@
+[
+  {
+    "id": "q:sm:L5:0001",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match each fraction to its picture.",
+      "ttsKey": "tts.sm.l5.0001"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/2" },
+        { "id": "l1", "label": "2/2" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "r1", "label": "2/2", "numerator": 2, "denominator": 2 }
+      ],
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-14", "SK-15"],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0002",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag each fraction symbol to the matching shape.",
+      "ttsKey": "tts.sm.l5.0002"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/3" },
+        { "id": "l1", "label": "2/3" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "r1", "label": "2/3", "numerator": 2, "denominator": 3 }
+      ],
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-14", "SK-16"],
+    "misconceptionTraps": ["MC-NOM-01"],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0003",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match the fractions to the right pictures.",
+      "ttsKey": "tts.sm.l5.0003"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/4" },
+        { "id": "l1", "label": "3/4" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "1/4", "numerator": 1, "denominator": 4 },
+        { "id": "r1", "label": "3/4", "numerator": 3, "denominator": 4 }
+      ],
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-15", "SK-17"],
+    "misconceptionTraps": ["MC-WHB-01"],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0004",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Snap each fraction card to the correct bar.",
+      "ttsKey": "tts.sm.l5.0004"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "2/4" },
+        { "id": "l1", "label": "4/4" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "2/4", "numerator": 2, "denominator": 4 },
+        { "id": "r1", "label": "4/4", "numerator": 4, "denominator": 4 }
+      ],
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r0"], ["l1", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-14", "SK-15"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L5:0005",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match each fraction symbol to its bar model.",
+      "ttsKey": "tts.sm.l5.0005"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/2" },
+        { "id": "l1", "label": "1/3" },
+        { "id": "l2", "label": "1/4" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "1/4", "numerator": 1, "denominator": 4 },
+        { "id": "r1", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "r2", "label": "1/3", "numerator": 1, "denominator": 3 }
+      ],
+      "expectedPairs": [["l0", "r1"], ["l1", "r2"], ["l2", "r0"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r1"], ["l1", "r2"], ["l2", "r0"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-15", "SK-16"],
+    "misconceptionTraps": ["MC-NOM-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L5:0006",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Connect each fraction to its matching picture.",
+      "ttsKey": "tts.sm.l5.0006"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "2/3" },
+        { "id": "l1", "label": "3/3" },
+        { "id": "l2", "label": "1/3" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "3/3", "numerator": 3, "denominator": 3 },
+        { "id": "r1", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "r2", "label": "2/3", "numerator": 2, "denominator": 3 }
+      ],
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-14", "SK-17"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L5:0007",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match each fraction card to the bar that shows it.",
+      "ttsKey": "tts.sm.l5.0007"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/4" },
+        { "id": "l1", "label": "2/4" },
+        { "id": "l2", "label": "3/4" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "2/4", "numerator": 2, "denominator": 4 },
+        { "id": "r1", "label": "3/4", "numerator": 3, "denominator": 4 },
+        { "id": "r2", "label": "1/4", "numerator": 1, "denominator": 4 }
+      ],
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-15", "SK-16"],
+    "misconceptionTraps": ["MC-WHB-01"],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L5:0008",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Snap each fraction symbol to the right bar model.",
+      "ttsKey": "tts.sm.l5.0008"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/2" },
+        { "id": "l1", "label": "2/4" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "2/4", "numerator": 2, "denominator": 4 },
+        { "id": "r1", "label": "1/2", "numerator": 1, "denominator": 2 }
+      ],
+      "expectedPairs": [["l0", "r1"], ["l1", "r0"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r1"], ["l1", "r0"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-16", "SK-17"],
+    "misconceptionTraps": ["MC-EOL-01"],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L5:0009",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match all the fractions to their bar models.",
+      "ttsKey": "tts.sm.l5.0009"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "1/3" },
+        { "id": "l1", "label": "1/4" },
+        { "id": "l2", "label": "1/2" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "r1", "label": "1/3", "numerator": 1, "denominator": 3 },
+        { "id": "r2", "label": "1/4", "numerator": 1, "denominator": 4 }
+      ],
+      "expectedPairs": [["l0", "r1"], ["l1", "r2"], ["l2", "r0"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r1"], ["l1", "r2"], ["l2", "r0"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-14", "SK-16"],
+    "misconceptionTraps": ["MC-NOM-01"],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L5:0010",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag each fraction to the correct bar.",
+      "ttsKey": "tts.sm.l5.0010"
+    },
+    "payload": {
+      "leftItems": [
+        { "id": "l0", "label": "3/4" },
+        { "id": "l1", "label": "2/3" },
+        { "id": "l2", "label": "1/2" }
+      ],
+      "rightItems": [
+        { "id": "r0", "label": "2/3", "numerator": 2, "denominator": 3 },
+        { "id": "r1", "label": "1/2", "numerator": 1, "denominator": 2 },
+        { "id": "r2", "label": "3/4", "numerator": 3, "denominator": 4 }
+      ],
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "correctAnswer": {
+      "expectedPairs": [["l0", "r2"], ["l1", "r0"], ["l2", "r1"]]
+    },
+    "validatorId": "validator.snap_match.allPairs",
+    "skillIds": ["SK-15", "SK-17"],
+    "misconceptionTraps": ["MC-WHB-01"],
+    "difficultyTier": "hard"
+  }
+]

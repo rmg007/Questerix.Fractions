@@ -1,0 +1,274 @@
+[
+  {
+    "id": "q:pt:L4:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l4.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L4:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 4 equal pieces on the square.",
+      "ttsKey": "tts.pt.l4.0002"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-12"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L4:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l4.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L4:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this square into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L4:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this circle into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0001"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11",
+      "SK-12"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L4:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 4 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l4.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-12",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L4:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the square into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0003"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L4:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this circle into 4 equal pieces.",
+      "ttsKey": "tts.pt.l4.0004"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-12",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L4:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this diamond into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0001"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11",
+      "SK-12"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L4:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the kite into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-12",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L4:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 4 equal pieces on the trapezoid.",
+      "ttsKey": "tts.pt.l4.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-11",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L4:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this hexagon into 4 equal parts.",
+      "ttsKey": "tts.pt.l4.0004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 4,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-12",
+      "SK-13"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

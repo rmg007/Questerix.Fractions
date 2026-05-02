@@ -1,0 +1,241 @@
+[
+  {
+    "id": "q:id:L3:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/3.",
+      "ttsKey": "tts.id.l3.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:0/3",
+        "frac:2/3",
+        "frac:3/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L3:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which rectangle has 2/3 shaded?",
+      "ttsKey": "tts.id.l3.0002"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:0/3",
+        "frac:3/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L3:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the circle showing 1/3.",
+      "ttsKey": "tts.id.l3.0003"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:2/3",
+        "frac:0/3",
+        "frac:3/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L3:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 2/3 shaded?",
+      "ttsKey": "tts.id.l3.0001"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:3/3",
+        "frac:0/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L3:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/3.",
+      "ttsKey": "tts.id.l3.0002"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:2/3",
+        "frac:3/3",
+        "frac:0/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L3:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 3/3.",
+      "ttsKey": "tts.id.l3.0003"
+    },
+    "payload": {
+      "fractionId": "frac:3/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:2/3",
+        "frac:0/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L3:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/3.",
+      "ttsKey": "tts.id.l3.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:2/3",
+        "frac:0/3",
+        "frac:3/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L3:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which rectangle has 2/3 shaded?",
+      "ttsKey": "tts.id.l3.0002"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "distractors": [
+        "frac:1/3",
+        "frac:3/3",
+        "frac:0/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L3:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the circle showing 1/3.",
+      "ttsKey": "tts.id.l3.0003"
+    },
+    "payload": {
+      "fractionId": "frac:1/3",
+      "distractors": [
+        "frac:2/3",
+        "frac:3/3",
+        "frac:0/3"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

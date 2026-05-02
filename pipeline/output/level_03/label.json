@@ -1,0 +1,687 @@
+[
+  {
+    "id": "q:lb:L3:0001",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label each shaded part with its fraction.",
+      "ttsKey": "tts.lb.l3.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "2/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "2/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:0002",
+    "archetype": "label",
+    "prompt": {
+      "text": "Match each label to the correct region.",
+      "ttsKey": "tts.lb.l3.0002"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "2/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "2/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:0003",
+    "archetype": "label",
+    "prompt": {
+      "text": "Drag the right label onto each part.",
+      "ttsKey": "tts.lb.l3.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "2/3",
+        "r1": "1/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "2/3",
+      "r1": "1/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:0001",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label each shaded part with its fraction.",
+      "ttsKey": "tts.lb.l3.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "2/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "2/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:0002",
+    "archetype": "label",
+    "prompt": {
+      "text": "Match each label to the correct region.",
+      "ttsKey": "tts.lb.l3.0002"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "1/3",
+        "r2": "1/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "1/3",
+      "r2": "1/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-08",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:0003",
+    "archetype": "label",
+    "prompt": {
+      "text": "Drag the right label onto each part.",
+      "ttsKey": "tts.lb.l3.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "1/3",
+        "r2": "1/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "1/3",
+      "r2": "1/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:0001",
+    "archetype": "label",
+    "prompt": {
+      "text": "Drag the right label onto each part.",
+      "ttsKey": "tts.lb.l3.0001"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3",
+        "1/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "1/3",
+        "r2": "2/3",
+        "r3": "3/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "1/3",
+      "r2": "2/3",
+      "r3": "3/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:lb:L3:0002",
+    "archetype": "label",
+    "prompt": {
+      "text": "Match each label to the correct region.",
+      "ttsKey": "tts.lb.l3.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "1/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "2/3",
+        "r2": "2/3",
+        "r3": "3/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "2/3",
+      "r2": "2/3",
+      "r3": "3/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-08",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:lb:L3:0003",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label each shaded part with its fraction.",
+      "ttsKey": "tts.lb.l3.0003"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "2/3",
+        "1/3",
+        "3/3",
+        "1/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "2/3",
+        "r1": "1/3",
+        "r2": "1/3",
+        "r3": "3/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "2/3",
+      "r1": "1/3",
+      "r2": "1/3",
+      "r3": "3/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:lb:L3:N001",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label the shaded part of this rectangle.",
+      "ttsKey": "tts.lb.l3.n001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/2",
+        "2/2"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/2",
+        "r1": "1/2"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/2",
+      "r1": "1/2"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:N002",
+    "archetype": "label",
+    "prompt": {
+      "text": "Match the fraction label to each part.",
+      "ttsKey": "tts.lb.l3.n002"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1"
+      ],
+      "labelOptions": [
+        "1/2",
+        "2/2"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/2",
+        "r1": "1/2"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/2",
+      "r1": "1/2"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-08",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:N003",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label each part with the right fraction.",
+      "ttsKey": "tts.lb.l3.n003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/3",
+        "r1": "1/3",
+        "r2": "1/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/3",
+      "r1": "1/3",
+      "r2": "1/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:N004",
+    "archetype": "label",
+    "prompt": {
+      "text": "Drag the label onto the shaded parts.",
+      "ttsKey": "tts.lb.l3.n004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2"
+      ],
+      "labelOptions": [
+        "1/3",
+        "2/3",
+        "3/3"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "2/3",
+        "r1": "1/3",
+        "r2": "2/3"
+      }
+    },
+    "correctAnswer": {
+      "r0": "2/3",
+      "r1": "1/3",
+      "r2": "2/3"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:N005",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label each part of this square.",
+      "ttsKey": "tts.lb.l3.n005"
+    },
+    "payload": {
+      "shapeType": "square",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/4",
+        "2/4",
+        "3/4",
+        "4/4"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/4",
+        "r1": "1/4",
+        "r2": "1/4",
+        "r3": "1/4"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/4",
+      "r1": "1/4",
+      "r2": "1/4",
+      "r3": "1/4"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-08"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:lb:L3:N006",
+    "archetype": "label",
+    "prompt": {
+      "text": "Match each label to the right region.",
+      "ttsKey": "tts.lb.l3.n006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/4",
+        "2/4",
+        "3/4",
+        "4/4"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/4",
+        "r1": "2/4",
+        "r2": "3/4",
+        "r3": "4/4"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/4",
+      "r1": "2/4",
+      "r2": "3/4",
+      "r3": "4/4"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-09",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:N007",
+    "archetype": "label",
+    "prompt": {
+      "text": "Label the shaded parts of this circle.",
+      "ttsKey": "tts.lb.l3.n007"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/4",
+        "2/4",
+        "3/4",
+        "4/4"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "1/4",
+        "r1": "1/4",
+        "r2": "2/4",
+        "r3": "3/4"
+      }
+    },
+    "correctAnswer": {
+      "r0": "1/4",
+      "r1": "1/4",
+      "r2": "2/4",
+      "r3": "3/4"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-07",
+      "SK-09"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:lb:L3:N008",
+    "archetype": "label",
+    "prompt": {
+      "text": "Drag labels to show how much is shaded.",
+      "ttsKey": "tts.lb.l3.n008"
+    },
+    "payload": {
+      "shapeType": "square",
+      "regionIds": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "labelOptions": [
+        "1/4",
+        "2/4",
+        "3/4",
+        "1/2"
+      ],
+      "expectedLabelForRegion": {
+        "r0": "3/4",
+        "r1": "3/4",
+        "r2": "1/4",
+        "r3": "1/4"
+      }
+    },
+    "correctAnswer": {
+      "r0": "3/4",
+      "r1": "3/4",
+      "r2": "1/4",
+      "r3": "1/4"
+    },
+    "validatorId": "validator.label.exactMatch",
+    "skillIds": [
+      "SK-08",
+      "SK-10"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

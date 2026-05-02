@@ -1,0 +1,410 @@
+[
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rectangle.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal parts on the rectangle.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the circle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this rotated rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the circle.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "circle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this square into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02",
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the rectangle into 2 equal pieces.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03",
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the square.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "square",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01",
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:pt:L1:0001",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the wide rectangle into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0001"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0002",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this irregular shape into 2 equal parts.",
+      "ttsKey": "tts.pt.l1.0002"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0003",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Draw 2 equal pieces on the rotated rectangle.",
+      "ttsKey": "tts.pt.l1.0003"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0004",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts, ignoring the markers.",
+      "ttsKey": "tts.pt.l1.0004"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-01"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0005",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Divide the wide rectangle into 2 equal parts, carefully.",
+      "ttsKey": "tts.pt.l1.0005"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-02"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:pt:L1:0006",
+    "archetype": "partition",
+    "prompt": {
+      "text": "Split this shape into 2 equal parts, paying attention to symmetry.",
+      "ttsKey": "tts.pt.l1.0006"
+    },
+    "payload": {
+      "shapeType": "rectangle",
+      "targetPartitions": 2,
+      "areaTolerance": 0.05
+    },
+    "correctAnswer": true,
+    "validatorId": "validator.partition.equalAreas",
+    "skillIds": [
+      "SK-03"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

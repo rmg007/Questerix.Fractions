@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-04-26T16:59:11.183808Z",
+  "total_templates": 73,
+  "total_hints_generated": 0,
+  "validation": {
+    "passed": 0,
+    "failed": 0,
+    "errors": []
+  },
+  "stats_by_archetype": {},
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

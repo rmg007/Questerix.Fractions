@@ -1,0 +1,672 @@
+[
+  {
+    "id": "q:cmp:L6:0001",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0001"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:2/3",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0002",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the fraction that is bigger.",
+      "ttsKey": "tts.cmp.l6.0002"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0003",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0003"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0004",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which one is the bigger fraction?",
+      "ttsKey": "tts.cmp.l6.0004"
+    },
+    "payload": {
+      "fractionA": "frac:4/6",
+      "fractionB": "frac:5/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the fraction that is greater.",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:1/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0006",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0006"
+    },
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0007",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the bigger of the two fractions.",
+      "ttsKey": "tts.cmp.l6.0007"
+    },
+    "payload": {
+      "fractionA": "frac:4/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0008",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Find the fraction with the larger value.",
+      "ttsKey": "tts.cmp.l6.0008"
+    },
+    "payload": {
+      "fractionA": "frac:5/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0009",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction is bigger between these?",
+      "ttsKey": "tts.cmp.l6.0009"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0010",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0010"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0001",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the fraction that is bigger.",
+      "ttsKey": "tts.cmp.l6.0001"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:1/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0002",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0002"
+    },
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0003",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0003"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0004",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the fraction that is greater.",
+      "ttsKey": "tts.cmp.l6.0004"
+    },
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which one is the bigger fraction?",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0006",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Find the fraction with the larger value.",
+      "ttsKey": "tts.cmp.l6.0006"
+    },
+    "payload": {
+      "fractionA": "frac:2/3",
+      "fractionB": "frac:5/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0007",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the bigger of the two fractions.",
+      "ttsKey": "tts.cmp.l6.0007"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0008",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction is the larger of these two?",
+      "ttsKey": "tts.cmp.l6.0008"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0009",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the fraction with the greater value.",
+      "ttsKey": "tts.cmp.l6.0009"
+    },
+    "payload": {
+      "fractionA": "frac:2/3",
+      "fractionB": "frac:1/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0010",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows the larger part?",
+      "ttsKey": "tts.cmp.l6.0010"
+    },
+    "payload": {
+      "fractionA": "frac:4/6",
+      "fractionB": "frac:5/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0001",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0001"
+    },
+    "payload": {
+      "fractionA": "frac:2/3",
+      "fractionB": "frac:5/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0002",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0002"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:3/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0003",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which one is the bigger fraction?",
+      "ttsKey": "tts.cmp.l6.0003"
+    },
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0004",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Find the fraction with the larger value.",
+      "ttsKey": "tts.cmp.l6.0004"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the bigger of the two fractions.",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:5/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0006",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction is greater?",
+      "ttsKey": "tts.cmp.l6.0006"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:2/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0007",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the fraction that is greater.",
+      "ttsKey": "tts.cmp.l6.0007"
+    },
+    "payload": {
+      "fractionA": "frac:4/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0008",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the fraction that is bigger.",
+      "ttsKey": "tts.cmp.l6.0008"
+    },
+    "payload": {
+      "fractionA": "frac:2/3",
+      "fractionB": "frac:1/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0009",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0009"
+    },
+    "payload": {
+      "fractionA": "frac:5/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0010",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0010"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:2/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

@@ -1,0 +1,403 @@
+[
+  {
+    "id": "q:ord:L9:0001",
+    "archetype": "order",
+    "prompt": {
+      "text": "Tap to arrange these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0001"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:3/4"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/4",
+      "frac:2/4",
+      "frac:3/4"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "fcbce0542918"
+  },
+  {
+    "id": "q:ord:L9:0002",
+    "archetype": "order",
+    "prompt": {
+      "text": "Tap to arrange these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0002"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/6",
+        "frac:3/6",
+        "frac:5/6"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/6",
+      "frac:3/6",
+      "frac:5/6"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "832367efd930"
+  },
+  {
+    "id": "q:ord:L9:0003",
+    "archetype": "order",
+    "prompt": {
+      "text": "Tap to arrange these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0003"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/3",
+        "frac:2/3"
+      ],
+      "count": 2
+    },
+    "correctAnswer": [
+      "frac:1/3",
+      "frac:2/3"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "d954fef1a548"
+  },
+  {
+    "id": "q:ord:L9:0004",
+    "archetype": "order",
+    "prompt": {
+      "text": "Tap to arrange these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0004"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/8",
+        "frac:3/8",
+        "frac:5/8",
+        "frac:7/8"
+      ],
+      "count": 4
+    },
+    "correctAnswer": [
+      "frac:1/8",
+      "frac:3/8",
+      "frac:5/8",
+      "frac:7/8"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "61a4f4dc2be4"
+  },
+  {
+    "id": "q:ord:L9:0005",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0005"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/2",
+        "frac:1/3",
+        "frac:1/4"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/4",
+      "frac:1/3",
+      "frac:1/2"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "221e2876b2c7"
+  },
+  {
+    "id": "q:ord:L9:0006",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0006"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:2/3",
+        "frac:3/4",
+        "frac:1/2"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/2",
+      "frac:2/3",
+      "frac:3/4"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "389d373b6905"
+  },
+  {
+    "id": "q:ord:L9:0007",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0007"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/3",
+        "frac:1/2",
+        "frac:2/5"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/3",
+      "frac:2/5",
+      "frac:1/2"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "1108e716995e"
+  },
+  {
+    "id": "q:ord:L9:0008",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0008"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:3/5",
+        "frac:2/3",
+        "frac:1/2"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/2",
+      "frac:3/5",
+      "frac:2/3"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "a7befef210ec"
+  },
+  {
+    "id": "q:ord:L9:0009",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order these fractions from smallest to largest.",
+      "ttsKey": "tts.ord.l9.0009"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/4",
+        "frac:1/3",
+        "frac:1/5"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/5",
+      "frac:1/4",
+      "frac:1/3"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-30",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "af1c7cac2b0d"
+  },
+  {
+    "id": "q:ord:L9:0010",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order from smallest to largest, including improper fractions and wholes.",
+      "ttsKey": "tts.ord.l9.0010"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:3/4",
+        "frac:5/4",
+        "frac:1/1",
+        "frac:7/4"
+      ],
+      "count": 4
+    },
+    "correctAnswer": [
+      "frac:3/4",
+      "frac:1/1",
+      "frac:5/4",
+      "frac:7/4"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-31",
+      "SK-32"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "26692e4fa90d"
+  },
+  {
+    "id": "q:ord:L9:0011",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order from smallest to largest, including improper fractions and wholes.",
+      "ttsKey": "tts.ord.l9.0011"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/2",
+        "frac:3/2",
+        "frac:5/6"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/2",
+      "frac:5/6",
+      "frac:3/2"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-31",
+      "SK-32"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "5afa86749b3f"
+  },
+  {
+    "id": "q:ord:L9:0012",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order from smallest to largest, including improper fractions and wholes.",
+      "ttsKey": "tts.ord.l9.0012"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:2/3",
+        "frac:7/8",
+        "frac:5/4"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:2/3",
+      "frac:7/8",
+      "frac:5/4"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-31",
+      "SK-32"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "3463db3dbf2c"
+  },
+  {
+    "id": "q:ord:L9:0013",
+    "archetype": "order",
+    "prompt": {
+      "text": "Order from smallest to largest, including improper fractions and wholes.",
+      "ttsKey": "tts.ord.l9.0013"
+    },
+    "payload": {
+      "fractionIds": [
+        "frac:1/8",
+        "frac:7/12",
+        "frac:3/5"
+      ],
+      "count": 3
+    },
+    "correctAnswer": [
+      "frac:1/8",
+      "frac:7/12",
+      "frac:3/5"
+    ],
+    "validatorId": "validator.order.compareMultiple",
+    "skillIds": [
+      "SK-31",
+      "SK-32"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-02"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "df822c712b83"
+  }
+]

@@ -1,0 +1,760 @@
+[
+  {
+    "id": "q:id:L2:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/4.",
+      "ttsKey": "tts.id.l2.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04",
+      "SK-05"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 2/4 shaded?",
+      "ttsKey": "tts.id.l2.0002"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:0/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 3/4.",
+      "ttsKey": "tts.id.l2.0003"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 1/4 colored in.",
+      "ttsKey": "tts.id.l2.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 2/4.",
+      "ttsKey": "tts.id.l2.0005"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:0/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04",
+      "SK-05"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 3/4.",
+      "ttsKey": "tts.id.l2.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 1/4 shaded?",
+      "ttsKey": "tts.id.l2.0007"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0008",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 2/4.",
+      "ttsKey": "tts.id.l2.0008"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:0/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0009",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 3/4 colored in.",
+      "ttsKey": "tts.id.l2.0009"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04",
+      "SK-05"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0010",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 1/4.",
+      "ttsKey": "tts.id.l2.0010"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05",
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:id:L2:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 1/4.",
+      "ttsKey": "tts.id.l2.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 2/4 shaded?",
+      "ttsKey": "tts.id.l2.0002"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 3/4.",
+      "ttsKey": "tts.id.l2.0003"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 1/4 colored in.",
+      "ttsKey": "tts.id.l2.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 2/4.",
+      "ttsKey": "tts.id.l2.0005"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 3/4.",
+      "ttsKey": "tts.id.l2.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 1/4 shaded?",
+      "ttsKey": "tts.id.l2.0007"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0008",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 2/4.",
+      "ttsKey": "tts.id.l2.0008"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0009",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 3/4 colored in.",
+      "ttsKey": "tts.id.l2.0009"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0010",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 1/4.",
+      "ttsKey": "tts.id.l2.0010"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:id:L2:0001",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the shape with 1/4 colored in.",
+      "ttsKey": "tts.id.l2.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:2/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0002",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture that shows 2/4.",
+      "ttsKey": "tts.id.l2.0002"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0003",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the picture showing 3/4.",
+      "ttsKey": "tts.id.l2.0003"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0004",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the shape with 1/4 shaded.",
+      "ttsKey": "tts.id.l2.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:0/4",
+        "frac:2/4",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0005",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Which shape has 2/4 colored in?",
+      "ttsKey": "tts.id.l2.0005"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0006",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the one that shows 3/4.",
+      "ttsKey": "tts.id.l2.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0007",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Tap the picture showing 1/4.",
+      "ttsKey": "tts.id.l2.0007"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:0/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0008",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Find the shape with 2/4 shaded.",
+      "ttsKey": "tts.id.l2.0008"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:3/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-05"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0009",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Pick the one that shows 3/4.",
+      "ttsKey": "tts.id.l2.0009"
+    },
+    "payload": {
+      "fractionId": "frac:3/4",
+      "distractors": [
+        "frac:1/4",
+        "frac:2/4",
+        "frac:4/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-06"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:id:L2:0010",
+    "archetype": "identify",
+    "prompt": {
+      "text": "Choose the shape with 1/4 colored in.",
+      "ttsKey": "tts.id.l2.0010"
+    },
+    "payload": {
+      "fractionId": "frac:1/4",
+      "distractors": [
+        "frac:0/4",
+        "frac:2/4",
+        "frac:3/4"
+      ],
+      "targetIndex": 0
+    },
+    "correctAnswer": 0,
+    "validatorId": "validator.identify.exactIndex",
+    "skillIds": [
+      "SK-04"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  }
+]

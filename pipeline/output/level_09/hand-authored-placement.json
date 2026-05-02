@@ -1,0 +1,388 @@
+[
+  {
+    "id": "q:plc:L9:0001",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 1/10 on the number line from 0 to 1.",
+      "ttsKey": "tts.plc.l9.0001"
+    },
+    "payload": {
+      "fractionId": "frac:1/10",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.1,
+      "tolerancePercent": 0.05
+    },
+    "correctAnswer": {
+      "decimal": 0.1
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "acca80c4e234"
+  },
+  {
+    "id": "q:plc:L9:0002",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 3/10 on the number line from 0 to 1.",
+      "ttsKey": "tts.plc.l9.0002"
+    },
+    "payload": {
+      "fractionId": "frac:3/10",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.3,
+      "tolerancePercent": 0.05
+    },
+    "correctAnswer": {
+      "decimal": 0.3
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "1f4e96433ccb"
+  },
+  {
+    "id": "q:plc:L9:0003",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 5/10 on the number line from 0 to 1.",
+      "ttsKey": "tts.plc.l9.0003"
+    },
+    "payload": {
+      "fractionId": "frac:5/10",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.5,
+      "tolerancePercent": 0.05
+    },
+    "correctAnswer": {
+      "decimal": 0.5
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "050b3242979e"
+  },
+  {
+    "id": "q:plc:L9:0004",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 7/10 on the number line from 0 to 1.",
+      "ttsKey": "tts.plc.l9.0004"
+    },
+    "payload": {
+      "fractionId": "frac:7/10",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.7,
+      "tolerancePercent": 0.05
+    },
+    "correctAnswer": {
+      "decimal": 0.7
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "4566c42e491f"
+  },
+  {
+    "id": "q:plc:L9:0005",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 1/2 on the 0\u20131 number line.",
+      "ttsKey": "tts.plc.l9.0005"
+    },
+    "payload": {
+      "fractionId": "frac:1/2",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.5,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.5
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "f28df2253743"
+  },
+  {
+    "id": "q:plc:L9:0006",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 3/5 on the 0\u20131 number line.",
+      "ttsKey": "tts.plc.l9.0006"
+    },
+    "payload": {
+      "fractionId": "frac:3/5",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.6,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.6
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "7b5593130ecc"
+  },
+  {
+    "id": "q:plc:L9:0007",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 7/8 on the 0\u20131 number line.",
+      "ttsKey": "tts.plc.l9.0007"
+    },
+    "payload": {
+      "fractionId": "frac:7/8",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.875,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.875
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "e8b8f6d978b2"
+  },
+  {
+    "id": "q:plc:L9:0008",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 2/3 on the 0\u20131 number line.",
+      "ttsKey": "tts.plc.l9.0008"
+    },
+    "payload": {
+      "fractionId": "frac:2/3",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.667,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.667
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "ec77903cb531"
+  },
+  {
+    "id": "q:plc:L9:0009",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Place 5/6 on the 0\u20131 number line.",
+      "ttsKey": "tts.plc.l9.0009"
+    },
+    "payload": {
+      "fractionId": "frac:5/6",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.833,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.833
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-33"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "36339fe6069a"
+  },
+  {
+    "id": "q:plc:L9:0010",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Carefully place 5/12 on the number line.",
+      "ttsKey": "tts.plc.l9.0010"
+    },
+    "payload": {
+      "fractionId": "frac:5/12",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.417,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.417
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-31"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "b23d07a3579e"
+  },
+  {
+    "id": "q:plc:L9:0011",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Carefully place 7/16 on the number line.",
+      "ttsKey": "tts.plc.l9.0011"
+    },
+    "payload": {
+      "fractionId": "frac:7/16",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.438,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.438
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-31"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "1fda652d0134"
+  },
+  {
+    "id": "q:plc:L9:0012",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Carefully place 11/24 on the number line.",
+      "ttsKey": "tts.plc.l9.0012"
+    },
+    "payload": {
+      "fractionId": "frac:11/24",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.458,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.458
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-31"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "8184d419f365"
+  },
+  {
+    "id": "q:plc:L9:0013",
+    "archetype": "placement",
+    "prompt": {
+      "text": "Carefully place 13/30 on the number line.",
+      "ttsKey": "tts.plc.l9.0013"
+    },
+    "payload": {
+      "fractionId": "frac:13/30",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "targetDecimal": 0.433,
+      "tolerancePercent": 0.04
+    },
+    "correctAnswer": {
+      "decimal": 0.433
+    },
+    "validatorId": "validator.placement.withinTolerance",
+    "skillIds": [
+      "SK-27",
+      "SK-31"
+    ],
+    "misconceptionTraps": [
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "fceeaa4e59ab"
+  }
+]

@@ -1,0 +1,842 @@
+[
+  {
+    "id": "q:bmk:L8:0001",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0001"
+    },
+    "payload": {
+      "fractionId": "frac:2/4",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "6e43fd703557"
+  },
+  {
+    "id": "q:bmk:L8:0002",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0002"
+    },
+    "payload": {
+      "fractionId": "frac:3/6",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "6fe47879d019"
+  },
+  {
+    "id": "q:bmk:L8:0003",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0003"
+    },
+    "payload": {
+      "fractionId": "frac:1/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.125
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "871679f44b2e"
+  },
+  {
+    "id": "q:bmk:L8:0004",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0004"
+    },
+    "payload": {
+      "fractionId": "frac:1/12",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.083
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "8a459e681987"
+  },
+  {
+    "id": "q:bmk:L8:0005",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0005"
+    },
+    "payload": {
+      "fractionId": "frac:4/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "7088d0cb1b77"
+  },
+  {
+    "id": "q:bmk:L8:0006",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0006"
+    },
+    "payload": {
+      "fractionId": "frac:6/12",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "541356effea4"
+  },
+  {
+    "id": "q:bmk:L8:0007",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0007"
+    },
+    "payload": {
+      "fractionId": "frac:1/16",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.062
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "f3b012464ad4"
+  },
+  {
+    "id": "q:bmk:L8:0008",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0008"
+    },
+    "payload": {
+      "fractionId": "frac:5/12",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.417
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "easy",
+    "_payloadHash": "0d583a734d37"
+  },
+  {
+    "id": "q:bmk:L8:0009",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0009"
+    },
+    "payload": {
+      "fractionId": "frac:5/10",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "48c16e9019a0"
+  },
+  {
+    "id": "q:bmk:L8:0010",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0010"
+    },
+    "payload": {
+      "fractionId": "frac:4/9",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.444
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "22bcc242cef8"
+  },
+  {
+    "id": "q:bmk:L8:0011",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0011"
+    },
+    "payload": {
+      "fractionId": "frac:1/20",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.05
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "278094b31b88"
+  },
+  {
+    "id": "q:bmk:L8:0012",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0012"
+    },
+    "payload": {
+      "fractionId": "frac:3/5",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.6
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "5b48184f60a4"
+  },
+  {
+    "id": "q:bmk:L8:0013",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0013"
+    },
+    "payload": {
+      "fractionId": "frac:7/10",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.7
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "f08a18dd1824"
+  },
+  {
+    "id": "q:bmk:L8:0014",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0014"
+    },
+    "payload": {
+      "fractionId": "frac:6/8",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "44fd8adb22dd"
+  },
+  {
+    "id": "q:bmk:L8:0015",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0015"
+    },
+    "payload": {
+      "fractionId": "frac:2/7",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.286
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "faf4a5b6b1f1"
+  },
+  {
+    "id": "q:bmk:L8:0016",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0016"
+    },
+    "payload": {
+      "fractionId": "frac:5/9",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.556
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "646dc1d9405c"
+  },
+  {
+    "id": "q:bmk:L8:0017",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0017"
+    },
+    "payload": {
+      "fractionId": "frac:9/18",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "077de41c045a"
+  },
+  {
+    "id": "q:bmk:L8:0018",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0018"
+    },
+    "payload": {
+      "fractionId": "frac:2/5",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.4
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "medium",
+    "_payloadHash": "42d7464c5dfa"
+  },
+  {
+    "id": "q:bmk:L8:0019",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0019"
+    },
+    "payload": {
+      "fractionId": "frac:13/26",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "add5f0deb3e3"
+  },
+  {
+    "id": "q:bmk:L8:0020",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0020"
+    },
+    "payload": {
+      "fractionId": "frac:7/14",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.5
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "acce08adccd5"
+  },
+  {
+    "id": "q:bmk:L8:0021",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0021"
+    },
+    "payload": {
+      "fractionId": "frac:11/30",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.367
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "9b0f1415e581"
+  },
+  {
+    "id": "q:bmk:L8:0022",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0022"
+    },
+    "payload": {
+      "fractionId": "frac:1/100",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.01
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "26ce0e95e960"
+  },
+  {
+    "id": "q:bmk:L8:0023",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0023"
+    },
+    "payload": {
+      "fractionId": "frac:14/21",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.667
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "97df172ae55d"
+  },
+  {
+    "id": "q:bmk:L8:0024",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0024"
+    },
+    "payload": {
+      "fractionId": "frac:21/28",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.75
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "18d5e6521259"
+  },
+  {
+    "id": "q:bmk:L8:0025",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0025"
+    },
+    "payload": {
+      "fractionId": "frac:9/35",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.257
+    },
+    "correctAnswer": "zero",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "297b3b347ceb"
+  },
+  {
+    "id": "q:bmk:L8:0026",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0026"
+    },
+    "payload": {
+      "fractionId": "frac:17/40",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.425
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "04715bb57e60"
+  },
+  {
+    "id": "q:bmk:L8:0027",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0027"
+    },
+    "payload": {
+      "fractionId": "frac:19/40",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.475
+    },
+    "correctAnswer": "half",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "dd488167fc28"
+  },
+  {
+    "id": "q:bmk:L8:0028",
+    "archetype": "benchmark",
+    "prompt": {
+      "text": "Is this fraction closest to 0, one half, or 1?",
+      "ttsKey": "tts.bmk.l8.0028"
+    },
+    "payload": {
+      "fractionId": "frac:23/40",
+      "benchmarks": [
+        "zero",
+        "half",
+        "one"
+      ],
+      "decimalValue": 0.575
+    },
+    "correctAnswer": "one",
+    "validatorId": "validator.benchmark.closestBenchmark",
+    "skillIds": [
+      "SK-27",
+      "SK-28",
+      "SK-29"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-DNM-01"
+    ],
+    "difficultyTier": "hard",
+    "_payloadHash": "4746ad7f9683"
+  }
+]
