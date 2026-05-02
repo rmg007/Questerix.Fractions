@@ -35,24 +35,36 @@ export class TTSService {
         resolve();
         return;
       }
+      const synth = this.synth;
       let settled = false;
+      let watchdogId: ReturnType<typeof setTimeout> | null = null;
+      const usedAddEventListener = typeof synth.addEventListener === 'function';
+      const onChanged = () => {
+        if (synth.getVoices().length > 0) settle();
+      };
       const settle = () => {
         if (settled) return;
         settled = true;
+        if (watchdogId !== null) {
+          clearTimeout(watchdogId);
+          watchdogId = null;
+        }
+        if (usedAddEventListener) {
+          synth.removeEventListener('voiceschanged', onChanged);
+        } else if (synth.onvoiceschanged === onChanged) {
+          synth.onvoiceschanged = null;
+        }
         resolve();
       };
-      const onChanged = () => {
-        if (this.synth && this.synth.getVoices().length > 0) settle();
-      };
       // Prefer addEventListener so we don't clobber a host page's own handler.
-      if (typeof this.synth.addEventListener === 'function') {
-        this.synth.addEventListener('voiceschanged', onChanged);
+      if (usedAddEventListener) {
+        synth.addEventListener('voiceschanged', onChanged);
       } else {
-        this.synth.onvoiceschanged = onChanged;
+        synth.onvoiceschanged = onChanged;
       }
       // Watchdog: cap waits at 1500 ms so a permanently empty voice list cannot
       // strand every speak() call. On unsupported browsers we'd otherwise hang.
-      setTimeout(settle, 1500);
+      watchdogId = setTimeout(settle, 1500);
     });
   }
 
