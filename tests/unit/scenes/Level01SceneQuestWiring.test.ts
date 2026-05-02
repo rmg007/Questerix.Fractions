@@ -47,7 +47,6 @@ import type { HintTier } from '@/types/hint';
 type AnyScene = Level01Scene & {
   questFeedbackText: (kind: 'correct' | 'incorrect' | 'close') => string | null;
   questHintText: (tier: HintTier) => string;
-  payloadDenominator: () => number;
   studentDisplayName: string | null;
   currentArchetype: string;
 };
@@ -61,12 +60,6 @@ describe('Level01Scene Quest wiring (T28 — introductory level)', () => {
 
   beforeEach(() => {
     scene = makeScene();
-  });
-
-  describe('payloadDenominator', () => {
-    it('always returns 2 — Level 1 is exclusively partition_halves', () => {
-      expect(scene.payloadDenominator()).toBe(2);
-    });
   });
 
   describe('questFeedbackText — correct answer', () => {
@@ -112,7 +105,9 @@ describe('Level01Scene Quest wiring (T28 — introductory level)', () => {
 
     it('returns the equal_or_not line for equal_or_not archetype', () => {
       scene.currentArchetype = 'equal_or_not';
-      expect(scene.questFeedbackText('incorrect')).toBe(getCopy('quest.feedback.wrong.equal_or_not'));
+      expect(scene.questFeedbackText('incorrect')).toBe(
+        getCopy('quest.feedback.wrong.equal_or_not')
+      );
     });
 
     it('each archetype-specific line matches its catalog entry directly', () => {
@@ -152,7 +147,7 @@ describe('Level01Scene Quest wiring (T28 — introductory level)', () => {
       expect(scene.questHintText('verbal')).toBe('Try moving the line a little.');
       expect(scene.questHintText('visual_overlay')).toBe('Think about where halfway is.');
       expect(scene.questHintText('worked_example')).toBe(
-        'The answer is right around here — give it a try!',
+        'The answer is right around here — give it a try!'
       );
     });
   });
