@@ -33,6 +33,23 @@ const DEFAULT_META: DeviceMeta = {
   onboardingComplete: false,
 };
 
+/**
+ * Read the legacy `questerix.onboardingSeen` localStorage flag. The v7
+ * upgrade callback in db.ts handles the migration for installs that already
+ * have a deviceMeta row, but fresh installs reach this lazy-create branch
+ * with an empty table — the upgrade's `.modify()` was a no-op there. Honoring
+ * the flag here closes that gap so e2e tests (and any user upgrading after a
+ * DB wipe) skip onboarding consistently.
+ */
+function readLegacyOnboardingFlag(): boolean {
+  try {
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem('questerix.onboardingSeen') === '1';
+  } catch {
+    return false;
+  }
+}
+
 export const deviceMetaRepo = {
   /**
    * Returns the singleton DeviceMeta, creating it lazily with defaults if absent.
@@ -42,15 +59,18 @@ export const deviceMetaRepo = {
     try {
       const existing = await db.deviceMeta.get(DEVICE_ID);
       if (existing) return existing;
+      const seed: DeviceMeta = readLegacyOnboardingFlag()
+        ? { ...DEFAULT_META, onboardingComplete: true }
+        : { ...DEFAULT_META };
       try {
-        await db.deviceMeta.add(DEFAULT_META);
+        await db.deviceMeta.add(seed);
       } catch (writeErr) {
         if (writeErr instanceof DOMException && writeErr.name === 'QuotaExceededError') {
           log.warn('DB', 'quota_exceeded', { table: 'deviceMeta' });
         }
         // Either quota or duplicate-key (race): fall through and return defaults
       }
-      return { ...DEFAULT_META };
+      return seed;
     } catch (err) {
       return { ...DEFAULT_META };
     }
