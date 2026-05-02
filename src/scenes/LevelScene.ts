@@ -27,7 +27,6 @@ import { SessionCompleteOverlay } from '../components/SessionCompleteOverlay';
 import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
-import { getInteractionForArchetype } from './utils/levelRouter';
 import type { Interaction } from './interactions/types';
 import type { QuestionTemplate, ValidatorResult } from '@/types';
 import { MenuScene } from './MenuScene';
@@ -35,13 +34,9 @@ import { tts } from '../audio/TTSService';
 import { sfx } from '../audio/SFXService';
 import { log } from '../lib/log';
 import { Mascot } from '../components/Mascot';
-// Quest microcopy catalog (registered at boot via src/main.ts).
-// Per ux-elevation §9 T28 — the level screen routes its hint, feedback,
-// and session-complete copy through `getCopy('quest.…')` so Quest's voice
-// stays consistent and localizable without scene-side string literals.
-import { get as getCopy } from '../lib/i18n/catalog';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
+import { get as getCopy } from '../lib/i18n/catalog';
 import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
 import { withSpan } from '../lib/observability/withSpan';
 import { tracerService } from '../lib/observability/tracer';
@@ -53,6 +48,18 @@ import {
   persistLevelCompletionForLevel,
 } from '../lib/levelSceneSession';
 import { questFeedbackText as questFeedbackTextLib } from '../lib/levelSceneFeedback';
+import {
+  loadQuestion as loadQuestionFlow,
+  submitQuestion,
+  type QuestionFlowContext,
+  type QuestionFlowCallbacks,
+} from '../lib/levelSceneQuestionFlow';
+import {
+  showHintForTier as showHintForTierFlow,
+  pulseHintButton as pulseHintButtonFlow,
+  type HintFlowContext,
+  type HintFlowCallbacks,
+} from '../lib/levelSceneHintFlow';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -349,88 +356,69 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Question loading ─────────────────────────────────────────────────────────
 
-  private loadQuestion(index: number): void {
-    this.questionIndex = index;
-    this.wrongCount = 0;
-    this.inputLocked = false;
-    this.lastPayload = null;
-    this.currentQuestionHintIds = [];
-    this.currentRoundEvents = [];
-
-    // Ensure chrome submit button is visible at start of each question.
-    // Interaction mount might hide it (e.g. for 'identify' archetype).
-    this.submitButtonContainer?.setVisible(true);
-
-    // Unmount previous interaction
-    this.activeInteraction?.unmount();
-    this.activeInteraction = null;
-
-    // Pick template
-    if (this.templatePool.length > 0) {
-      this.currentTemplate = this.templatePool[index % this.templatePool.length]!;
-    } else {
-      // Synthetic fallback for partition archetype (keeps game playable)
-      this.currentTemplate = this.makeFallbackTemplate();
-    }
-
-    this.hintLadder = new HintLadder(this.currentTemplate.difficultyTier);
-    this.hintTextGO.setVisible(false);
-    this.promptText.setText(this.currentTemplate.prompt.text);
-    this.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
-    this.animateCounterBadge();
-    log.q('load', {
-      index,
-      id: this.currentTemplate.id,
-      archetype: this.currentTemplate.archetype,
-      tier: this.currentTemplate.difficultyTier,
-      prompt: this.currentTemplate.prompt.text,
-      validatorId: this.currentTemplate.validatorId,
-      source: this.templatePool.length > 0 ? 'dexie' : 'synthetic',
-    });
-
-    // T4: speak prompt aloud via TTS — gated only by ttsEnabled preference
-    // (already loaded into TTSService.setEnabled() in create()). No reduceMotion gate.
-    tts.speak(this.currentTemplate.prompt.text);
-
-    // Announce question to assistive tech (separate from audio TTS)
-    A11yLayer.announce(
-      `Level ${this.levelNumber}, question ${index + 1} of ${SESSION_GOAL}. ${this.currentTemplate.prompt.text}`
-    );
-
-    // Fix G-E4: record when this question started for response-time tracking
-    this.questionStartTime = Date.now();
-
-    // Instantiate and mount interaction
-    const interaction = getInteractionForArchetype(
-      this.currentTemplate.archetype,
-      this.currentTemplate.validatorId
-    );
-    this.activeInteraction = interaction;
-    interaction.mount({
+  private async loadQuestion(index: number): Promise<void> {
+    const ctx: QuestionFlowContext = {
       scene: this,
-      template: this.currentTemplate,
-      centerX: CW / 2,
-      centerY: CH / 2 - 80,
-      width: CW,
-      height: CH,
-      onCommit: (payload) => void this.onCommit(payload),
-      pushEvent: (event) => this.currentRoundEvents.push(event),
-    });
-
-    // Fix duplicate button: IdentifyInteraction renders its own internal "Check" button.
-    this.submitButtonContainer?.setVisible(this.currentTemplate?.archetype !== 'identify');
-
-    // T14: Reset & restart idle escalation timer for this question.
-    this.mascot?.startIdleTimer();
-
-    // T16: Quest microcopy at question-load moments
-    if (index === 0) {
-      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble("Ready? Let's go! 🚀", 2000));
-    } else if (index === SESSION_GOAL - 1) {
-      this.time.delayedCall(400, () =>
-        this.mascot?.showSpeechBubble("Last one! You've got this!", 2000)
-      );
-    }
+      levelNumber: this.levelNumber,
+      questionIndex: index,
+      wrongCount: this.wrongCount,
+      inputLocked: this.inputLocked,
+      lastPayload: this.lastPayload,
+      currentTemplate: this.currentTemplate,
+      hintLadder: this.hintLadder ?? null,
+      questionStartTime: this.questionStartTime,
+      responseTimes: this.responseTimes,
+      submitButtonContainer: this.submitButtonContainer,
+      currentQuestionHintIds: this.currentQuestionHintIds,
+      currentRoundEvents: this.currentRoundEvents,
+      activeInteraction: this.activeInteraction,
+      promptText: this.promptText,
+      hintTextGO: this.hintTextGO,
+      questionCounterText: this.questionCounterText,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mascot: this.mascot as any,
+    };
+    const callbacks: QuestionFlowCallbacks = {
+      recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
+      showOutcome: (result) => this.showOutcome(result),
+      makeFallbackTemplate: () => this.makeFallbackTemplate(),
+      getTemplatePool: () => this.templatePool,
+      animateCounterBadge: () => this.animateCounterBadge(),
+      setQuestionIndex: (i) => {
+        this.questionIndex = i;
+      },
+      setWrongCount: (c) => {
+        this.wrongCount = c;
+      },
+      setInputLocked: (l) => {
+        this.inputLocked = l;
+      },
+      setLastPayload: (p) => {
+        this.lastPayload = p;
+      },
+      setCurrentTemplate: (t) => {
+        this.currentTemplate = t;
+      },
+      setHintLadder: (h) => {
+        this.hintLadder = h;
+      },
+      setQuestionStartTime: (t) => {
+        this.questionStartTime = t;
+      },
+      setCurrentQuestionHintIds: (ids) => {
+        this.currentQuestionHintIds = ids;
+      },
+      setCurrentRoundEvents: (events) => {
+        this.currentRoundEvents = events;
+      },
+      setActiveInteraction: (i) => {
+        this.activeInteraction = i;
+      },
+      addResponseTime: (ms) => {
+        this.responseTimes.push(ms);
+      },
+    };
+    await loadQuestionFlow(index, ctx, callbacks);
   }
 
   private static readonly LEVEL_FALLBACK_OVERRIDES: Record<
@@ -684,88 +672,71 @@ export class LevelScene extends Phaser.Scene {
 
   // ── Commit / Validation ──────────────────────────────────────────────────────
 
-  /**
-   * Called by interactions via onCommit.
-   * Also used by the submit button which re-triggers with last payload.
-   */
   private lastPayload: unknown = null;
 
-  private async onCommit(payload: unknown): Promise<void> {
-    if (this.inputLocked) return;
-    log.input('interaction_commit', {
-      level: this.levelNumber,
-      archetype: this.currentTemplate?.archetype,
-      payload,
-    });
-    this.lastPayload = payload;
-    await this.onSubmit();
-  }
-
   private async onSubmit(): Promise<void> {
-    if (this.inputLocked || this.lastPayload === null) return;
-    this.inputLocked = true;
-    this.submitButtonContainer?.setAlpha(0.5);
-
-    log.valid('submit', {
-      level: this.levelNumber,
-      questionId: this.currentTemplate.id,
-      archetype: this.currentTemplate.archetype,
-      validatorId: this.currentTemplate.validatorId,
-      payload: this.lastPayload,
-    });
-
-    const startedAt = Date.now();
-    let result: ValidatorResult;
-
-    try {
-      const { getValidator } = await import('../validators/registry');
-      const validator = getValidator(this.currentTemplate.validatorId);
-      if (validator) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = (validator as { fn: (i: any, p: any) => ValidatorResult }).fn(
-          this.lastPayload,
-          this.currentTemplate.payload
-        );
-      } else {
-        // Fallback: partition validator
-        const { partitionEqualAreas } = await import('../validators/partition');
-        result = partitionEqualAreas.fn(
-          this.lastPayload as import('../validators/partition').PartitionInput,
-          this.currentTemplate.payload as import('../validators/partition').PartitionPayload
-        );
-      }
-    } catch (err) {
-      log.error('VALID', 'validator_error', {
-        error: String(err),
-        questionId: this.currentTemplate.id,
-      });
-      result = { outcome: 'incorrect', score: 0, feedback: 'validator_error' };
-    }
-
-    const responseMs = Date.now() - startedAt;
-    const totalResponseMs = Date.now() - this.questionStartTime;
-    this.responseTimes.push(totalResponseMs);
-
-    log.valid('result', {
-      outcome: result.outcome,
-      score: result.score,
-      feedback: result.feedback,
-      validatorMs: responseMs,
-      totalResponseMs,
-      questionId: this.currentTemplate.id,
-      attemptNumber: this.wrongCount + 1,
-    });
-
-    await withSpan(
-      SPAN_NAMES.QUESTION.SUBMIT,
-      {
-        'question.archetype': this.currentTemplate.archetype,
-        'question.outcome': result.outcome,
-        'scene.level': this.levelNumber,
+    const ctx: QuestionFlowContext = {
+      scene: this,
+      levelNumber: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      inputLocked: this.inputLocked,
+      lastPayload: this.lastPayload,
+      currentTemplate: this.currentTemplate,
+      hintLadder: this.hintLadder ?? null,
+      questionStartTime: this.questionStartTime,
+      responseTimes: this.responseTimes,
+      submitButtonContainer: this.submitButtonContainer,
+      currentQuestionHintIds: this.currentQuestionHintIds,
+      currentRoundEvents: this.currentRoundEvents,
+      activeInteraction: this.activeInteraction,
+      promptText: this.promptText,
+      hintTextGO: this.hintTextGO,
+      questionCounterText: this.questionCounterText,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mascot: this.mascot as any,
+    };
+    const callbacks: QuestionFlowCallbacks = {
+      recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
+      showOutcome: (result) => this.showOutcome(result),
+      makeFallbackTemplate: () => this.makeFallbackTemplate(),
+      getTemplatePool: () => this.templatePool,
+      animateCounterBadge: () => this.animateCounterBadge(),
+      setQuestionIndex: (i) => {
+        this.questionIndex = i;
       },
-      () => this.recordAttempt(result, responseMs)
-    );
-    this.showOutcome(result);
+      setWrongCount: (c) => {
+        this.wrongCount = c;
+      },
+      setInputLocked: (l) => {
+        this.inputLocked = l;
+      },
+      setLastPayload: (p) => {
+        this.lastPayload = p;
+      },
+      setCurrentTemplate: (t) => {
+        this.currentTemplate = t;
+      },
+      setHintLadder: (h) => {
+        this.hintLadder = h;
+      },
+      setQuestionStartTime: (t) => {
+        this.questionStartTime = t;
+      },
+      setCurrentQuestionHintIds: (ids) => {
+        this.currentQuestionHintIds = ids;
+      },
+      setCurrentRoundEvents: (events) => {
+        this.currentRoundEvents = events;
+      },
+      setActiveInteraction: (i) => {
+        this.activeInteraction = i;
+      },
+      addResponseTime: (ms) => {
+        this.responseTimes.push(ms);
+      },
+    };
+    await submitQuestion(ctx, callbacks);
   }
 
   private showOutcome(result: ValidatorResult): void {
@@ -780,11 +751,11 @@ export class LevelScene extends Phaser.Scene {
       this.progressBar.setProgress(this.attemptCount + 1);
     }
 
-    // Quest-voiced feedback per ux-elevation §9 T28. The catalog only
-    // ships Quest copy for `correct` and `incorrect`; `close` (partial)
-    // has no Quest line yet so we let FeedbackOverlay fall back to its
-    // baked-in default ("Almost! Adjust a little.").
-    const questText = this.questFeedbackText(kind);
+    const questText = questFeedbackTextLib(
+      kind,
+      this.currentTemplate?.archetype as string | undefined,
+      this.payloadDenominator()
+    );
 
     this.feedbackOverlay.show(
       kind,
@@ -800,17 +771,13 @@ export class LevelScene extends Phaser.Scene {
       questText ?? undefined
     );
 
-    // Mascot reacts after the overlay is visible
     if (kind === 'correct') {
       this.mascot?.setState('cheer');
-      // T13: Trigger color-fill + fraction labels on partition shape
       this.activeInteraction?.showCorrectFeedback?.();
     } else if (kind === 'incorrect') {
       this.mascot?.setState('oops');
     }
 
-    // Mirror the visible feedback to the screen-reader announcer so the
-    // assistive-tech experience stays in Quest's voice when one is set.
     const announcement =
       questText ??
       (kind === 'correct'
@@ -821,20 +788,17 @@ export class LevelScene extends Phaser.Scene {
     AccessibilityAnnouncer.announce(announcement);
   }
 
-  private questFeedbackText(kind: FeedbackKind): string | null {
-    const archetype = this.currentTemplate?.archetype as string | undefined;
-    const denominator = this.payloadDenominator();
-    return questFeedbackTextLib(kind, archetype, denominator);
+  private payloadDenominator(): number | null {
+    const payload = this.currentTemplate?.payload as Record<string, unknown> | undefined;
+    if (!payload) return null;
+    for (const key of ['targetPartitions', 'targetParts', 'denominator', 'parts', 'totalParts']) {
+      const v = payload[key];
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
   }
 
-  /**
-   * Quest-voiced hint for archetype + tier, or null to let the caller's
-   * strategy-tier fallback run. partition is denominator-shaped; other
-   * archetypes use .verbal/.visual/.worked to mirror HintLadder's three
-   * tiers. See src/lib/i18n/keys/quest.ts.
-   */
-  private questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
-    // partition is denominator-shaped (the hint *is* "I can split this in N").
+  questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
     if (archetype === 'partition') {
       const d = this.payloadDenominator();
       switch (d) {
@@ -848,7 +812,6 @@ export class LevelScene extends Phaser.Scene {
           return null;
       }
     }
-    // verbal / visual_overlay / worked_example → .verbal / .visual / .worked
     const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
     switch (archetype) {
       case 'equal_or_not':
@@ -858,8 +821,6 @@ export class LevelScene extends Phaser.Scene {
       case 'label':
       case 'make':
       case 'snap_match':
-        // Dynamic key — guard runtime miss so a stray catalog edit can't
-        // crash the level screen. Caller falls back to strategy-tier copy.
         try {
           return getCopy(`quest.hint.${archetype}.${suffix}`);
         } catch {
@@ -870,30 +831,18 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  /**
-   * Best-effort denominator extraction from the current question template's
-   * payload. Walks the field names actually used by current payloads —
-   * partition templates carry `targetPartitions` (see
-   * `src/validators/partition.ts`), other archetypes vary. Listing the
-   * exhaustive set here keeps the lookup robust without coupling LevelScene
-   * to per-archetype payload schemas.
-   */
-  private payloadDenominator(): number | null {
-    const payload = this.currentTemplate?.payload as Record<string, unknown> | undefined;
-    if (!payload) return null;
-    for (const key of ['targetPartitions', 'targetParts', 'denominator', 'parts', 'totalParts']) {
-      const v = payload[key];
-      if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
-    }
-    return null;
+  questFeedbackText(
+    kind: FeedbackKind,
+    archetype: string | undefined,
+    denominator: number | null
+  ): string | null {
+    return questFeedbackTextLib(kind, archetype, denominator);
   }
 
   private onCorrectAnswer(): void {
-    // T13: flash color fill + fraction labels on the shape for partition questions
     this.activeInteraction?.showCorrectFeedback?.();
-
     this.attemptCount++;
-    this.correctCount++; // Fix G-E4: track correct answers separately
+    this.correctCount++;
     this.correctStreak++;
     this.progressBar.setProgress(this.attemptCount);
     this.lastPayload = null;
@@ -905,7 +854,6 @@ export class LevelScene extends Phaser.Scene {
       wrongCountThisQ: this.wrongCount,
     });
 
-    // T16: Quest streak microcopy (after FeedbackOverlay fades ~1600ms)
     const streak = this.correctStreak;
     const streakLine =
       streak === 1
@@ -919,7 +867,6 @@ export class LevelScene extends Phaser.Scene {
       this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
     }
 
-    // T12: Streak milestone banner at exactly 3 or 5 consecutive correct
     if (streak === 3 || streak === 5) {
       this.time.delayedCall(1800, () => this.showStreakBanner(streak));
     }
@@ -927,21 +874,19 @@ export class LevelScene extends Phaser.Scene {
     if (this.attemptCount >= SESSION_GOAL) {
       void this.showSessionComplete();
     } else {
-      this.loadQuestion(this.questionIndex + 1);
+      void this.loadQuestion(this.questionIndex + 1);
     }
   }
 
-  /** T12: Slide a streak milestone banner in from the top of the screen. */
   private showStreakBanner(streak: number): void {
     const bannerText = streak >= 5 ? 'UNSTOPPABLE! ⭐' : '3 in a row! 🔥';
     const bannerBg = streak >= 5 ? 0xffd700 : ACTION_FILL;
-
     const PILL_W = 520,
       PILL_H = 88,
       PILL_R = 44;
-    const cx = CW / 2;
-    const startY = -PILL_H;
-    const landY = 140;
+    const cx = CW / 2,
+      startY = -PILL_H,
+      landY = 140;
 
     const g = this.add.graphics().setDepth(90);
     g.fillStyle(bannerBg, 1);
@@ -961,7 +906,6 @@ export class LevelScene extends Phaser.Scene {
 
     sfx.playStreak();
     this.mascot?.setState('cheer-big');
-
     const container = this.add.container(0, 0, [g, txt]).setDepth(90);
 
     this.tweens.add({
@@ -997,7 +941,6 @@ export class LevelScene extends Phaser.Scene {
       questionId: this.currentTemplate.id,
     });
 
-    // T16: Quest wrong-answer microcopy
     if (this.wrongCount === 1) {
       this.time.delayedCall(1400, () => this.mascot?.showSpeechBubble('Oops! Try again 💪', 2000));
     } else if (this.wrongCount === 2) {
@@ -1006,17 +949,15 @@ export class LevelScene extends Phaser.Scene {
       );
     }
 
-    // T8: show ghost midpoint guide after first wrong attempt on partition questions
     if (this.wrongCount === 1) {
       this.activeInteraction?.showGhostGuide?.();
     }
 
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
     if (tier) {
-      this.showHintForTier(tier);
+      void this.showHintForTier(tier);
     }
 
-    // T7: Auto-hint after 3rd wrong answer — give feedback time before hint appears
     if (this.wrongCount === 3) {
       this.time.delayedCall(800, () => this.onHintRequest());
     }
@@ -1050,80 +991,44 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
-    // T16: Quest hint microcopy (only on first/second hint shown per question)
-    if (this.wrongCount <= 2) {
-      this.mascot?.showSpeechBubble("Here's a secret... 🤫", 2000);
-    }
-
-    const archetype = this.currentTemplate?.archetype ?? 'partition';
-    let msg = '';
-
-    // Quest-voiced hint per ux-elevation §9 T28. The catalog ships hint
-    // copy for every level-router archetype today (partition uses
-    // split2/3/4; the other seven — equal_or_not, compare, order,
-    // benchmark, label, make, snap_match — have verbal/visual/worked
-    // tiers). The strategy-tiered fallback below remains the safety net
-    // for any future archetype that hasn't been Quest-voiced yet.
-    const questMsg = this.questHintText(archetype, tier);
-    if (questMsg !== null) {
-      msg = questMsg;
-    }
-
-    // Fallback: questHintText returned null (unknown archetype or partition
-    // with unsupported denominator). Route through generic catalog keys so
-    // all displayed hints come from Quest's voice.
-    if (msg === '') {
-      const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
-      try {
-        msg = getCopy(`quest.hint.fallback.${suffix}`);
-      } catch {
-        // Catalog unavailable (e.g. test teardown reset) — use the stable
-        // safe key so no player-facing text is a hardcoded literal.
-        log.warn('HINT', 'fallback_catalog_miss', { tier, archetype });
-        msg = getCopy('quest.hint.fallback.safe');
-      }
-    }
-
-    this.hintTextGO.setText(msg);
-    this.hintTextGO.setVisible(true);
-    TestHooks.setText('hint-text', msg);
-    log.hint('show', { tier, message: msg, level: this.levelNumber, archetype });
-
-    if (tier === 'visual_overlay') {
-      this.activeInteraction?.showVisualOverlay?.();
-    }
-
-    // C7.8: Record hint event with score penalty per interaction-model.md §4.1
-    // Penalty: 5 pts (T1), 15 pts (T2), 30 pts (T3)
-    if (this.sessionId) {
-      try {
-        const { hintEventRepo } = await import('../persistence/repositories/hintEvent');
-        const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
-        const ev = await hintEventRepo.record({
-          attemptId: '' as unknown as import('@/types').AttemptId, // Will be linked post-submission
-          hintId: `hint.${this.currentTemplate.archetype}.${tier}`,
-          tier,
-          shownAt: Date.now(),
-          acceptedByStudent: true,
-          pointCostApplied: pointCost,
-          syncState: 'local',
-        });
-        if (ev?.id) this.currentQuestionHintIds.push(ev.id);
-      } catch (err) {
-        console.warn('[LevelScene] Could not record hint event:', err);
-      }
-    }
+    const ctx: HintFlowContext = {
+      scene: this,
+      levelNumber: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      currentTemplate: this.currentTemplate,
+      hintLadder: this.hintLadder,
+      hintButton: this.hintButton,
+      hintTextGO: this.hintTextGO,
+      currentQuestionHintIds: this.currentQuestionHintIds,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mascot: this.mascot as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      activeInteraction: this.activeInteraction as any,
+    };
+    const callbacks: HintFlowCallbacks = {
+      setCurrentQuestionHintIds: (ids) => {
+        this.currentQuestionHintIds = ids;
+      },
+    };
+    await showHintForTierFlow(tier, ctx, callbacks);
   }
 
   private pulseHintButton(): void {
-    if (checkReduceMotion()) return;
-    this.tweens.add({
-      targets: this.hintButton,
-      scaleX: 1.1,
-      scaleY: 1.1,
-      duration: 200,
-      yoyo: true,
-      repeat: 2,
+    pulseHintButtonFlow({
+      scene: this,
+      levelNumber: this.levelNumber,
+      questionIndex: this.questionIndex,
+      wrongCount: this.wrongCount,
+      currentTemplate: this.currentTemplate,
+      hintLadder: this.hintLadder,
+      hintButton: this.hintButton,
+      hintTextGO: this.hintTextGO,
+      currentQuestionHintIds: this.currentQuestionHintIds,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mascot: this.mascot as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      activeInteraction: this.activeInteraction as any,
     });
   }
 
