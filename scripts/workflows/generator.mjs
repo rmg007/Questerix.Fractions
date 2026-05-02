@@ -57,6 +57,33 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Branch name compliance
+        # Mirrors .husky/pre-push regex so CI catches any push that
+        # bypassed the local hook with --no-verify. Format:
+        # <type>/YYYY-MM-DD-<slug> with type in
+        # {feat,fix,refactor,chore,test,plans,docs}. Exempt: main,
+        # claude/*, worktree-agent-*.
+        # On PR events the head ref is in github.head_ref; on push
+        # events it's in github.ref_name.
+        run: |
+          BRANCH="\${{ github.head_ref || github.ref_name }}"
+          echo "Checking branch: $BRANCH"
+          case "$BRANCH" in
+            main|claude/*|worktree-agent-*)
+              echo "Exempt branch — skipping name check."
+              exit 0
+              ;;
+          esac
+          if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|chore|test|plans|docs)/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'; then
+            echo ""
+            echo "ERROR: branch name '$BRANCH' is non-compliant."
+            echo "Required shape: <type>/YYYY-MM-DD-<slug>"
+            echo "  type ∈ {feat, fix, refactor, plans, chore, docs, test}"
+            echo "  slug: lowercase, kebab-case"
+            echo "See docs/00-foundation/git-workflow.md and CLAUDE.md → 'Git workflow'."
+            exit 1
+          fi
+          echo "Branch name is compliant."
       - name: Regenerate workflows and check for drift
         run: |
           npm run gen:workflows
