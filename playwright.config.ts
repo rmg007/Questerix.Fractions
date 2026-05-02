@@ -3,7 +3,7 @@ import { DEV_PORT, BROWSERS } from './src/config/shared';
 
 export default defineConfig({
   testDir: 'tests',
-  testMatch: ['e2e/**/*.spec.ts', 'a11y/**/*.spec.ts'],
+  testMatch: ['**/e2e/**/*.spec.ts', '**/a11y/**/*.spec.ts'],
   reporter: 'html',
   use: {
     baseURL: `http://localhost:${DEV_PORT}`,

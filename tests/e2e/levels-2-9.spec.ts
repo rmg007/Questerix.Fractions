@@ -15,7 +15,7 @@
  * per test-strategy.md §1.3 — sentinels mirror active scene/state.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,8 +47,7 @@ async function expectLevelSceneLoaded(
 // ── Level 2 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 02 — smoke', () => {
-  test.fixme('navigates to L2 and level-scene sentinel is mounted', // fixme: `level-card-L2` interactive stub not yet wired in MenuScene /
-  // LevelMapScene. Add the TestHooks.mountInteractive call for L2 and remove fixme.
+  test.fixme('navigates to L2 and level-scene sentinel is mounted', // LevelMapScene. Add the TestHooks.mountInteractive call for L2 and remove fixme. // fixme: `level-card-L2` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L2"]').click();
@@ -59,8 +58,7 @@ test.describe('Level 02 — smoke', () => {
 // ── Level 3 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 03 — smoke', () => {
-  test.fixme('navigates to L3 and level-scene sentinel is mounted', // fixme: `level-card-L3` interactive stub not yet wired in MenuScene /
-  // LevelMapScene.
+  test.fixme('navigates to L3 and level-scene sentinel is mounted', // LevelMapScene. // fixme: `level-card-L3` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L3"]').click();
@@ -71,8 +69,7 @@ test.describe('Level 03 — smoke', () => {
 // ── Level 4 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 04 — smoke', () => {
-  test.fixme('navigates to L4 and level-scene sentinel is mounted', // fixme: `level-card-L4` interactive stub not yet wired in MenuScene /
-  // LevelMapScene.
+  test.fixme('navigates to L4 and level-scene sentinel is mounted', // LevelMapScene. // fixme: `level-card-L4` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L4"]').click();
@@ -83,8 +80,7 @@ test.describe('Level 04 — smoke', () => {
 // ── Level 5 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 05 — smoke', () => {
-  test.fixme('navigates to L5 and level-scene sentinel is mounted', // fixme: `level-card-L5` interactive stub not yet wired in MenuScene /
-  // LevelMapScene.
+  test.fixme('navigates to L5 and level-scene sentinel is mounted', // LevelMapScene. // fixme: `level-card-L5` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L5"]').click();
@@ -125,8 +121,7 @@ test.describe('Level 07 — smoke', () => {
 // ── Level 8 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 08 — smoke', () => {
-  test.fixme('navigates to L8 and level-scene sentinel is mounted', // fixme: `level-card-L8` interactive stub not yet wired in MenuScene /
-  // LevelMapScene.
+  test.fixme('navigates to L8 and level-scene sentinel is mounted', // LevelMapScene. // fixme: `level-card-L8` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L8"]').click();
@@ -137,8 +132,7 @@ test.describe('Level 08 — smoke', () => {
 // ── Level 9 ──────────────────────────────────────────────────────────────────
 
 test.describe('Level 09 — smoke', () => {
-  test.fixme('navigates to L9 and level-scene sentinel is mounted', // fixme: `level-card-L9` interactive stub not yet wired in MenuScene /
-  // LevelMapScene.
+  test.fixme('navigates to L9 and level-scene sentinel is mounted', // LevelMapScene. // fixme: `level-card-L9` interactive stub not yet wired in MenuScene /
   async ({ page }) => {
     await navigateToMenu(page);
     await page.locator('[data-testid="level-card-L9"]').click();
