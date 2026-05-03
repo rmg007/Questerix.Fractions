@@ -597,7 +597,12 @@ export class Mascot extends Phaser.GameObjects.Container {
 
     // Position: above Quest's head in world-space
     const worldX = this.x;
-    const worldY = this.y - (BODY_R + HAT_H) * this.scaleY - th - 16;
+    let worldY = this.y - (BODY_R + HAT_H) * this.scaleY - th - 16;
+
+    // Constrain bubble to stay within viewport bounds
+    const MIN_Y = th / 2 + 10; // Allow 10px padding at top
+    const MAX_Y = 1280 - th / 2 - 10; // Allow 10px padding at bottom
+    worldY = Math.max(MIN_Y, Math.min(worldY, MAX_Y));
 
     const bg = this.scene.add.graphics();
     bg.fillStyle(WHITE, 1);
