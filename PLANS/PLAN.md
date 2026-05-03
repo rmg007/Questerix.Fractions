@@ -8,9 +8,7 @@
 
 ## Active trackers
 
-| File | Scope |
-|---|---|
-| [`PLANS/E2E_FOLLOWUPS.md`](./E2E_FOLLOWUPS.md) | 5 remaining skipped E2E clusters (A–E): mascot state, Quest catalog, L6/L7 routing, session-flow flake, a11y progress bar. Clusters F+G fixed 2026-05-02. |
+*(none — all trackers archived)*
 
 ---
 
@@ -22,6 +20,16 @@
 - Phase 3 — UX pre-playtest (10 task groups + T1 FeedbackOverlay visual specs) ✅
 - Phase 4 — Harden (R-task closeout + LevelScene/Level01Scene refactor under budget) ✅
 - Phase 5 — Production (CI hardening, E2E unblock, deferred manual items moved to MANUAL_VERIFICATION.md) ✅
+
+---
+
+## Backlog — E2E tests (archived from E2E_FOLLOWUPS.md 2026-05-02; clusters F+G fixed)
+
+- **Cluster A** Mascot state sentinels — `tests/e2e/mascot-reactions.spec.ts` (8 tests skipped). `[data-testid="mascot-state"]` doesn't transition on correct/hint/wrong/complete events. Audit `Mascot.setState()` in `src/components/Mascot.ts`; reattach `data-state` attribute writes to the new state-machine pipeline.
+- **Cluster B** Quest voice-line catalog — `tests/e2e/quest-wiring.spec.ts` (2 tests skipped). ARIA-live region shows the question header instead of the wrong-answer Quest line. Unit-cover `tests/unit/i18n/questWiring.test.ts` first, then trace wrong-answer path in `src/lib/levelSceneOutcomeFlow.ts` and confirm `announce()` call.
+- **Cluster C** L6/L7 menu shortcuts — `tests/e2e/levels-2-9.spec.ts` (`level-card-L6`, `level-card-L7` skipped). Click no longer mounts `level-scene` sentinel. Confirm sentinel at `LevelScene.ts:233`; trace `fadeAndStart(this, 'LevelScene', { levelNumber: 6 })` to scene create.
+- **Cluster D** 5-attempt session flake — `tests/e2e/level01.spec.ts:11`, `happy-path.spec.ts:11,101`. Times out mid-session when run sequentially (passes in isolation). Add `test.beforeEach` IndexedDB clear or set `workers: 'fullyParallel'` in playwright config.
+- **Cluster E** ProgressBar a11y-snap-center — `tests/e2e/progress-bar.spec.ts:32`. `[data-testid="a11y-snap-center"]` click no longer increments `aria-valuenow`. Trace handler in `src/components/A11yLayer.ts` ↔ `src/scenes/interactions/PartitionInteraction.ts`; confirm `onSubmit` still fires and increments `attemptCount`.
 
 ---
 
