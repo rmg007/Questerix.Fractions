@@ -7,7 +7,7 @@
   },
   {
     "validatorId": "validator.placement.snapTolerance",
-    "input": { "studentPlacedDecimal": 0.52 },
+    "input": { "studentPlacedDecimal": 0.58 },
     "expected": { "targetDecimal": 0.5, "exactTolerance": 0.05, "closeTolerance": 0.15 },
     "outcome": "partial"
   },

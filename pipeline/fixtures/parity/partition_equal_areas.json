@@ -13,7 +13,7 @@
   },
   {
     "validatorId": "validator.partition.equalAreas",
-    "input": { "regionAreas": [0.55, 0.45] },
+    "input": { "regionAreas": [0.52, 0.48] },
     "expected": { "targetPartitions": 2, "areaTolerance": 0.05 },
     "outcome": "partial"
   },
