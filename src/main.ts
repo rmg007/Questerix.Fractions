@@ -19,9 +19,24 @@ window.addEventListener('error', (event) => {
   console.error('[main] Uncaught error:', error.message);
   errorReporter.report(error, { source: 'uncaught_error' });
   // Show fatal error UI (but Phaser may have crashed, so use pure DOM)
-  const banner = document.createElement('div');
-  banner.innerHTML = `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:20px;max-width:500px;z-index:9999;font-family:sans-serif;text-align:center"><h2 style="color:#721c24;margin:0 0 10px 0">Something went wrong</h2><p style="color:#721c24;margin:0 0 20px 0">${error.message}</p><button onclick="location.reload()" style="background:#721c24;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer">Refresh</button></div>`;
-  document.body.appendChild(banner);
+  const container = document.createElement('div');
+  container.style.cssText =
+    'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:20px;max-width:500px;z-index:9999;font-family:sans-serif;text-align:center';
+  const heading = document.createElement('h2');
+  heading.textContent = 'Something went wrong';
+  heading.style.cssText = 'color:#721c24;margin:0 0 10px 0';
+  const message = document.createElement('p');
+  message.textContent = error.message;
+  message.style.cssText = 'color:#721c24;margin:0 0 20px 0';
+  const button = document.createElement('button');
+  button.textContent = 'Refresh';
+  button.style.cssText =
+    'background:#721c24;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer';
+  button.addEventListener('click', () => location.reload());
+  container.appendChild(heading);
+  container.appendChild(message);
+  container.appendChild(button);
+  document.body.appendChild(container);
 });
 
 // Swallow unhandled storage errors from third-party / sandboxed contexts

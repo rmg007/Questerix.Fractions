@@ -153,6 +153,40 @@ const progressionStatSchema = z
   })
   .passthrough();
 
+const levelProgressionSchema = z
+  .object({
+    studentId: z.string().min(1).max(256),
+    unlockedLevels: z.array(z.number().min(1).max(9)).default([]),
+    completedLevels: z.array(z.number().min(1).max(9)).default([]),
+    consecutiveFailedSessions: z.record(z.string(), z.number()).optional(),
+    lastUpdatedAt: z.number(),
+    syncState: syncStateSchema,
+  })
+  .passthrough();
+
+const streakRecordSchema = z
+  .object({
+    studentId: z.string().min(1).max(256),
+    count: z.number().min(0),
+    lastDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  })
+  .passthrough();
+
+const telemetryEventSchema = z
+  .object({
+    id: z.number().optional(),
+    timestamp: z.string(),
+    event: z.string().min(1).max(256),
+    severity: z.enum(['debug', 'info', 'warn', 'error', 'fatal']),
+    properties: z.record(z.string(), z.unknown()).default({}),
+    studentId: z.string().min(1).max(256).optional(),
+    sessionId: z.string().min(1).max(256).optional(),
+    stack: z.string().max(8192).optional(),
+    version: z.string().max(256),
+    syncState: syncStateSchema,
+  })
+  .passthrough();
+
 // ── Backup envelope ────────────────────────────────────────────────────────
 
 /**
@@ -176,6 +210,9 @@ export const backupEnvelopeSchema = z
         hintEvents: z.array(hintEventSchema).default([]),
         misconceptionFlags: z.array(misconceptionFlagSchema).default([]),
         progressionStat: z.array(progressionStatSchema).default([]),
+        levelProgression: z.array(levelProgressionSchema).default([]),
+        streakRecord: z.array(streakRecordSchema).default([]),
+        telemetryEvents: z.array(telemetryEventSchema).default([]),
       })
       .passthrough(),
   })

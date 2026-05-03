@@ -18,6 +18,9 @@ import type {
   SessionTelemetry,
   MisconceptionFlag,
   ProgressionStat,
+  LevelProgression,
+  StreakRecord,
+  TelemetryEvent,
 } from '../types';
 import { safeParseBackupEnvelope } from './schemas';
 import { log } from '../lib/log';
@@ -40,6 +43,9 @@ interface BackupEnvelope {
     hintEvents: HintEvent[];
     misconceptionFlags: MisconceptionFlag[];
     progressionStat: ProgressionStat[];
+    levelProgression: LevelProgression[];
+    streakRecord: StreakRecord[];
+    telemetryEvents: TelemetryEvent[];
   };
 }
 
@@ -64,6 +70,9 @@ export async function backupToFile(): Promise<Blob> {
   const hintEvents = await db.hintEvents.toArray();
   const misconceptionFlags = await db.misconceptionFlags.toArray();
   const progressionStat = await db.progressionStat.toArray();
+  const levelProgression = await db.levelProgression.toArray();
+  const streakRecord = await db.streakRecord.toArray();
+  const telemetryEvents = await db.telemetryEvents.toArray();
 
   // Chunk sessions if > 1000 (Phase 8.7)
   let sessions = await db.sessions.toArray();
@@ -89,6 +98,9 @@ export async function backupToFile(): Promise<Blob> {
       hintEvents,
       misconceptionFlags,
       progressionStat,
+      levelProgression,
+      streakRecord,
+      telemetryEvents,
     },
   };
 
@@ -186,6 +198,9 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       db.hintEvents,
       db.misconceptionFlags,
       db.progressionStat,
+      db.levelProgression,
+      db.streakRecord,
+      db.telemetryEvents,
     ],
     async () => {
       await tryAddAll(db.students, t.students ?? []);
@@ -197,6 +212,9 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       await tryAddAll(db.hintEvents, t.hintEvents ?? []);
       await tryAddAll(db.misconceptionFlags, t.misconceptionFlags ?? []);
       await tryAddAll(db.progressionStat, t.progressionStat ?? []);
+      await tryAddAll(db.levelProgression, t.levelProgression ?? []);
+      await tryAddAll(db.streakRecord, t.streakRecord ?? []);
+      await tryAddAll(db.telemetryEvents, t.telemetryEvents ?? []);
       // Restore deviceMeta with merge strategy: keep newer lastBackupAt
       if (t.deviceMeta && t.deviceMeta.length > 0) {
         const live = await db.deviceMeta.toCollection().first();

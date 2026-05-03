@@ -41,8 +41,10 @@ export async function initObservability(config: ObservabilityConfig = {}): Promi
   // 3. Init Metrics (Web Vitals) — synchronous, no dynamic imports
   meterService.init();
 
-  // 4. Start Telemetry Sync
-  telemetrySyncService.init();
+  // 4. Start Telemetry Sync (only if endpoint is configured; MVP builds keep telemetry local-only per C1)
+  if (import.meta.env.VITE_TELEMETRY_URL) {
+    telemetrySyncService.init();
+  }
 
   logger.info('Observability initialized', {
     category: 'SYSTEM',

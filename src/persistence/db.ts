@@ -341,41 +341,75 @@ export class QuesterixDB extends Dexie {
     // Schema version 8 — drops the hintEvents store. IndexedDB does not allow
     // changing a store's keyPath/autoIncrement in-place (Dexie throws
     // "Not yet support for changing primary key"), so we must drop the store
-    // here and recreate it with the new keyPath in v9. Hint events are
-    // append-only telemetry, so wiping them is acceptable.
-    this.version(8).stores({
-      // Carry all v7 stores forward unchanged.
-      curriculumPacks: 'id',
-      standards: 'id',
-      skills: 'id, gradeLevel',
-      activities: 'id, levelGroup, archetype',
-      activityLevels: 'id, [activityId+levelNumber]',
-      fractionBank: 'id, denominatorFamily, benchmark',
-      questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
-      misconceptions: 'id',
-      hints: 'id, [questionTemplateId+order]',
-      students: 'id, displayName, createdAt',
-      sessions: 'id, studentId, startedAt, [studentId+startedAt]',
-      attempts:
-        '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
-      skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
-      deviceMeta: '&installId',
-      bookmarks: 'id, studentId',
-      sessionTelemetry: 'sessionId, studentId',
-      // Drop hintEvents — recreated with string primary key in v9.
-      hintEvents: null,
-      misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
-      progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
-      telemetryEvents: '++id, timestamp, event, severity, syncState',
-      levelProgression: '&studentId',
-      streakRecord: '&studentId',
-    });
+    // here and recreate it with the new keyPath in v9. To preserve hint event
+    // history, we migrate to a shadow table before dropping (v9 restores).
+    this.version(8)
+      .stores({
+        // Carry all v7 stores forward unchanged.
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        attempts:
+          '++id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        // Drop hintEvents — recreated with string primary key in v9.
+        hintEvents: null,
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+        telemetryEvents: '++id, timestamp, event, severity, syncState',
+        levelProgression: '&studentId',
+        streakRecord: '&studentId',
+        // Shadow table for migration: stores old hintEvents before drop
+        _migratingHintEvents: '++id',
+      })
+      .upgrade(async (tx) => {
+        // Copy all hintEvents to shadow table before the drop takes effect
+        try {
+          const oldEvents = await tx.table('hintEvents').toArray();
+          if (oldEvents.length > 0) {
+            await tx.table('_migratingHintEvents').bulkAdd(oldEvents);
+          }
+        } catch {
+          // If migration fails, proceed without the data (worst case: fresh start)
+        }
+      });
 
     // Schema version 9 — recreates hintEvents with a client-generated UUID
     // string primary key for type consistency with other entities (R4).
-    this.version(9).stores({
-      hintEvents: 'id, attemptId',
-    });
+    // Restores data from shadow table created in v8 migration.
+    this.version(9)
+      .stores({
+        hintEvents: 'id, attemptId',
+        // Remove shadow table after restoring data
+        _migratingHintEvents: null,
+      })
+      .upgrade(async (tx) => {
+        // Restore hintEvents from shadow table with proper UUIDs
+        try {
+          const shadowEvents = await tx.table('_migratingHintEvents').toArray();
+          if (shadowEvents.length > 0) {
+            // Convert old numeric IDs to UUID strings for type consistency
+            const migratedEvents = shadowEvents.map((event: any) => ({
+              ...event,
+              id: crypto.randomUUID(), // Generate new UUID for each event
+            }));
+            await tx.table('hintEvents').bulkAdd(migratedEvents);
+          }
+        } catch {
+          // If restore fails, continue with empty hintEvents (worst case: fresh start)
+        }
+      });
   }
 }
 

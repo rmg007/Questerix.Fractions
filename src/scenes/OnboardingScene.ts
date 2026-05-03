@@ -94,7 +94,7 @@ export class OnboardingScene extends Phaser.Scene {
     this.handlePos = SHAPE_CX - SHAPE_W * 0.3;
   }
 
-  create(): void {
+  async create(): Promise<void> {
     TestHooks.unmountAll();
     TestHooks.mountSentinel('onboarding-scene');
 
@@ -219,6 +219,18 @@ export class OnboardingScene extends Phaser.Scene {
       top: '82%',
       left: '50%',
     });
+
+    // Load preferences — TTS is gated by its own `ttsEnabled` flag
+    try {
+      const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
+      const meta = await deviceMetaRepo.get();
+      const audioOn = meta.preferences.audio ?? true;
+      // TTS is on when: master audio is on AND ttsEnabled is on (default true)
+      const ttsOn = audioOn && (meta.preferences.ttsEnabled ?? true);
+      tts.setEnabled(ttsOn);
+    } catch {
+      // Graceful fallback — leave TTS in default state
+    }
 
     // Draw shape and start tutorial
     this.drawShape();
