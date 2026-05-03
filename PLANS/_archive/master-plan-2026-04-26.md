@@ -1,9 +1,8 @@
 # Questerix Fractions — Master Plan
 
 **Date:** 2026-04-26
-**Updated:** 2026-04-27
-**Branch:** `plans/master-plan-2026-04-26`
-**Status:** 🟡 Sprint 4 complete — 54 curriculum templates shipped, validator payloads fixed, build clean; S0–S3 code items confirmed implemented; browser verification + Level 2–9 unlock UI pending
+**Branch:** `main`
+**Status:** 🔴 Sprint 0 — gameplay loop being unblocked; in-flight scene work pending real-browser verification
 **Source documents:** [architecture-review-2026-04-27.md](architecture-review-2026-04-27.md) · [qa-visual-report-2026-04-27.md](qa-visual-report-2026-04-27.md)
 
 This is the single backlog of everything left to do for the K–2 MVP (Levels 1–9, validation gate). It synthesizes the architecture review and visual QA report, reflects work-in-flight since they were written, and orders work by sprint with explicit exit criteria.
@@ -48,58 +47,58 @@ Numbering matches the 2026-04-27 architecture review so cross-references stay st
 ### Sprint 0 — Unblock Basic Gameplay (in-flight)
 *Exit:* Student completes one 5-question session in a real browser. Screenshot of session-complete card committed to `PLANS/screenshots/`.
 
-- [x] ~~S0-T1 — BUG-01: filter `templatePool` to `archetype === 'partition'` only~~ (`Level01Scene.ts:190` confirmed)
-- [x] ~~S0-T2 — BUG-02: debug `handlePos` update on drag events~~ (PartitionInteraction `onCommit` on drag-drop confirmed; validator payload key mismatches fixed across all 7 interactions)
-- [x] ~~S0-T3 — BUG-04: hint tier counter advances 1→2→3~~ (`Level01Scene.ts:793-795` confirmed)
+- [ ] S0-T1 — BUG-01: filter `templatePool` to `archetype === 'partition'` only — *likely fixed in pending diff; needs verification*
+- [ ] S0-T2 — BUG-02: debug `handlePos` update on drag events; widen snap tolerance if needed — *likely fixed in pending diff; needs verification*
+- [ ] S0-T3 — BUG-04: hint tier counter advances 1→2→3 — *needs verification*
 - [ ] S0-T4 — BUG-05: settings gear retest (code uses `scene.launch`; suspected IDE-preview artifact only)
 - [ ] S0-T5 — Round-trip screenshot: Menu → L1 → 5-correct → session-complete → "Back to menu"
 
 ### Sprint 1 — Make It Feel Smart
 *Exit:* IndexedDB shows real mastery estimates after 5 questions. Hints escalate. Misconception flags written when a pattern repeats.
 
-- [x] ~~S1-T1 — Wire `updateMastery()` in `Level01Scene.recordAttempt()`~~ (`Level01Scene.ts:990-1038` confirmed)
-- [x] ~~S1-T2 — Wire `runAllDetectors()` in `Level01Scene.recordAttempt()`~~ (confirmed in `Level01Scene.ts`)
-- [x] ~~S1-T3 — Pass `hintsUsedIds` through to attempt records~~ (`Level01Scene.ts:981` confirmed)
-- [x] ~~S1-T4 — Real `accuracy` + `avgResponseMs` in `closeSession()`~~ (`Level01Scene.ts:1203-1216` confirmed)
-- [ ] S1-T5 — Verify state transitions in IndexedDB: `NOT_STARTED → LEARNING → APPROACHING → MASTERED`
-- [x] ~~S1-T6 — *(pull-in)* Add `[archetype+submittedAt]` index to Dexie schema v4 if attempt queries get slow (G-DB1, deferrable)~~ (schema v4 at `db.ts:112,130` adds `[archetype+submittedAt]`)
+- [x] S1-T1 — Wire `updateMastery()` in `Level01Scene.recordAttempt()` (G-E1)
+- [x] S1-T2 — Wire `runAllDetectors()` in `Level01Scene.recordAttempt()` (G-E2; already wired in `LevelScene` per review)
+- [x] S1-T3 — Pass `hintsUsedIds` through to attempt records (G-E3)
+- [x] S1-T4 — Real `accuracy` + `avgResponseMs` in `closeSession()` (G-E4)
+- [x] S1-T5 — Verify state transitions in IndexedDB: `NOT_STARTED → LEARNING → APPROACHING → MASTERED` (`tests/integration/mastery-transition.test.ts`)
+- [x] S1-T6 — `[archetype+submittedAt]` index landed in schema v4 (current schema v7); G-DB1 closed
 
 ### Sprint 2 — Level Progression
 *Exit:* Student can reach Level 2 after L1, and progress is gated on mastery (or simple completion — see Open Decision D-1).
 
-- [ ] S2-T1 — Choose unlock model: BKT-mastery gate vs. session-completion gate (D-1)
-- [x] ~~S2-T2 — Make adventure-map nodes tappable, OR add a level-select bottom sheet (G-C3, G-C4)~~ (`MenuScene.createChooseLevelButton()` + `_openLevelChooser()` + `_renderLevelGrid()` implemented; "🗺 Choose Level" button opens tappable 3×3 grid; confirmed at `MenuScene.ts:303-468`)
-- [x] ~~S2-T3 — Fix "Keep going" to advance `levelNumber`~~ (`Level01Scene.ts:1135` confirmed, `levelNumber: 2`)
-- [x] ~~S2-T4 — Author L2 templates~~ (6 templates in `pipeline/output/level_02/all.json`)
-- [x] ~~S2-T5 — Run `npm run build:curriculum`~~ (54 templates across L1–L9 in `public/curriculum/v1.json`)
+- [x] S2-T1 — Unlock model resolved: **session-completion gate** (`levelUnlockRepo` unlocks N+1 on N completion)
+- [x] S2-T2 — Adventure-map nodes tappable (`MenuScene._renderLevelGrid()` 404-507)
+- [x] S2-T3 — "Keep going" advances `levelNumber` (`LevelScene` 1030-1050; `Level01Scene` 1323-1336 → L2)
+- [x] S2-T4 — L2 authored: 40 templates (partition + identify, includes thirds + quarters)
+- [ ] S2-T5 — Run `npm run build:curriculum`; smoke-test L2 in browser
 
 ### Sprint 3 — TTS + Feedback Polish
 *Exit:* Prompt is read aloud on question load. Correct/incorrect feedback verified with target-age proxy.
 
-- [x] ~~S3-T1 — Call `tts.speak(promptText)` on question load~~ (`Level01Scene.ts:510` confirmed)
-- [ ] S3-T2 — iPad Safari TTS + touch-drag test (G-OPS2)
-- [ ] S3-T3 — Playtest feedback animations with a 6-year-old (or close proxy) (G-UX4)
+- [x] S3-T1 — `tts.speak(promptText)` called on question load (`LevelScene.ts:272`); 5 call-sites for warmup + announcements
+- [ ] S3-T2 — iPad Safari TTS + touch-drag test (G-OPS2) — *manual, requires device*
+- [ ] S3-T3 — Playtest feedback animations with a 6-year-old (or close proxy) (G-UX4) — *manual*
 - [ ] S3-T4 — Polish session-complete card if playtest reveals issues
 
 ### Sprint 4 — L3–L9 Content + Full Level Access
 *Exit:* All 9 levels playable with authored content. Level unlock works end-to-end.
 
-- [x] ~~S4-T1 — Author L3–L5 templates~~ (L3: 6 equal_or_not/label, L4: 6 make, L5: 5 snap_match — in `pipeline/output/`)
-- [x] ~~S4-T2 — Author L6–L9 templates~~ (L6: 6 compare, L7: 6 compare, L8: 6 benchmark, L9: 6 order)
+- [x] S4-T1 — L3-L5 authored: L3=25 (equal_or_not + label), L4=14 (make), L5=12 (snap_match)
+- [x] S4-T2 — L6-L9 authored: L6=42 (compare), L7=42 (compare), L8=42 (benchmark), L9=42 (order)
 - [ ] S4-T3 — Per-level browser smoke test
-- [ ] S4-T4 — Mastery-gated unlock wired into menu state
+- [ ] S4-T4 — Mastery-gated unlock — *deferred; D-1 resolved as completion-gate; revisit if needed*
 
 ### Sprint 5 — Production & Testing
 *Exit:* App builds, deploys to Cloudflare Pages, works offline, works on iPad, has happy-path E2E test.
 
 - [x] ~~S5-T2 — `public/privacy.html` exists~~ (closed by current branch)
 - [x] ~~S5-T2b — `wrangler.toml` exists~~ (closed by current branch)
-- [x] ~~S5-T1 — `npm run build` produces clean bundle~~ (verified 2026-04-27; 1,352 kB Phaser chunk + PWA SW generated)
-- [x] ~~S5-T2c — `public/manifest.json` exists~~ (192×192, 512×512, maskable icons present)
+- [ ] S5-T1 — `npm run build` produces clean bundle, `npm run preview` boots (G-OPS1)
+- [ ] S5-T2c — Confirm `public/manifest.json` exists and passes Lighthouse PWA basics
 - [ ] S5-T3 — iPad Safari touch-drag test (G-OPS2)
 - [ ] S5-T4 — Playwright happy-path E2E for L1 (G-OPS5) — TestHooks already in place
-- [x] ~~S5-T5 — BKT unit tests~~ (21 tests passing in `tests/unit/engine/bkt.test.ts`)
-- [x] ~~S5-T6 — Validator unit tests~~ (173/173 unit tests pass; all archetypes covered)
+- [ ] S5-T5 — Expand BKT unit tests (G-OPS6 partial — `tests/unit/engine/bkt.test.ts` covers 8 areas; add edge cases for slip/guess and decay if introduced)
+- [ ] S5-T6 — Validator unit tests (`src/validators/registry.ts` and individual validators) (G-OPS6 expansion)
 - [ ] S5-T7 — Deploy to Cloudflare Pages
 
 ---
@@ -164,7 +163,7 @@ From `docs/00-foundation/constraints.md`:
 | C7 — touch targets ≥ 44×44px | ✅ | Existing audit passed |
 | C8 — reduced motion respected | ✅ | SettingsScene toggle wired |
 | C9 — 5+ problems per session | ✅ | Architecture supports; in-flight verification in progress |
-| C10 — linear denominator progression L1→L9 | ✅ | 54 templates authored; L1/L2: halves+quarters, L3: thirds, L4: make fractions, L5–L9: snap/compare/benchmark/order |
+| C10 — linear denominator progression L1→L9 | 🟡 | Architecture correct; content blocked on Sprint 4 |
 
 ---
 
@@ -172,13 +171,13 @@ From `docs/00-foundation/constraints.md`:
 
 | Sprint | Estimated Effort | Status |
 |---|---|---|
-| Sprint 0 (unblock loop) | — | ✅ code items done; browser verification pending |
-| Sprint 1 (BKT wiring) | — | ✅ code items done; IndexedDB verification pending |
-| Sprint 2 (level progression) | — | ✅ code items done; adventure-map unlock UI pending |
-| Sprint 3 (TTS + polish) | — | ✅ code items done; playtest pending |
-| Sprint 4 (L3–L9 content) | — | ✅ 54 templates shipped; browser smoke test pending |
-| Sprint 5 (production + testing) | 8 h remaining | 🟡 build ✅; E2E, iPad, deploy pending |
-| **Total to MVP** | **~16 h remaining** | Browser tests + unlock UI + deploy |
+| Sprint 0 (unblock loop) | 1.5 h remaining | 🟡 in-flight |
+| Sprint 1 (BKT wiring) | 3 h | 🔴 not started |
+| Sprint 2 (level progression) | 8 h | 🔴 not started |
+| Sprint 3 (TTS + polish) | 4 h | 🔴 not started |
+| Sprint 4 (L3–L9 content) | 16 h | 🔴 not started |
+| Sprint 5 (production + testing) | 8 h remaining | 🟡 partially started (privacy, wrangler, BKT tests) |
+| **Total to MVP** | **~40 h** | — |
 
 This is below the 50-hour roadmap budget. Headroom should go into iPad/touch testing and a real-child playtest (Sprint 3).
 
@@ -206,44 +205,4 @@ This is below the 50-hour roadmap budget. Headroom should go into iPad/touch tes
 3. **Weekly:** Re-check Section 1 (status snapshot) and update Section 8 (effort roll-up) — rebudget if drift > 20%.
 4. **Decision needed:** Bring Section 6 to the user; do not silently choose.
 
-*Created: 2026-04-26 · Updated: 2026-04-27 · Status: ACTIVE (browser verification + unlock UI remaining) · Owner: Claude + user*
-
----
-
-## 11. Implementation Log — 2026-04-27
-
-**Branch:** `plans/master-plan-2026-04-26`
-
-### Changes made
-
-**Validator payload alignment (7 interactions fixed):**
-- `EqualOrNotInteraction`: `{ answer }` → `{ studentAnswer }`
-- `CompareInteraction`: `{ relation, correct }` → `{ studentRelation }`
-- `OrderInteraction`: `{ sequence }` → `{ studentSequence }`
-- `SnapMatchInteraction`: `{ pairs }` → `{ studentPairs }`
-- `BenchmarkInteraction`: `{ zone }` → `{ studentPlacements: { [fracId]: zone } }`
-- `LabelInteraction`: `{ mappings }` → `{ studentMappings }`
-- `MakeInteraction`: `{ shadedRegionIds, areaTolerance, targetNumerator }` → `{ shadedRegionCount }`
-
-**Benchmark validator migrated from Map to Record** (`src/validators/benchmark.ts`): `Map<string, BenchmarkZone>` replaced with `Record<string, BenchmarkZone>` so the `correctPlacements` field is JSON-serializable in curriculum templates.
-
-**Partition property test fixed** (`tests/unit/validators/partition.property.test.ts`): Added `noNaN: true` to `fc.float({ min: Math.fround(0.5), max: Math.fround(5) })` to prevent the `NaN` counterexample from surfacing.
-
-**Curriculum templates created** — 54 templates total across `pipeline/output/level_01` through `level_09`:
-| Level | Archetypes | Templates |
-|---|---|---|
-| L1 | partition, identify | 7 |
-| L2 | partition, identify | 6 |
-| L3 | equal_or_not, label | 6 |
-| L4 | make | 6 |
-| L5 | snap_match | 5 |
-| L6 | compare | 6 |
-| L7 | compare | 6 |
-| L8 | benchmark | 6 |
-| L9 | order | 6 |
-
-`npm run build:curriculum` regenerated — `public/curriculum/v1.json` and `src/curriculum/bundle.json` now populated.
-
-### Verification
-- `npm run test:unit`: 173/173 tests pass
-- `npm run build`: clean (PWA + workbox generated)
+*Created: 2026-04-26 · Status: ACTIVE · Owner: Claude + user*
