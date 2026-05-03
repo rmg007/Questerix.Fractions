@@ -2,120 +2,70 @@
   {
     "id": "q:pt:L1:0001",
     "archetype": "partition",
-    "prompt": { "text": "Cut the shape into 2 equal parts.", "ttsKey": "q_pt_l1_0001" },
+    "prompt": {
+      "text": "Cut the shape into 2 equal parts.",
+      "ttsKey": "q_pt_l1_0001"
+    },
     "payload": {
       "shapeType": "rectangle",
       "snapMode": "axis",
       "targetPartitions": 2,
       "areaTolerance": 0.1
     },
-    "correctAnswer": { "targetPartitions": 2 },
+    "correctAnswer": {
+      "targetPartitions": 2
+    },
     "validatorId": "validator.partition.equalAreas",
-    "skillIds": ["skill:partition:halves"],
+    "skillIds": [
+      "skill:partition:halves"
+    ],
     "misconceptionTraps": [],
     "difficultyTier": "easy"
   },
   {
     "id": "q:pt:L1:0002",
     "archetype": "partition",
-    "prompt": { "text": "Divide this rectangle into 2 equal halves.", "ttsKey": "q_pt_l1_0002" },
+    "prompt": {
+      "text": "Divide this rectangle into 2 equal halves.",
+      "ttsKey": "q_pt_l1_0002"
+    },
     "payload": {
       "shapeType": "rectangle",
       "snapMode": "axis",
       "targetPartitions": 2,
       "areaTolerance": 0.1
     },
-    "correctAnswer": { "targetPartitions": 2 },
+    "correctAnswer": {
+      "targetPartitions": 2
+    },
     "validatorId": "validator.partition.equalAreas",
-    "skillIds": ["skill:partition:halves"],
-    "misconceptionTraps": [],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:pt:L1:0003",
-    "archetype": "partition",
-    "prompt": { "text": "Split this shape into 4 equal parts.", "ttsKey": "q_pt_l1_0003" },
-    "payload": {
-      "shapeType": "rectangle",
-      "snapMode": "free",
-      "targetPartitions": 4,
-      "areaTolerance": 0.1
-    },
-    "correctAnswer": { "targetPartitions": 4 },
-    "validatorId": "validator.partition.equalAreas",
-    "skillIds": ["skill:partition:fourths"],
-    "misconceptionTraps": [],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:id:L1:0001",
-    "archetype": "identify",
-    "prompt": { "text": "Which picture shows one half?", "ttsKey": "q_id_l1_0001" },
-    "payload": {
-      "options": [
-        { "alt": "Rectangle split into 2 equal parts, 1 shaded", "partitionLines": [[[0.5, 0], [0.5, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle split into 3 equal parts, 1 shaded", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle split into 4 equal parts, 1 shaded", "partitionLines": [[[0.25, 0], [0.25, 1]], [[0.5, 0], [0.5, 1]], [[0.75, 0], [0.75, 1]]], "highlightedRegions": [0] }
-      ],
-      "targetIndex": 0,
-      "distractorMisconceptions": { "2": "MC-WHB-01" }
-    },
-    "correctAnswer": { "selectedIndex": 0 },
-    "validatorId": "validator.identify.exactIndex",
-    "skillIds": ["skill:identify:halves"],
-    "misconceptionTraps": ["MC-WHB-01"],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:id:L1:0002",
-    "archetype": "identify",
-    "prompt": { "text": "Which shape shows one fourth (1/4)?", "ttsKey": "q_id_l1_0002" },
-    "payload": {
-      "options": [
-        { "alt": "Rectangle with 2 equal parts", "partitionLines": [[[0.5, 0], [0.5, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle with 4 equal parts, 1 shaded", "partitionLines": [[[0.25, 0], [0.25, 1]], [[0.5, 0], [0.5, 1]], [[0.75, 0], [0.75, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle with 3 equal parts, 1 shaded", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0] }
-      ],
-      "targetIndex": 1
-    },
-    "correctAnswer": { "selectedIndex": 1 },
-    "validatorId": "validator.identify.exactIndex",
-    "skillIds": ["skill:identify:fourths"],
+    "skillIds": [
+      "skill:partition:halves"
+    ],
     "misconceptionTraps": [],
     "difficultyTier": "easy"
   },
   {
     "id": "q:pt:L1:0004",
     "archetype": "partition",
-    "prompt": { "text": "Cut this circle into 2 equal halves.", "ttsKey": "q_pt_l1_0004" },
+    "prompt": {
+      "text": "Cut this circle into 2 equal halves.",
+      "ttsKey": "q_pt_l1_0004"
+    },
     "payload": {
       "shapeType": "circle",
       "snapMode": "axis",
       "targetPartitions": 2,
       "areaTolerance": 0.1
     },
-    "correctAnswer": { "targetPartitions": 2 },
+    "correctAnswer": {
+      "targetPartitions": 2
+    },
     "validatorId": "validator.partition.equalAreas",
-    "skillIds": ["skill:partition:halves"],
+    "skillIds": [
+      "skill:partition:halves"
+    ],
     "misconceptionTraps": [],
     "difficultyTier": "easy"
-  },
-  {
-    "id": "q:id:L1:0003",
-    "archetype": "identify",
-    "prompt": { "text": "Which picture shows one third (1/3)?", "ttsKey": "q_id_l1_0003" },
-    "payload": {
-      "options": [
-        { "alt": "Rectangle split into 2 equal parts", "partitionLines": [[[0.5, 0], [0.5, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle split into 3 equal parts, 1 shaded", "partitionLines": [[[0.33, 0], [0.33, 1]], [[0.67, 0], [0.67, 1]]], "highlightedRegions": [0] },
-        { "alt": "Rectangle split into 4 equal parts", "partitionLines": [[[0.25, 0], [0.25, 1]], [[0.5, 0], [0.5, 1]], [[0.75, 0], [0.75, 1]]], "highlightedRegions": [0] }
-      ],
-      "targetIndex": 1
-    },
-    "correctAnswer": { "selectedIndex": 1 },
-    "validatorId": "validator.identify.exactIndex",
-    "skillIds": ["skill:identify:thirds"],
-    "misconceptionTraps": [],
-    "difficultyTier": "medium"
   }
 ]
