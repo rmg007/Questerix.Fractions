@@ -6,6 +6,7 @@
 import * as Phaser from 'phaser';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
+import { checkReduceMotion } from '../../lib/preferences';
 import {
   BODY_FONT,
   createActionButton,
@@ -71,16 +72,56 @@ export class IdentifyInteraction implements Interaction {
       const bg = scene.add.rectangle(x, cardY, cardW, cardH, OPTION_BG).setDepth(5);
       bg.setStrokeStyle(2, OPTION_BORDER);
       this.optionBackgrounds.push(bg);
-      const label = scene.add
-        .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
-          fontSize: '14px',
-          fontFamily: BODY_FONT,
-          color: TEXT_HEADING,
-          align: 'center',
-          wordWrap: { width: cardW - 16 },
-        })
-        .setOrigin(0.5)
-        .setDepth(6);
+
+      // Render partition lines and highlighted regions if available
+      if (opt.partitionLines && opt.highlightedRegions !== undefined) {
+        const shapeW = cardW - 16;
+        const shapeH = cardH - 32;
+        const shapeX = x - shapeW / 2;
+        const shapeY = cardY - shapeH / 2;
+
+        // Draw shape background (white rectangle)
+        const shapeRect = scene.add.rectangle(x, cardY - 10, shapeW, shapeH, 0xffffff).setDepth(5);
+
+        // Draw partition lines
+        const lineG = scene.add.graphics().setDepth(5);
+        lineG.lineStyle(2, 0x1e3a8a, 1);
+        opt.partitionLines.forEach((line) => {
+          if (line.length >= 2) {
+            const x1 = shapeX + line[0]![0]! * shapeW;
+            const y1 = shapeY + line[0]![1]! * shapeH;
+            const x2 = shapeX + line[1]![0]! * shapeW;
+            const y2 = shapeY + line[1]![1]! * shapeH;
+            lineG.lineBetween(x1, y1, x2, y2);
+          }
+        });
+
+        // Highlight selected regions
+        const fillG = scene.add.graphics().setDepth(4);
+        fillG.fillStyle(0xfbbf24, 0.5);
+        const numParts = Math.max(...opt.partitionLines.map(() => 1), 1) + 1;
+        const partW = shapeW / numParts;
+
+        opt.highlightedRegions.forEach((regionIdx) => {
+          const rx = shapeX + regionIdx * partW;
+          fillG.fillRect(rx, shapeY, partW, shapeH);
+        });
+
+        this.gameObjects.push(shapeRect, lineG, fillG);
+      } else {
+        // Fallback to text label if no shape data
+        const label = scene.add
+          .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
+            fontSize: '14px',
+            fontFamily: BODY_FONT,
+            color: TEXT_HEADING,
+            align: 'center',
+            wordWrap: { width: cardW - 16 },
+          })
+          .setOrigin(0.5)
+          .setDepth(6);
+        this.gameObjects.push(label);
+      }
 
       const hit = scene.add
         .rectangle(x, cardY, cardW, cardH, 0, 0)
@@ -126,7 +167,7 @@ export class IdentifyInteraction implements Interaction {
         height: `${cardH}px`,
       });
 
-      this.gameObjects.push(bg, label, hit);
+      this.gameObjects.push(bg, hit);
     });
 
     // Submit button
@@ -134,6 +175,15 @@ export class IdentifyInteraction implements Interaction {
     const submit = () => {
       if (this.selectedIndex >= 0) {
         onCommit({ selectedIndex: this.selectedIndex });
+      } else if (!checkReduceMotion()) {
+        // Shake the submit button to indicate selection is required
+        scene.tweens.add({
+          targets: this.submitContainer,
+          x: this.submitContainer!.x - 8,
+          duration: 50,
+          yoyo: true,
+          repeat: 2,
+        });
       }
     };
 

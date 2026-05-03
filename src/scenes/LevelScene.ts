@@ -403,6 +403,12 @@ export class LevelScene extends Phaser.Scene {
         wrongCount: this.wrongCount,
       }),
     });
+    TestHooks.mountInteractive('hint-button', () => this.onHintRequest(), {
+      width: '160px',
+      height: '60px',
+      left: '50%',
+      top: '56%',
+    });
   }
 
   private createSubmitButton(): void {
