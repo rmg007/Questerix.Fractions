@@ -118,7 +118,8 @@ const sessionTelemetrySchema = z
 
 const hintEventSchema = z
   .object({
-    attemptId: z.string().min(1).max(256),
+    id: z.string().min(1).max(256),
+    attemptId: z.string().min(1).max(256).optional(),
     hintId: z.string().min(1).max(256),
     tier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     shownAt: z.number(),

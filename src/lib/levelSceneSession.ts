@@ -157,6 +157,18 @@ export async function recordAttemptAndMasteryForLevel(
       masteryEstimate = withMeta.masteryEstimate;
     });
     log.atmp('record_ok', { attemptId, outcome, points: result.score });
+
+    // Link pending hint events to the attempt now that it's persisted
+    if (currentQuestionHintIds.length > 0) {
+      try {
+        const { hintEventRepo: hintEventRepo2 } =
+          await import('@/persistence/repositories/hintEvent');
+        await hintEventRepo2.linkToAttempt(currentQuestionHintIds, attemptId);
+      } catch (err) {
+        console.warn('[levelSceneSession] Could not link hint events to attempt:', err);
+      }
+    }
+
     try {
       const { db: db2 } = await import('@/persistence/db');
       const { attemptRepo: attemptRepo2 } = await import('@/persistence/repositories/attempt');

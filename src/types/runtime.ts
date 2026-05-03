@@ -161,7 +161,8 @@ export interface Attempt {
 export interface HintEvent {
   /** RFC 4122 UUID string for type consistency with other entities (R4). */
   id: string;
-  attemptId: AttemptId;
+  /** Optional until linked to actual attempt after it's persisted. */
+  attemptId?: AttemptId;
   /** References HintTemplate.id */
   hintId: string;
   /** HintTier for quick analysis without join. */

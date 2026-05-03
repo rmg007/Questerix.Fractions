@@ -141,7 +141,6 @@ export async function showHintForTier(
     const { hintEventRepo } = await import('@/persistence/repositories/hintEvent');
     const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
     const ev = await hintEventRepo.record({
-      attemptId: '' as unknown as import('@/types').AttemptId,
       hintId: `hint.${ctx.currentTemplate.archetype}.${tier}`,
       tier,
       shownAt: Date.now(),

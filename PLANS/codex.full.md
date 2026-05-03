@@ -26,9 +26,27 @@ Scope: Questerix.Fractions full codebase, reconciled from `CLAUDE.md`, `docs/00-
 
 Previous reports disagree: `PLANS/production.readiness.2026-05-03.md` says production-ready, while `PLANS/codex.audit.md` and `PLANS/claude.audit.2026-05-03.md` still identify real issues. Live scans on 2026-05-03 confirm that several high-priority findings remain in the working tree.
 
+### Working Tree Reality Check (Important)
+
+`git status` currently shows uncommitted edits touching core files:
+
+- `src/main.ts`
+- `src/lib/observability/index.ts`
+- `src/persistence/backup.ts`
+- `src/persistence/db.ts`
+- `src/persistence/schemas.ts`
+- `src/scenes/OnboardingScene.ts`
+
+Those edits appear to address multiple previously-audited issues (fatal error banner DOM XSS sink, observability network gating, backup completeness, hintEvents migration, onboarding TTS preference gating), but they are not committed/merged. This plan treats them as “in-flight” and calls out remaining gaps they introduce.
+
+Current verification status for this working tree:
+
+- `npm.cmd run typecheck` passes
+- `npm.cmd run test:unit` passes (702 tests)
+
 Confirmed live findings:
 
-- `src/main.ts:23` still uses `banner.innerHTML = ... ${error.message} ...` in the fatal error banner.
+- `src/main.ts` fatal error banner: on `main` (HEAD) this used `innerHTML` with `${error.message}` interpolation; in the current working tree it has been rewritten to DOM node construction + `textContent` (see `git diff src/main.ts`).
 - `src/curriculum/seed.ts:202`, `src/lib/observability/errorReporter.ts`, `src/lib/observability/tracer.ts`, `src/lib/level01SessionComplete.ts`, `src/lib/levelSceneOutcomeFlow.ts`, `src/lib/levelSceneQuestionFlow.ts`, `src/lib/levelSceneSessionComplete.ts`, `src/lib/log.ts`, `src/lib/logViewer.ts`, and `src/validators/registry.ts` still contain explicit `any` usage.
 - `src/lib/levelSceneHintFlow.ts:144` and `src/scenes/Level01SceneHintSystem.ts:118` still create fake pending attempt IDs via `'' as unknown as AttemptId`.
 - `src/curriculum/seed.ts:202`, `src/components/LevelVignette.ts:249`, `src/components/Mascot.ts:380`, `src/components/Mascot.ts:439`, `src/lib/levelSceneChrome.ts:139`, `src/lib/levelSceneSession.ts:180`, `src/persistence/backup.ts:145`, and `src/persistence/repositories/questionTemplate.ts:32` still contain `as unknown as` casts.
@@ -38,10 +56,39 @@ Confirmed live findings:
 - `src/persistence/repositories/levelProgression.ts:34` catches writes and can hide progression save failures.
 - `src/persistence/repositories/skillMastery.ts:26` catches writes and can break transaction atomicity when called by session recording.
 - Multiple repository write paths still lack explicit try/catch logging and rethrow behavior.
-- `src/persistence/schemas.ts` still accepts several restore fields without the requested max-length, numeric range, and enum hardening.
+- `src/persistence/schemas.ts` hardening is incomplete: several row schemas are still underconstrained, and the `HintEvent.tier` validator appears mismatched vs runtime (`src/types/hint.ts:8` vs `src/persistence/schemas.ts:119-129`).
 - `src/lib/levelSceneHintFlow.ts` records generic-level hints with pending/fake attempt IDs, while the generic attempt path needs explicit linking.
 - The codebase has broad `setInteractive()`, `tweens.add()`, and `time.delayedCall()` surfaces; several require a11y, reduced-motion, and teardown verification.
 - Player-facing strings remain hardcoded in scenes/components; `main.ts` imports the quest i18n key side effect twice.
+
+### Deep Finding: AttemptId Strategy Is Internally Inconsistent
+
+This is the biggest “root mismatch” surfaced in the deeper pass.
+
+- `src/types/branded.ts:41` documents `AttemptId` as a UUID string.
+- `src/persistence/db.ts:69-70` defines `attempts` as `++id` (numeric auto-increment PK) and types the table as `Table<Attempt, number>`.
+- `tests/unit/persistence/attempt.test.ts:64-66` asserts attempt IDs are *stringified numeric auto-increment* values.
+- But runtime attempt/session recording code generates UUID attempt IDs:
+  - `src/lib/attemptRecorder.ts:51`
+  - `src/lib/levelSceneSession.ts:84`
+
+This inconsistency cascades into:
+
+- Retrieval: `attemptRepo.get()` assumes numeric keys (`Number(id)`) and will not retrieve UUID-keyed rows (`src/persistence/repositories/attempt.ts:34-39`).
+- Hint analytics: `hintEventRepo.linkToAttempt()` is called with the UUID attemptId in Level01 flows (`src/lib/attemptRecorder.ts:93-96`), while generic flows write fake attempt IDs and never link (`src/lib/levelSceneHintFlow.ts:140-158`).
+
+This pass needs a single explicit resolution:
+
+1. Switch attempts to UUID PKs (Dexie schema uses `id` not `++id`), update repos + tests.
+2. Keep numeric auto-increment PKs, stop generating UUID AttemptIds, and (if needed) add a separate `attemptUuid` field for correlation/logging.
+
+### Deep Finding: HintEvent Tier Shape Likely Mismatched in Backup Schemas
+
+- Runtime `HintTier` is a string union (`src/types/hint.ts:8`).
+- `hintEventRepo.record()` writes `tier` as that string (`src/persistence/repositories/hintEvent.ts:12-24`).
+- `src/persistence/schemas.ts:119-129` currently validates `tier` as numeric `1|2|3`.
+
+This is a high-likelihood restore bug that is not obviously covered by existing backup-validation fixtures (unit tests are green, but fixtures may not include real hintEvent rows).
 
 Positive baseline checks from prior audit that should be preserved:
 
