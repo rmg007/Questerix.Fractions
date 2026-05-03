@@ -262,8 +262,8 @@ const QUEST_COPY: Catalog = {
 
   // ── Identify hints ────────────────────────────────────────────────────────
   'quest.hint.identify.verbal': {
-    text: 'How many parts are shaded?',
-    notes: 'Tier 1 hint for identify. Questions nudge active counting.',
+    text: 'How much is shaded?',
+    notes: 'Tier 1 hint for identify. Question nudges active thinking.',
     tone: 'persona-quest',
   },
   'quest.hint.identify.visual': {
@@ -344,7 +344,7 @@ const QUEST_COPY: Catalog = {
     tone: 'persona-quest',
   },
   'quest.hint.fallback.visual': {
-    text: 'Count carefully. What do you see?',
+    text: 'Count. What do you see?',
     notes: 'Generic fallback hint tier 2. Asks observational question.',
     tone: 'persona-quest',
   },
