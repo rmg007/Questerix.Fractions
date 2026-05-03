@@ -9,6 +9,7 @@ Scope: Questerix.Fractions full codebase, reconciled from `CLAUDE.md`, `docs/00-
 - Read `CLAUDE.md` and `docs/00-foundation/constraints.md` before implementation. This file assumes those rules are binding.
 - C1-C10 are locked. No backend, no external data egress, no new framework, no new meaningful `localStorage` surface.
 - Branch format for implementation: `fix/YYYY-MM-DD-<slug>`.
+- Command note (PowerShell): if `npm run ...` fails due to shell profile wrappers, use `npm.cmd run ...` instead (confirmed working in this environment).
 - Each implementation group must be independently green before the next group starts:
   - `npm run typecheck`
   - `npm run test:unit`
@@ -21,6 +22,58 @@ Scope: Questerix.Fractions full codebase, reconciled from `CLAUDE.md`, `docs/00-
   - `npm run validate:curriculum`
 - Existing dirty tree note: `PLANS/codex-fixes.md` is already untracked on `main`; do not overwrite it without an explicit request.
 - `rg` was unavailable in this Codex session due a Windows app execution permission error, so live scans used PowerShell `Select-String`.
+
+## Decision Register
+
+These are the “pick one” decisions that unblock large portions of the plan. Without explicit choices here, later phases risk churn, rewrites, or schema drift.
+
+- DR-01 (P0): **AttemptId primary key strategy**
+  - Option A: Attempt rows use UUID string PK (`attempts: 'id, ...'`), AttemptId is a true UUID everywhere (types/repos/tests/migrations).
+  - Option B: Attempt rows use numeric auto-increment PK (`attempts: '++id, ...'`), AttemptId is numeric-string everywhere; add a separate `attemptUuid` field only if correlation is needed.
+  - Affects: `src/types/branded.ts`, `src/types/runtime.ts`, `src/persistence/db.ts`, `src/persistence/repositories/attempt.ts`, `tests/unit/persistence/attempt.test.ts`, hint linking, session recording.
+
+- DR-02 (P0): **HintTier / HintEvent.tier representation**
+  - Option A: `HintTier` is string union only (`'verbal' | 'visual_overlay' | 'worked_example'`) everywhere (runtime, persisted rows, backup schemas, fixtures).
+  - Option B: Persist tier as numeric `1|2|3` and introduce a separate field for string label (or map at boundaries), with one canonical “storage form”.
+  - Affects: `src/types/hint.ts`, `src/types/runtime.ts`, `src/persistence/schemas.ts`, `tests/unit/persistence/hintEvent.test.ts`, hint flows.
+
+- DR-03 (P0): **hintEvents primary key + migration safety stance**
+  - Decide whether preserving historical hintEvents across the v8→v9 primary-key change is mandatory (“no silent loss”) or best-effort acceptable.
+  - If mandatory: migrations must not swallow failures; add explicit restore verification tests.
+  - Affects: `src/persistence/db.ts` v8/v9 upgrade logic and tests.
+
+- DR-04 (P0/C1): **Telemetry egress policy for MVP**
+  - Option A: No network telemetry at all until constraints change (disable sync service even if env var is set).
+  - Option B: Allow egress only when env vars are explicitly configured (current shape), and add a test asserting no `fetch` when unset.
+  - Affects: `src/lib/observability/index.ts`, `src/lib/observability/syncService.ts`, C1 audits/tests.
+
+- DR-05 (P1): **Validator result contract**
+  - Decide whether to (a) change the core validator return type to `{ isCorrect, feedback, misconception? }`, or (b) keep current `ValidatorResult` and adapt at boundaries.
+  - Affects: scenes, validators, fixtures, Python parity.
+
+- DR-06 (P1/C5): **Legacy localStorage reads**
+  - Decide whether `deviceMetaRepo.readLegacyOnboardingFlag()` remains allowed as “migration-only legacy read” or must be removed entirely from runtime code paths.
+  - Affects: `src/persistence/repositories/deviceMeta.ts`, C5 checks, migration documentation.
+
+## Contract Matrix (Single Source Of Truth Checklist)
+
+Use this matrix during implementation to prevent drift between types, Dexie schema, repositories, backup restore schemas, and tests.
+
+| Domain | TypeScript Contract | Dexie Schema Contract | Repo Contract | Backup Restore Contract | Tests That Prove It | Known Drift Today |
+|---|---|---|---|---|---|---|
+| Attempt ID | `src/types/branded.ts` + `src/types/runtime.ts` | `src/persistence/db.ts` (attempts store) | `src/persistence/repositories/attempt.ts` | `src/persistence/schemas.ts` attemptSchema | `tests/unit/persistence/attempt.test.ts` | UUID vs `++id` mismatch |
+| Hint tier | `src/types/hint.ts` + `src/types/runtime.ts` | `src/persistence/db.ts` (hintEvents store) | `src/persistence/repositories/hintEvent.ts` | `src/persistence/schemas.ts` hintEventSchema | `tests/unit/persistence/hintEvent.test.ts` | string vs numeric tier mismatch |
+| Hint link | `HintEvent.attemptId?: AttemptId` | hintEvents index on `attemptId` | `hintEventRepo.linkToAttempt()` | schema must allow pending/unlinked rows | needs a linking test | generic hint flow uses fake attemptId |
+| Telemetry egress | env-gated no-op | n/a | sync service `fetch` | n/a | a “no fetch when unset” test | C1 policy decision pending |
+
+## Phase Execution Template (No Surprises)
+
+For every phase below, enforce this structure in commits/PR descriptions (even if you bundle multiple micro-fixes):
+
+- Entry criteria: clean `npm.cmd run typecheck` and `npm.cmd run test:unit`
+- Change budget: one domain per commit group (types vs persistence vs scenes, etc.)
+- Exit criteria: the same commands green, plus any phase-specific tests
+- Evidence: include the exact command outputs/links in `PLANS/codex.full.md` or PR description (no “it should work”)
 
 ## Current Baseline Findings
 
@@ -204,6 +257,16 @@ Findings to fix:
   - Isolate and document migration-only reads for `questerix.onboardingSeen` and `questerix.streak:*`, then remove migrated keys after success.
 
 Commit message: `fix: harden persistence writes and restore validation`
+
+### Migration Safety Checklist (Applies To Every `version().upgrade()` Edit)
+
+When touching `src/persistence/db.ts`, every upgrade block must be reviewed against this checklist:
+
+- Idempotent: re-running upgrade must not duplicate or corrupt rows.
+- No silent data loss: if a store is dropped, there must be an explicit decision (DR-03) and a written rationale.
+- No swallowed failures for required migrations: best-effort behavior must be opt-in, not default.
+- Shadow-table migrations must include: copy step, restore step, and cleanup step, with tests that prove row counts (or an acceptable loss policy).
+- Host-global usage inside upgrade (`crypto.randomUUID`, Date/time) must be explicitly justified for target browsers and tested.
 
 ## Phase 5 - Scene and Session Lifecycle
 
@@ -418,6 +481,17 @@ Findings to fix:
 
 Commit message: `test: cover lifecycle and fallback paths`
 
+### Test Map (High-Signal Files)
+
+Use this map to avoid “tests are green” false confidence when fixtures don’t cover the new contract.
+
+- Attempt repo contract: `tests/unit/persistence/attempt.test.ts`
+- HintEvent repo contract: `tests/unit/persistence/hintEvent.test.ts`
+- Backup restore boundary: `tests/unit/persistence/backup-validation.test.ts` (currently stale vs newer tables; must be expanded when Phase 4 changes land)
+- Router/selection/BKT: `tests/unit/engine/router.test.ts`, `tests/unit/engine/selection.test.ts`, `tests/unit/engine/bkt*.test.ts`
+- Validator dispatch: `tests/unit/validators/registry.test.ts`
+- Session wiring: `tests/unit/scenes/LevelSceneQuestWiring.test.ts`, `tests/unit/scenes/Level01SceneQuestWiring.test.ts`
+
 ## Suggested Implementation Order
 
 1. Security and C1/C5 blockers: `main.ts` DOM sink, observability egress, fake pending IDs, write swallowing.
@@ -509,3 +583,9 @@ Legacy Level01 replay path remains:
 - [ ] `npm run test:e2e` passes.
 - [ ] `npm run measure-bundle` passes.
 - [ ] `npm run validate:curriculum` passes.
+
+### Constraint Checkpoints (Run At End Of Every Phase)
+
+- C1: Confirm no new network egress paths were introduced; `fetch` usage remains policy-compliant.
+- C5: Confirm no new `localStorage` keys; legacy reads are migration-only and removed after migration.
+- C10: Confirm the phase’s changes are validation-serving (correctness, durability, a11y), not polish-only.

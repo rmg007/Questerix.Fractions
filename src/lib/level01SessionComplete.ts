@@ -4,6 +4,7 @@
 
 import * as Phaser from 'phaser';
 import { SessionCompleteOverlay } from '@/components/SessionCompleteOverlay';
+import { Mascot } from '@/components/Mascot';
 import { fadeAndStart } from '@/scenes/utils/sceneTransition';
 import { MenuScene } from '@/scenes/MenuScene';
 import { log } from './log';
@@ -23,8 +24,7 @@ export interface SessionCompleteContext {
   attemptCount: number;
   recentOutcomes: boolean[];
   calibrationState: CalibrationState | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mascot: any;
+  mascot: Mascot | null;
   persistLevelCompletion: () => Promise<void>;
   checkAllLevelsComplete: () => Promise<boolean>;
 }

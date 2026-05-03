@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { log } from './log';
 import { A11yLayer } from '@/components/A11yLayer';
 import { HintLadder } from '@/components/HintLadder';
+import { Mascot } from '@/components/Mascot';
 import { tts } from '@/audio/TTSService';
 import { withSpan } from '@/lib/observability/withSpan';
 import { SPAN_NAMES } from '@/lib/observability/span-names';
@@ -32,8 +33,7 @@ export interface QuestionFlowContext {
   hintTextGO: Phaser.GameObjects.Text;
   questionCounterText: Phaser.GameObjects.Text;
   updateCounter?: (answered: number, total: number) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mascot: any;
+  mascot: Mascot | null;
 }
 
 export interface QuestionFlowCallbacks {

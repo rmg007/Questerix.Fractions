@@ -157,6 +157,8 @@ export interface QuestionTemplate {
   skillIds: SkillId[];
   misconceptionTraps: MisconceptionId[];
   difficultyTier: 'easy' | 'medium' | 'hard';
+  /** Indexed field computed during curriculum seeding: '01-02' | '03-05' | '06-09'. */
+  levelGroup?: string;
 }
 
 // ── §2.8 Misconception ─────────────────────────────────────────────────────

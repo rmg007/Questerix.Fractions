@@ -2,10 +2,12 @@ import * as Phaser from 'phaser';
 import { log } from './log';
 import { get as getCopy } from './i18n/catalog';
 import type { ValidatorResult, QuestionTemplate, HintTier } from '@/types';
+import { Mascot } from '@/components/Mascot';
 import { AccessibilityAnnouncer } from '@/components/AccessibilityAnnouncer';
 import { ProgressBar } from '@/components/ProgressBar';
 import { FeedbackOverlay, type FeedbackKind } from '@/components/FeedbackOverlay';
 import { HintLadder } from '@/components/HintLadder';
+import type { Interaction } from '@/scenes/interactions/types';
 import { sfx } from '@/audio/SFXService';
 
 const CW = 800;
@@ -24,10 +26,8 @@ export interface OutcomeFlowContext {
   feedbackOverlay: FeedbackOverlay;
   submitButtonContainer: Phaser.GameObjects.Container | null;
   hintLadder: HintLadder | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mascot: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  activeInteraction: any;
+  mascot: Mascot | null;
+  activeInteraction: Interaction | null;
 }
 
 export interface OutcomeFlowCallbacks {

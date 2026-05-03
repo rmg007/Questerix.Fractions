@@ -196,10 +196,9 @@ async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false):
       }
       if (templatesWithGroup.length > 0) {
         // levelGroup is an indexed field in the questionTemplates store
-        // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
+        // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup') —
         // it MUST be persisted, not stripped. Without it, getByLevel() returns 0 rows.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await db.questionTemplates.bulkPut(templatesWithGroup as any);
+        await db.questionTemplates.bulkPut(templatesWithGroup);
         total += templatesWithGroup.length;
       }
       if (bundle.misconceptions.length > 0) {

@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { log } from './log';
 import { SessionCompleteOverlay } from '@/components/SessionCompleteOverlay';
+import { Mascot } from '@/components/Mascot';
 import { evaluateUnlockGate } from './unlockGate';
 import type { StudentId } from '@/types';
 
@@ -15,8 +16,7 @@ export interface SessionCompleteContext {
   responseTimes: number[];
   canvasWidth: number;
   canvasHeight: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mascot: any;
+  mascot: Mascot | null;
 }
 
 export interface SessionCompleteCallbacks {
