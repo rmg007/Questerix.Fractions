@@ -10,12 +10,7 @@
 
 | File | Scope |
 |---|---|
-| [`PLANS/MANUAL_VERIFICATION.md`](./MANUAL_VERIFICATION.md) | Items requiring a human in a browser, on iPad hardware, or with Cloudflare auth — Phase 0 walkthrough, iPad Safari touch-drag, production deploy. |
-| [`PLANS/E2E_FOLLOWUPS.md`](./E2E_FOLLOWUPS.md) | 7 skipped E2E clusters with fix paths (mascot, Quest catalog, L6/L7 chrome, multi-attempt flake, a11y touch targets, skip-link). |
-| [`PLANS/refactor-god-objects-2026-05-01.md`](./refactor-god-objects-2026-05-01.md) | God-object refactor — Level01Scene → LevelScene migration. 6 serial sub-phases. |
-| [`PLANS/ui-audit.md`](./ui-audit.md) | Visual/UX audit — critical layout, drag affordance, shape size, hint button. |
-| [`PLANS/ux-elevation.md`](./ux-elevation.md) | Delight tasks — themed loading, star progress bar, celebration, trophy screen, mascot. |
-| [`PLANS/visual-overlay-hints.md`](./visual-overlay-hints.md) | Tier-2 visual overlay hints for 7 archetypes (compare, equal_or_not, order, benchmark, label, make, snap_match). |
+| [`PLANS/E2E_FOLLOWUPS.md`](./E2E_FOLLOWUPS.md) | 5 remaining skipped E2E clusters (A–E): mascot state, Quest catalog, L6/L7 routing, session-flow flake, a11y progress bar. Clusters F+G fixed 2026-05-02. |
 
 ---
 
@@ -57,11 +52,51 @@ Extracted from `curriculum-completion-phase-3.plan.md` and `harden-and-polish.md
 
 ---
 
+## Backlog — UI/UX (pre-playtest polish, archived from ui-audit.md + ux-elevation.md 2026-05-02)
+
+### Critical layout (S — Structural, from ui-audit.md)
+- **S** Collapse three-island Level01/LevelScene layout: Check button y=1100→820, shape 340×260→520×340, hint pill 100×60 at y=720, Quest at (80,500). Files: `Level01Scene.ts`, `LevelScene.ts`, `PartitionInteraction.ts`.
+- **UI-1** Drag handle: circular gripper r=20, `‹ ›` chevrons, 2-pulse on load. Files: `Level01Scene.ts`, `PartitionInteraction.ts`.
+- **UI-S1** Partition line: navy #1E3A8A, 16 px solid, white 2 px outline, no dashes. Files: `Level01Scene.ts`, `PartitionInteraction.ts`.
+- **UI-S2** Hint button: 100×60 px amber pill "💡 Need a hint?", pulse after 2 wrong. Files: `Level01Scene.ts`, `LevelScene.ts`.
+- **UI-M1** MenuScene Play! button: move to y=760–840.
+- **UI-M2** MenuScene Quest: center x≈400, y=500–580, scale 1.3–1.5×.
+
+### Delight (from ux-elevation.md)
+- **T25.A** `PreloadScene.ts` + `index.html`: adventure-background splash, fraction-tile SVG fade-in, navy loading chip.
+- **T25.B** Smooth camera fade transitions on all `scene.start()` call sites (currently only some use `fadeAndStart`).
+- **T25.C** Star strip progress bar: 5 hollow stars in top row, fill on each correct answer.
+- **T26.A** Correct-answer sparkle: 6-point burst, 300 ms fade, depth 9. Files: `FeedbackOverlay.ts`.
+- **T26.B** Trophy completion screen: star rating, fanfare SFX, `celebrate` mascot state. Files: `SessionCompleteOverlay.ts`.
+- **T18** In-game theme polish: header pills, prompt panel border, hint button amber, TTS "read again" pill.
+- **T27** Mascot component: `idle/think/cheer/cheer-big/oops` states via `setState()`, speech bubble.
+- **T19** WorldMapScene: horizontal scroll, 9 region nodes.
+- **UI-11** Post-session routing overlay in `LevelMapScene` (spec in archived `ui-audit.md`).
+
+---
+
+## Backlog — God-object refactor (serial, archived from refactor-god-objects-2026-05-01.md 2026-05-02)
+
+LOC budgets: scenes ≤ 600, components ≤ 300.
+
+| Sub-phase | File | Current LOC | Budget | Required |
+|---|---|---|---|---|
+| **4.1** | `src/scenes/Level01Scene.ts` | ~1648 | 600 | Extract layout, DOM/a11y, animation clusters |
+| **4.2** | `src/scenes/LevelScene.ts` | ~801 | 600 | Extract chrome, hint flow, progression math |
+| **4.3** | `src/scenes/MenuScene.ts` | ~923 | 600 | Extract station rendering, streak display, R13 Dexie migration |
+| **4.4** | `src/components/Mascot.ts` | ~760 | 300 | Extract speech-bubble, idle-escalation timer |
+| **4.5** | `src/scenes/SettingsScene.ts` | ~602 | 600 | Export/restore handlers (~1% extraction) |
+| **4.7** | `src/components/SessionCompleteOverlay.ts` | ~527 | 300 | Extract animation + scoring math |
+
+> Execute strictly serial. Gate: typecheck + lint + tests green AND file under budget before next sub-phase.
+
+---
+
 ## Deferred (require explicit user authorization)
 
 | Item | Risk | Notes |
 |---|---|---|
-| Sunset `Level01Scene.ts` (D-27 Path A) | HIGH | 1727 LOC, 15 file deps. Side-by-side parity test + 2-week soak required. |
+| Sunset `Level01Scene.ts` (D-27 Path A) | HIGH | ~1648 LOC, 15 file deps. Side-by-side parity test + 2-week soak required. |
 | `SessionService` pivot | HIGH | ~30 h. Only after Sunset proves impractical. |
 | E2E parameterization L1–L9 | MEDIUM | Needs `data-testid` sentinels on LevelScene for L2–L9. |
 | Tighten coverage gate 45 → 75% | MEDIUM | Real coverage ~77% with integration suite; low ROI until pipeline unified. |
@@ -72,7 +107,7 @@ Extracted from `curriculum-completion-phase-3.plan.md` and `harden-and-polish.md
 
 ## How to start a session
 
-1. Skim this file and `MANUAL_VERIFICATION.md`.
+1. Skim this file.
 2. For E2E work, pick a cluster from `E2E_FOLLOWUPS.md` and branch off `main` with a date-stamped name.
-3. For correctness work, pick one item from the Backlog section above and open a `fix/` branch.
+3. For correctness work, pick one item from the Backlog sections above and open a `fix/` or `refactor/` branch.
 4. Append findings here or in the cluster trackers — do not create new top-level plan files.

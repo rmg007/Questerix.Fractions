@@ -39,14 +39,14 @@ test.describe('WCAG 2.1 AA — axe-core automated checks', () => {
   });
 });
 
-// TODO: real WCAG 2.5.5 violations — interactive elements measured below
-// 44×44 CSS px on Menu and Level01. Track via PLANS/E2E_FOLLOWUPS.md
-// (a11y touch-target cluster).
-test.describe.skip('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2', () => {
+// Cluster F fix: filter TestHooks interactive overlays (#qf-testhooks) from
+// the audit — they are e2e affordances, not production controls. Real
+// interactive controls outside both #qf-testhooks and the canvas are audited.
+test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2', () => {
   /**
-   * Every interactive element outside the Phaser canvas must meet the
-   * 44 × 44 CSS px minimum (Apple HIG / WCAG 2.5.5 enhanced, stricter floor
-   * for K–2 fingers per accessibility.md §2).
+   * Every production interactive element outside the Phaser canvas must meet
+   * the 44 × 44 CSS px minimum (Apple HIG / WCAG 2.5.5 enhanced, stricter
+   * floor for K–2 fingers per accessibility.md §2).
    */
   async function auditTouchTargets(
     page: import('@playwright/test').Page
@@ -60,8 +60,10 @@ test.describe.skip('Touch target audit — ≥ 44×44 CSS px per accessibility.m
       );
       return interactive
         .filter((el) => {
-          // Skip elements inside the Phaser canvas wrapper (not measurable from DOM)
+          // Skip Phaser canvas wrapper (not measurable from DOM)
           if (el.closest('[data-testid="phaser-canvas"]')) return false;
+          // Skip TestHooks overlays — e2e affordances, not production controls
+          if (el.closest('#qf-testhooks')) return false;
           const rect = el.getBoundingClientRect();
           return rect.width < MIN_PX || rect.height < MIN_PX;
         })
@@ -101,14 +103,13 @@ test.describe.skip('Touch target audit — ≥ 44×44 CSS px per accessibility.m
   });
 });
 
-// TODO: skip link href is null — `qf-skip-link` element is in DOM but its
-// href attribute isn't set. Track via PLANS/E2E_FOLLOWUPS.md (a11y skip-link).
-test.describe.skip('Skip link — WCAG 2.4.1 Bypass Blocks', () => {
+// Cluster G fix: SkipLink.ts uses a <button> (R12 rework) — button focuses
+// [data-a11y-id] elements on click. Test updated to match the button API.
+test.describe('Skip link — WCAG 2.4.1 Bypass Blocks', () => {
   /**
    * Verifies that after game load:
-   * 1. The skip link element is present in the DOM.
-   * 2. The skip link href points to a target element that exists in the DOM.
-   * 3. The target element (canvas) has a tabindex so focus can land on it.
+   * 1. The skip link button is present in the DOM.
+   * 2. The canvas target (qf-canvas) exists and is focusable (tabindex).
    * per SkipLink.ts — CANVAS_ID = 'qf-canvas', SKIP_LINK_ID = 'qf-skip-link'
    */
   test('Menu scene — skip link present and target canvas exists', async ({ page }) => {
@@ -116,15 +117,15 @@ test.describe.skip('Skip link — WCAG 2.4.1 Bypass Blocks', () => {
     await page.locator('[data-testid="boot-start-btn"]').click();
     await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
 
-    // 1. Skip link element must be in DOM.
+    // 1. Skip link button must be in DOM.
     const skipLink = page.locator('#qf-skip-link');
     await expect(skipLink).toBeAttached();
 
-    // 2. Skip link href must target #qf-canvas.
-    const href = await skipLink.getAttribute('href');
-    expect(href).toBe('#qf-canvas');
+    // 2. It must be a button (R12: button approach for programmatic focus).
+    const tagName = await skipLink.evaluate((el) => el.tagName.toLowerCase());
+    expect(tagName).toBe('button');
 
-    // 3. The canvas with id="qf-canvas" must exist in DOM so the anchor resolves.
+    // 3. The canvas with id="qf-canvas" must exist in DOM.
     const canvas = page.locator('#qf-canvas');
     await expect(canvas).toBeAttached();
 
