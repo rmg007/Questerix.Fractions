@@ -752,9 +752,9 @@ function drawL8(ctx: SceneCtx): void {
     ease: 'Sine.easeInOut',
   }));
 
-  // "½" label appears at balance point
+  // "1/2" label — avoid Unicode glyph (½) which renders as blank box in Fredoka One
   const halfLabel = scene.add
-    .text(artCX, artCY - 24, '½', {
+    .text(artCX, artCY - 24, '1/2', {
       fontSize: '48px',
       fontFamily: TITLE_FONT,
       color: NAVY_HEX,
