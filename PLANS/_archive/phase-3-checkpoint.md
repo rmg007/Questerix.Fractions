@@ -1,8 +1,8 @@
 ---
 title: Phase 3 Checkpoint — Current State & Next Steps
-status: complete
+status: active
 date: 2026-04-25
-updated: 2026-04-27
+updated: 2026-04-26
 ---
 
 # Phase 3 Checkpoint — Current State Assessment
@@ -26,22 +26,24 @@ All **Phase 3 deliverables from the MVP roadmap §5.1** have been implemented th
 | **Misconception detectors** | ✅ 5/5 | WHB-01, WHB-02, MAG-01, PRX-01, EOL-01 all implemented with tests passing |
 | **Curriculum (L6–L9)** | ✅ | All 4 level files created with ~36–49 templates seeded |
 | **Unit tests** | ✅ | 152/152 passing (`npm run test:unit`) |
-| **Integration tests** | ✅ | 211/211 passing (hints_seed.test.ts fixed: pipeline/output/hints.json created) |
-| **PWA manifest + persist() call** | ✅ | Verified: manifest.json has 192×192/512×512 icons; navigator.storage.persist() in main.ts |
+| **Integration tests** | ⚠️ | 184/190 passing; 6 failures in hints_seed.test.ts (unrelated to Phase 3) |
+| **PWA manifest + persist() call** | ? | Not yet verified |
 
-### ✅ Remaining Action Items — All Closed (2026-04-27)
+### ❌ Remaining Action Items for Phase 3 Gate
 
-1. ~~**CompareInteraction integration**~~ — SymbolicFractionDisplay integrated at lines 73/86 of `CompareInteraction.ts` ✅
-2. ~~**PWA verification**~~ — manifest.json verified; navigator.storage.persist() confirmed in `main.ts` lines 47–48 ✅
-3. **LevelScene resume support** — `resume?: boolean` field present in `LevelSceneData`; full session-resume flow deferred to post-Cycle-B (non-blocking)
-4. ~~**Hints seeding fix**~~ — `pipeline/output/hints.json` created with 162 hints (3 per template × 54 templates); all 8 hints_seed tests now pass ✅
+1. **CompareInteraction integration** — Render SymbolicFractionDisplay below bars (5–10 min)
+2. **PWA verification** — Check manifest + navigator.storage.persist() in main.ts (10 min)
+3. **LevelScene resume support** — Restore paused sessions from IndexedDB (20–30 min, optional but recommended)
+4. **Hints seeding fix** — Hints data not loading; likely file path or curriculum seed issue (30 min)
 
-### 📊 Test Summary (updated 2026-04-27)
+### 📊 Test Summary (as of 2026-04-26 12:15 UTC)
 
 ```
-Unit tests:         173 passed (100%)
-Integration tests:  211 passed, 0 failed (100%)
-Build:              ✅ no TypeScript errors; PWA SW generated
+Unit tests:         152 passed (100%)
+Integration tests:  184 passed, 6 failed (96.8%)
+  - Failures: hints_seed.test.ts × 6 (not Phase 3 critical)
+Build:              ✅ no TypeScript errors
+Preview:            ✅ (manual test required)
 ```
 
 ---
@@ -303,13 +305,13 @@ npm run preview                             # Smoke test on localhost
 
 All of the following must be true:
 
-- [x] ~~L6–L9 scenes load and play without crashes~~ (CompareInteraction, BenchmarkInteraction, OrderInteraction all mounted)
-- [x] ~~All templates seeded and rendering~~ (54 templates across L1–L9 in curriculum bundle)
-- [x] ~~Misconception detectors working~~ (5 detectors: WHB-01, WHB-02, MAG-01, PRX-01, EOL-01; unit tests passing)
-- [x] ~~Unit tests passing~~ (173/173 unit tests, 211/211 integration tests)
-- [x] ~~Build succeeds~~ (`npm run build` clean; bundle ~1.35 MB Phaser chunk)
-- [ ] PWA installs on iOS Safari + Android Chrome (needs real device)
-- [ ] Data persists across app restart (needs real device)
+- [ ] L6–L9 scenes load and play without crashes
+- [ ] All 49 templates seeded and rendering
+- [ ] Misconception detectors working: WHB-01, WHB-02, MAG-01, PRX-01
+- [ ] Unit tests passing: `npm run test:unit`
+- [ ] Build succeeds: `npm run build` (bundle < 2 MB)
+- [ ] PWA installs on iOS Safari + Android Chrome
+- [ ] Data persists across app restart (manual test on real device)
 - [ ] App deployed to stable URL
 - [ ] Cycle B recruitment confirmed (8–10 students scheduled)
 

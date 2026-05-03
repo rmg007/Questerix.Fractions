@@ -1,9 +1,8 @@
 ---
 title: Phase 3 Implementation Plan (Levels 6–9)
-status: complete
+status: active
 phase: 3
 created: 2026-04-25
-updated: 2026-04-27
 author: solo developer
 constraint_refs: [C1, C3, C5, C6, C9, C10]
 related_docs:
@@ -37,28 +36,28 @@ related_docs:
 ### 1.2 Critical Gates (from roadmap §10.5)
 
 **L6–L7 Gate (end of Week 2):**
-- [x] ~~Compare scenes work with both same-denominator and same-numerator templates~~ (CompareInteraction complete)
-- [x] ~~Symbolic notation (a/b) renders below bar models~~ (SymbolicFractionDisplay integrated in CompareInteraction)
-- [x] ~~Misconception detectors WHB-01 and WHB-02 coded and unit-tested~~ (5/5 detectors in misconceptionDetectors.ts)
-- [x] ~~Build succeeds; app plays L6–L7 to completion~~ (npm run build clean)
+- [ ] Compare scenes work with both same-denominator and same-numerator templates
+- [ ] Symbolic notation (a/b) renders below bar models
+- [ ] Misconception detectors WHB-01 and WHB-02 coded and unit-tested
+- [ ] Build succeeds; app plays L6–L7 to completion
 
 **L8 Gate (end of Week 3):**
-- [x] ~~Benchmark-sort scene interactive and accepts drag-to-zone~~ (BenchmarkInteraction complete; 3-zone tap UI)
-- [ ] Session completes in < 15 min for Easy tier (needs real-device timing test)
-- [x] ~~Misconception detectors MAG-01 and PRX-01 coded and integrated~~ (all 4 detectors implemented)
-- [x] ~~Unit tests pass for all 4 detectors~~ (5 tests passing in misconceptionDetectors.test.ts)
+- [ ] Benchmark-sort scene interactive and accepts drag-to-zone
+- [ ] Session completes in < 15 min for Easy tier (critical per C9 budget)
+- [ ] Misconception detectors MAG-01 and PRX-01 coded and integrated
+- [ ] Unit tests pass for all 4 detectors
 
 **L9 Gate (end of Week 4):**
-- [x] ~~Ordering scene renders drag-to-sequence for 3–6 fractions~~ (OrderInteraction complete)
-- [ ] Session plays end-to-end without crashes (needs browser smoke test)
-- [x] ~~All L6–L9 templates seeded from curriculum source~~ (54 templates in pipeline/output/ + curriculum bundle)
+- [ ] Ordering scene renders drag-to-sequence for 3–6 fractions
+- [ ] Session plays end-to-end without crashes
+- [ ] All L6–L9 templates seeded from curriculum source
 
 **Cycle B Readiness (end of Week 5):**
-- [ ] PWA manifest correct; app installs on iOS Safari + Android Chrome (needs device test)
-- [x] ~~`navigator.storage.persist()` called on first launch~~ (`main.ts` lines 47–48 confirmed)
-- [ ] Data persists across app restart (needs force-kill test on device)
-- [x] ~~All unit tests pass: `npm run test:unit`~~ (173/173 passing)
-- [x] ~~Build succeeds: `npm run build`~~ (clean build, PWA SW generated)
+- [ ] PWA manifest correct; app installs on iOS Safari + Android Chrome
+- [ ] `navigator.storage.persist()` called on first launch
+- [ ] Data persists across app restart (force-kill test)
+- [ ] All unit tests pass: `npm run test:unit`
+- [ ] Build succeeds: `npm run build`
 - [ ] App deployed to stable URL (Netlify/Cloudflare Pages)
 
 ---
@@ -92,9 +91,17 @@ A lightweight Phaser Text component to render fractions as `numerator/denominato
 
 **Checklist:**
 
-- [x] ~~Create `SymbolicFractionDisplay.ts`~~ (`src/components/SymbolicFractionDisplay.ts` complete)
-- [x] ~~Integrate into `CompareInteraction.ts`~~ (lines 73/86 render SymbolicFractionDisplay below each bar)
-- [ ] Test rendering at 360px viewport (iPad mini) — needs device
+- [ ] Create `SymbolicFractionDisplay.ts` with:
+  - Constructor: `(scene, x, y, numerator, denominator, options?)`
+  - Display format: `${numerator}/${denominator}` centered at (x, y)
+  - Font: 24px Nunito, color: neutral900
+  - Fallback label for early readers: `"${numerator} of ${denominator}"` (K–1, if difficultyTier = 'easy' on L1–L2)
+  - Method: `setFraction(n, d)` to update display
+  - Method: `destroy()` to clean up Phaser text object
+- [ ] Integrate into `CompareInteraction.ts`:
+  - Render below each bar model: `new SymbolicFractionDisplay(scene, barX, barY + 100, n, d)`
+  - Call `destroy()` in `unmount()`
+- [ ] Test rendering at 360px viewport (iPad mini): text must be readable, not overlapping bars.
 
 **Files to modify:**
 
@@ -178,10 +185,17 @@ detectPRX01(attempts: AttemptRecord[], level: number): MisconceptionFlag | null 
 
 **Checklist:**
 
-- [x] ~~Write detector functions~~ (5 detectors in `src/engine/misconceptionDetectors.ts`)
-- [x] ~~misconceptionFlagRepo.insert() called by detectors~~ (via runAllDetectors)
-- [x] ~~Detector runner wired in LevelScene.ts~~ (via `runAllDetectors()` in `recordAttempt`)
-- [x] ~~Unit tests: `tests/unit/engine/misconceptionDetectors.test.ts`~~ (5 tests passing)
+- [ ] Write detector functions (stubs first, then logic)
+- [ ] Each detector calls `misconceptionFlagRepo.insert()` to persist to IndexedDB
+- [ ] Add detector runner to `onCommit()` pathway in `LevelScene.ts`:
+  ```typescript
+  const flag = await detectWHB01(recentAttempts, this.levelNumber);
+  if (flag) await misconceptionFlagRepo.insert(flag);
+  ```
+- [ ] Unit tests: `tests/unit/engine/misconceptionDetectors.test.ts`
+  - Mock 5–8 attempts with known patterns
+  - Assert detector returns flag when pattern ≥ 60%
+  - Assert detector returns null when pattern < 30%
 
 **Files to create/modify:**
 
@@ -208,10 +222,22 @@ detectPRX01(attempts: AttemptRecord[], level: number): MisconceptionFlag | null 
 
 **Checklist:**
 
-- [x] ~~Extend `CompareInteraction.ts`~~ (two BarModels + SymbolicFractionDisplay + 3 relation buttons; `onCommit({ studentRelation })`)
-- [ ] Test on iPad + 360px mobile viewport (needs device)
-- [ ] Verify difficulty scaling (needs browser smoke test)
-- [x] ~~Seed templates~~ (L6: 6 templates, L7: 6 templates in pipeline/output/)
+- [ ] Extend `CompareInteraction.ts`:
+  - Render two `BarModel` components side-by-side (existing)
+  - Add `SymbolicFractionDisplay` below each bar (new)
+  - Render three relation buttons: "Top is bigger", "Equal", "Bottom is bigger" (existing)
+  - Call `onCommit({ relation, correct })` on button tap (existing)
+- [ ] Test on iPad (10" tablet) + 360px mobile viewport:
+  - Bar models ≥ 200px wide (readable), text ≥ 18px
+  - Buttons have 44px min touch target
+  - No overlap, readable margin
+- [ ] Verify difficulty scaling:
+  - Easy: largest gap (e.g., 1/4 vs 3/4), clear visual/symbolic difference
+  - Hard: minimal gap (e.g., 3/4 vs 4/5), requires careful magnitude reasoning
+- [ ] Seed templates:
+  - L6: 6 easy, 4 medium, 3 hard = 13 total
+  - L7: 6 easy, 4 medium, 3 hard = 13 total
+  - All seeded to curriculum DB before L6–L7 gate
 
 **Performance budget (per C9, L1–L5 benchmark):**
 - Easy tier: < 3 min per problem (estimate 2–3 fractions × 30 sec each = 1.5 min/session)
@@ -242,10 +268,22 @@ detectPRX01(attempts: AttemptRecord[], level: number): MisconceptionFlag | null 
 
 **Checklist:**
 
-- [x] ~~Create `BenchmarkInteraction.ts`~~ (number line + 3 tap zones; `onCommit({ studentPlacements: { [fracId]: zone } })`)
-- [ ] Performance testing on Easy tier (needs real device)
-- [x] ~~Integrate misconception detectors~~ (runAllDetectors called in recordAttempt)
-- [x] ~~Seed templates~~ (L8: 6 templates in pipeline/output/)
+- [ ] Create `BenchmarkInteraction.ts` or extend existing:
+  - Render 0–1 number line (horizontal, 600px wide)
+  - Render zone dividers at 0.25, 0.5, 0.75 with labels ("1/4", "1/2", "3/4")
+  - Render 3–6 fraction cards (each card ≥ 80×80, draggable)
+  - Zones: 4 areas (0–1/4, 1/4–1/2, 1/2–3/4, 3/4–1)
+  - On card drop: validate zone, call `onCommit({ zoneIndex, correct })`
+  - Visual feedback: card highlights zone on hover; snaps to zone center on drop
+- [ ] Performance testing on Easy tier:
+  - Goal: session completes in < 13 min (per C9 critical gate)
+  - Assume 5 questions × 2.5 min = 12.5 min
+  - Measure on iPad + Chrome with network throttle (3G)
+- [ ] Integrate misconception detectors:
+  - After each attempt, check for PRX-01 (proximity-to-1 confusion)
+  - After 4+ attempts, check for MAG-01 (magnitude blindness)
+- [ ] Seed templates:
+  - L8: 6 easy, 4 medium, 3 hard = 13 total
 
 **Files to create/modify:**
 
@@ -269,9 +307,18 @@ detectPRX01(attempts: AttemptRecord[], level: number): MisconceptionFlag | null 
 
 **Checklist:**
 
-- [x] ~~Implement `OrderInteraction.ts`~~ (drag-to-slot cards + Check Order button; `onCommit({ studentSequence })`)
-- [x] ~~Light UI~~ (cards with BarModel + numbered slots)
-- [x] ~~Seed templates~~ (L9: 6 templates in pipeline/output/)
+- [ ] Implement `OrderInteraction.ts`:
+  - Render 3–5 fraction cards in shuffled order
+  - Render drop zone (vertical stack at bottom)
+  - On card tap: add to sequence; on tap in sequence: remove
+  - On "Done" button: validate via `orderValidator`, call `onCommit({ order, correct })`
+  - Reuse existing `orderValidator` — no new validator needed
+- [ ] Light UI (no animation required):
+  - Cards: 100×100, tappable
+  - Sequence zone: visual list showing selected cards in order
+  - "Done" button when all cards placed
+- [ ] Seed templates:
+  - L9: 5 easy, 3 medium, 2 hard = 10 total (light load per C9 budget)
 
 **Files to create/modify:**
 
