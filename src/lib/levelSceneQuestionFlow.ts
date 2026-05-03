@@ -168,16 +168,19 @@ export async function submitQuestion(
   try {
     const { getValidator } = await import('@/validators/registry');
     const validator = getValidator(ctx.currentTemplate.validatorId);
-    if (validator) {
+    if (!validator) {
+      // R5: Fail visibly on validator mismatch — don't silently fall back to partition.
+      // This surfaces curriculum data errors (invalid validatorId references in QuestionTemplate).
+      log.error('VALID', 'missing_validator', {
+        validatorId: ctx.currentTemplate.validatorId,
+        questionId: ctx.currentTemplate.id,
+        archetype: ctx.currentTemplate.archetype,
+      });
+      result = { outcome: 'incorrect', score: 0, feedback: 'validator_not_found' };
+    } else {
       result = (validator as { fn: (i: unknown, p: unknown) => ValidatorResult }).fn(
         ctx.lastPayload,
         ctx.currentTemplate.payload
-      );
-    } else {
-      const { partitionEqualAreas } = await import('@/validators/partition');
-      result = partitionEqualAreas.fn(
-        ctx.lastPayload as unknown as import('@/validators/partition').PartitionInput,
-        ctx.currentTemplate.payload as unknown as import('@/validators/partition').PartitionPayload
       );
     }
   } catch (err) {

@@ -1015,14 +1015,22 @@ export class Level01Scene extends Phaser.Scene {
         const reg = this.currentQuestion.validatorId
           ? getValidatorEntry(this.currentQuestion.validatorId)
           : undefined;
-        // Fall back to direct partition validator if ID not found in registry
-        if (reg) {
+        // R5: Fail visibly on validator mismatch — don't silently fall back to partition.
+        if (!reg && this.currentQuestion.validatorId) {
+          log.error('VALID', 'missing_validator', {
+            validatorId: this.currentQuestion.validatorId,
+            questionId: this.currentQuestion.id,
+          });
+          result = { outcome: 'incorrect', score: 0, feedback: 'validator_not_found' };
+        } else if (reg) {
           result = reg.fn(input, payload);
         } else {
+          // Fallback for synthetic questions without a validatorId — use partition
           const { partitionEqualAreas } = await import('../validators/partition');
           result = partitionEqualAreas.fn(input, payload);
         }
       } else {
+        // Synthetic fallback questions (no template pool)
         const { partitionEqualAreas } = await import('../validators/partition');
         result = partitionEqualAreas.fn(input, payload);
       }
