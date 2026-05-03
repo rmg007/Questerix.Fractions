@@ -81,8 +81,7 @@ class ErrorReporter {
     // does not change observable behavior.
     if (!import.meta.env.VITE_SENTRY_DSN) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Sentry = await import('@sentry/browser' as any);
+    const Sentry = await import('@sentry/browser');
     this.sentry = Sentry;
 
     Sentry.init({

@@ -90,8 +90,10 @@ export class DragHandle {
       .setOrigin(0.5)
       .setDepth(depth + 3);
 
-    const hitW = axis === 'horizontal' ? HIT_TARGET : Math.max(trackLength, HIT_TARGET);
-    const hitH = axis === 'horizontal' ? Math.max(trackLength, HIT_TARGET) : HIT_TARGET;
+    // WCAG 2.5.5: hit target must be ≥44×44 in all directions
+    const alongAxis = Math.max(trackLength, HIT_TARGET);
+    const hitW = axis === 'horizontal' ? HIT_TARGET : alongAxis;
+    const hitH = axis === 'horizontal' ? alongAxis : HIT_TARGET;
     this.hitZone = scene.add
       .rectangle(x, y, hitW, hitH, 0x000000, 0)
       .setOrigin(0.5)

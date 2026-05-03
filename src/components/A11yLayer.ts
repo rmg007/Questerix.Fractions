@@ -202,7 +202,7 @@ export const A11yLayer = {
   unmountAll(): void {
     const container = getActiveLayer();
     if (container) {
-      container.innerHTML = '';
+      container.replaceChildren();
       registries.get(container)?.clear();
     }
   },

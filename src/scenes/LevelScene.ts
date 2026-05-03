@@ -657,10 +657,8 @@ export class LevelScene extends Phaser.Scene {
       hintButton: this.hintButton,
       hintTextGO: this.hintTextGO,
       currentQuestionHintIds: this.currentQuestionHintIds,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mascot: this.mascot as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      activeInteraction: this.activeInteraction as any,
+      mascot: this.mascot,
+      activeInteraction: this.activeInteraction,
     });
   }
 

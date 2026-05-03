@@ -4,6 +4,8 @@ import { get as getCopy } from './i18n/catalog';
 import { checkReduceMotion } from './preferences';
 import type { HintTier, QuestionTemplate } from '@/types';
 import { HintLadder } from '@/components/HintLadder';
+import { Mascot } from '@/components/Mascot';
+import type { Interaction } from '@/scenes/interactions/types';
 import { TestHooks } from '@/scenes/utils/TestHooks';
 import { tracerService } from '@/lib/observability/tracer';
 import { SPAN_NAMES } from '@/lib/observability/span-names';
@@ -18,10 +20,8 @@ export interface HintFlowContext {
   hintButton: Phaser.GameObjects.Container;
   hintTextGO: Phaser.GameObjects.Text;
   currentQuestionHintIds: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mascot: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  activeInteraction: any;
+  mascot: Mascot | null;
+  activeInteraction: Interaction | null;
 }
 
 export interface HintFlowCallbacks {

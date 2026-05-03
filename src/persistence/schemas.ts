@@ -23,9 +23,9 @@ const syncStateSchema = z.enum(['local', 'queued', 'synced']);
 
 const studentSchema = z
   .object({
-    id: z.string().min(1),
-    displayName: z.string(),
-    avatarConfig: z.record(z.string(), z.string()),
+    id: z.string().min(1).max(256),
+    displayName: z.string().max(1024),
+    avatarConfig: z.record(z.string().max(256), z.string().max(256)),
     gradeLevel: z.union([z.literal(0), z.literal(1), z.literal(2)]),
     createdAt: z.number(),
     lastActiveAt: z.number(),
@@ -36,9 +36,9 @@ const studentSchema = z
 
 const sessionSchema = z
   .object({
-    id: z.string().min(1),
-    studentId: z.string().min(1),
-    activityId: z.string().min(1),
+    id: z.string().min(1).max(256),
+    studentId: z.string().min(1).max(256),
+    activityId: z.string().min(1).max(256),
     levelNumber: z.number(),
     scaffoldLevel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
     startedAt: z.number(),
@@ -55,10 +55,10 @@ const sessionSchema = z
 const attemptSchema = z
   .object({
     id: z.number(),
-    sessionId: z.string().min(1),
-    studentId: z.string().min(1),
-    questionTemplateId: z.string().min(1),
-    archetype: z.string().min(1),
+    sessionId: z.string().min(1).max(256),
+    studentId: z.string().min(1).max(256),
+    questionTemplateId: z.string().min(1).max(256),
+    archetype: z.string().min(1).max(256),
     roundNumber: z.number(),
     attemptNumber: z.number(),
     startedAt: z.number(),
@@ -72,9 +72,9 @@ const attemptSchema = z
 
 const skillMasterySchema = z
   .object({
-    studentId: z.string().min(1),
-    skillId: z.string().min(1),
-    compositeKey: z.tuple([z.string(), z.string()]),
+    studentId: z.string().min(1).max(256),
+    skillId: z.string().min(1).max(256),
+    compositeKey: z.tuple([z.string().max(256), z.string().max(256)]),
     masteryEstimate: z.number(),
     state: z.enum(['NOT_STARTED', 'LEARNING', 'APPROACHING', 'MASTERED', 'DECAYED']),
     consecutiveCorrectUnassisted: z.number(),
@@ -87,9 +87,9 @@ const skillMasterySchema = z
 
 const deviceMetaSchema = z
   .object({
-    installId: z.string().min(1),
+    installId: z.string().min(1).max(256),
     schemaVersion: z.number(),
-    contentVersion: z.string(),
+    contentVersion: z.string().max(256),
     pendingSyncCount: z.number(),
     syncState: syncStateSchema,
   })
@@ -97,9 +97,9 @@ const deviceMetaSchema = z
 
 const bookmarkSchema = z
   .object({
-    id: z.string().min(1),
-    studentId: z.string().min(1),
-    activityId: z.string().min(1),
+    id: z.string().min(1).max(256),
+    studentId: z.string().min(1).max(256),
+    activityId: z.string().min(1).max(256),
     levelNumber: z.number(),
     savedAt: z.number(),
     syncState: syncStateSchema,
@@ -108,8 +108,8 @@ const bookmarkSchema = z
 
 const sessionTelemetrySchema = z
   .object({
-    sessionId: z.string().min(1),
-    studentId: z.string().min(1),
+    sessionId: z.string().min(1).max(256),
+    studentId: z.string().min(1).max(256),
     totalAttempts: z.number(),
     correctAttempts: z.number(),
     syncState: syncStateSchema,
@@ -118,8 +118,8 @@ const sessionTelemetrySchema = z
 
 const hintEventSchema = z
   .object({
-    attemptId: z.string().min(1),
-    hintId: z.string().min(1),
+    attemptId: z.string().min(1).max(256),
+    hintId: z.string().min(1).max(256),
     tier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     shownAt: z.number(),
     acceptedByStudent: z.boolean(),
@@ -130,9 +130,9 @@ const hintEventSchema = z
 
 const misconceptionFlagSchema = z
   .object({
-    id: z.string().min(1),
-    studentId: z.string().min(1),
-    misconceptionId: z.string().min(1),
+    id: z.string().min(1).max(256),
+    studentId: z.string().min(1).max(256),
+    misconceptionId: z.string().min(1).max(256),
     firstObservedAt: z.number(),
     lastObservedAt: z.number(),
     observationCount: z.number(),
@@ -143,8 +143,8 @@ const misconceptionFlagSchema = z
 
 const progressionStatSchema = z
   .object({
-    studentId: z.string().min(1),
-    activityId: z.string().min(1),
+    studentId: z.string().min(1).max(256),
+    activityId: z.string().min(1).max(256),
     currentLevel: z.number(),
     highestLevelReached: z.number(),
     totalSessions: z.number(),

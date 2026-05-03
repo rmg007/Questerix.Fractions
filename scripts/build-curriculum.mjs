@@ -140,7 +140,20 @@ function buildBundle() {
   const srcBundlePath = join(ROOT, 'src', 'curriculum', 'bundle.json');
   writeFileSync(srcBundlePath, bundleJson);
 
+  // Verify byte-identity: both files must have identical SHA256 hashes
+  const v1Hash = createHash('sha256').update(bundleJson).digest('hex');
+  const bundleReadback = readFileSync(srcBundlePath, 'utf8');
+  const bundleHash = createHash('sha256').update(bundleReadback).digest('hex');
+
+  if (v1Hash !== bundleHash) {
+    console.error(`\n[build-curriculum] CHECKSUM MISMATCH! public/curriculum/v1.json and src/curriculum/bundle.json have different SHA256 hashes:`);
+    console.error(`  v1.json:       ${v1Hash}`);
+    console.error(`  bundle.json:   ${bundleHash}`);
+    process.exit(1);
+  }
+
   console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json and src/curriculum/bundle.json (${totalSkipped} skipped)`);
+  console.log(`[build-curriculum] Checksum verified: both files have SHA256 = ${v1Hash.slice(0, 8)}...`);
   return totalIncluded;
 }
 

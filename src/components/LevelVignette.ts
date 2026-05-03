@@ -926,7 +926,7 @@ function drawL9(ctx: SceneCtx): void {
     if (!rocketG.active) return;
     const flame = scene.add.graphics().setDepth(depth + 1);
     addObj(flame);
-    const fr = 6 + Math.random() * 6;
+    const fr = 9;
     flame.fillStyle(0xf97316, 0.7);
     flame.fillCircle(artCX, rocketG.y + 38, fr);
     addTw(
