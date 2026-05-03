@@ -262,20 +262,19 @@ const QUEST_COPY: Catalog = {
 
   // ── Identify hints ────────────────────────────────────────────────────────
   'quest.hint.identify.verbal': {
-    text: 'Count the shaded parts.',
-    notes: 'Tier 1 hint for identify. Short observational nudge.',
+    text: 'How many parts are shaded?',
+    notes: 'Tier 1 hint for identify. Questions nudge active counting.',
     tone: 'persona-quest',
   },
   'quest.hint.identify.visual': {
-    text: 'Count the shaded parts.',
-    notes: 'Tier 2 hint for identify. Points to visual evidence.',
+    text: 'Count shaded. Then count all.',
+    notes: 'Tier 2 hint for identify. Names both numerator and denominator.',
     tone: 'persona-quest',
   },
   'quest.hint.identify.worked': {
-    text: 'Shaded parts on top, total parts on the bottom.',
-    notes: 'Tier 3 hint for identify. Explicit fraction definition.',
+    text: 'Shaded on top. All on bottom.',
+    notes: 'Tier 3 hint for identify. Concise rule for fraction notation.',
     tone: 'persona-quest',
-    skipCopyLint: true,
   },
 
   // ── Placement hints ───────────────────────────────────────────────────────
@@ -340,17 +339,18 @@ const QUEST_COPY: Catalog = {
   //    unknown archetype — safety net only; known archetypes have explicit
   //    verbal/visual/worked keys above) ────────────────────────────────────
   'quest.hint.fallback.verbal': {
-    text: 'Equal parts match. Try the middle.',
-    notes: 'Generic fallback hint tier 1. Used when no archetype-specific key resolves.',
+    text: 'Look at what you see. Try again.',
+    notes: 'Generic fallback hint tier 1. Nudges re-examination without specifics.',
     tone: 'persona-quest',
   },
   'quest.hint.fallback.visual': {
-    text: 'Look for the center of the shape.',
+    text: 'Count carefully. What do you see?',
+    notes: 'Generic fallback hint tier 2. Asks observational question.',
     tone: 'persona-quest',
   },
   'quest.hint.fallback.worked': {
-    text: 'Place the line at the center.',
-    notes: '5 words — at MIN_WORDS_FOR_FK boundary; FK gate may skip.',
+    text: 'Count parts. Think about sizes.',
+    notes: 'Generic fallback hint tier 3. Simple actionable guidance.',
     tone: 'persona-quest',
   },
   'quest.hint.fallback.safe': {

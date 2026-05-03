@@ -76,6 +76,7 @@ export const TestHooks = {
    * Mount an interactive, transparent overlay button positioned over the canvas.
    * The button forwards clicks to the provided handler.
    * z-index is high enough to sit above the Phaser canvas.
+   * Positions account for canvas scaling on mobile viewports (Scale.FIT).
    */
   mountInteractive(
     testid: string,
@@ -95,12 +96,51 @@ export const TestHooks = {
     const btn = document.createElement('button');
     btn.setAttribute('data-testid', testid);
     btn.setAttribute('tabindex', '-1');
+
+    // Account for canvas scaling on mobile. Get the canvas bounds to calculate
+    // the actual scaled position. The game is 800x1280 logically but may be
+    // scaled to fit the viewport via Phaser's Scale.FIT mode.
+    let top = opts?.top ?? '50%';
+    let left = opts?.left ?? '50%';
+    let width = opts?.width ?? '80px';
+    let height = opts?.height ?? '80px';
+
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const gameW = 800;
+      const gameH = 1280;
+      const scaleX = rect.width / gameW;
+      const scaleY = rect.height / gameH;
+
+      // Convert percentage-based positions from game coords to viewport coords
+      if (opts?.top && opts.top.endsWith('%')) {
+        const gamePercent = parseFloat(opts.top);
+        const scaledPixels = (gamePercent / 100) * gameH * scaleY + rect.top;
+        top = `${scaledPixels}px`;
+      }
+      if (opts?.left && opts.left.endsWith('%')) {
+        const gamePercent = parseFloat(opts.left);
+        const scaledPixels = (gamePercent / 100) * gameW * scaleX + rect.left;
+        left = `${scaledPixels}px`;
+      }
+      // Scale dimensions as well
+      if (opts?.width && opts.width.endsWith('px')) {
+        const gamePixels = parseFloat(opts.width);
+        width = `${gamePixels * scaleX}px`;
+      }
+      if (opts?.height && opts.height.endsWith('px')) {
+        const gamePixels = parseFloat(opts.height);
+        height = `${gamePixels * scaleY}px`;
+      }
+    }
+
     btn.style.cssText = [
       'position:fixed',
-      `top:${opts?.top ?? '50%'}`,
-      `left:${opts?.left ?? '50%'}`,
-      `width:${opts?.width ?? '80px'}`,
-      `height:${opts?.height ?? '80px'}`,
+      `top:${top}`,
+      `left:${left}`,
+      `width:${width}`,
+      `height:${height}`,
       'transform:translate(-50%,-50%)',
       'opacity:0.01',
       'cursor:pointer',
