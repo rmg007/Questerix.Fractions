@@ -21,6 +21,7 @@ export class BootScene extends Phaser.Scene {
   private lastStudentId: string | null = null;
   /** Guard against double-advance when test button fires mid-async-boot. */
   private _advanced = false;
+  private progressText?: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'BootScene' });
@@ -41,6 +42,16 @@ export class BootScene extends Phaser.Scene {
       { width: '200px', height: '60px', top: '50%', left: '50%' }
     );
 
+    // ── Progress indicator ─────────────────────────────────────────────────
+    this.progressText = this.add
+      .text(400, 640, 'Starting…', {
+        fontSize: '20px',
+        fontFamily: '"Nunito", system-ui, sans-serif',
+        color: '#FFFFFF',
+      })
+      .setOrigin(0.5)
+      .setDepth(100);
+
     // Fire-and-forget: async work runs without returning a Promise to Phaser,
     // preventing Phaser 4 from treating the returned Promise as a scene restart signal.
     void this._bootAsync();
@@ -52,7 +63,9 @@ export class BootScene extends Phaser.Scene {
     // ── Step 1: Request durable IndexedDB storage ──────────────────────────
     // per runtime-architecture.md §5.3e — called after first engagement signal
     // We attempt immediately and degrade gracefully if denied.
+    // This step is critical for persistence, so we don't defer it.
     const step1Start = performance.now();
+    this.updateProgress('Initializing…');
     try {
       const granted = await ensurePersistenceGranted();
       console.info(
@@ -70,6 +83,7 @@ export class BootScene extends Phaser.Scene {
     // Must run after DB is open so deviceMeta is readable. The cache powers
     // checkReduceMotion() and isHighContrastEnabled() across all scenes.
     const step1bStart = performance.now();
+    this.updateProgress('Loading preferences…');
     try {
       await initPreferences();
       console.info(
@@ -81,7 +95,9 @@ export class BootScene extends Phaser.Scene {
 
     // ── Step 1c: Seed curriculum on first boot ─────────────────────────────
     // per persistence-spec.md §5 step 4 — bulkPut static stores after DB open.
+    // This is critical for the game to run with real content.
     const step1cStart = performance.now();
+    this.updateProgress('Loading curriculum…');
     try {
       const result = await seedIfEmpty();
       if (result.alreadySeeded) {
@@ -102,7 +118,9 @@ export class BootScene extends Phaser.Scene {
 
     // ── Step 2: Read lastUsedStudentId from localStorage ───────────────────
     // per runtime-architecture.md §5.4a, C5 (only allowed localStorage key)
+    // This is critical for session resumption.
     const step2Start = performance.now();
+    this.updateProgress('Loading student…');
     try {
       this.lastStudentId = localStorage.getItem(LAST_STUDENT_KEY);
       if (this.lastStudentId) {
@@ -160,6 +178,13 @@ export class BootScene extends Phaser.Scene {
       this.advanceToPreload();
     } else {
       console.info('[BootScene] Test hooks enabled — waiting for boot-start-btn click…');
+      this.updateProgress('Ready to start');
+    }
+  }
+
+  private updateProgress(message: string): void {
+    if (this.progressText) {
+      this.progressText.setText(message);
     }
   }
 

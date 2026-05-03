@@ -136,25 +136,33 @@ export class IdentifyInteraction implements Interaction {
           if (idx !== i) {
             otherBg.setFillStyle(OPTION_BG);
             otherBg.setStrokeStyle(2, OPTION_BORDER);
-            scene.tweens.add({
-              targets: otherBg,
-              scaleX: 1.0,
-              scaleY: 1.0,
-              duration: 80,
-            });
+            // Apply final scale immediately; animate only if not reducing motion
+            otherBg.setScale(1.0);
+            if (!checkReduceMotion()) {
+              scene.tweens.add({
+                targets: otherBg,
+                scaleX: 1.0,
+                scaleY: 1.0,
+                duration: 80,
+              });
+            }
           }
         });
 
         // Select this one
         bg.setFillStyle(SELECTED_BG);
         bg.setStrokeStyle(3, SELECTED_BORDER);
-        scene.tweens.add({
-          targets: bg,
-          scaleX: 1.06,
-          scaleY: 1.06,
-          duration: 100,
-          ease: 'Power1',
-        });
+        // Apply final scale immediately; animate only if not reducing motion
+        bg.setScale(1.06);
+        if (!checkReduceMotion()) {
+          scene.tweens.add({
+            targets: bg,
+            scaleX: 1.06,
+            scaleY: 1.06,
+            duration: 100,
+            ease: 'Power1',
+          });
+        }
 
         this.selectedIndex = i;
         this.submitContainer?.setAlpha(1);
@@ -162,7 +170,11 @@ export class IdentifyInteraction implements Interaction {
 
       hit.on('pointerup', select);
 
-      A11yLayer.mountAction(`a11y-identify-option-${i}`, `Option ${i + 1}: ${opt.alt ?? `variant`}`, select);
+      A11yLayer.mountAction(
+        `a11y-identify-option-${i}`,
+        `Option ${i + 1}: ${opt.alt ?? `variant`}`,
+        select
+      );
 
       TestHooks.mountInteractive(`identify-option-${i}`, select, {
         top: `${(cardY / 1280) * 100}%`,

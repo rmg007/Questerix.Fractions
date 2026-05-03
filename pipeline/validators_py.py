@@ -568,7 +568,7 @@ def _placement_snap_tolerance(input_: dict, expected: dict) -> ValidatorResult:
     Uses exactTolerance and closeTolerance from expected payload.
     per placement.ts:placementSnapTolerance
     """
-    placed: float = input_["placedDecimal"]
+    placed: float = input_["studentPlacedDecimal"]
     target: float = expected["targetDecimal"]
     exact_tolerance: float = expected.get("exactTolerance", 0.0625)  # default 1/16
     close_tolerance: float = expected.get("closeTolerance", 0.125)   # default 1/8
@@ -597,7 +597,7 @@ def _placement_snap8(input_: dict, expected: dict) -> ValidatorResult:
     WRONG otherwise.
     per content-pipeline.md §5.1 validator pseudocode / activity-archetypes.md §10
     """
-    placed: float = input_["placedDecimal"]
+    placed: float = input_["studentPlacedDecimal"]
     target: float = expected["targetDecimal"]
     diff = abs(placed - target)
 

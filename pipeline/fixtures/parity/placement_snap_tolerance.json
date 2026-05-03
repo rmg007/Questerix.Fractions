@@ -1,0 +1,26 @@
+[
+  {
+    "validatorId": "validator.placement.snapTolerance",
+    "input": { "studentPlacedDecimal": 0.5 },
+    "expected": { "targetDecimal": 0.5, "exactTolerance": 0.05, "closeTolerance": 0.15 },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.placement.snapTolerance",
+    "input": { "studentPlacedDecimal": 0.52 },
+    "expected": { "targetDecimal": 0.5, "exactTolerance": 0.05, "closeTolerance": 0.15 },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.placement.snapTolerance",
+    "input": { "studentPlacedDecimal": 0.75 },
+    "expected": { "targetDecimal": 0.5, "exactTolerance": 0.05, "closeTolerance": 0.15 },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.placement.snapTolerance",
+    "input": { "studentPlacedDecimal": 0.3 },
+    "expected": { "targetDecimal": 0.75, "exactTolerance": 0.05, "closeTolerance": 0.15 },
+    "outcome": "incorrect"
+  }
+]

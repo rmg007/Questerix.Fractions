@@ -1,0 +1,20 @@
+[
+  {
+    "validatorId": "validator.order.withRuleExplanation",
+    "input": { "sequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "rule": "size" },
+    "expected": { "acceptableOrders": [["frac:1/4", "frac:1/2", "frac:3/4"]], "postStep": { "correctRule": "size" } },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.order.withRuleExplanation",
+    "input": { "sequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "rule": "parts" },
+    "expected": { "acceptableOrders": [["frac:1/4", "frac:1/2", "frac:3/4"]], "postStep": { "correctRule": "size" } },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.order.withRuleExplanation",
+    "input": { "sequence": ["frac:3/4", "frac:1/2", "frac:1/4"], "rule": "size" },
+    "expected": { "acceptableOrders": [["frac:1/4", "frac:1/2", "frac:3/4"]], "postStep": { "correctRule": "size" } },
+    "outcome": "incorrect"
+  }
+]

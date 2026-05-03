@@ -1,0 +1,26 @@
+[
+  {
+    "validatorId": "validator.explain_your_order.sequence",
+    "input": { "studentSequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "justification": "size" },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "acceptedJustifications": ["size", "grow"] },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.explain_your_order.sequence",
+    "input": { "studentSequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "justification": "parts" },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "acceptedJustifications": ["size", "grow"] },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.explain_your_order.sequence",
+    "input": { "studentSequence": ["frac:1/4", "frac:3/4", "frac:1/2"], "justification": "size" },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"], "acceptedJustifications": ["size", "grow"] },
+    "outcome": "partial"
+  },
+  {
+    "validatorId": "validator.explain_your_order.sequence",
+    "input": { "studentSequence": ["frac:3/4", "frac:1/2", "frac:1/4"] },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "outcome": "incorrect"
+  }
+]
