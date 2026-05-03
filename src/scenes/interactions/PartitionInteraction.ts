@@ -1,7 +1,9 @@
 /**
  * PartitionInteraction — drag-divider mechanic for the `partition` archetype.
  * Ported from Level01Scene. Owns shape + drag-handle visuals.
+ * Supports shapeType: 'rectangle' | 'circle' | 'chocolate_bar'
  * per activity-archetypes.md §1, level-01.md §4.3
+ * per plans/visual-game-ideas.md §1-B (ChocolateBarModel), §4-A (true pie slices)
  */
 
 import * as Phaser from 'phaser';
@@ -12,16 +14,22 @@ import type { PartitionInput, PartitionPayload } from '../../validators/partitio
 import { log } from '../../lib/log';
 import { NAVY, SKY_BG, ACTION_FILL, BODY_FONT, TITLE_FONT } from '../utils/levelTheme';
 import { sfx } from '../../audio/SFXService';
+import { ChocolateBarModel } from './utils/ChocolateBarModel';
 
 const OPTION_BORDER = NAVY;
 
 const SHAPE_W = 400;
 const SHAPE_H = 520;
+// Chocolate bar is landscape-ish — shorter height than the rectangle
+const CHOC_H = 240;
 const SNAP_PCT = 0.05;
 // Handle starts off-centre so the divider is clearly unequal on load —
 // otherwise the centre is already the correct halves answer and a stray
 // touch could submit a "correct" payload without genuine engagement.
 const INITIAL_HANDLE_OFFSET_PCT = 0.3;
+
+// Slice colours for pie feedback (cycles for N > 2)
+const PIE_COLORS = [ACTION_FILL, SKY_BG, 0x86efac, 0xfca5a5, 0xc4b5fd, 0xfde68a];
 
 export class PartitionInteraction implements Interaction {
   readonly archetype = 'partition' as const;
@@ -39,8 +47,9 @@ export class PartitionInteraction implements Interaction {
   private fractionLabels: Phaser.GameObjects.Text[] = [];
   private shapeCenterX!: number;
   private shapeCenterY!: number;
-  private shapeType!: 'rectangle' | 'circle';
+  private shapeType!: 'rectangle' | 'circle' | 'chocolate_bar';
   private targetPartitions = 2;
+  private chocolateBar: ChocolateBarModel | null = null;
 
   mount(ctx: InteractionContext): void {
     this.scene = ctx.scene;
@@ -56,7 +65,7 @@ export class PartitionInteraction implements Interaction {
     });
 
     const payload = ctx.template.payload as Partial<PartitionPayload> & {
-      shapeType?: 'rectangle' | 'circle';
+      shapeType?: 'rectangle' | 'circle' | 'chocolate_bar';
       snapMode?: 'axis' | 'free';
     };
     const shapeType = payload.shapeType ?? 'rectangle';
@@ -72,7 +81,15 @@ export class PartitionInteraction implements Interaction {
 
     const minX = centerX - SHAPE_W / 2;
     const maxX = centerX + SHAPE_W / 2;
-    const snapTargets = snapMode === 'axis' ? [centerX] : [];
+
+    // Snap targets depend on shape type
+    let snapTargets: number[] = [];
+    if (shapeType === 'chocolate_bar') {
+      // Snap to each column boundary
+      snapTargets = this.chocolateBar?.snapTargets() ?? [];
+    } else if (snapMode === 'axis') {
+      snapTargets = [centerX];
+    }
 
     const buildInput = (): PartitionInput => {
       const leftArea = this.handlePos - (centerX - SHAPE_W / 2);
@@ -82,11 +99,13 @@ export class PartitionInteraction implements Interaction {
 
     let dragStartPos = this.handlePos;
 
+    const trackH = shapeType === 'chocolate_bar' ? CHOC_H + 40 : SHAPE_H + 40;
+
     this.dragHandle = new DragHandle({
       scene: this.scene,
       x: this.handlePos,
       y: centerY,
-      trackLength: SHAPE_H + 40,
+      trackLength: trackH,
       axis: 'horizontal',
       minPos: minX,
       maxPos: maxX,
@@ -120,25 +139,22 @@ export class PartitionInteraction implements Interaction {
         if (this.dragAffordance) {
           this.dragAffordance.setX(pos);
         }
-        // Drop = commit to LevelScene (which auto-submits). Without this the
-        // Check button is dead — lastPayload stays null and onSubmit returns.
         ctx.onCommit(buildInput());
       },
     });
 
-    // Fix 3: drag handle clarity affordance
+    // Drag affordance arrows
     this.dragAffordance = this.scene.add
       .text(this.handlePos, centerY, '▲\n▼', {
         fontFamily: 'BODY_FONT',
         fontSize: '16px',
-        color: '#1e3a8a', // NAVY
+        color: '#1e3a8a',
         align: 'center',
         lineSpacing: -4,
       })
       .setOrigin(0.5)
       .setDepth(10);
 
-    // partition-target: transparent button that triggers submit
     TestHooks.mountInteractive(
       'partition-target',
       () => {
@@ -165,6 +181,8 @@ export class PartitionInteraction implements Interaction {
     this.fractionLabels = [];
     this.dragAffordance?.destroy();
     this.dragAffordance = null;
+    this.chocolateBar?.destroy();
+    this.chocolateBar = null;
     (this.dragHandle as DragHandle | undefined)?.destroy();
     TestHooks.unmount('partition-target');
   }
@@ -181,7 +199,6 @@ export class PartitionInteraction implements Interaction {
     g.lineStyle(3, NAVY, 1);
 
     if (this.shapeType === 'rectangle') {
-      // Midpoint is a vertical line at cx
       const top = cy - SHAPE_H / 2;
       const bottom = cy + SHAPE_H / 2;
       this.drawDashedLine(g, cx, top, cx, bottom, 12, 8);
@@ -194,8 +211,7 @@ export class PartitionInteraction implements Interaction {
         .setOrigin(0, 0.5)
         .setAlpha(0.35)
         .setDepth(8);
-    } else {
-      // For circle: midpoint is a vertical diameter at cx
+    } else if (this.shapeType === 'circle') {
       const top = cy - SHAPE_W / 2;
       const bottom = cy + SHAPE_W / 2;
       this.drawDashedLine(g, cx, top, cx, bottom, 12, 8);
@@ -208,6 +224,11 @@ export class PartitionInteraction implements Interaction {
         .setOrigin(0, 0.5)
         .setAlpha(0.35)
         .setDepth(8);
+    } else {
+      // chocolate_bar: dashed line at center column boundary
+      const top = cy - CHOC_H / 2;
+      const bottom = cy + CHOC_H / 2;
+      this.drawDashedLine(g, cx, top, cx, bottom, 12, 8);
     }
   }
 
@@ -217,6 +238,15 @@ export class PartitionInteraction implements Interaction {
     const cx = this.shapeCenterX;
     const cy = this.shapeCenterY;
     const n = this.targetPartitions;
+
+    if (this.shapeType === 'chocolate_bar') {
+      // Chocolate bar: determine left count from handle position
+      const left = cx - SHAPE_W / 2;
+      const segW = SHAPE_W / n;
+      const leftCount = Math.round((this.handlePos - left) / segW);
+      this.chocolateBar?.showFeedback(Math.max(1, Math.min(n - 1, leftCount)));
+      return;
+    }
 
     const fillG = this.scene.add.graphics().setDepth(5).setAlpha(0);
     this.correctFillGraphics = fillG;
@@ -231,7 +261,7 @@ export class PartitionInteraction implements Interaction {
         fillG.fillRect(left + partW * i, top, partW, SHAPE_H);
       }
 
-      // Fraction labels — centered in each segment
+      // Fraction labels — centred in each segment
       this.scene.time.delayedCall(200, () => {
         for (let i = 0; i < n; i++) {
           const lx = left + partW * i + partW / 2;
@@ -255,14 +285,57 @@ export class PartitionInteraction implements Interaction {
         }
       });
     } else {
-      // Circle: color the left and right semicircles
-      fillG.fillStyle(ACTION_FILL, 0.45);
-      fillG.fillCircle(cx, cy, SHAPE_W / 2);
-      const maskG = this.scene.add.graphics().setDepth(5).setAlpha(0);
-      maskG.fillStyle(SKY_BG, 0.45);
-      maskG.fillRect(cx, cy - SHAPE_W / 2, SHAPE_W / 2, SHAPE_W);
-      this.fractionLabels.push(this.scene.add.text(0, 0, '').setDepth(9)); // sentinel so maskG gets destroyed with fractionLabels
-      maskG.destroy(); // simplified: just fill the whole circle amber for circle shape
+      // Circle — proper N-slice pie using arc path drawing
+      const radius = SHAPE_W / 2;
+      const angleStep = (2 * Math.PI) / n;
+
+      for (let i = 0; i < n; i++) {
+        const startAngle = -Math.PI / 2 + angleStep * i;
+        const endAngle = startAngle + angleStep;
+        const color = PIE_COLORS[i % PIE_COLORS.length]!;
+
+        fillG.fillStyle(color, 0.5);
+        fillG.beginPath();
+        fillG.moveTo(cx, cy);
+        fillG.arc(cx, cy, radius, startAngle, endAngle, false, 32);
+        fillG.closePath();
+        fillG.fillPath();
+
+        // Subtle divider stroke
+        fillG.lineStyle(2, NAVY, 0.45);
+        fillG.beginPath();
+        fillG.moveTo(cx, cy);
+        fillG.arc(cx, cy, radius, startAngle, endAngle, false, 32);
+        fillG.closePath();
+        fillG.strokePath();
+      }
+
+      // Fraction labels in each slice centre
+      this.scene.time.delayedCall(200, () => {
+        for (let i = 0; i < n; i++) {
+          const midAngle = -Math.PI / 2 + angleStep * (i + 0.5);
+          const labelR = radius * 0.62;
+          const lx = cx + Math.cos(midAngle) * labelR;
+          const ly = cy + Math.sin(midAngle) * labelR;
+          const label = this.scene.add
+            .text(lx, ly, `1/${n}`, {
+              fontFamily: TITLE_FONT,
+              fontSize: '24px',
+              color: '#1e3a8a',
+            })
+            .setOrigin(0.5)
+            .setDepth(9)
+            .setScale(0.5);
+          this.fractionLabels.push(label);
+          this.scene.tweens.add({
+            targets: label,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 300,
+            ease: 'Back.easeOut',
+          });
+        }
+      });
     }
 
     this.scene.tweens.add({
@@ -276,7 +349,6 @@ export class PartitionInteraction implements Interaction {
   /**
    * Draws dashed cut-line hints at the correct division positions.
    * Satisfies the Interaction.showVisualOverlay() interface contract.
-   * Uses the targetPartitions stored during mount.
    */
   showVisualOverlay(): void {
     this.cutLineHint?.destroy();
@@ -301,7 +373,7 @@ export class PartitionInteraction implements Interaction {
         const x = left + (SHAPE_W * i) / n;
         this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
       }
-    } else {
+    } else if (this.shapeType === 'circle') {
       const radius = SHAPE_W / 2;
       const angleStep = (2 * Math.PI) / n;
       for (let i = 0; i < n; i++) {
@@ -310,35 +382,66 @@ export class PartitionInteraction implements Interaction {
         const ey = cy + radius * Math.sin(angle);
         this.drawDashedLine(this.cutLineHint, cx, cy, ex, ey, DASH_LEN, GAP_LEN);
       }
+    } else {
+      // chocolate_bar: dashed lines at each column boundary
+      const left = cx - SHAPE_W / 2;
+      const top = cy - CHOC_H / 2;
+      const bottom = cy + CHOC_H / 2;
+      for (let i = 1; i < n; i++) {
+        const x = left + (SHAPE_W * i) / n;
+        this.drawDashedLine(this.cutLineHint, x, top, x, bottom, DASH_LEN, GAP_LEN);
+      }
     }
 
     log.scene('cut_line_hint_shown', { shapeType: this.shapeType, targetPartitions: n });
   }
 
-  private drawShape(shapeType: 'rectangle' | 'circle', cx: number, cy: number): void {
+  private drawShape(
+    shapeType: 'rectangle' | 'circle' | 'chocolate_bar',
+    cx: number,
+    cy: number
+  ): void {
     const g = this.shapeGraphics;
     g.clear();
+
     if (shapeType === 'rectangle') {
-      // Sky-tinted fill so the navy partition line is clearly visible
       g.fillStyle(SKY_BG, 0.55);
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
-    } else {
+    } else if (shapeType === 'circle') {
       g.fillStyle(SKY_BG, 0.55);
       g.fillCircle(cx, cy, SHAPE_W / 2);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
+    } else {
+      // chocolate_bar: delegate to ChocolateBarModel
+      this.chocolateBar = new ChocolateBarModel({
+        scene: this.scene,
+        cx,
+        cy,
+        width: SHAPE_W,
+        height: CHOC_H,
+        denominator: this.targetPartitions,
+        depth: 5,
+      });
+      // shapeGraphics not needed for chocolate (ChocolateBarModel owns its own Graphics)
     }
   }
 
   private updatePartitionLine(handleX: number, cy: number): void {
     this.partitionLine.clear();
-    // T3 fix: solid navy line, 10px thick for clarity
     this.partitionLine.lineStyle(10, NAVY, 1);
-    const top = cy - SHAPE_H / 2;
-    const bottom = cy + SHAPE_H / 2;
-    this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
+
+    if (this.shapeType === 'chocolate_bar') {
+      const top = cy - CHOC_H / 2;
+      const bottom = cy + CHOC_H / 2;
+      this.partitionLine.lineBetween(handleX, top - 10, handleX, bottom + 10);
+    } else {
+      const top = cy - SHAPE_H / 2;
+      const bottom = cy + SHAPE_H / 2;
+      this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
+    }
   }
 
   private drawDashedLine(

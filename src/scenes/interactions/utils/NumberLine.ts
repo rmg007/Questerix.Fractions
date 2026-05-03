@@ -5,6 +5,7 @@
 
 import * as Phaser from 'phaser';
 import { CLR, HEX } from '../../utils/colors';
+import { checkReduceMotion } from '../../../lib/preferences';
 
 export interface NumberLineOpts {
   x: number;
@@ -123,13 +124,44 @@ export class NumberLine {
 
     this.marker!.setInteractive({ draggable: true, useHandCursor: true });
 
+    // Trail dots drawn during drag
+    const trailDots: Phaser.GameObjects.Arc[] = [];
+    let lastTrailX = this.marker!.x;
+
     this.marker!.on('drag', (_ptr: unknown, dx: number) => {
       const clamped = Phaser.Math.Clamp(dx, left, left + length);
       this.marker!.setPosition(clamped, y);
       this.currentValue = minValue + ((clamped - left) / length) * range;
+
+      // Leave a fading trail dot every 20px
+      if (!checkReduceMotion() && Math.abs(clamped - lastTrailX) >= 20) {
+        lastTrailX = clamped;
+        const dot = this.scene.add
+          .circle(clamped, y, 5, CLR.primary, 0.35)
+          .setDepth(8);
+        trailDots.push(dot);
+        this.scene.tweens.add({
+          targets: dot,
+          alpha: 0,
+          scaleX: 0.3,
+          scaleY: 0.3,
+          duration: 400,
+          ease: 'Cubic.easeIn',
+          onComplete: () => {
+            dot.destroy();
+            const idx = trailDots.indexOf(dot);
+            if (idx !== -1) trailDots.splice(idx, 1);
+          },
+        });
+      }
     });
 
     this.marker!.on('dragend', () => {
+      // Clear remaining trail dots
+      for (const dot of trailDots) dot.destroy();
+      trailDots.length = 0;
+      lastTrailX = this.marker!.x;
+
       let snapped = this.currentValue;
       if (snapPositions!.length > 0) {
         let best = snapPositions![0]!;
@@ -148,6 +180,23 @@ export class NumberLine {
       this.currentValue = snapped;
       const finalX = left + ((snapped - minValue) / range) * length;
       this.marker!.setPosition(finalX, y);
+
+      // Bounce on snap
+      if (!checkReduceMotion() && this.marker) {
+        this.marker.setScale(1);
+        this.scene.tweens.add({
+          targets: this.marker,
+          scaleX: 1.5,
+          scaleY: 1.5,
+          duration: 120,
+          ease: 'Back.easeOut',
+          yoyo: true,
+          onComplete: () => {
+            this.marker?.setScale(1);
+          },
+        });
+      }
+
       onCommit(snapped);
     });
   }

@@ -37,10 +37,13 @@ export interface DragHandleConfig {
 const HANDLE_VISIBLE = 8; // stroke width of the visible line
 const HIT_TARGET = 44; // per design-language.md §5 — WCAG 2.5.5 minimum
 const KBD_STEP = 8; // per interaction-model.md §9 — 8 px increments
+const GLOW_RADIUS = 28; // radius of the hover glow circle
 
 export class DragHandle {
   private hitZone: Phaser.GameObjects.Rectangle;
   private visibleLine: Phaser.GameObjects.Rectangle;
+  private glowCircle: Phaser.GameObjects.Arc;
+  private glowTween: Phaser.Tweens.Tween | null = null;
   private readonly scene: Phaser.Scene;
 
   private _pos: number;
@@ -54,6 +57,11 @@ export class DragHandle {
     this.scene = scene;
     this.cfg = config;
     this._pos = axis === 'horizontal' ? x : y;
+
+    // Hover glow — pulsing amber circle behind the handle line (hidden by default)
+    this.glowCircle = scene.add
+      .circle(x, y, GLOW_RADIUS, CLR.accentA, 0)
+      .setDepth(depth - 1);
 
     // Visible handle line — thin stroke per design-language.md §7.1 (2px stroke)
     const lineW = axis === 'horizontal' ? HANDLE_VISIBLE : trackLength;
@@ -80,9 +88,18 @@ export class DragHandle {
     const { minPos, maxPos, snapThreshold = 20, snapTargets = [], onMove, onCommit } = this.cfg;
     const isHoriz = this.cfg.axis === 'horizontal';
 
+    this.hitZone.on('pointerover', () => {
+      if (!this.isDragging) this.showGlow();
+    });
+
+    this.hitZone.on('pointerout', () => {
+      if (!this.isDragging) this.hideGlow();
+    });
+
     this.hitZone.on('dragstart', () => {
       this.isDragging = true;
       this.visibleLine.setFillStyle(CLR.primaryStrong); // visual feedback on grab
+      this.showGlow();
     });
 
     this.hitZone.on('drag', (_ptr: Phaser.Input.Pointer, dragX: number, dragY: number) => {
@@ -99,6 +116,10 @@ export class DragHandle {
         isHoriz ? clamped : this.hitZone.x,
         isHoriz ? this.hitZone.y : clamped
       );
+      this.glowCircle.setPosition(
+        isHoriz ? clamped : this.glowCircle.x,
+        isHoriz ? this.glowCircle.y : clamped
+      );
 
       onMove?.(clamped);
     });
@@ -106,6 +127,7 @@ export class DragHandle {
     this.hitZone.on('dragend', () => {
       this.isDragging = false;
       this.visibleLine.setFillStyle(CLR.primary);
+      this.hideGlow();
 
       // Magnetic snap — per interaction-model.md §3.1, level-01.md §4.3 (±5% snap)
       const snapped = this.findSnapTarget(this._pos, snapTargets, snapThreshold);
@@ -157,6 +179,10 @@ export class DragHandle {
       isHoriz ? this.visibleLine.y : pos
     );
     this.hitZone.setPosition(isHoriz ? pos : this.hitZone.x, isHoriz ? this.hitZone.y : pos);
+    this.glowCircle.setPosition(
+      isHoriz ? pos : this.glowCircle.x,
+      isHoriz ? this.glowCircle.y : pos
+    );
   }
 
   /** Returns the nearest snap target if within threshold, else null. */
@@ -171,6 +197,37 @@ export class DragHandle {
       }
     }
     return best;
+  }
+
+  /** Fade in a pulsing amber glow ring around the handle. */
+  private showGlow(): void {
+    if (checkReduceMotion()) return;
+    this.glowTween?.stop();
+    this.glowCircle.setAlpha(0.22);
+    this.glowTween = this.scene.tweens.add({
+      targets: this.glowCircle,
+      alpha: 0.38,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      duration: 600,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+
+  /** Fade out the glow ring. */
+  private hideGlow(): void {
+    this.glowTween?.stop();
+    this.glowTween = null;
+    this.scene.tweens.add({
+      targets: this.glowCircle,
+      alpha: 0,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 180,
+      ease: 'Cubic.easeIn',
+    });
   }
 
   /** Current handle position (axis-relative logical px). */
@@ -194,7 +251,7 @@ export class DragHandle {
     } else {
       const targetObj = isHoriz ? { x: clamped } : { y: clamped };
       this.scene.tweens.add({
-        targets: [this.visibleLine, this.hitZone],
+        targets: [this.visibleLine, this.hitZone, this.glowCircle],
         ...targetObj,
         duration: 500,
         ease: 'Cubic.easeInOut',
@@ -207,6 +264,8 @@ export class DragHandle {
 
   /** Destroy all game objects and remove event listeners. */
   destroy(): void {
+    this.glowTween?.stop();
+    this.glowCircle.destroy();
     this.visibleLine.destroy();
     this.hitZone.destroy();
     if (this.keyHandler) {

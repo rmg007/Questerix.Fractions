@@ -26,7 +26,7 @@ const BODY_R = 40;
 const HAT_BASE = 50;
 const HAT_H = 55;
 
-export type MascotState = 'idle' | 'cheer' | 'think' | 'oops' | 'cheer-big' | 'wave' | 'celebrate';
+export type MascotState = 'idle' | 'cheer' | 'think' | 'oops' | 'cheer-big' | 'wave' | 'celebrate' | 'sleep';
 
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
@@ -45,6 +45,10 @@ export class Mascot extends Phaser.GameObjects.Container {
   // T14: Speech bubble + idle timer fields
   private currentBubble: Phaser.GameObjects.Container | null = null;
   private idleTimerEvents: Phaser.Time.TimerEvent[] = [];
+
+  // Sleep state
+  private sleepGfx: Phaser.GameObjects.Graphics | null = null;
+  private zzzTimer: Phaser.Time.TimerEvent | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, scale = 1) {
     super(scene, x, y);
@@ -98,6 +102,9 @@ export class Mascot extends Phaser.GameObjects.Container {
         break;
       case 'wave':
         this.wave();
+        break;
+      case 'sleep':
+        this.sleep();
         break;
       case 'idle':
       default:
@@ -336,6 +343,95 @@ export class Mascot extends Phaser.GameObjects.Container {
         },
       ],
     });
+  }
+
+  /**
+   * Sleep: very slow bob, closed-eye overlay, floating Zzz text.
+   * Triggered after 30 s idle. State persists until any new setState() call.
+   */
+  sleep(): void {
+    this.stopCurrent();
+    this.clearSleepFx();
+    if (this.reduceMotion) return;
+
+    // Very slow gentle bob
+    this.idleTween = this.scene.tweens.add({
+      targets: this,
+      y: this.baseY - 4,
+      duration: 2500,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1,
+    });
+
+    // Eyelid overlay added as a container child so it moves with the body
+    this.sleepGfx = this.scene.add.graphics();
+    this.drawSleepEyelids(this.sleepGfx);
+    this.add(this.sleepGfx as unknown as Phaser.GameObjects.GameObject);
+
+    // Start cascading Zzz floats
+    this.scheduleZzz();
+  }
+
+  private drawSleepEyelids(g: Phaser.GameObjects.Graphics): void {
+    // Face eyes are at (-11, -8) and (15, -8) in container-local coords.
+    // Fill with body colour to hide pupils, then draw a closed-arc over each.
+    g.fillStyle(AMBER, 1);
+    g.fillEllipse(-11, -6, 20, 13);
+    g.fillEllipse(15, -6, 20, 13);
+    g.lineStyle(3, NAVY, 1);
+    // Closed-eye arcs (flat side down)
+    g.beginPath();
+    g.arc(-11, -11, 9, 0, Math.PI, false, 16);
+    g.strokePath();
+    g.beginPath();
+    g.arc(15, -11, 9, 0, Math.PI, false, 16);
+    g.strokePath();
+  }
+
+  private scheduleZzz(): void {
+    if ((this.state as string) !== 'sleep' || !this.active) return;
+    this.floatOneZzz('z', 16);
+    this.zzzTimer = this.scene.time.delayedCall(700, () => {
+      if ((this.state as string) !== 'sleep') return;
+      this.floatOneZzz('Z', 20);
+      this.scene.time.delayedCall(700, () => {
+        if ((this.state as string) !== 'sleep') return;
+        this.floatOneZzz('Z', 26);
+        this.scene.time.delayedCall(1800, () => this.scheduleZzz());
+      });
+    });
+  }
+
+  private floatOneZzz(letter: string, size: number): void {
+    if (!this.active) return;
+    const text = this.scene.add
+      .text(this.x + BODY_R + 10, this.y - BODY_R - size * 0.5, letter, {
+        fontSize: `${size}px`,
+        fontFamily: BODY_FONT,
+        color: '#60a5fa',
+        fontStyle: 'bold',
+      })
+      .setDepth(this.depth + 6)
+      .setAlpha(0.9);
+    this.scene.tweens.add({
+      targets: text,
+      y: text.y - 38,
+      alpha: 0,
+      duration: 1200,
+      ease: 'Cubic.easeOut',
+      onComplete: () => text.destroy(),
+    });
+  }
+
+  private clearSleepFx(): void {
+    if (this.sleepGfx) {
+      this.remove(this.sleepGfx as unknown as Phaser.GameObjects.GameObject);
+      this.sleepGfx.destroy();
+      this.sleepGfx = null;
+    }
+    this.zzzTimer?.remove(false);
+    this.zzzTimer = null;
   }
 
   /** Arm-raise wave (~850ms), then returns to idle. */
@@ -587,6 +683,9 @@ export class Mascot extends Phaser.GameObjects.Container {
       this.setState('cheer');
       this.showSpeechBubble("Let's go, I believe in you! ⭐", 3000);
     });
+    add(38_000, () => {
+      this.setState('sleep');
+    });
   }
 
   /**
@@ -602,6 +701,7 @@ export class Mascot extends Phaser.GameObjects.Container {
 
   override destroy(fromScene?: boolean): void {
     this.resetIdleTimer();
+    this.clearSleepFx();
     if (this.idleTween) {
       this.idleTween.stop();
       this.idleTween = null;
@@ -627,6 +727,8 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.killTweensOf(this.face);
     this.scene.tweens.killTweensOf(this.rightArm);
+
+    this.clearSleepFx();
 
     this.setPosition(this.x, this.baseY);
     this.setScale(this.baseScale);

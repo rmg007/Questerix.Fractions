@@ -6,7 +6,8 @@
  */
 
 import * as Phaser from 'phaser';
-import { drawAdventureBackground, PATH_BLUE, OPTION_BG } from './utils/levelTheme';
+import { PATH_BLUE, OPTION_BG } from './utils/levelTheme';
+import { drawLevelBackground } from './utils/levelBackgrounds';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
@@ -120,6 +121,8 @@ export class LevelScene extends Phaser.Scene {
   private submitButtonContainer!: Phaser.GameObjects.Container;
   private mascot!: Mascot;
   private questionCounterText!: Phaser.GameObjects.Text;
+  private counterContainer!: Phaser.GameObjects.Container;
+  private updateCounter!: (answered: number, total: number) => void;
   protected studentDisplayName: string | null = null;
 
   constructor(key = 'LevelScene') {
@@ -161,8 +164,8 @@ export class LevelScene extends Phaser.Scene {
     log.scene('create_start', { level: this.levelNumber });
     TestHooks.unmountAll();
 
-    // Adventure sky background — matches the MenuScene world
-    drawAdventureBackground(this, CW, CH);
+    // Per-level illustrated scene background (§3-A)
+    drawLevelBackground(this, this.levelNumber, CW, CH);
 
     // Fade in from black on arrival
     if (!checkReduceMotion()) {
@@ -304,6 +307,7 @@ export class LevelScene extends Phaser.Scene {
       promptText: this.promptText,
       hintTextGO: this.hintTextGO,
       questionCounterText: this.questionCounterText,
+      updateCounter: (n, t) => this.updateCounter(n, t),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mascot: this.mascot as any,
     };
@@ -357,16 +361,22 @@ export class LevelScene extends Phaser.Scene {
   // ── Header / chrome ─────────────────────────────────────────────────────────
 
   private createHeader(): void {
-    const { questionCounterText } = createHeaderLib(this, this.levelNumber, {
-      sessionGoal: SESSION_GOAL,
-      onBackToMenu: () => fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId }),
-      backLogContext: () => ({
-        level: this.levelNumber,
-        questionIndex: this.questionIndex,
-        attemptCount: this.attemptCount,
-      }),
-    });
+    const { questionCounterText, updateCounter, counterContainer } = createHeaderLib(
+      this,
+      this.levelNumber,
+      {
+        sessionGoal: SESSION_GOAL,
+        onBackToMenu: () => fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId }),
+        backLogContext: () => ({
+          level: this.levelNumber,
+          questionIndex: this.questionIndex,
+          attemptCount: this.attemptCount,
+        }),
+      }
+    );
     this.questionCounterText = questionCounterText;
+    this.updateCounter = updateCounter;
+    this.counterContainer = counterContainer;
   }
 
   private createPromptArea(): void {
@@ -423,6 +433,7 @@ export class LevelScene extends Phaser.Scene {
       promptText: this.promptText,
       hintTextGO: this.hintTextGO,
       questionCounterText: this.questionCounterText,
+      updateCounter: (n, t) => this.updateCounter(n, t),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mascot: this.mascot as any,
     };
@@ -745,12 +756,13 @@ export class LevelScene extends Phaser.Scene {
    */
   private animateCounterBadge(): void {
     if (checkReduceMotion()) return;
-    const badge = this.questionCounterText;
+    const badge = this.counterContainer;
+    if (!badge) return;
     badge.setScale(1);
     this.tweens.add({
       targets: badge,
-      scaleX: 1.25,
-      scaleY: 1.25,
+      scaleX: 1.2,
+      scaleY: 1.2,
       duration: 100,
       ease: 'Cubic.easeOut',
       yoyo: true,

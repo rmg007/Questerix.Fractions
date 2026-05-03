@@ -12,12 +12,22 @@ import {
   OPTION_BG,
 } from '@/scenes/utils/levelTheme';
 import { log } from './log';
+import { checkReduceMotion } from './preferences';
 
 const CW = 800;
 const CH = 1280;
 
+const STAR_COUNT = 5; // mirrors SESSION_GOAL
+const STAR_FILL = '#F59E0B'; // amber-400
+const STAR_EMPTY = '#CBD5E1'; // slate-300
+
 export interface HeaderResult {
+  /** Hidden text kept for backward-compat — do not rely on its content. */
   questionCounterText: Phaser.GameObjects.Text;
+  /** Call after each question loads to fill the next star and animate it. */
+  updateCounter: (answered: number, total: number) => void;
+  /** Container holding the 5 stars — use as the animateCounterBadge target. */
+  counterContainer: Phaser.GameObjects.Container;
 }
 
 export function createHeader(
@@ -95,27 +105,68 @@ export function createHeader(
     }
   });
 
+  // ── Star question counter ────────────────────────────────────────────────
+
   const CTR_W = 140;
   const CTR_H = 52;
   const ctrX = CW - 18 - CTR_W;
   const ctrY = 34;
+
+  // Background pill for the stars
   const ctrG = scene.add.graphics().setDepth(5);
   ctrG.fillStyle(SKY_BG, 1);
   ctrG.fillRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
   ctrG.lineStyle(2, NAVY, 1);
   ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
 
-  const questionCounterText = scene.add
-    .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `1 / ${opts.sessionGoal}`, {
-      fontSize: '22px',
-      fontFamily: BODY_FONT,
-      fontStyle: 'bold',
-      color: NAVY_HEX,
-    })
-    .setOrigin(0.5)
+  // 5 star Text objects, positioned relative to the container centre
+  const starSpacing = CTR_W / STAR_COUNT; // 28 px per slot
+  const stars = Array.from({ length: STAR_COUNT }, (_, i) => {
+    const relX = (i - (STAR_COUNT - 1) / 2) * starSpacing; // -56, -28, 0, 28, 56
+    return scene.add
+      .text(relX, 0, '★', {
+        fontSize: '20px',
+        fontFamily: TITLE_FONT,
+        color: STAR_EMPTY,
+      })
+      .setOrigin(0.5);
+  });
+
+  const counterContainer = scene.add
+    .container(ctrX + CTR_W / 2, ctrY + CTR_H / 2, stars as unknown as Phaser.GameObjects.GameObject[])
     .setDepth(6);
 
-  return { questionCounterText };
+  // Hidden legacy text kept so existing ctx.questionCounterText.setText() calls
+  // don't throw. Its content isn't displayed (positioned off-screen at depth 0).
+  const questionCounterText = scene.add
+    .text(-200, -200, '1 / 5', {
+      fontSize: '1px',
+      color: '#000000',
+    })
+    .setAlpha(0)
+    .setDepth(0);
+
+  const updateCounter = (answered: number, _total: number): void => {
+    const n = Math.min(answered, STAR_COUNT);
+    stars.forEach((star, i) => {
+      const filled = i < n;
+      star.setColor(filled ? STAR_FILL : STAR_EMPTY);
+
+      // Pop tween on the star that just got filled
+      if (filled && i === n - 1 && !checkReduceMotion()) {
+        star.setScale(0.5);
+        scene.tweens.add({
+          targets: star,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 300,
+          ease: 'Back.easeOut',
+        });
+      }
+    });
+  };
+
+  return { questionCounterText, updateCounter, counterContainer };
 }
 
 export function createPromptArea(scene: Phaser.Scene): Phaser.GameObjects.Text {
@@ -153,7 +204,6 @@ export function createHintButton(
     logContext: () => Record<string, unknown>;
   }
 ): Phaser.GameObjects.Container {
-  // Phase 3 layout pass (S): amber pill button 100×60 px, centered at y≈720
   return createHintPillButton(
     scene,
     CW / 2,
@@ -173,7 +223,6 @@ export function createSubmitButton(
     logContext: () => Record<string, unknown>;
   }
 ): Phaser.GameObjects.Container {
-  // Phase 3 layout pass (S): check button repositioned to y≈820 in layout arc
   return createActionButton(
     scene,
     CW / 2,

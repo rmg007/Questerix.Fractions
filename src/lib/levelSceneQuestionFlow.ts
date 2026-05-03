@@ -31,6 +31,7 @@ export interface QuestionFlowContext {
   promptText: Phaser.GameObjects.Text;
   hintTextGO: Phaser.GameObjects.Text;
   questionCounterText: Phaser.GameObjects.Text;
+  updateCounter?: (answered: number, total: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mascot: any;
 }
@@ -83,6 +84,7 @@ export async function loadQuestion(
   ctx.hintTextGO.setVisible(false);
   ctx.promptText.setText(template.prompt.text);
   ctx.questionCounterText.setText(`${index + 1} / ${SESSION_GOAL}`);
+  ctx.updateCounter?.(index + 1, SESSION_GOAL);
   callbacks.animateCounterBadge();
 
   log.q('load', {
