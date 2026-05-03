@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import { checkReduceMotion } from '../../lib/preferences';
@@ -55,6 +56,7 @@ export class IdentifyInteraction implements Interaction {
   private optionBackgrounds: Phaser.GameObjects.Rectangle[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as IdentifyPayload;
     const options = payload.options ?? optionsFromCurriculum(payload);
@@ -189,6 +191,8 @@ export class IdentifyInteraction implements Interaction {
 
     this.submitContainer = createActionButton(scene, centerX, submitY, 'Check ✓', submit, 8);
     this.submitContainer.setAlpha(0.4);
+
+    A11yLayer.mountAction('a11y-identify-submit', 'Submit your selection', submit);
 
     TestHooks.mountInteractive(`identify-submit`, submit, {
       top: `${(submitY / 1280) * 100}%`,

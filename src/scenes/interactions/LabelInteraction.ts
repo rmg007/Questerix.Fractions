@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -38,6 +39,7 @@ export class LabelInteraction implements Interaction {
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, onCommit } = ctx;
     const payload = template.payload as LabelPayload;
     const labels = payload.labels ?? [{ id: 'half', text: 'one half' }];
@@ -185,6 +187,8 @@ export class LabelInteraction implements Interaction {
     };
 
     hit.on('pointerup', submit);
+
+    A11yLayer.mountAction('a11y-label-submit', 'Submit label placements', submit);
 
     TestHooks.mountInteractive(`label-submit`, submit, {
       top: `${(sy / 1280) * 100}%`,

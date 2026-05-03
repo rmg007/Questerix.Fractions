@@ -6,6 +6,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { TestHooks } from '../utils/TestHooks';
@@ -53,6 +54,7 @@ export class ExplainYourOrderInteraction implements Interaction {
   private ctx!: InteractionContext;
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     this.ctx = ctx;
     this.renderOrderingPhase();
   }

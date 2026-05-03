@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { NAVY, OPTION_BG, OPTION_BORDER, TEXT_HEADING } from '../utils/levelTheme';
@@ -37,6 +38,7 @@ export class BenchmarkInteraction implements Interaction {
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as BenchmarkPayload;
     const fracRef = payload.targetLabel ?? payload.targetFracId ?? payload.fractionId ?? '1/4';
@@ -101,7 +103,9 @@ export class BenchmarkInteraction implements Interaction {
         .rectangle(bx, zoneY, zoneW, 64, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
-      hit.on('pointerup', () => onCommit({ zone: key }));
+      const submitZone = () => onCommit({ zone: key });
+      hit.on('pointerup', submitZone);
+      A11yLayer.mountAction(`a11y-benchmark-zone-${key}`, zl, submitZone);
       this.gameObjects.push(bg, hit);
     });
   }

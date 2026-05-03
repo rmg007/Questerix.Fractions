@@ -5,6 +5,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { DragHandle } from '../../components/DragHandle';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -43,6 +44,7 @@ export class MakeInteraction implements Interaction {
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, onCommit } = ctx;
     const payload = template.payload as MakePayload;
     const shapeType = payload.shapeType ?? 'rectangle';
@@ -151,7 +153,7 @@ export class MakeInteraction implements Interaction {
       .rectangle(centerX, sy, 240, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    submitHit.on('pointerup', () => {
+    const submitMake = () => {
       const leftArea = this.handlePos - minX;
       const rightArea = maxX - this.handlePos;
       onCommit({
@@ -160,7 +162,10 @@ export class MakeInteraction implements Interaction {
         areaTolerance,
         targetNumerator,
       });
-    });
+    };
+    submitHit.on('pointerup', submitMake);
+
+    A11yLayer.mountAction('a11y-make-submit', 'Submit shading answer', submitMake);
 
     this.gameObjects.push(bbg, blbl, bhit, sbg, submitHit);
   }

@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import { SymbolicFractionDisplay } from '../../components/SymbolicFractionDisplay';
 import { TestHooks } from '../utils/TestHooks';
@@ -59,6 +60,7 @@ export class CompareInteraction implements Interaction {
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, onCommit } = ctx;
     const payload = template.payload as ComparePayload;
 
@@ -163,6 +165,7 @@ export class CompareInteraction implements Interaction {
         onCommit({ relation: val, correct: val === correct });
       };
       hit.on('pointerup', submit);
+      A11yLayer.mountAction(`a11y-compare-${val}`, label, submit);
       TestHooks.mountInteractive(RELATION_TESTID[val], submit, {
         top: `${(btnY / 1280) * 100}%`,
         left: `${(bx / 800) * 100}%`,

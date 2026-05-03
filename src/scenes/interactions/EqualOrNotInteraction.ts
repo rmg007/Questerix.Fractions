@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import {
@@ -24,6 +25,7 @@ export class EqualOrNotInteraction implements Interaction {
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, centerX, centerY, width, onCommit } = ctx;
     this._scene = scene;
     this._cx = centerX;
@@ -70,6 +72,7 @@ export class EqualOrNotInteraction implements Interaction {
         .setDepth(7);
       const submit = () => onCommit({ answer });
       hit.on('pointerup', submit);
+      A11yLayer.mountAction(`a11y-equal-${testid}`, label, submit);
       TestHooks.mountInteractive(testid, submit, {
         top: `${(y / 1280) * 100}%`,
         left: `${(x / 800) * 100}%`,

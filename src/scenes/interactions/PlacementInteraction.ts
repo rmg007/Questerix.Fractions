@@ -4,6 +4,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { NAVY, TEXT_BODY } from '../utils/levelTheme';
@@ -35,6 +36,7 @@ export class PlacementInteraction implements Interaction {
   private line: NumberLine | undefined = undefined;
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as PlacementPayload;
     const label = payload.targetLabel ?? payload.targetFracId ?? '?';

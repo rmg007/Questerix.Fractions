@@ -8,6 +8,7 @@
 
 import * as Phaser from 'phaser';
 import { DragHandle } from '../../components/DragHandle';
+import { A11yLayer } from '../../components/A11yLayer';
 import { TestHooks } from '../utils/TestHooks';
 import type { Interaction, InteractionContext } from './types';
 import type { PartitionInput, PartitionPayload } from '../../validators/partition';
@@ -52,6 +53,7 @@ export class PartitionInteraction implements Interaction {
   private chocolateBar: ChocolateBarModel | null = null;
 
   mount(ctx: InteractionContext): void {
+    A11yLayer.unmountAll();
     this.scene = ctx.scene;
     const { centerX, centerY } = ctx;
 
@@ -162,6 +164,10 @@ export class PartitionInteraction implements Interaction {
       },
       { width: '120px', height: '120px', top: '50%', left: '50%' }
     );
+
+    A11yLayer.mountAction('a11y-partition-submit', 'Submit partition answer', () => {
+      ctx.onCommit(buildInput());
+    });
 
     ctx.onCommit(buildInput());
   }
