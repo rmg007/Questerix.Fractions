@@ -58,6 +58,7 @@ import {
   showOfflineCurriculumToast as showOfflineCurriculumToastLib,
 } from '../lib/levelSceneTemplates';
 import { showSessionCompleteForLevel } from '../lib/levelSceneSessionComplete';
+import { LevelVignette } from '../components/LevelVignette';
 import {
   createHeader as createHeaderLib,
   createPromptArea as createPromptAreaLib,
@@ -120,6 +121,7 @@ export class LevelScene extends Phaser.Scene {
   private hintButton!: Phaser.GameObjects.Container;
   private submitButtonContainer!: Phaser.GameObjects.Container;
   private mascot!: Mascot;
+  private levelVignette: LevelVignette | null = null;
   private questionCounterText!: Phaser.GameObjects.Text;
   private counterContainer!: Phaser.GameObjects.Container;
   private updateCounter!: (answered: number, total: number) => void;
@@ -269,7 +271,12 @@ export class LevelScene extends Phaser.Scene {
       this.mascot?.startIdleTimer();
     });
 
-    this.loadQuestion(0);
+    // §3-E — play once-per-session level intro vignette, then start questions
+    this.levelVignette = new LevelVignette(this, this.levelNumber);
+    this.levelVignette.play(() => {
+      this.levelVignette = null;
+      this.loadQuestion(0);
+    });
   }
 
   // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
@@ -780,6 +787,7 @@ export class LevelScene extends Phaser.Scene {
     // pulse tween) require explicit cleanup. killAll() catches any in-flight tween
     // (badge bounce, hint pulse) when the scene shuts down.
     this.tweens.killAll();
+    this.levelVignette?.destroy();
     this.activeInteraction?.unmount();
     this.feedbackOverlay?.destroy();
     this.progressBar?.destroy();
