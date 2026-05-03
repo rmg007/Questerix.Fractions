@@ -84,9 +84,14 @@ def _partition_equal_areas(input_: dict, expected: dict) -> ValidatorResult:
     if len(region_areas) != target_partitions:
         return ValidatorResult("incorrect", 0.0, "wrong_partition_count")
 
+    # Reject non-finite values (NaN, Infinity) per partition.ts line 39
+    if any(not math.isfinite(a) for a in region_areas):
+        return ValidatorResult("incorrect", 0.0, "degenerate_partition")
+
     avg = _mean(region_areas)
-    if avg == 0:
-        return ValidatorResult("incorrect", 0.0)
+    # Reject very small average per partition.ts line 43
+    if avg <= 1e-9:
+        return ValidatorResult("incorrect", 0.0, "degenerate_partition")
 
     max_delta = max(region_areas) - min(region_areas)
     relative_delta = max_delta / avg
@@ -324,16 +329,23 @@ benchmark_sort_to_zone = ValidatorRegistration(
 def _order_sequence(input_: dict, expected: dict) -> ValidatorResult:
     """
     EXACT if Kendall tau distance == 0, CLOSE if == 1, else WRONG.
-    per activity-archetypes.md §7 / utils.ts:kendallTauDistance
+    per activity-archetypes.md §7 / order.ts:orderSequence
     """
-    student_order: list[str] = input_["studentOrder"]
-    correct_order: list[str] = expected["expectedOrder"]
+    # Field names must match TS: studentSequence, correctSequence
+    student_sequence: list[str] = input_["studentSequence"]
+    correct_sequence: list[str] = expected["correctSequence"]
 
-    dist = _kendall_tau_distance(student_order, correct_order)
+    if len(student_sequence) != len(correct_sequence):
+        return ValidatorResult("incorrect", 0.0, "length_mismatch")
+
+    dist = _kendall_tau_distance(student_sequence, correct_sequence)
     if dist == 0:
         return ValidatorResult("correct", 1.0)
     if dist == 1:
-        return ValidatorResult("partial", 0.5, "close")
+        return ValidatorResult("partial", 0.5, "one_swap_off")
+    if dist == 2:
+        return ValidatorResult("partial", 0.5, "two_swaps")
+    # For dist >= 3, use normalized Kendall distance
     return ValidatorResult("incorrect", 0.0, f"tau_distance:{dist}")
 
 
@@ -342,6 +354,137 @@ order_sequence = ValidatorRegistration(
     archetype="order",
     variant="sequence",
     fn=_order_sequence,
+)
+
+
+def _order_acceptable(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    Validates against a set of acceptable orders (multiple correct answers).
+    per order.ts:orderAcceptable
+    """
+    student_sequence: list[str] = input_["studentSequence"]
+    acceptable_orders: list[list[str]] = expected["acceptableOrders"]
+
+    # Check for exact match against any acceptable order
+    for order in acceptable_orders:
+        if (
+            len(student_sequence) == len(order)
+            and all(student_sequence[i] == order[i] for i in range(len(order)))
+        ):
+            return ValidatorResult("correct", 1.0)
+
+    # Partial credit: find best match among acceptable orders
+    best_swaps = float("inf")
+    for order in acceptable_orders:
+        if len(student_sequence) == len(order):
+            swaps = _kendall_tau_distance(student_sequence, order)
+            if swaps < best_swaps:
+                best_swaps = swaps
+
+    if best_swaps == 1:
+        return ValidatorResult("partial", 0.5, "one_swap_off")
+    if best_swaps == 2:
+        return ValidatorResult("partial", 0.5, "two_swaps")
+
+    return ValidatorResult("incorrect", 0.0, "no_match")
+
+
+order_acceptable = ValidatorRegistration(
+    id="validator.order.acceptableOrders",
+    archetype="order",
+    variant="acceptable",
+    fn=_order_acceptable,
+)
+
+
+def _order_with_rule(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    Validates both the order and the metacognitive explanation (rule).
+    per order.ts:orderWithRule
+    """
+    sequence: list[str] = input_["sequence"]
+    rule: str = input_.get("rule", "")
+    acceptable_orders: list[list[str]] = expected["acceptableOrders"]
+    correct_rule: str = expected["postStep"]["correctRule"]
+
+    # 1. Check if order is acceptable
+    order_correct = False
+    for order in acceptable_orders:
+        if (
+            len(sequence) == len(order)
+            and all(sequence[i] == order[i] for i in range(len(order)))
+        ):
+            order_correct = True
+            break
+
+    if not order_correct:
+        return ValidatorResult("incorrect", 0.0, "order_incorrect")
+
+    # 2. Check rule/explanation
+    if rule == correct_rule:
+        return ValidatorResult("correct", 1.0)
+
+    return ValidatorResult("partial", 0.5, "rule_incorrect")
+
+
+order_with_rule = ValidatorRegistration(
+    id="validator.order.withRuleExplanation",
+    archetype="order",
+    variant="explanation",
+    fn=_order_with_rule,
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7b. explain_your_order
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _explain_your_order_sequence(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    Returns correct when sequence matches exactly AND justification is accepted.
+    Partial when sequence is one swap off OR sequence correct but justification wrong.
+    per explain_your_order.ts:explainYourOrderSequence
+    """
+    student_sequence: list[str] = input_["studentSequence"]
+    justification: str = input_.get("justification", "")
+    correct_sequence: list[str] = expected["correctSequence"]
+    accepted_justifications: list[str] = expected.get("acceptedJustifications", [])
+
+    if len(student_sequence) != len(correct_sequence):
+        return ValidatorResult("incorrect", 0.0, "length_mismatch")
+
+    swaps = _kendall_tau_distance(student_sequence, correct_sequence)
+
+    # Check if justification is required and correct
+    justification_required = len(accepted_justifications) > 0
+    justification_correct = not justification_required or (
+        justification in accepted_justifications
+    )
+
+    if swaps == 0:
+        if justification_correct:
+            return ValidatorResult("correct", 1.0)
+        # Sequence perfect but justification wrong → partial credit
+        return ValidatorResult(
+            "partial", 0.7, "wrong_justification"
+        )
+
+    if swaps == 1:
+        return ValidatorResult("partial", 0.5, "one_swap_off")
+
+    if swaps == 2:
+        return ValidatorResult("partial", 0.25, "two_swaps")
+
+    max_swaps = len(correct_sequence) * (len(correct_sequence) - 1) // 2
+    score = max(0, 1 - swaps / max_swaps) if max_swaps > 0 else 0
+    return ValidatorResult("incorrect", score, f"swaps:{swaps}")
+
+
+explain_your_order_sequence = ValidatorRegistration(
+    id="validator.explain_your_order.sequence",
+    archetype="explain_your_order",
+    variant="sequence",
+    fn=_explain_your_order_sequence,
 )
 
 
@@ -418,6 +561,34 @@ equal_or_not_area_tolerance = ValidatorRegistration(
 # 10. placement
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _placement_snap_tolerance(input_: dict, expected: dict) -> ValidatorResult:
+    """
+    General tolerance-based number-line placement validator.
+    Uses exactTolerance and closeTolerance from expected payload.
+    per placement.ts:placementSnapTolerance
+    """
+    placed: float = input_["placedDecimal"]
+    target: float = expected["targetDecimal"]
+    exact_tolerance: float = expected.get("exactTolerance", 0.0625)  # default 1/16
+    close_tolerance: float = expected.get("closeTolerance", 0.125)   # default 1/8
+
+    diff = abs(placed - target)
+
+    if diff <= exact_tolerance:
+        return ValidatorResult("correct", 1.0, "exact")
+    if diff <= close_tolerance:
+        return ValidatorResult("partial", 0.5, "close")
+    return ValidatorResult("incorrect", 0.0, "wrong")
+
+
+placement_snap_tolerance = ValidatorRegistration(
+    id="validator.placement.snapTolerance",
+    archetype="placement",
+    variant="snapTolerance",
+    fn=_placement_snap_tolerance,
+)
+
+
 def _placement_snap8(input_: dict, expected: dict) -> ValidatorResult:
     """
     EXACT if |placed - target| <= 1/16 (snap zone for 1/8 increments).
@@ -460,9 +631,13 @@ VALIDATOR_REGISTRY: dict[str, ValidatorRegistration] = {
         benchmark_closest,
         benchmark_sort_to_zone,
         order_sequence,
+        order_acceptable,
+        order_with_rule,
+        explain_your_order_sequence,
         snap_match_equivalence,
         snap_match_all_pairs,
         equal_or_not_area_tolerance,
+        placement_snap_tolerance,
         placement_snap8,
     ]
 }
