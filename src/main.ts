@@ -53,8 +53,20 @@ function hideSplash(): void {
 }
 
 async function boot(): Promise<void> {
+  // Guarantee the splash always hides — even if an early await rejects
+  // (e.g. IndexedDB blocked in a sandboxed preview iframe).
+  // Cleared early when Phaser fires 'ready'; the 3s in-game fallback below
+  // is a closer net for the normal happy path.
+  const splashSafetyTimer = window.setTimeout(hideSplash, 6000);
+
   // 1. Load preferences to check telemetry consent
-  const meta = await deviceMetaRepo.get();
+  let meta: Awaited<ReturnType<typeof deviceMetaRepo.get>>;
+  try {
+    meta = await deviceMetaRepo.get();
+  } catch {
+    // IndexedDB may be unavailable in sandboxed iframes — continue with defaults
+    meta = { preferences: {} } as Awaited<ReturnType<typeof deviceMetaRepo.get>>;
+  }
 
   // 2. Initialize observability ASAP (non-fatal: SDK version mismatches must not block boot)
   try {
@@ -125,7 +137,10 @@ async function boot(): Promise<void> {
   }
 
   // Hide splash on the first rendered frame (boot scene + canvas are up)
-  game.events.once('ready', hideSplash);
+  game.events.once('ready', () => {
+    window.clearTimeout(splashSafetyTimer);
+    hideSplash();
+  });
   // Safety net: also hide after 3s in case 'ready' never fires
   setTimeout(hideSplash, 3000);
 

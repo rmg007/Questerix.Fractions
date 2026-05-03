@@ -9,6 +9,11 @@
 import * as Phaser from 'phaser';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
+import { ensurePersistenceGranted } from '../persistence/db';
+import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
+import { initPreferences } from '../lib/preferences';
+import { seedIfEmpty } from '../curriculum/seed';
+import { studentRepo } from '../persistence/repositories/student';
 
 const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId'; // per lastUsedStudent.ts + C5
 
@@ -46,12 +51,10 @@ export class BootScene extends Phaser.Scene {
     // per runtime-architecture.md §5.3e — called after first engagement signal
     // We attempt immediately and degrade gracefully if denied.
     try {
-      const { ensurePersistenceGranted } = await import('../persistence/db');
       const granted = await ensurePersistenceGranted();
       console.info(`[BootScene] Persistence granted: ${granted}`);
 
       // Sync state with deviceMeta so SettingsScene shows correct status
-      const { deviceMetaRepo } = await import('../persistence/repositories/deviceMeta');
       await deviceMetaRepo.updatePreferences({ persistGranted: granted });
     } catch (err) {
       // Volatile mode — game continues without durable storage per §10 (failure modes)
@@ -62,7 +65,6 @@ export class BootScene extends Phaser.Scene {
     // Must run after DB is open so deviceMeta is readable. The cache powers
     // checkReduceMotion() and isHighContrastEnabled() across all scenes.
     try {
-      const { initPreferences } = await import('../lib/preferences');
       await initPreferences();
     } catch (err) {
       console.warn('[BootScene] Could not init preference cache — using defaults:', err);
@@ -71,7 +73,6 @@ export class BootScene extends Phaser.Scene {
     // ── Step 1c: Seed curriculum on first boot ─────────────────────────────
     // per persistence-spec.md §5 step 4 — bulkPut static stores after DB open.
     try {
-      const { seedIfEmpty } = await import('../curriculum/seed');
       const result = await seedIfEmpty();
       if (result.alreadySeeded) {
         console.info(`[BootScene] Curriculum already seeded (${result.seeded} templates)`);
@@ -93,7 +94,6 @@ export class BootScene extends Phaser.Scene {
         console.info(`[BootScene] Found last student: ${this.lastStudentId}`);
 
         // Verify student still exists in DB
-        const { studentRepo } = await import('../persistence/repositories/student');
         const student = await studentRepo.get(this.lastStudentId as import('@/types').StudentId);
         if (!student) {
           console.info('[BootScene] Last student not found in DB — clearing pointer');
@@ -104,7 +104,6 @@ export class BootScene extends Phaser.Scene {
 
       // ── First launch: no student yet — auto-create an anonymous one ──────
       if (!this.lastStudentId) {
-        const { studentRepo } = await import('../persistence/repositories/student');
         const newId = crypto.randomUUID() as import('@/types').StudentId;
         await studentRepo.create({
           id: newId,

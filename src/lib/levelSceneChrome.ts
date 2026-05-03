@@ -47,7 +47,7 @@ export function createHeader(
     .setOrigin(0.5)
     .setDepth(5);
 
-  const BACK_W = 118;
+  const BACK_W = 64;
   const BACK_H = 52;
   const backG = scene.add.graphics().setDepth(5);
   backG.fillStyle(SKY_BG, 1);
@@ -56,11 +56,8 @@ export function createHeader(
   backG.strokeRoundedRect(18, 34, BACK_W, BACK_H, 14);
 
   const backBtn = scene.add
-    .text(18 + BACK_W / 2, 34 + BACK_H / 2, '← Menu', {
-      fontSize: '17px',
-      fontFamily: BODY_FONT,
-      fontStyle: 'bold',
-      color: NAVY_HEX,
+    .text(18 + BACK_W / 2, 34 + BACK_H / 2, '🏠', {
+      fontSize: '36px',
     })
     .setOrigin(0.5)
     .setDepth(6)
@@ -76,13 +73,13 @@ export function createHeader(
   const resetMenuBtn = (): void => {
     menuConfirmPending = false;
     menuConfirmTimer = null;
-    backBtn.setText('← Menu').setColor(NAVY_HEX);
+    backBtn.setText('🏠').setStyle({ fontSize: '36px', color: undefined });
   };
 
   backBtn.on('pointerup', () => {
     if (!menuConfirmPending) {
       menuConfirmPending = true;
-      backBtn.setText('Leave? ✕').setColor('#b45309');
+      backBtn.setText('✕ Leave?').setStyle({ fontSize: '18px', color: '#b45309' });
       menuConfirmTimer = scene.time.delayedCall(2000, resetMenuBtn);
       scene.input.once('pointerdown', (ptr: Phaser.Input.Pointer, _objs: unknown[]) => {
         const btnBounds = backBtn.getBounds();
