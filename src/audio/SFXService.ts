@@ -1,6 +1,6 @@
 /**
- * SFXService — procedural sound effects for correct-answer feedback and level completion.
- * Uses Web Audio API oscillators; no external assets, privacy-clean.
+ * SFXService — file-based sound effects using Web Audio API.
+ * Buffers are fetched and decoded lazily on first play, then cached.
  * Gracefully no-ops if AudioContext is unavailable (jsdom, test env, unsupported browsers).
  * Respects the same audio mute preference as TTSService (call setEnabled alongside tts.setEnabled).
  * per docs/30-architecture/accessibility.md §7
@@ -8,21 +8,36 @@
 
 type AudioContextWindow = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
 
+const SFX_BASE = '/audio/sfx/';
+
+const SFX_FILES = {
+  correct: 'phaserUp1.ogg',
+  incorrect: 'phaserDown1.ogg',
+  complete: 'powerUp11.ogg',
+  perfectFanfare: 'powerUp12.ogg',
+  streak: 'threeTone1.ogg',
+  snap: 'pepSound1.ogg',
+} as const;
+
+type SFXKey = keyof typeof SFX_FILES;
+
 export class SFXService {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
-  /** Volume multiplier, 0–1. Scales the base gain of 0.35. */
   private volume: number = 0.8;
+  private buffers = new Map<SFXKey, AudioBuffer>();
 
   private getContext(): AudioContext | null {
     if (!this.enabled) return null;
     try {
       if (!this.ctx || this.ctx.state === 'closed') {
-        // AudioContext must be created (or resumed) after a user gesture; by answer time it's fine.
         const win = window as AudioContextWindow;
         const AudioCtx = win.AudioContext ?? win.webkitAudioContext;
         if (!AudioCtx) return null;
         this.ctx = new AudioCtx();
+      }
+      if (this.ctx.state === 'suspended') {
+        void this.ctx.resume();
       }
       return this.ctx;
     } catch {
@@ -30,61 +45,73 @@ export class SFXService {
     }
   }
 
-  /**
-   * Play a short two-note ascending ding for a correct answer.
-   * Tones: E5 (659 Hz) → G5 (784 Hz), 80 ms each, sine wave.
-   */
+  private async loadBuffer(key: SFXKey): Promise<AudioBuffer | null> {
+    const cached = this.buffers.get(key);
+    if (cached) return cached;
+
+    const ctx = this.getContext();
+    if (!ctx) return null;
+
+    try {
+      const res = await fetch(SFX_BASE + SFX_FILES[key]);
+      if (!res.ok) return null;
+      const arrayBuffer = await res.arrayBuffer();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+      this.buffers.set(key, audioBuffer);
+      return audioBuffer;
+    } catch {
+      return null;
+    }
+  }
+
+  private playKey(key: SFXKey): void {
+    void this.loadBuffer(key).then((buffer) => {
+      if (!buffer) return;
+      const ctx = this.getContext();
+      if (!ctx) return;
+      try {
+        const source = ctx.createBufferSource();
+        const gainNode = ctx.createGain();
+        source.buffer = buffer;
+        gainNode.gain.setValueAtTime(this.volume, ctx.currentTime);
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        source.start();
+      } catch {
+        // Never throw — game must continue if SFX fails
+      }
+    });
+  }
+
+  /** Preload all buffers eagerly (call from PreloadScene to avoid first-play latency). */
+  preload(): void {
+    for (const key of Object.keys(SFX_FILES) as SFXKey[]) {
+      void this.loadBuffer(key);
+    }
+  }
+
   playCorrect(): void {
-    this.playNotes([659, 784], 0.08, 'sine', 0.35 * this.volume);
+    this.playKey('correct');
   }
 
-  /**
-   * Play a short descending two-note tone for an incorrect answer.
-   * Tones: G4 (392 Hz) → D4 (294 Hz), 70 ms each, sine wave.
-   * Softer gain than playCorrect — present but not harsh.
-   */
   playIncorrect(): void {
-    this.playNotes([392, 294], 0.07, 'sine', 0.18 * this.volume);
+    this.playKey('incorrect');
   }
 
-  /**
-   * Play a four-note ascending celebratory jingle for session complete.
-   * Tones: C5 → E5 → G5 → C6, 110 ms each, sine wave.
-   * Optional pitchMultiplier stretches all frequencies (e.g. 1.25 for perfect-session fanfare).
-   */
-  playComplete(pitchMultiplier = 1): void {
-    const freqs = [523, 659, 784, 1047].map((f) => f * pitchMultiplier);
-    this.playNotes(freqs, 0.11, 'sine', 0.35 * this.volume);
+  playComplete(_pitchMultiplier = 1): void {
+    this.playKey('complete');
   }
 
-  /**
-   * T15: Play a special 4-note ascending fanfare for perfect 5/5 sessions.
-   * Tones: C4 (262 Hz) → E4 (330 Hz) → G4 (392 Hz) → C5 (523 Hz), 100 ms each, sine wave.
-   * Gain: 0.20 (celebratory but not overwhelming).
-   * Duration: ~500ms total.
-   */
   playPerfectFanfare(): void {
-    this.playNotes([262, 330, 392, 523], 0.1, 'sine', 0.2 * this.volume);
+    this.playKey('perfectFanfare');
   }
 
-  /**
-   * Play a five-note ascending streak jingle for "3 in a row!" milestone.
-   * Tones: C5 → E5 → G5 → B5 → C6, 80 ms each, sine wave.
-   * Distinctly longer than playCorrect and more exciting than playComplete.
-   */
   playStreak(): void {
-    this.playNotes([523, 659, 784, 988, 1047], 0.08, 'sine', 0.32 * this.volume);
+    this.playKey('streak');
   }
 
-  /**
-   * Play a brief ascending glissando when the partition snaps to the correct position.
-   * Simulates a 200ms glissando from ~80 Hz to ~200 Hz using a four-note ascending pattern.
-   * Triangle wave for crisp tactile feel, gain 0.15.
-   * T13: Enhanced snap feedback for visual celebration.
-   */
   playSnap(): void {
-    // Use ascending tones to simulate upward glissando effect
-    this.playNotes([82, 110, 165, 196], 0.05, 'triangle', 0.15 * this.volume);
+    this.playKey('snap');
   }
 
   setEnabled(on: boolean): void {
@@ -95,52 +122,12 @@ export class SFXService {
     return this.enabled;
   }
 
-  /**
-   * Set the volume multiplier (0–1). Scales base gain of 0.35.
-   * e.g. volume=0.8 → gain 0.28; volume=1.0 → gain 0.35; volume=0 → silent.
-   */
   setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
   }
 
   getVolume(): number {
     return this.volume;
-  }
-
-  private playNotes(
-    frequencies: number[],
-    noteDuration: number,
-    type: OscillatorType,
-    gain: number
-  ): void {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    try {
-      const startTime = ctx.currentTime + 0.01; // small buffer to avoid clicks
-      for (let i = 0; i < frequencies.length; i++) {
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(frequencies[i]!, startTime + i * noteDuration);
-
-        // Short attack + decay envelope to avoid harsh clicks
-        gainNode.gain.setValueAtTime(0, startTime + i * noteDuration);
-        gainNode.gain.linearRampToValueAtTime(gain, startTime + i * noteDuration + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.001,
-          startTime + i * noteDuration + noteDuration
-        );
-
-        osc.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        osc.start(startTime + i * noteDuration);
-        osc.stop(startTime + i * noteDuration + noteDuration);
-      }
-    } catch {
-      // Never throw — game must continue if SFX fails
-    }
   }
 }
 

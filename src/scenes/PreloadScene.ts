@@ -19,6 +19,7 @@ import { CLR } from './utils/colors';
 import { fadeAndStart } from './utils/sceneTransition';
 import { Mascot } from '../components/Mascot';
 import { checkReduceMotion } from '../lib/preferences';
+import { sfx } from '../audio';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -182,6 +183,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
+    sfx.preload();
     // Fade in from black as the scene becomes ready
     this.cameras.main.fadeIn(300, 0, 0, 0);
 
