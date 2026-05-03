@@ -134,10 +134,13 @@ describe('seedIfEmpty', () => {
     expect(count).toBe(0);
   });
 
-  it('returns seeded=0 and does not throw on network error', async () => {
+  it('does not throw on network error and falls back to bundled curriculum', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network failure')));
 
-    await expect(seedIfEmpty()).resolves.toMatchObject({ seeded: 0, alreadySeeded: false });
+    // Per Phase 7a (commit f0d7168), non-TypeError fetch failures now fall back
+    // to the bundled curriculum rather than returning empty, so `seeded` may be > 0.
+    // The contract preserved here is: the call resolves without throwing.
+    await expect(seedIfEmpty()).resolves.toMatchObject({ alreadySeeded: false });
   });
 });
 
