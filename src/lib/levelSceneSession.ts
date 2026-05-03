@@ -150,7 +150,10 @@ export async function recordAttemptAndMasteryForLevel(
         correctAttempts: withMeta.correctAttempts,
         justMastered: !!withMeta.masteredAt && !prev.masteredAt,
       });
-      await skillMasteryRepo.upsert(withMeta);
+      const masteryResult = await skillMasteryRepo.upsert(withMeta);
+      if (!masteryResult.ok) {
+        throw masteryResult.error;
+      }
       masteryEstimate = withMeta.masteryEstimate;
     });
     log.atmp('record_ok', { attemptId, outcome, points: result.score });
