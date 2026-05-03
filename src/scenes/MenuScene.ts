@@ -123,6 +123,8 @@ export class MenuScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    const menuCreateStart = performance.now();
+    console.info('[MenuScene] Create started');
     this.reduceMotion = checkReduceMotion();
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
@@ -367,6 +369,10 @@ export class MenuScene extends Phaser.Scene {
         this.dashTickHandler = null;
       }
     });
+
+    console.info(
+      `[MenuScene] Create complete (${Math.round(performance.now() - menuCreateStart)}ms)`
+    );
   }
 
   // ── Adventure Map entry button ────────────────────────────────────────────

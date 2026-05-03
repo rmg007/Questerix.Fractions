@@ -183,6 +183,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
+    const preloadCreateStart = performance.now();
     sfx.preload();
     // Fade in from black as the scene becomes ready
     this.cameras.main.fadeIn(300, 0, 0, 0);
@@ -190,6 +191,10 @@ export class PreloadScene extends Phaser.Scene {
     // Brief pause so "Ready!" is visible, then fade out and start MenuScene
     const reduceMotion = checkReduceMotion();
     const delay = reduceMotion ? 0 : 300;
+
+    console.info(
+      `[PreloadScene] Create complete in ${Math.round(performance.now() - preloadCreateStart)}ms, transitioning to MenuScene in ${delay}ms`
+    );
 
     this.time.delayedCall(delay, () => {
       fadeAndStart(this, 'MenuScene', { lastStudentId: this.lastStudentId });

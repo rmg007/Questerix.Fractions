@@ -47,12 +47,17 @@ export class BootScene extends Phaser.Scene {
   }
 
   private async _bootAsync(): Promise<void> {
+    const bootStart = performance.now();
+
     // ── Step 1: Request durable IndexedDB storage ──────────────────────────
     // per runtime-architecture.md §5.3e — called after first engagement signal
     // We attempt immediately and degrade gracefully if denied.
+    const step1Start = performance.now();
     try {
       const granted = await ensurePersistenceGranted();
-      console.info(`[BootScene] Persistence granted: ${granted}`);
+      console.info(
+        `[BootScene] Persistence granted: ${granted} (${Math.round(performance.now() - step1Start)}ms)`
+      );
 
       // Sync state with deviceMeta so SettingsScene shows correct status
       await deviceMetaRepo.updatePreferences({ persistGranted: granted });
@@ -64,20 +69,29 @@ export class BootScene extends Phaser.Scene {
     // ── Step 1b: Load accessibility preferences into the shared cache ─────────
     // Must run after DB is open so deviceMeta is readable. The cache powers
     // checkReduceMotion() and isHighContrastEnabled() across all scenes.
+    const step1bStart = performance.now();
     try {
       await initPreferences();
+      console.info(
+        `[BootScene] Preferences init (${Math.round(performance.now() - step1bStart)}ms)`
+      );
     } catch (err) {
       console.warn('[BootScene] Could not init preference cache — using defaults:', err);
     }
 
     // ── Step 1c: Seed curriculum on first boot ─────────────────────────────
     // per persistence-spec.md §5 step 4 — bulkPut static stores after DB open.
+    const step1cStart = performance.now();
     try {
       const result = await seedIfEmpty();
       if (result.alreadySeeded) {
-        console.info(`[BootScene] Curriculum already seeded (${result.seeded} templates)`);
+        console.info(
+          `[BootScene] Curriculum already seeded (${result.seeded} templates, ${Math.round(performance.now() - step1cStart)}ms)`
+        );
       } else {
-        console.info(`[BootScene] Curriculum seeded: ${result.seeded} templates`);
+        console.info(
+          `[BootScene] Curriculum seeded: ${result.seeded} templates (${Math.round(performance.now() - step1cStart)}ms)`
+        );
       }
     } catch (err) {
       // Tolerate failure — game runs with synthetic content per runtime-architecture.md §10
@@ -88,6 +102,7 @@ export class BootScene extends Phaser.Scene {
 
     // ── Step 2: Read lastUsedStudentId from localStorage ───────────────────
     // per runtime-architecture.md §5.4a, C5 (only allowed localStorage key)
+    const step2Start = performance.now();
     try {
       this.lastStudentId = localStorage.getItem(LAST_STUDENT_KEY);
       if (this.lastStudentId) {
@@ -117,6 +132,9 @@ export class BootScene extends Phaser.Scene {
         this.lastStudentId = newId;
         console.info(`[BootScene] Created anonymous student: ${newId}`);
       }
+      console.info(
+        `[BootScene] Student handling (${Math.round(performance.now() - step2Start)}ms)`
+      );
     } catch (err) {
       // Storage read/write failed — continue without resume context. per §10 (failure modes)
       console.warn('[BootScene] Could not read/create lastUsedStudentId:', err);
@@ -135,6 +153,8 @@ export class BootScene extends Phaser.Scene {
     const isExplicitTestRun =
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).get('testHooks') === '1';
+
+    console.info(`[BootScene] Total boot time: ${Math.round(performance.now() - bootStart)}ms`);
 
     if (!isExplicitTestRun) {
       this.advanceToPreload();
