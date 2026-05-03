@@ -107,7 +107,8 @@ export async function runSessionCompleteFlow(ctx: SessionCompleteContext): Promi
             fadeAndStart(ctx.scene, 'LevelScene', { levelNumber: 2, studentId: ctx.studentId }),
         }
       : {}),
-    onPlayAgain: () => fadeAndStart(ctx.scene, 'Level01Scene', { studentId: ctx.studentId }),
+    onPlayAgain: () =>
+      fadeAndStart(ctx.scene, 'LevelScene', { levelNumber: 1, studentId: ctx.studentId }),
     onMenu: () =>
       fadeAndStart(ctx.scene, 'LevelMapScene', {
         studentId: ctx.studentId,

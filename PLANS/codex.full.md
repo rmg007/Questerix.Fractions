@@ -431,6 +431,61 @@ Commit message: `test: cover lifecycle and fallback paths`
 9. Curriculum pipeline and performance.
 10. E2E expansion and final completion gate.
 
+## Audit Addendum (Round 2 - 2026-05-03)
+
+This addendum is based on a second deep read of the highest-risk flows and a fresh round of static scans in the current working tree.
+
+### Findings (New or Refined)
+
+Attempt IDs and retrieval (root mismatch, impacts analytics and linking):
+
+- `src/types/branded.ts:41` brands `AttemptId` as UUID string, but `src/persistence/db.ts:69-70` defines `attempts` as `++id` numeric auto-increment and the repo assumes numeric keys (`src/persistence/repositories/attempt.ts:34-39`).
+- Generic attempt recording generates a UUID attempt id and passes it into `attemptRepo.record(...)` (`src/lib/levelSceneSession.ts:84-115`), then later links hint events to that UUID attempt id (`src/lib/levelSceneSession.ts:161-168`).
+- This is incompatible with the attemptRepo contract demonstrated by `tests/unit/persistence/attempt.test.ts:64-89` (numeric string ids) and will break `attemptRepo.get()` for UUID-keyed rows.
+
+HintEvent tier/type mismatches and restore risk:
+
+- `src/types/hint.ts:8` defines `HintTier` as `'verbal' | 'visual_overlay' | 'worked_example'`.
+- `src/types/runtime.ts:161-175` defines `HintEvent.tier: HintTier` and `attemptId?: AttemptId` (pending-link model).
+- But persistence/restore expects different shapes:
+  - `src/persistence/schemas.ts:119-129` validates `HintEvent.tier` as numeric `1|2|3` and requires `attemptId` (string) instead of treating it as optional.
+  - `tests/unit/persistence/hintEvent.test.ts:21-33` constructs HintEvents with numeric `tier: 1|2|3`. This compiles because `npm run typecheck` does not typecheck tests; it does not prove runtime/type alignment.
+- Result: backup restore can reject real-world rows or accept malformed ones, depending on which shape actually hits disk.
+
+HintEvent storage schema drift (Dexie schema vs repo expectations):
+
+- `src/persistence/db.ts` defines `hintEvents` as `++id` (numeric) through v7 (`src/persistence/db.ts:248-286`), but the repository writes UUID string ids (`src/persistence/repositories/hintEvent.ts:12-24`).
+- The working-tree v8/v9 migration attempts to preserve hintEvents by copying into `_migratingHintEvents`, dropping the store, and restoring into a v9 store declared as `hintEvents: 'id, attemptId'` (`src/persistence/db.ts:371-412`).
+  - Migration uses `(event: any)` (`src/persistence/db.ts:403`) and swallows failures in both the copy and restore phases. That conflicts with the “no silent data loss” requirement for this pass.
+  - The restore uses `crypto.randomUUID()` inside an IndexedDB upgrade transaction. It’s probably fine in modern browsers, but needs an explicit compatibility decision (and test coverage) if older Safari targets exist.
+
+Session-close durability race (generic levels):
+
+- `src/lib/levelSceneSessionComplete.ts:100` calls `void callbacks.closeSession()` without awaiting, while the overlay immediately enables navigation (`src/lib/levelSceneSessionComplete.ts:71-86`).
+- On slow IndexedDB, it is possible to navigate away before `endedAt` and other close fields are durable.
+
+Backup validation tests are now stale:
+
+- `tests/unit/persistence/backup-validation.test.ts` fixtures only cover the older table set and omit newer tables (`levelProgression`, `streakRecord`, `telemetryEvents`) and omit hintEvents contents. This means the “green” unit test suite does not actually validate the current backup envelope contract.
+
+Legacy Level01 replay path remains:
+
+- `src/lib/level01SessionComplete.ts:110` routes `onPlayAgain` back to `Level01Scene` instead of the generic `LevelScene` path. This keeps the legacy divergence alive in a hot path.
+
+### Verified This Round
+
+- No `eval()` or `new Function()` usage found in `src/**`.
+- `fetch` usage in `src/**` is limited to:
+  - `src/audio/SFXService.ts:56`
+  - `src/curriculum/loader.ts:244`
+  - `src/lib/observability/syncService.ts:95`
+- `Math.random()` usage outside engine ports is limited to:
+  - `src/lib/observability/logger.ts:110`
+  - `src/scenes/Level01SceneSelection.ts:88` (fallback path)
+- Working tree is currently green on:
+  - `npm.cmd run typecheck`
+  - `npm.cmd run test:unit` (702 passing)
+
 ## Final Completion Checklist
 
 - [ ] No explicit `any` remains in application/source code.
