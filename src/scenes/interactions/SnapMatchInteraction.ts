@@ -175,7 +175,9 @@ export class SnapMatchInteraction implements Interaction {
       .rectangle(centerX, sy, 200, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    hit.on('pointerup', () => onCommit({ pairs: this.pairs }));
+    const submitSnapMatch = () => onCommit({ pairs: this.pairs });
+    hit.on('pointerup', submitSnapMatch);
+    A11yLayer.mountAction('a11y-snapmatch-submit', 'Submit pair matches', submitSnapMatch);
     this.gameObjects.push(sbg, stxt, hit);
   }
 

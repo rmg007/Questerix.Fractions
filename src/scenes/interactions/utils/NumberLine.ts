@@ -122,7 +122,11 @@ export class NumberLine {
 
     if (!this.marker) this.setMarker(minValue);
 
-    this.marker!.setInteractive({ draggable: true, useHandCursor: true });
+    this.marker!.setInteractive({
+      draggable: true,
+      useHandCursor: true,
+      hitArea: new Phaser.Geom.Circle(0, 0, 22),
+    });
 
     // Trail dots drawn during drag
     const trailDots: Phaser.GameObjects.Arc[] = [];

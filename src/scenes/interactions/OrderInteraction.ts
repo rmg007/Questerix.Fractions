@@ -114,10 +114,16 @@ export class OrderInteraction implements Interaction {
       });
       this.bars.push(bar);
 
-      // Invisible drag handle over the bar
+      // Invisible drag handle over the bar — ensure hit area ≥ 44×44 for accessibility
+      const hitW = Math.max(cardW, 44);
+      const hitH = Math.max(cardH + 8, 44);
       const handle = scene.add
         .rectangle(cx2, cy2, cardW, cardH + 8, 0, 0)
-        .setInteractive({ draggable: true, useHandCursor: true })
+        .setInteractive({
+          draggable: true,
+          useHandCursor: true,
+          hitArea: new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
+        })
         .setDepth(10);
       handle.setData('fracId', frac.id);
       handle.setData('barIdx', i);
@@ -175,7 +181,9 @@ export class OrderInteraction implements Interaction {
       .rectangle(centerX, sy, 200, 52, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
-    hit.on('pointerup', () => onCommit({ sequence: this.sequence.filter(Boolean) }));
+    const submitOrder = () => onCommit({ sequence: this.sequence.filter(Boolean) });
+    hit.on('pointerup', submitOrder);
+    A11yLayer.mountAction('a11y-order-submit', 'Submit ordering', submitOrder);
     this.gameObjects.push(sbg, stxt, hit);
   }
 

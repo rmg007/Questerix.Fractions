@@ -87,8 +87,19 @@ export class PlacementInteraction implements Interaction {
     const correctValue = frac.n / frac.d;
     const initialMarker = correctValue < 0.5 ? 1 : 0;
     this.line.setMarker(initialMarker);
-    this.line.enableDrag((value) => {
+    const submitPlacement = (value: number) => {
       onCommit({ placedDecimal: value, exactTolerance: exactTol, closeTolerance: closeTol });
+    };
+    this.line.enableDrag(submitPlacement);
+    let lastPlacedValue = initialMarker;
+    const wrappedDrag = (value: number) => {
+      lastPlacedValue = value;
+      submitPlacement(value);
+    };
+    // Re-wrap the drag with our tracking wrapper
+    this.line.enableDrag(wrappedDrag);
+    A11yLayer.mountAction('a11y-placement-submit', 'Place marker on number line', () => {
+      submitPlacement(lastPlacedValue);
     });
 
     // Instruction label

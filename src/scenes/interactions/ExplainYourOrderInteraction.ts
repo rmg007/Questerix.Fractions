@@ -111,9 +111,15 @@ export class ExplainYourOrderInteraction implements Interaction {
       });
       this.bars.push(bar);
 
+      const hitW = Math.max(cardW, 44);
+      const hitH = Math.max(cardH + 8, 44);
       const handle = scene.add
         .rectangle(cx, cy, cardW, cardH + 8, 0, 0)
-        .setInteractive({ draggable: true, useHandCursor: true })
+        .setInteractive({
+          draggable: true,
+          useHandCursor: true,
+          hitArea: new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
+        })
         .setDepth(10);
 
       handle.on('dragstart', () => {
@@ -174,12 +180,15 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
-    hit.on('pointerup', () => {
+    const checkOrder = () => {
       const filled = this.sequence.every((s) => s !== null);
       if (filled) {
         this.renderExplainingPhase();
       }
-    });
+    };
+    hit.on('pointerup', checkOrder);
+
+    A11yLayer.mountAction('a11y-explain-check-order', 'Check ordering', checkOrder);
 
     TestHooks.mountInteractive(
       'order-check',
@@ -256,6 +265,8 @@ export class ExplainYourOrderInteraction implements Interaction {
 
       hit.on('pointerup', select);
 
+      A11yLayer.mountAction(`a11y-explain-rule-${optKey}`, RULE_LABELS[optKey] || optKey, select);
+
       TestHooks.mountInteractive(`rule-option-${optKey}`, select, {
         top: `${(y / 1280) * 100}%`,
         left: `${(centerX / 800) * 100}%`,
@@ -283,7 +294,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
-    const submit = () => {
+    const submitExplain = () => {
       if (this.selectedRule) {
         onCommit({
           sequence: this.sequence,
@@ -292,8 +303,11 @@ export class ExplainYourOrderInteraction implements Interaction {
       }
     };
 
-    submitHit.on('pointerup', submit);
-    TestHooks.mountInteractive('explain-submit', submit, {
+    submitHit.on('pointerup', submitExplain);
+
+    A11yLayer.mountAction('a11y-explain-submit', 'Submit reasoning', submitExplain);
+
+    TestHooks.mountInteractive('explain-submit', submitExplain, {
       top: `${(sy / 1280) * 100}%`,
       left: `${(centerX / 800) * 100}%`,
       width: '220px',
