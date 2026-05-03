@@ -1,66 +1,7 @@
 # Questerix Fractions — Planning Documents Index
 
-**Last updated:** 2026-05-01 (end of architectural hardening sprint)
-**Status:** **17 PRs merged today** — code-quality plan substantively complete. Next move: real-browser MVP validation. **Read [`AGENT_HANDOFF-2026-05-01.md`](AGENT_HANDOFF-2026-05-01.md) before picking up new work.**
-
-> **Naming convention:** all plan files must be named `<slug>-YYYY-MM-DD.md` where the date is the day the file was created. Files without a date are non-compliant and must be renamed. Full rules: `docs/00-foundation/git-workflow.md`.
-
----
-
-## 🆕 Feedback & UX — Full Polish Sprint (2026-05-01)
-
-### [feedback-and-ux-2026-05-01.md](feedback-and-ux-2026-05-01.md) — 17-TASK CHILD UX OVERHAUL
-
-Comprehensive K-2 UX pass across feedback, engagement, personality, and retention. All tasks are grounded in live code audit. Parallel execution groups (A–G) defined in the plan.
-
-**Fixes (T1–T11) — pre-playtest blockers:**
-- T1 — FeedbackOverlay: bottom-sheet layout, solid colors, 1400/1600ms timing, real shake
-- T2 — Quest "oops" expression: drooped body + wince + sweat drop on wrong answers
-- T3 — Partition line visibility: solid navy line, sky-tinted shape background
-- T4 — TTS decoupled from Reduce Motion: separate `ttsEnabled` preference + Settings toggle
-- T5 — Wrong-answer sound: `playIncorrect()` descending tone wired into FeedbackOverlay
-- T6 — "Back to Menu" two-tap protection: first tap → amber "Leave?" → 2s confirm window
-- T7 — Auto-hint on 3rd wrong answer: 800ms delay then `onHintRequest()` fires automatically
-- T8 — Ghost midpoint guide: faint dashed line at 50% after first wrong partition attempt
-- T9 — Onboarding: hand pointer on handle (not below shape), tap-to-advance Step 1, oops on fail
-- T10 — Prompt 22→28px, counter pill 17→22px (early reader sizing)
-- T11 — SessionCompleteOverlay: advance / stay / regress call-to-action banner
-
-**"Amazing and catchy" (T12–T17) — engagement and retention:**
-- T12 — "3 in a Row! 🔥" banner: BKT mastery threshold (≥3) finally celebrated mid-session
-- T13 — Partition snap juice: shape halves tint + fraction labels pop in + snap sound
-- T14 — Quest idle/boredom: 3-stage escalation at 10s / 18s / 28s with speech bubbles
-- T15 — Perfect session (5/5): gold overlay, "PERFECT! 🌟", doubled confetti, two-phase Quest animation
-- T16 — Quest microcopy: personality speech bubbles at 10 key moments (depends on T14)
-- T17 — Daily streak: flame + count shown in MenuScene + LevelMapScene pill (data already tracked)
-
-**When to use:** before any child playtest session. Work in parallel groups A–G.
-
----
-
-## 🆕 Read this first (2026-05-01)
-
-### [AGENT_HANDOFF-2026-05-01.md](AGENT_HANDOFF-2026-05-01.md) — NEXT-AGENT GUIDANCE
-
-End-of-session handoff for the agent picking up after the 2026-05-01 architectural hardening sprint. Contains:
-
-- The single critical-path next move (validate the MVP exit criterion in a real browser; ship if green)
-- Three remaining items with explicit risk levels (Sunset Level01Scene = HIGH, mastery span / coverage tighten / E2E parameterization = MEDIUM)
-- The user's directive: *"This code is expensive. Don't take risks."*
-- A list of what NOT to do (no one-shot Sunset, no more lint/zod/span layering, no `--no-verify`)
-- Slash commands + subagents reference
-
-**Read this before any code change.**
-
----
-
-## 🆕 Agent Tooling (2026-05-01)
-
-### [agent-tooling-2026-05-01.md](agent-tooling-2026-05-01.md) — AGENT TOOLING & AUTO-INVOCATION
-
-Plan for making Claude agents run smoothly, produce high-quality output, and save tokens — without the user having to remember slash commands. Phase 0 (cleanup of Roadie + `_archive/`) landed in this commit. Phases 1–8 awaiting approval.
-
-**Use it for:** auto-invoke layer (hooks + skills), blast-radius gates, missing specialist subagents, CI subagent integration, auto-close-PR runbook, learnings discipline, PR template + branch enforcement, token telemetry.
+**Last updated:** 2026-04-26
+**Status:** Sprint 0 in-flight — gameplay loop edits pending real-browser verification
 
 ---
 
@@ -118,7 +59,7 @@ Live browser walkthrough of every reachable screen, with embedded screenshots an
 
 ---
 
-### [curriculum-update-2026-04-30.md](curriculum-update-2026-04-30.md) — MASTER CURRICULUM PLAN (v2)
+### [curriculum-update.md](curriculum-update.md) — MASTER CURRICULUM PLAN (v2)
 
 The authoritative pedagogical and structural roadmap for the Questerix curriculum.
 
@@ -134,52 +75,6 @@ The authoritative pedagogical and structural roadmap for the Questerix curriculu
 - Reviewing level specifications
 - Understanding the BKT/Mastery model requirements
 - Validating new item templates
-
----
-
-## 🆕 Architectural Audit (2026-05-01)
-
-### [code-quality-2026-05-01.md](code-quality-2026-05-01.md) — CODE QUALITY & ARCHITECTURAL HARDENING (v3)
-
-Principal-architect audit across four dimensions plus a cross-cutting pass (security, PWA, i18n, observability, hidden coupling). 56 actionable findings · 16-phase remediation plan · ~115 hr Stage 1 effort. Includes §12 Forensic Synthesis identifying the Original Sin (Phaser Scene as application unit) and proposing a 4-stage migration toward a hexagonal Ideal State.
-
-**Four substantive recommendations:**
-- A1 — Sunset `Level01Scene.ts` (resolves D-4); KISS over extracted abstraction.
-- A2 — Replace TS↔Python validator parity with single TS executable contract.
-- A3 — Enforce engine dependency direction at lint level; ports.ts adoption becomes mandatory.
-- A4 — Delete or finish, never scaffold. Half-built abstractions are worse than no abstractions.
-
-**When to use:** structural refactor sequencing, decision D-4 forcing function, complement to `harden-and-polish-2026-04-30.md` (absorbed in Phase 10).
-
-> ⚠️ **Stages 2-4 of §12.6 are SUPERSEDED by `forensic-deep-dive-2026-05-01.md`.** Read both before voting on the migration roadmap.
-
-### [forensic-deep-dive-2026-05-01.md](forensic-deep-dive-2026-05-01.md) — FORENSIC DEEP-DIVE (companion to v3)
-
-Deeper audit answering three questions v3 only partly addressed: (1) when did the Original Sin happen and was it deliberate; (2) what is the codebase's actual concurrency contract; (3) is v3's hexagonal+event-sourced Ideal State the right tool for this K-2 single-user offline app, or pattern-matching from a different domain. Includes substantive intellectual pushback against v3's own proposal.
-
-**Key conclusions:**
-- Original Sin was **deliberate**, not accidental — D-08 (2026-04-24) deferred architecture; bifurcation locked in at commit `4e10460` (2026-04-26).
-- The worst defensive bug in the codebase is **feedback-before-persist** at `Level01Scene.ts:949-950` — fixable in one line.
-- v3 Ideal State is **partially overkill**: event log is canonical for problems C1-C10 forbid; Domain layer is over-abstraction for 9 levels with C3 cap; 8-state FSM is imposed not observed.
-- A `SessionService` pivot (~30 hr) captures ~80% of the structural value of v3's Stage 2 (Domain layer, ~60 hr) and Stage 3 (event log, ~40 hr).
-
-**When to use:** before voting on Stage 2 of the migration. Preserves the v3 diagnosis, replaces the prescription.
-
----
-
-## 🆕 Active Work Queue (2026-04-30)
-
-### [work-queue-2026-04-30.md](work-queue-2026-04-30.md) — CURRENT AGENT WORK QUEUE
-
-Ordered list of everything to implement next, with exact file references, approach, and done criteria.
-
-**Sections:**
-1. P1 — OTel/Sentry lazy imports (bundle trim, 50–100 KB gzip reduction)
-2. P2 — Sprint 0 bugs (BUG-01, BUG-02, BUG-04, G-E1, G-C7)
-3. P3 — CI/infra quick wins (agent-doctor in CI, Lighthouse node fix, CHANGELOG, decision log)
-4. P4 — C5 localStorage → Dexie migration
-
-**Gate:** Sprint 0 exit — student completes 5-question session in browser.
 
 ---
 
