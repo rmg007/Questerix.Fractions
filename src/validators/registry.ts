@@ -1,6 +1,10 @@
 /**
  * Validator registry — Map<validatorId, ValidatorRegistration>.
  * per activity-archetypes.md §11 (Validator Registry)
+ *
+ * Validators are heterogeneous (different input/payload shapes per archetype),
+ * but all conform to the same registration and result types. This module provides
+ * unified storage while allowing type narrowing at call sites.
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
@@ -16,7 +20,15 @@ import equalOrNotValidators from './equal_or_not';
 import placementValidators from './placement';
 import explainYourOrderValidators from './explain_your_order';
 
-// Variance escape: registry values are heterogeneous; callers narrow at use site.
+/**
+ * Type alias for validator registrations with unknown input/payload types.
+ * Used in the registry to accommodate heterogeneous validators while preserving
+ * type safety: each validator is strongly typed in its source module, but at
+ * the registry level we use unknown. Callers narrow types at the call site
+ * based on the archetype or validator ID.
+ *
+ * See getValidatorEntry() and getValidator() below for safe retrieval.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyValidatorRegistration = ValidatorRegistration<any, any>;
 

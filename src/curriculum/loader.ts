@@ -284,14 +284,23 @@ export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise
       }
     } else {
       // Non-TypeError (e.g., explicit Error thrown by test mocks, JSON parse errors).
-      // Degrade gracefully without falling back — preserves test contract.
-      console.warn('[loadCurriculumBundle] Failed to load curriculum bundle:', err);
-      // Phase 11.2: still emit so any subscriber can react.
-      emitFailure({
-        reason: 'network',
-        url,
-        message: err instanceof Error ? err.message : String(err),
-      });
+      // Attempt bundled fallback per Phase 7a.
+      console.warn(
+        '[loadCurriculumBundle] Failed to load curriculum bundle (non-TypeError), attempting bundled fallback:',
+        err
+      );
+      try {
+        assertBundleShape(bundledData);
+        return parseBundle(bundledData as CurriculumBundle, empty);
+      } catch (fallbackErr) {
+        console.warn('[loadCurriculumBundle] Bundled fallback also failed:', fallbackErr);
+        // Phase 11.2: emit failure — neither remote nor bundled fallback worked.
+        emitFailure({
+          reason: 'fallback_parse',
+          url,
+          message: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
+        });
+      }
     }
     return empty;
   }

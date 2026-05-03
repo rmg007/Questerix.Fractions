@@ -150,6 +150,8 @@ export class LabelInteraction implements Interaction {
         if (dropText) dropText.setText(lbl.text);
       };
 
+      A11yLayer.mountAction(`a11y-label-tile-${i}`, `Drag label: ${lbl.text}`, snapForTest);
+
       TestHooks.mountInteractive(`label-tile-${i}`, snapForTest, {
         top: `${(ty / 1280) * 100}%`,
         left: `${(tx / 800) * 100}%`,

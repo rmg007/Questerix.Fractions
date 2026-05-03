@@ -39,33 +39,33 @@ const sessionSchema = z
     id: z.string().min(1).max(256),
     studentId: z.string().min(1).max(256),
     activityId: z.string().min(1).max(256),
-    levelNumber: z.number(),
+    levelNumber: z.number().int().min(1).max(9),
     scaffoldLevel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
     startedAt: z.number(),
     endedAt: z.number().nullable(),
-    totalAttempts: z.number(),
-    correctAttempts: z.number(),
-    accuracy: z.number().nullable(),
-    avgResponseMs: z.number().nullable(),
-    xpEarned: z.number(),
+    totalAttempts: z.number().int().min(0),
+    correctAttempts: z.number().int().min(0),
+    accuracy: z.number().min(0).max(1).nullable(),
+    avgResponseMs: z.number().min(0).nullable(),
+    xpEarned: z.number().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
 
 const attemptSchema = z
   .object({
-    id: z.number(),
+    id: z.number().int().min(1),
     sessionId: z.string().min(1).max(256),
     studentId: z.string().min(1).max(256),
     questionTemplateId: z.string().min(1).max(256),
     archetype: z.string().min(1).max(256),
-    roundNumber: z.number(),
-    attemptNumber: z.number(),
+    roundNumber: z.number().int().min(1),
+    attemptNumber: z.number().int().min(1),
     startedAt: z.number(),
     submittedAt: z.number(),
-    responseMs: z.number(),
+    responseMs: z.number().min(0),
     outcome: z.enum(['EXACT', 'CLOSE', 'WRONG', 'ASSISTED', 'ABANDONED']),
-    pointsEarned: z.number(),
+    pointsEarned: z.number().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
@@ -75,11 +75,11 @@ const skillMasterySchema = z
     studentId: z.string().min(1).max(256),
     skillId: z.string().min(1).max(256),
     compositeKey: z.tuple([z.string().max(256), z.string().max(256)]),
-    masteryEstimate: z.number(),
+    masteryEstimate: z.number().min(0).max(1),
     state: z.enum(['NOT_STARTED', 'LEARNING', 'APPROACHING', 'MASTERED', 'DECAYED']),
-    consecutiveCorrectUnassisted: z.number(),
-    totalAttempts: z.number(),
-    correctAttempts: z.number(),
+    consecutiveCorrectUnassisted: z.number().int().min(0),
+    totalAttempts: z.number().int().min(0),
+    correctAttempts: z.number().int().min(0),
     lastAttemptAt: z.number(),
     syncState: syncStateSchema,
   })
@@ -88,9 +88,9 @@ const skillMasterySchema = z
 const deviceMetaSchema = z
   .object({
     installId: z.string().min(1).max(256),
-    schemaVersion: z.number(),
+    schemaVersion: z.number().int().min(1),
     contentVersion: z.string().max(256),
-    pendingSyncCount: z.number(),
+    pendingSyncCount: z.number().int().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
@@ -110,8 +110,8 @@ const sessionTelemetrySchema = z
   .object({
     sessionId: z.string().min(1).max(256),
     studentId: z.string().min(1).max(256),
-    totalAttempts: z.number(),
-    correctAttempts: z.number(),
+    totalAttempts: z.number().int().min(0),
+    correctAttempts: z.number().int().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
@@ -124,7 +124,7 @@ const hintEventSchema = z
     tier: z.enum(['verbal', 'visual_overlay', 'worked_example']),
     shownAt: z.number(),
     acceptedByStudent: z.boolean(),
-    pointCostApplied: z.number(),
+    pointCostApplied: z.number().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
@@ -136,7 +136,7 @@ const misconceptionFlagSchema = z
     misconceptionId: z.string().min(1).max(256),
     firstObservedAt: z.number(),
     lastObservedAt: z.number(),
-    observationCount: z.number(),
+    observationCount: z.number().int().min(1),
     resolvedAt: z.number().nullable(),
     syncState: syncStateSchema,
   })
@@ -146,10 +146,10 @@ const progressionStatSchema = z
   .object({
     studentId: z.string().min(1).max(256),
     activityId: z.string().min(1).max(256),
-    currentLevel: z.number(),
-    highestLevelReached: z.number(),
-    totalSessions: z.number(),
-    totalXp: z.number(),
+    currentLevel: z.number().int().min(1).max(9),
+    highestLevelReached: z.number().int().min(1).max(9),
+    totalSessions: z.number().int().min(0),
+    totalXp: z.number().min(0),
     syncState: syncStateSchema,
   })
   .passthrough();
@@ -157,9 +157,9 @@ const progressionStatSchema = z
 const levelProgressionSchema = z
   .object({
     studentId: z.string().min(1).max(256),
-    unlockedLevels: z.array(z.number().min(1).max(9)).default([]),
-    completedLevels: z.array(z.number().min(1).max(9)).default([]),
-    consecutiveFailedSessions: z.record(z.string(), z.number()).optional(),
+    unlockedLevels: z.array(z.number().int().min(1).max(9)).default([]),
+    completedLevels: z.array(z.number().int().min(1).max(9)).default([]),
+    consecutiveFailedSessions: z.record(z.string(), z.number().int().min(0)).optional(),
     lastUpdatedAt: z.number(),
     syncState: syncStateSchema,
   })
@@ -175,7 +175,7 @@ const streakRecordSchema = z
 
 const telemetryEventSchema = z
   .object({
-    id: z.number().optional(),
+    id: z.number().int().min(1).optional(),
     timestamp: z.string(),
     event: z.string().min(1).max(256),
     severity: z.enum(['debug', 'info', 'warn', 'error', 'fatal']),
@@ -183,7 +183,7 @@ const telemetryEventSchema = z
     studentId: z.string().min(1).max(256).optional(),
     sessionId: z.string().min(1).max(256).optional(),
     stack: z.string().max(8192).optional(),
-    version: z.string().max(256),
+    version: z.string().min(1).max(256),
     syncState: syncStateSchema,
   })
   .passthrough();

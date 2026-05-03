@@ -162,6 +162,8 @@ export class IdentifyInteraction implements Interaction {
 
       hit.on('pointerup', select);
 
+      A11yLayer.mountAction(`a11y-identify-option-${i}`, `Option ${i + 1}: ${opt.alt ?? `variant`}`, select);
+
       TestHooks.mountInteractive(`identify-option-${i}`, select, {
         top: `${(cardY / 1280) * 100}%`,
         left: `${(x / 800) * 100}%`,
