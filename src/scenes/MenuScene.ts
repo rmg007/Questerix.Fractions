@@ -211,6 +211,17 @@ export class MenuScene extends Phaser.Scene {
       );
     }
 
+    // Continue button testid for E2E testing (only shown if lastStudentId exists)
+    if (this.lastStudentId) {
+      TestHooks.mountInteractive(
+        'continue-btn',
+        () => {
+          this._startLevel(currentLevel, true);
+        },
+        { width: '360px', height: '90px', top: '54.7%', left: '50%' }
+      );
+    }
+
     // R30: settings-btn testid for E2E testing
     TestHooks.mountInteractive(
       'settings-btn',

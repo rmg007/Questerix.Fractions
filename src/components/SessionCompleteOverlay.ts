@@ -397,9 +397,18 @@ export class SessionCompleteOverlay {
     const hit = scene.add
       .rectangle(x, y, W, H, 0, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerup', onTap);
+      .on('pointerup', onTap)
+      .setDepth(50);
 
     this.container.add([bg, txt, hit]);
+
+    // Add TestHooks for E2E testing and accessibility
+    TestHooks.mountInteractive('session-complete-menu', onTap, {
+      width: `${W}px`,
+      height: `${H}px`,
+      top: `${((y / 1280) * 100).toFixed(1)}%`,
+      left: `${((x / 800) * 100).toFixed(1)}%`,
+    });
   }
 
   /**

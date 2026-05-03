@@ -143,7 +143,7 @@ export class PostSessionOverlay {
       this.dismiss(scene, onPlayAgain)
     );
     cursorY += 110;
-    this.addButton(scene, 0, cursorY, '🏠 Menu', TERTIARY, () => this.dismiss(scene, onMenu));
+    this.addButton(scene, 0, cursorY, 'Back to Menu', TERTIARY, () => this.dismiss(scene, onMenu));
 
     if (showNext && onNextLevel) {
       A11yLayer.mountAction('a11y-post-session-next', `Next level: Level ${levelNumber + 1}`, () =>

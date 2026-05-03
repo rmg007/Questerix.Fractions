@@ -1,0 +1,4 @@
+[info] [INFO] [Q] load {index: 0, id: q:pt:L1:0001, tier: easy, source: dexie}
+[log] %c[+10.432s] Q    %c load color:#065f46;font-weight:700 color:inherit;font-weight:normal {index: 0, id: q:pt:L1:0001, tier: easy, source: dexie}
+[info] [INFO] [HINT] request {tier: verbal, questionIndex: 0, wrongCount: 0}
+[info] [INFO] [HINT] show {tier: verbal, message: Try moving the line a little., questionIndex: 0}

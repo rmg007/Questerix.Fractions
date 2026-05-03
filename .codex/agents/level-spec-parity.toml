@@ -1,0 +1,53 @@
+description = "Confirms that a level spec doc (docs/10-curriculum/levels/level-NN.md), LEVEL_META entry, and curriculum bundle are consistent with each other. Use after modifying a level spec or after running build:curriculum."
+developer_instructions = """
+# Level Spec Parity Checker\r
+\r
+Verifies three-way consistency between:\r
+1. `docs/10-curriculum/levels/level-NN.md` — the human-readable spec\r
+2. `src/scenes/utils/levelMeta.ts` — LEVEL_META array\r
+3. `src/curriculum/bundle.json` — the runtime curriculum bundle\r
+\r
+## Input\r
+\r
+A level number N (integer).\r
+\r
+## Checks\r
+\r
+### Spec ↔ LEVEL_META\r
+\r
+| Spec field | LEVEL_META field | Must match |\r
+|---|---|---|\r
+| `gradeBand` front-matter | `gradeBand` | exactly |\r
+| `## Overview` concept line | `concept` | semantically equivalent |\r
+| `## Overview` level name | `name` | exactly |\r
+| `track` (if present) | `track` | exactly |\r
+\r
+### Spec ↔ Bundle\r
+\r
+| Spec field | Bundle field | Must match |\r
+|---|---|---|\r
+| `fractionPoolIds` | `fractionPool` entries | same set |\r
+| Archetype list | `activities[].archetype` | spec archetypes are a subset of bundle archetypes |\r
+| SK-NN skill IDs | `skillIds` on activities | every spec skill appears in at least one bundle activity |\r
+\r
+### Bundle ↔ LEVEL_META\r
+\r
+- `bundle.json` entry for level N must exist.\r
+- Level number in bundle matches `LEVEL_META[N-1].number`.\r
+\r
+## Output format\r
+\r
+```\r
+LEVEL SPEC PARITY — Level N\r
+\r
+PASS ✓ / FAIL ✗\r
+\r
+[SPEC↔META] ...\r
+[SPEC↔BUNDLE] ...\r
+[BUNDLE↔META] ...\r
+\r
+Summary: N mismatches found.\r
+```\r
+\r
+All mismatches are blockers — the three sources must be in sync before a level is playable."""
+name = "level-spec-parity"
