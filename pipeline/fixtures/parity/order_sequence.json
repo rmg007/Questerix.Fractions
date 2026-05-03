@@ -1,20 +1,20 @@
 [
   {
     "validatorId": "validator.order.sequence",
-    "input": { "studentOrder": ["frac:1/4", "frac:1/2", "frac:3/4"] },
-    "expected": { "expectedOrder": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "input": { "studentSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
     "outcome": "correct"
   },
   {
     "validatorId": "validator.order.sequence",
-    "input": { "studentOrder": ["frac:1/4", "frac:3/4", "frac:1/2"] },
-    "expected": { "expectedOrder": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "input": { "studentSequence": ["frac:1/4", "frac:3/4", "frac:1/2"] },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
     "outcome": "partial"
   },
   {
     "validatorId": "validator.order.sequence",
-    "input": { "studentOrder": ["frac:3/4", "frac:1/2", "frac:1/4"] },
-    "expected": { "expectedOrder": ["frac:1/4", "frac:1/2", "frac:3/4"] },
+    "input": { "studentSequence": ["frac:3/4", "frac:1/2", "frac:1/4"] },
+    "expected": { "correctSequence": ["frac:1/4", "frac:1/2", "frac:3/4"] },
     "outcome": "incorrect"
   }
 ]

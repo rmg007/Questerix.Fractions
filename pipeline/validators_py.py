@@ -11,6 +11,7 @@ ValidatorResult shape:
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, Optional
 
@@ -466,7 +467,7 @@ def _explain_your_order_sequence(input_: dict, expected: dict) -> ValidatorResul
             return ValidatorResult("correct", 1.0)
         # Sequence perfect but justification wrong → partial credit
         return ValidatorResult(
-            "partial", 0.7, "wrong_justification"
+            "partial", 0.7, "wrong_justification", detectedMisconception="MC-ORD-01"
         )
 
     if swaps == 1:
