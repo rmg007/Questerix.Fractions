@@ -4,6 +4,7 @@
 
 import type { QuestionTemplate } from '@/types';
 import type { PartitionPayload } from '@/validators/partition';
+import type { Rng } from '@/engine/ports';
 
 export interface L01Question {
   id: string;
@@ -79,16 +80,18 @@ export interface SelectionResult {
 export function selectNextQuestion(
   templatePool: QuestionTemplate[],
   usedQuestionIds: Set<string>,
-  masteryEstimate: number
+  masteryEstimate: number,
+  rng?: Rng
 ): SelectionResult {
   const snapPct = snapPctForMastery(masteryEstimate);
   const targetTier = difficultyTierForMastery(masteryEstimate);
+  const _rng = rng ?? { random: () => Math.random() };
 
   if (templatePool.length === 0) {
     const unused = SYNTHETIC_QUESTIONS.filter((q) => !usedQuestionIds.has(q.id));
     const tiered = unused.filter((q) => q.difficultyTier === targetTier);
     const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : SYNTHETIC_QUESTIONS;
-    const q = pool[Math.floor(Math.random() * pool.length)]!;
+    const q = pool[Math.floor(_rng.random() * pool.length)]!;
     usedQuestionIds.add(q.id);
     return { question: q, archetype: 'partition', snapPct };
   }
@@ -96,7 +99,7 @@ export function selectNextQuestion(
   const unused = templatePool.filter((t) => !usedQuestionIds.has(t.id));
   const tiered = unused.filter((t) => t.difficultyTier === targetTier);
   const pool = tiered.length > 0 ? tiered : unused.length > 0 ? unused : templatePool;
-  const tmpl = pool[Math.floor(Math.random() * pool.length)]!;
+  const tmpl = pool[Math.floor(_rng.random() * pool.length)]!;
   usedQuestionIds.add(tmpl.id);
 
   const payload = tmpl.payload as Partial<PartitionPayload> & {

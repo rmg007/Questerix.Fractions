@@ -315,8 +315,7 @@ export class LevelScene extends Phaser.Scene {
       hintTextGO: this.hintTextGO,
       questionCounterText: this.questionCounterText,
       updateCounter: (n, t) => this.updateCounter(n, t),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mascot: this.mascot as any,
+      mascot: this.mascot,
     };
     const callbacks: QuestionFlowCallbacks = {
       recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
@@ -447,8 +446,7 @@ export class LevelScene extends Phaser.Scene {
       hintTextGO: this.hintTextGO,
       questionCounterText: this.questionCounterText,
       updateCounter: (n, t) => this.updateCounter(n, t),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mascot: this.mascot as any,
+      mascot: this.mascot,
     };
     const callbacks: QuestionFlowCallbacks = {
       recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
@@ -637,10 +635,8 @@ export class LevelScene extends Phaser.Scene {
       hintButton: this.hintButton,
       hintTextGO: this.hintTextGO,
       currentQuestionHintIds: this.currentQuestionHintIds,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mascot: this.mascot as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      activeInteraction: this.activeInteraction as any,
+      mascot: this.mascot,
+      activeInteraction: this.activeInteraction,
     };
     const callbacks: HintFlowCallbacks = {
       setCurrentQuestionHintIds: (ids) => {

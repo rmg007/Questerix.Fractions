@@ -26,6 +26,7 @@ import { checkReduceMotion } from '../lib/preferences';
 import { Mascot } from '../components/Mascot';
 import { withSpan } from '../lib/observability/withSpan';
 import { SPAN_NAMES } from '../lib/observability/span-names';
+import { MathRandomRng } from '../lib/adapters';
 import {
   openSessionOrResume,
   closeSessionWithSummary,
@@ -285,7 +286,8 @@ export class Level01Scene extends Phaser.Scene {
     const sel = selectNextQuestion(
       this.templatePool,
       this.usedQuestionIds,
-      this.currentMasteryEstimate
+      this.currentMasteryEstimate,
+      MathRandomRng
     );
     this.currentQuestion = sel.question;
     this.currentArchetype = sel.archetype;
