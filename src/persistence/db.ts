@@ -400,7 +400,7 @@ export class QuesterixDB extends Dexie {
           const shadowEvents = await tx.table('_migratingHintEvents').toArray();
           if (shadowEvents.length > 0) {
             // Convert old numeric IDs to UUID strings for type consistency
-            const migratedEvents = shadowEvents.map((event: any) => ({
+            const migratedEvents = shadowEvents.map((event: Record<string, unknown>) => ({
               ...event,
               id: crypto.randomUUID(), // Generate new UUID for each event
             }));

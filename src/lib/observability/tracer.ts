@@ -1,4 +1,5 @@
 import { trace, type Tracer } from '@opentelemetry/api';
+import type { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 
 // Heavy OTel SDK packages are dynamically imported inside _doInit() and gated
 // on `import.meta.env.VITE_OTLP_URL` / `import.meta.env.DEV` so Rolldown can
@@ -54,8 +55,7 @@ class TracerService {
       import('@opentelemetry/resources'),
     ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const spanProcessors: any[] = [];
+    const spanProcessors: SpanProcessor[] = [];
 
     if (isDev) {
       spanProcessors.push(new SimpleSpanProcessor(new ConsoleSpanExporter()));

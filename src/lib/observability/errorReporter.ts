@@ -93,7 +93,7 @@ class ErrorReporter {
       // Scrub potential sensitive info from URLs
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       beforeSend(event: any) {
-        if (event.request?.url) {
+        if (event?.request?.url) {
           event.request.url = event.request.url.replace(/\/[0-9a-f-]{36}/g, '/[id]');
         }
         return event;

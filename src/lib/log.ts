@@ -254,8 +254,7 @@ export const log = {
 
 // Expose globally for console-based inspection during dev
 if (import.meta.env.DEV) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).__LOG = {
+  window.__LOG = {
     setFilter: (f: string) => {
       sessionStorage.setItem('LOG', f);
       console.log(`[LOG] filter set to: "${f}" — reload not required`);

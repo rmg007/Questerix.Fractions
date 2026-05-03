@@ -171,8 +171,13 @@ export function install(): void {
     /* noop */
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any;
-  w.__LOG = w.__LOG ?? {};
-  w.__LOG.viewer = { show, hide, toggle, dump };
+  // Initialize __LOG structure if it doesn't exist
+  const __LOG = window.__LOG || {
+    setFilter: () => {},
+    getFilter: () => '',
+    silence: () => {},
+    all: () => {},
+  };
+  __LOG.viewer = { show, hide, toggle, dump };
+  window.__LOG = __LOG;
 }
