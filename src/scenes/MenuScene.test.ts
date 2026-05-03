@@ -23,6 +23,7 @@ describe('MenuScene module smoke tests', () => {
     const mod = await import('./MenuScene').catch(() => null);
     // Either the import succeeds or it is null (Phaser env not available);
     // what we must NOT get is an unhandled crash before this assertion.
+    expect(mod === null || typeof mod === 'object').toBe(true);
     if (mod !== null) {
       expect(typeof mod).toBe('object');
     }
