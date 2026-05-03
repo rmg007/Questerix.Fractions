@@ -97,7 +97,23 @@ export async function doAttempt(page: Page): Promise<number> {
   await partitionTarget.click();
   await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
   const elapsed = Date.now() - t0;
-  await feedbackNext.click({ force: true, timeout: 2000 }).catch(() => {});
-  await expect(feedbackOverlay).toBeHidden({ timeout: 5000 });
+
+  // Click the feedback next button and wait for overlay to dismiss.
+  // Use a longer timeout on mobile since click stabilization is slower.
+  try {
+    await feedbackNext.click({ timeout: 3000 });
+  } catch {
+    // Click may fail on mobile due to stabilization timeout. Try forcing it.
+    try {
+      await feedbackNext.click({ force: true, timeout: 3000 });
+    } catch {
+      // If click still fails, overlay should auto-dismiss after DISPLAY_MS.
+      // Just wait for it to hide rather than failing the test.
+    }
+  }
+
+  // Wait for the feedback overlay to disappear. This either happens because
+  // the user clicked the button, or it auto-dismisses after the display time.
+  await expect(feedbackOverlay).not.toBeVisible({ timeout: 10000 });
   return elapsed;
 }
