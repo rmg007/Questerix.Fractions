@@ -22,7 +22,7 @@ const ARCHETYPE_RULES = {
       return null;
     return 'must have options[] or fractionId+distractors';
   },
-  equal_or_not: (p) => ('shapeType' in p ? null : 'missing shapeType'),
+  equal_or_not: (p) => ('partitionLines' in p ? null : 'missing partitionLines'),
   label:     (p) => null, // label has flexible payloads
   make:      (p) => null,
   snap_match:(p) => ('leftItems' in p && 'rightItems' in p ? null : 'missing leftItems/rightItems'),
