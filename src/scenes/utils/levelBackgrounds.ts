@@ -137,7 +137,7 @@ function drawLevel3(scene: Phaser.Scene, cw: number, ch: number): void {
     { x: cw / 2 + 8, y: mid.y + 8 },
   ];
   const qw = cw / 2 - 8;
-  const qh = (ch * 0.52 - ch * 0.22) - 8;
+  const qh = ch * 0.52 - ch * 0.22 - 8;
 
   quadColors.forEach((c, i) => {
     g.fillStyle(c, 0.38);
@@ -298,8 +298,8 @@ function drawLevel8(scene: Phaser.Scene, cw: number, ch: number): void {
   const plankL = 280;
   const plankH = 12;
   const rad = (plankTilt * Math.PI) / 180;
-  const dx = Math.cos(rad) * plankL / 2;
-  const dy = Math.sin(rad) * plankL / 2;
+  const dx = (Math.cos(rad) * plankL) / 2;
+  const dy = (Math.sin(rad) * plankL) / 2;
 
   // Plank
   g.fillStyle(0x854d0e, 0.7);

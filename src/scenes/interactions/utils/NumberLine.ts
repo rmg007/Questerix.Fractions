@@ -136,9 +136,7 @@ export class NumberLine {
       // Leave a fading trail dot every 20px
       if (!checkReduceMotion() && Math.abs(clamped - lastTrailX) >= 20) {
         lastTrailX = clamped;
-        const dot = this.scene.add
-          .circle(clamped, y, 5, CLR.primary, 0.35)
-          .setDepth(8);
+        const dot = this.scene.add.circle(clamped, y, 5, CLR.primary, 0.35).setDepth(8);
         trailDots.push(dot);
         this.scene.tweens.add({
           targets: dot,

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * LevelVignette — 2.5-second illustrated intro clip shown once per session
  * before the first question loads. Each of L1–L9 gets a unique mini-scene
@@ -18,7 +19,7 @@ const CH = 1280;
 const CARD_W = 680;
 const CARD_H = 510;
 const CARD_CX = CW / 2; // 400
-const CARD_CY = 590;    // slightly above canvas centre for visual weight
+const CARD_CY = 590; // slightly above canvas centre for visual weight
 
 /** Artbox — the illustrated mini-scene area, in container-local coords */
 const ART_CX = 0;
@@ -37,15 +38,27 @@ const DEPTH_CARD = 50;
 // ── Per-level metadata ────────────────────────────────────────────────────────
 
 const LEVEL_META: Record<number, { label: string; tagline: string; bgColor: number }> = {
-  1: { label: 'Level 1 — Halves',            tagline: 'Help share the food equally!',           bgColor: 0xfff8e7 },
-  2: { label: 'Level 2 — Thirds',             tagline: 'Plant seeds in equal rows!',             bgColor: 0xf0fdf4 },
-  3: { label: 'Level 3 — Quarters',           tagline: 'Explore the four-part park!',            bgColor: 0xe0f2fe },
-  4: { label: 'Level 4 — Identifying',        tagline: 'Name every fraction you see!',           bgColor: 0xf5f3ff },
-  5: { label: 'Level 5 — Equivalent',         tagline: 'Different shapes, same value!',          bgColor: 0xfff1f2 },
-  6: { label: 'Level 6 — Comparing',          tagline: 'Which fraction is bigger?',              bgColor: 0xf0fdf4 },
-  7: { label: 'Level 7 — Ordering',           tagline: 'Arrange them smallest to largest!',      bgColor: 0xeef2ff },
-  8: { label: 'Level 8 — Benchmark ½',        tagline: 'Is it more or less than one half?',      bgColor: 0xe0f2fe },
-  9: { label: 'Level 9 — Mixed Review',       tagline: 'Navigate the fraction galaxy!',          bgColor: 0x0a1128 },
+  1: { label: 'Level 1 — Halves', tagline: 'Help share the food equally!', bgColor: 0xfff8e7 },
+  2: { label: 'Level 2 — Thirds', tagline: 'Plant seeds in equal rows!', bgColor: 0xf0fdf4 },
+  3: { label: 'Level 3 — Quarters', tagline: 'Explore the four-part park!', bgColor: 0xe0f2fe },
+  4: { label: 'Level 4 — Identifying', tagline: 'Name every fraction you see!', bgColor: 0xf5f3ff },
+  5: { label: 'Level 5 — Equivalent', tagline: 'Different shapes, same value!', bgColor: 0xfff1f2 },
+  6: { label: 'Level 6 — Comparing', tagline: 'Which fraction is bigger?', bgColor: 0xf0fdf4 },
+  7: {
+    label: 'Level 7 — Ordering',
+    tagline: 'Arrange them smallest to largest!',
+    bgColor: 0xeef2ff,
+  },
+  8: {
+    label: 'Level 8 — Benchmark ½',
+    tagline: 'Is it more or less than one half?',
+    bgColor: 0xe0f2fe,
+  },
+  9: {
+    label: 'Level 9 — Mixed Review',
+    tagline: 'Navigate the fraction galaxy!',
+    bgColor: 0x0a1128,
+  },
 };
 
 // ── Main class ────────────────────────────────────────────────────────────────
@@ -245,22 +258,32 @@ export class LevelVignette {
   private drawSceneAnimation(): void {
     const fn = SCENE_FNS[this.levelNumber] ?? SCENE_FNS[1]!;
     // artbox origin in scene space
-    const artSX = CARD_CX + ART_CX - ART_W / 2;  // left edge of artbox in scene
-    const artSY = CARD_CY + ART_CY - ART_H / 2;  // top edge in scene
-    const artCX = CARD_CX + ART_CX;               // centre x in scene
-    const artCY = CARD_CY + ART_CY;               // centre y in scene
+    const artSX = CARD_CX + ART_CX - ART_W / 2; // left edge of artbox in scene
+    const artSY = CARD_CY + ART_CY - ART_H / 2; // top edge in scene
+    const artCX = CARD_CX + ART_CX; // centre x in scene
+    const artCY = CARD_CY + ART_CY; // centre y in scene
 
-    const addTw = (tw: Phaser.Tweens.Tween) => { this.tweenRefs.push(tw); };
-    const addTm = (tm: Phaser.Time.TimerEvent) => { this.timerRefs.push(tm); };
-    const addObj = (o: Phaser.GameObjects.GameObject) => { this.artObjects.push(o); };
+    const addTw = (tw: Phaser.Tweens.Tween) => {
+      this.tweenRefs.push(tw);
+    };
+    const addTm = (tm: Phaser.Time.TimerEvent) => {
+      this.timerRefs.push(tm);
+    };
+    const addObj = (o: Phaser.GameObjects.GameObject) => {
+      this.artObjects.push(o);
+    };
 
     fn({
       scene: this.scene,
-      artSX, artSY,
-      artCX, artCY,
+      artSX,
+      artSY,
+      artCX,
+      artCY,
       artW: ART_W,
       artH: ART_H,
-      addTw, addTm, addObj,
+      addTw,
+      addTm,
+      addObj,
       depth: DEPTH_CARD + 1,
     });
   }
@@ -270,9 +293,12 @@ export class LevelVignette {
 
 interface SceneCtx {
   scene: Phaser.Scene;
-  artSX: number; artSY: number;
-  artCX: number; artCY: number;
-  artW: number;  artH: number;
+  artSX: number;
+  artSY: number;
+  artCX: number;
+  artCY: number;
+  artW: number;
+  artH: number;
   depth: number;
   addTw: (t: Phaser.Tweens.Tween) => void;
   addTm: (t: Phaser.Time.TimerEvent) => void;
@@ -306,34 +332,38 @@ function drawL1(ctx: SceneCtx): void {
   const knife = scene.add.graphics().setDepth(depth + 1);
   addObj(knife);
   knife.fillStyle(0x9ca3af, 1);
-  knife.fillRect(-4, -80, 8, 80);   // blade
+  knife.fillRect(-4, -80, 8, 80); // blade
   knife.fillStyle(0x78716c, 1);
   knife.fillRect(-6, -100, 14, 24); // handle
   knife.setPosition(artCX + 100, artCY - 120);
   knife.setAngle(35);
 
-  addTw(scene.tweens.add({
-    targets: knife,
-    y: artCY - 10,
-    duration: 600,
-    ease: 'Back.easeOut',
-    delay: 200,
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: knife,
+      y: artCY - 10,
+      duration: 600,
+      ease: 'Back.easeOut',
+      delay: 200,
+    })
+  );
 
   // Dashed cut line appearing
   const cutLine = scene.add.graphics().setDepth(depth + 1);
   addObj(cutLine);
   cutLine.setAlpha(0);
-  addTw(scene.tweens.add({
-    targets: cutLine,
-    alpha: 1,
-    duration: 250,
-    delay: 820,
-    onStart: () => {
-      cutLine.lineStyle(3, 0xfbbf24, 1);
-      cutLine.lineBetween(artCX - 140, artCY - 2, artCX + 140, artCY - 2);
-    },
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: cutLine,
+      alpha: 1,
+      duration: 250,
+      delay: 820,
+      onStart: () => {
+        cutLine.lineStyle(3, 0xfbbf24, 1);
+        cutLine.lineBetween(artCX - 140, artCY - 2, artCX + 140, artCY - 2);
+      },
+    })
+  );
 }
 
 /** L2 — Thirds: three flower pots with blooming flowers */
@@ -361,14 +391,16 @@ function drawL2(ctx: SceneCtx): void {
     stem.setScale(1, 0);
     stem.setY(artCY + 30);
 
-    addTw(scene.tweens.add({
-      targets: stem,
-      scaleY: 1,
-      y: 0,
-      duration: 350,
-      ease: 'Sine.easeOut',
-      delay: 200 + i * 220,
-    }));
+    addTw(
+      scene.tweens.add({
+        targets: stem,
+        scaleY: 1,
+        y: 0,
+        duration: 350,
+        ease: 'Sine.easeOut',
+        delay: 200 + i * 220,
+      })
+    );
 
     // Flower (blooms after stem)
     const flowerColors = [0xf472b6, 0xfbbf24, 0xa78bfa];
@@ -383,17 +415,21 @@ function drawL2(ctx: SceneCtx): void {
     flower.fillCircle(px, artCY - 46, 9);
     flower.setScale(0);
 
-    addTm(scene.time.delayedCall(550 + i * 220, () => {
-      addTw(scene.tweens.add({
-        targets: flower,
-        scaleX: 1.15,
-        scaleY: 1.15,
-        duration: 220,
-        ease: 'Back.easeOut',
-        yoyo: true,
-        onComplete: () => flower.setScale(1),
-      }));
-    }));
+    addTm(
+      scene.time.delayedCall(550 + i * 220, () => {
+        addTw(
+          scene.tweens.add({
+            targets: flower,
+            scaleX: 1.15,
+            scaleY: 1.15,
+            duration: 220,
+            ease: 'Back.easeOut',
+            yoyo: true,
+            onComplete: () => flower.setScale(1),
+          })
+        );
+      })
+    );
   }
 }
 
@@ -417,13 +453,15 @@ function drawL3(ctx: SceneCtx): void {
     addObj(qg);
     qg.fillStyle(quadColors[i]!, 0.7);
     qg.fillRect(x, y, w, h);
-    addTw(scene.tweens.add({
-      targets: qg,
-      alpha: 1,
-      duration: 300,
-      delay: 600 + i * 120,
-      ease: 'Sine.easeOut',
-    }));
+    addTw(
+      scene.tweens.add({
+        targets: qg,
+        alpha: 1,
+        duration: 300,
+        delay: 600 + i * 120,
+        ease: 'Sine.easeOut',
+      })
+    );
   });
 
   // Outline
@@ -436,34 +474,38 @@ function drawL3(ctx: SceneCtx): void {
   const hLine = scene.add.graphics().setDepth(depth + 2);
   addObj(hLine);
   hLine.lineStyle(3, NAVY, 0.9);
-  addTw(scene.tweens.add({
-    targets: { p: 0 },
-    p: 1,
-    duration: 380,
-    delay: 180,
-    ease: 'Sine.easeInOut',
-    onUpdate: (_, obj: { p: number }) => {
-      hLine.clear();
-      hLine.lineStyle(3, NAVY, 0.9);
-      hLine.lineBetween(L, artCY, L + SZ * obj.p, artCY);
-    },
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: { p: 0 },
+      p: 1,
+      duration: 380,
+      delay: 180,
+      ease: 'Sine.easeInOut',
+      onUpdate: (_, obj: { p: number }) => {
+        hLine.clear();
+        hLine.lineStyle(3, NAVY, 0.9);
+        hLine.lineBetween(L, artCY, L + SZ * obj.p, artCY);
+      },
+    })
+  );
 
   // Vertical divider drawing top→bottom
   const vLine = scene.add.graphics().setDepth(depth + 2);
   addObj(vLine);
-  addTw(scene.tweens.add({
-    targets: { p: 0 },
-    p: 1,
-    duration: 380,
-    delay: 380,
-    ease: 'Sine.easeInOut',
-    onUpdate: (_, obj: { p: number }) => {
-      vLine.clear();
-      vLine.lineStyle(3, NAVY, 0.9);
-      vLine.lineBetween(artCX, T, artCX, T + SZ * obj.p);
-    },
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: { p: 0 },
+      p: 1,
+      duration: 380,
+      delay: 380,
+      ease: 'Sine.easeInOut',
+      onUpdate: (_, obj: { p: number }) => {
+        vLine.clear();
+        vLine.lineStyle(3, NAVY, 0.9);
+        vLine.lineBetween(artCX, T, artCX, T + SZ * obj.p);
+      },
+    })
+  );
 }
 
 /** L4 — Library: books flying onto shelves */
@@ -496,13 +538,15 @@ function drawL4(ctx: SceneCtx): void {
     book.fillRoundedRect(0, 0, bookW, bookH, 3);
     book.setPosition(artCX + 300, by);
 
-    addTw(scene.tweens.add({
-      targets: book,
-      x: bx,
-      duration: 260,
-      delay: 150 + i * 120,
-      ease: 'Back.easeOut',
-    }));
+    addTw(
+      scene.tweens.add({
+        targets: book,
+        x: bx,
+        duration: 260,
+        delay: 150 + i * 120,
+        ease: 'Back.easeOut',
+      })
+    );
   }
 }
 
@@ -510,7 +554,12 @@ function drawL4(ctx: SceneCtx): void {
 function drawL5(ctx: SceneCtx): void {
   const { scene, artCX, artCY, depth, addTw, addObj } = ctx;
 
-  const drawBar = (x: number, n: number, _d: number, filled: number): Phaser.GameObjects.Graphics => {
+  const drawBar = (
+    x: number,
+    n: number,
+    _d: number,
+    filled: number
+  ): Phaser.GameObjects.Graphics => {
     const g = scene.add.graphics().setDepth(depth);
     const barW = n * 40;
     const barH = 44;
@@ -547,22 +596,40 @@ function drawL5(ctx: SceneCtx): void {
     .setAlpha(0);
   addObj(eqText);
 
-  addTw(scene.tweens.add({
-    targets: eqText,
-    alpha: 1,
-    scaleX: 1.3,
-    scaleY: 1.3,
-    duration: 300,
-    delay: 600,
-    ease: 'Back.easeOut',
-    yoyo: true,
-    onComplete: () => eqText.setAlpha(1).setScale(1),
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: eqText,
+      alpha: 1,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      duration: 300,
+      delay: 600,
+      ease: 'Back.easeOut',
+      yoyo: true,
+      onComplete: () => eqText.setAlpha(1).setScale(1),
+    })
+  );
 
   // Fraction labels
   const labels = [
-    scene.add.text(artCX - 140, artCY + 38, '1/2', { fontSize: '22px', fontFamily: TITLE_FONT, color: NAVY_HEX }).setOrigin(0.5).setDepth(depth + 1).setAlpha(0),
-    scene.add.text(artCX + 120, artCY + 38, '2/4', { fontSize: '22px', fontFamily: TITLE_FONT, color: NAVY_HEX }).setOrigin(0.5).setDepth(depth + 1).setAlpha(0),
+    scene.add
+      .text(artCX - 140, artCY + 38, '1/2', {
+        fontSize: '22px',
+        fontFamily: TITLE_FONT,
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 1)
+      .setAlpha(0),
+    scene.add
+      .text(artCX + 120, artCY + 38, '2/4', {
+        fontSize: '22px',
+        fontFamily: TITLE_FONT,
+        color: NAVY_HEX,
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 1)
+      .setAlpha(0),
   ];
   labels.forEach((l, i) => {
     addObj(l);
@@ -620,17 +687,22 @@ function drawL6(ctx: SceneCtx): void {
     .setDepth(depth + 2)
     .setAlpha(0);
   addObj(arrow);
-  addTw(scene.tweens.add({
-    targets: arrow,
-    alpha: 1,
-    scaleX: 1.25,
-    scaleY: 1.25,
-    duration: 300,
-    delay: 650,
-    ease: 'Back.easeOut',
-    yoyo: true,
-    onComplete: () => { arrow.setAlpha(1); arrow.setScale(1); },
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: arrow,
+      alpha: 1,
+      scaleX: 1.25,
+      scaleY: 1.25,
+      duration: 300,
+      delay: 650,
+      ease: 'Back.easeOut',
+      yoyo: true,
+      onComplete: () => {
+        arrow.setAlpha(1);
+        arrow.setScale(1);
+      },
+    })
+  );
 }
 
 /** L7 — Ordering: staircase steps lighting up one by one */
@@ -653,19 +725,26 @@ function drawL7(ctx: SceneCtx): void {
     stepG.strokeRect(sx, sy, stepW - 2, stepH * (i + 1));
 
     // Active step highlight (appears sequentially)
-    const activeStep = scene.add.graphics().setDepth(depth + 1).setAlpha(0);
+    const activeStep = scene.add
+      .graphics()
+      .setDepth(depth + 1)
+      .setAlpha(0);
     addObj(activeStep);
     activeStep.fillStyle(ACTION_FILL, 0.85);
     activeStep.fillRoundedRect(sx + 2, sy + 2, stepW - 6, stepH - 4, 5);
 
-    addTm(scene.time.delayedCall(180 + i * 180, () => {
-      addTw(scene.tweens.add({
-        targets: activeStep,
-        alpha: 1,
-        duration: 200,
-        ease: 'Sine.easeOut',
-      }));
-    }));
+    addTm(
+      scene.time.delayedCall(180 + i * 180, () => {
+        addTw(
+          scene.tweens.add({
+            targets: activeStep,
+            alpha: 1,
+            duration: 200,
+            ease: 'Sine.easeOut',
+          })
+        );
+      })
+    );
 
     // Fraction labels on each step
     const fracs = ['1/5', '2/5', '3/5', '4/5', '1'];
@@ -680,9 +759,11 @@ function drawL7(ctx: SceneCtx): void {
       .setDepth(depth + 2)
       .setAlpha(0);
     addObj(lbl);
-    addTm(scene.time.delayedCall(240 + i * 180, () => {
-      addTw(scene.tweens.add({ targets: lbl, alpha: 1, duration: 180 }));
-    }));
+    addTm(
+      scene.time.delayedCall(240 + i * 180, () => {
+        addTw(scene.tweens.add({ targets: lbl, alpha: 1, duration: 180 }));
+      })
+    );
   }
 
   // Star at top of staircase
@@ -696,17 +777,21 @@ function drawL7(ctx: SceneCtx): void {
     .setDepth(depth + 2)
     .setAlpha(0);
   addObj(star);
-  addTm(scene.time.delayedCall(1100, () => {
-    addTw(scene.tweens.add({
-      targets: star,
-      alpha: 1,
-      y: star.y - 6,
-      duration: 400,
-      ease: 'Back.easeOut',
-      yoyo: true,
-      repeat: -1,
-    }));
-  }));
+  addTm(
+    scene.time.delayedCall(1100, () => {
+      addTw(
+        scene.tweens.add({
+          targets: star,
+          alpha: 1,
+          y: star.y - 6,
+          duration: 400,
+          ease: 'Back.easeOut',
+          yoyo: true,
+          repeat: -1,
+        })
+      );
+    })
+  );
 }
 
 /** L8 — Benchmark: a seesaw that tips then balances */
@@ -740,17 +825,19 @@ function drawL8(ctx: SceneCtx): void {
     const kid = scene.add.graphics().setDepth(depth + 2);
     addObj(kid);
     kid.fillStyle(kidColors[i]!, 0.9);
-    kid.fillCircle(artCX + side * PLANK_L / 2, artCY + 24, 18);
+    kid.fillCircle(artCX + (side * PLANK_L) / 2, artCY + 24, 18);
   });
 
   // Plank tilts to level
-  addTw(scene.tweens.add({
-    targets: plankContainer,
-    angle: 0,
-    duration: 700,
-    delay: 400,
-    ease: 'Sine.easeInOut',
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: plankContainer,
+      angle: 0,
+      duration: 700,
+      delay: 400,
+      ease: 'Sine.easeInOut',
+    })
+  );
 
   // "1/2" label — avoid Unicode glyph (½) which renders as blank box in Fredoka One
   const halfLabel = scene.add
@@ -763,14 +850,16 @@ function drawL8(ctx: SceneCtx): void {
     .setDepth(depth + 3)
     .setAlpha(0);
   addObj(halfLabel);
-  addTw(scene.tweens.add({
-    targets: halfLabel,
-    alpha: 1,
-    y: artCY - 32,
-    duration: 350,
-    delay: 1150,
-    ease: 'Back.easeOut',
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: halfLabel,
+      alpha: 1,
+      y: artCY - 32,
+      duration: 350,
+      delay: 1150,
+      ease: 'Back.easeOut',
+    })
+  );
 }
 
 /** L9 — Space: starfield + rocket rising with flame trail */
@@ -781,7 +870,10 @@ function drawL9(ctx: SceneCtx): void {
   const starG = scene.add.graphics().setDepth(depth);
   addObj(starG);
   let seed = 99;
-  const rng = () => { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0x100000000; };
+  const rng = () => {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 0x100000000;
+  };
   for (let i = 0; i < 55; i++) {
     const sx = artSX + rng() * artW;
     const sy = artSY + rng() * artH;
@@ -819,13 +911,15 @@ function drawL9(ctx: SceneCtx): void {
   const rocketEndY = artSY + 80;
   rocketG.setPosition(artCX, rocketStartY);
 
-  addTw(scene.tweens.add({
-    targets: rocketG,
-    y: rocketEndY,
-    duration: 1100,
-    delay: 200,
-    ease: 'Cubic.easeOut',
-  }));
+  addTw(
+    scene.tweens.add({
+      targets: rocketG,
+      y: rocketEndY,
+      duration: 1100,
+      delay: 200,
+      ease: 'Cubic.easeOut',
+    })
+  );
 
   // Flame trail — small orange circles appear at rocket's old position
   const spawnFlame = () => {
@@ -835,14 +929,16 @@ function drawL9(ctx: SceneCtx): void {
     const fr = 6 + Math.random() * 6;
     flame.fillStyle(0xf97316, 0.7);
     flame.fillCircle(artCX, rocketG.y + 38, fr);
-    addTw(scene.tweens.add({
-      targets: flame,
-      alpha: 0,
-      y: flame.y + 20,
-      duration: 420,
-      ease: 'Cubic.easeIn',
-      onComplete: () => flame.destroy(),
-    }));
+    addTw(
+      scene.tweens.add({
+        targets: flame,
+        alpha: 0,
+        y: flame.y + 20,
+        duration: 420,
+        ease: 'Cubic.easeIn',
+        onComplete: () => flame.destroy(),
+      })
+    );
   };
 
   // Spawn flames while rocket is rising (14 total, 80ms apart)
@@ -863,18 +959,22 @@ function drawL9(ctx: SceneCtx): void {
       .setDepth(depth + 3)
       .setAlpha(0);
     addObj(ct);
-    addTm(scene.time.delayedCall(i * 200, () => {
-      addTw(scene.tweens.add({
-        targets: ct,
-        alpha: 1,
-        scaleX: 1.3,
-        scaleY: 1.3,
-        duration: 160,
-        ease: 'Back.easeOut',
-        yoyo: true,
-        onComplete: () => ct.setAlpha(0.6),
-      }));
-    }));
+    addTm(
+      scene.time.delayedCall(i * 200, () => {
+        addTw(
+          scene.tweens.add({
+            targets: ct,
+            alpha: 1,
+            scaleX: 1.3,
+            scaleY: 1.3,
+            duration: 160,
+            ease: 'Back.easeOut',
+            yoyo: true,
+            onComplete: () => ct.setAlpha(0.6),
+          })
+        );
+      })
+    );
   });
 }
 

@@ -52,6 +52,7 @@ export class SessionCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
   private glowTween: Phaser.Tweens.Tween | null = null;
+  private announced = false;
 
   constructor(config: SessionCompleteConfig) {
     const {
@@ -259,6 +260,7 @@ export class SessionCompleteOverlay {
     // Mount sentinel immediately so tests can observe completion-screen as soon
     // as the overlay is constructed, regardless of animation duration.
     TestHooks.mountSentinel('completion-screen');
+    this.announce(levelNumber, starCount);
 
     if (reduceMotion) {
       for (const st of this.starTexts) st.setScale(1);
@@ -505,6 +507,8 @@ export class SessionCompleteOverlay {
   }
 
   private announce(levelNumber: number, stars: number): void {
+    if (this.announced) return;
+    this.announced = true;
     const word = stars === 1 ? 'star' : 'stars';
     AccessibilityAnnouncer.announce(`Level ${levelNumber} complete! You earned ${stars} ${word}.`);
   }

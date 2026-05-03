@@ -29,9 +29,7 @@ test.describe('ProgressBar sentinel — star progress smoke test', () => {
     });
   });
 
-  // TODO: a11y-snap-center → submit no longer increments progress to 1.
-  // Track via PLANS/E2E_FOLLOWUPS.md (progress-bar smoke).
-  test.skip('aria-valuenow equals 1 after submitting one correct answer', async ({ page }) => {
+  test('aria-valuenow equals 1 after submitting one correct answer', async ({ page }) => {
     await navigateToLevel01(page);
 
     const partitionTarget = page.locator('[data-testid="partition-target"]');
@@ -51,9 +49,9 @@ test.describe('ProgressBar sentinel — star progress smoke test', () => {
     await partitionTarget.click();
 
     // Feedback overlay must appear before asserting progress
-    await expect(feedbackOverlay).toBeVisible({ timeout: 2000 });
+    await expect(feedbackOverlay).toBeVisible({ timeout: 8000 });
 
     // Progress bar sentinel must reflect exactly one correct answer
-    await expect(progressBar).toHaveAttribute('aria-valuenow', '1');
+    await expect(progressBar).toHaveAttribute('aria-valuenow', '1', { timeout: 5000 });
   });
 });

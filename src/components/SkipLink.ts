@@ -29,6 +29,7 @@ export function labelCanvas(): void {
       canvas.setAttribute('aria-label', 'Questerix Fractions game canvas');
       canvas.setAttribute('role', 'application');
       canvas.setAttribute('data-testid', 'phaser-canvas');
+      canvas.style.touchAction = 'none';
       // Canvas must be focusable for the skip link to land focus on it.
       if (!canvas.hasAttribute('tabindex')) {
         canvas.setAttribute('tabindex', '-1');
@@ -57,7 +58,8 @@ export function injectSkipLink(): void {
       top: '-9999px',
       left: '-9999px',
       zIndex: '9999',
-      padding: '8px 16px',
+      minHeight: '44px',
+      padding: '10px 16px',
       background: '#ffffff',
       color: '#1a1a2e',
       fontFamily: BODY_FONT,

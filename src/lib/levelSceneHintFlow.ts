@@ -4,6 +4,7 @@ import { get as getCopy } from './i18n/catalog';
 import { checkReduceMotion } from './preferences';
 import type { HintTier, QuestionTemplate } from '@/types';
 import { HintLadder } from '@/components/HintLadder';
+import { TestHooks } from '@/scenes/utils/TestHooks';
 import { tracerService } from '@/lib/observability/tracer';
 import { SPAN_NAMES } from '@/lib/observability/span-names';
 
@@ -127,6 +128,9 @@ export async function showHintForTier(
 
   ctx.hintTextGO.setText(msg);
   ctx.hintTextGO.setVisible(true);
+  // Mirror to the DOM sentinel so e2e tests can assert hint text without
+  // peering into the Phaser canvas. Mirrors Level01Scene's TestHooks.setText.
+  TestHooks.setText('hint-text', msg);
   log.hint('show', { tier, message: msg, level: ctx.levelNumber, archetype });
 
   if (tier === 'visual_overlay') {

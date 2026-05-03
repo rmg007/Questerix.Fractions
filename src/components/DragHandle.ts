@@ -43,7 +43,11 @@ export class DragHandle {
   private hitZone: Phaser.GameObjects.Rectangle;
   private visibleLine: Phaser.GameObjects.Rectangle;
   private glowCircle: Phaser.GameObjects.Arc;
+  private gripper: Phaser.GameObjects.Arc;
+  private gripperBorder: Phaser.GameObjects.Arc;
+  private chevrons: Phaser.GameObjects.Text;
   private glowTween: Phaser.Tweens.Tween | null = null;
+  private loadPulseTween: Phaser.Tweens.Tween | null = null;
   private readonly scene: Phaser.Scene;
 
   private _pos: number;
@@ -58,12 +62,8 @@ export class DragHandle {
     this.cfg = config;
     this._pos = axis === 'horizontal' ? x : y;
 
-    // Hover glow — pulsing amber circle behind the handle line (hidden by default)
-    this.glowCircle = scene.add
-      .circle(x, y, GLOW_RADIUS, CLR.accentA, 0)
-      .setDepth(depth - 1);
+    this.glowCircle = scene.add.circle(x, y, GLOW_RADIUS, CLR.accentA, 0).setDepth(depth - 1);
 
-    // Visible handle line — thin stroke per design-language.md §7.1 (2px stroke)
     const lineW = axis === 'horizontal' ? HANDLE_VISIBLE : trackLength;
     const lineH = axis === 'horizontal' ? trackLength : HANDLE_VISIBLE;
     this.visibleLine = scene.add
@@ -71,17 +71,50 @@ export class DragHandle {
       .setOrigin(0.5)
       .setDepth(depth);
 
-    // Hit zone — invisible but ≥44×44 per design-language.md §5
+    // UI-1: Circular gripper r=20 with white border + chevrons
+    this.gripper = scene.add
+      .circle(x, y, 20, CLR.primary)
+      .setDepth(depth + 2)
+      .setStrokeStyle(3, 0xffffff);
+    this.gripperBorder = scene.add
+      .circle(x, y, 22, 0xffffff, 0)
+      .setDepth(depth + 2)
+      .setStrokeStyle(2, CLR.primary);
+    this.chevrons = scene.add
+      .text(x, y, axis === 'horizontal' ? '‹ ›' : '⌃ ⌄', {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '18px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 3);
+
     const hitW = axis === 'horizontal' ? HIT_TARGET : Math.max(trackLength, HIT_TARGET);
     const hitH = axis === 'horizontal' ? Math.max(trackLength, HIT_TARGET) : HIT_TARGET;
     this.hitZone = scene.add
       .rectangle(x, y, hitW, hitH, 0x000000, 0)
       .setOrigin(0.5)
-      .setDepth(depth + 1)
+      .setDepth(depth + 4)
       .setInteractive({ draggable: true });
 
     this.wirePointerEvents();
     this.wireKeyboardEvents();
+    this.playLoadPulse();
+  }
+
+  /** UI-1: 2-pulse on load to draw attention to the gripper. */
+  private playLoadPulse(): void {
+    if (checkReduceMotion()) return;
+    this.loadPulseTween = this.scene.tweens.add({
+      targets: [this.gripper, this.gripperBorder, this.chevrons],
+      scaleX: 1.25,
+      scaleY: 1.25,
+      duration: 400,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: 1,
+    });
   }
 
   private wirePointerEvents(): void {
@@ -107,20 +140,7 @@ export class DragHandle {
       const raw = isHoriz ? dragX : dragY;
       const clamped = Phaser.Math.Clamp(raw, minPos, maxPos);
       this._pos = clamped;
-
-      this.visibleLine.setPosition(
-        isHoriz ? clamped : this.visibleLine.x,
-        isHoriz ? this.visibleLine.y : clamped
-      );
-      this.hitZone.setPosition(
-        isHoriz ? clamped : this.hitZone.x,
-        isHoriz ? this.hitZone.y : clamped
-      );
-      this.glowCircle.setPosition(
-        isHoriz ? clamped : this.glowCircle.x,
-        isHoriz ? this.glowCircle.y : clamped
-      );
-
+      this.setAxisPosition(clamped);
       onMove?.(clamped);
     });
 
@@ -174,15 +194,14 @@ export class DragHandle {
 
   private setAxisPosition(pos: number): void {
     const isHoriz = this.cfg.axis === 'horizontal';
-    this.visibleLine.setPosition(
-      isHoriz ? pos : this.visibleLine.x,
-      isHoriz ? this.visibleLine.y : pos
-    );
-    this.hitZone.setPosition(isHoriz ? pos : this.hitZone.x, isHoriz ? this.hitZone.y : pos);
-    this.glowCircle.setPosition(
-      isHoriz ? pos : this.glowCircle.x,
-      isHoriz ? this.glowCircle.y : pos
-    );
+    const moveX = (obj: { x: number; y: number; setPosition: (x: number, y: number) => void }) =>
+      obj.setPosition(isHoriz ? pos : obj.x, isHoriz ? obj.y : pos);
+    moveX(this.visibleLine);
+    moveX(this.hitZone);
+    moveX(this.glowCircle);
+    moveX(this.gripper);
+    moveX(this.gripperBorder);
+    moveX(this.chevrons);
   }
 
   /** Returns the nearest snap target if within threshold, else null. */
@@ -251,7 +270,14 @@ export class DragHandle {
     } else {
       const targetObj = isHoriz ? { x: clamped } : { y: clamped };
       this.scene.tweens.add({
-        targets: [this.visibleLine, this.hitZone, this.glowCircle],
+        targets: [
+          this.visibleLine,
+          this.hitZone,
+          this.glowCircle,
+          this.gripper,
+          this.gripperBorder,
+          this.chevrons,
+        ],
         ...targetObj,
         duration: 500,
         ease: 'Cubic.easeInOut',
@@ -262,11 +288,14 @@ export class DragHandle {
     }
   }
 
-  /** Destroy all game objects and remove event listeners. */
   destroy(): void {
     this.glowTween?.stop();
+    this.loadPulseTween?.stop();
     this.glowCircle.destroy();
     this.visibleLine.destroy();
+    this.gripper.destroy();
+    this.gripperBorder.destroy();
+    this.chevrons.destroy();
     this.hitZone.destroy();
     if (this.keyHandler) {
       this.scene.input.keyboard?.off('keydown', this.keyHandler);

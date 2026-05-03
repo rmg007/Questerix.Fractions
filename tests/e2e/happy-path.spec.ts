@@ -8,11 +8,25 @@ import { test, expect } from './_fixture';
 import { navigateToLevel01, doAttempt } from './test-helpers';
 
 test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Menu', () => {
-  // TODO: 5-attempt flow — same flake as level01.spec.ts:11.
-  // Track via PLANS/E2E_FOLLOWUPS.md.
-  test.skip('completes full session: 5 attempts → completion screen → back to menu', async ({
+  test.beforeEach(async ({ page }) => {
+    // Clear IndexedDB + storage so prior session state can't bleed across runs.
+    await page.goto('/');
+    await page.evaluate(async () => {
+      await new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase('questerix-fractions');
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+        req.onblocked = () => resolve();
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  });
+
+  test('completes full session: 5 attempts → completion screen → back to menu', async ({
     page,
   }) => {
+    test.setTimeout(120000);
     const startTime = Date.now();
 
     // Step 1-3: Boot → Menu → (Onboarding skip OR Adventure Map → Level 1) → Level01Scene.
@@ -100,8 +114,8 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     await expect(hintBtn).toBeVisible();
   });
 
-  // TODO: 5-attempt progress tracking — same flake. PLANS/E2E_FOLLOWUPS.md.
-  test.skip('progress is tracked across all 5 attempts', async ({ page }) => {
+  test('progress is tracked across all 5 attempts', async ({ page }) => {
+    test.setTimeout(90000);
     await navigateToLevel01(page);
 
     const progressBar = page.locator('[data-testid="progress-bar"]');
@@ -123,14 +137,7 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     await expect(progressBar).toHaveAttribute('aria-valuenow', '4', { timeout: 3000 });
 
     // Attempt 5 → completion
-    const partitionTarget = page.locator('[data-testid="partition-target"]');
-    const feedbackOverlay = page.locator('[data-testid="feedback-overlay"]');
-    const feedbackNext = page.locator('[data-testid="feedback-next-btn"]');
-
-    await expect(partitionTarget).toBeVisible({ timeout: 10000 });
-    await partitionTarget.click();
-    await expect(feedbackOverlay).toBeVisible({ timeout: 1000 });
-    await feedbackNext.click();
+    await doAttempt(page);
 
     // Completion screen should appear
     const completionScreen = page.locator('[data-testid="completion-screen"]');

@@ -61,11 +61,17 @@ export async function loadQuestion(
   callbacks: QuestionFlowCallbacks
 ): Promise<void> {
   callbacks.setQuestionIndex(index);
+  ctx.questionIndex = index;
   callbacks.setWrongCount(0);
+  ctx.wrongCount = 0;
   callbacks.setInputLocked(false);
+  ctx.inputLocked = false;
   callbacks.setLastPayload(null);
+  ctx.lastPayload = null;
   callbacks.setCurrentQuestionHintIds([]);
+  ctx.currentQuestionHintIds = [];
   callbacks.setCurrentRoundEvents([]);
+  ctx.currentRoundEvents = [];
 
   ctx.submitButtonContainer?.setVisible(true);
   ctx.activeInteraction?.unmount();
@@ -79,7 +85,10 @@ export async function loadQuestion(
     template = callbacks.makeFallbackTemplate();
   }
   callbacks.setCurrentTemplate(template);
-  callbacks.setHintLadder(new HintLadder(template.difficultyTier));
+  ctx.currentTemplate = template;
+  const hintLadder = new HintLadder(template.difficultyTier);
+  callbacks.setHintLadder(hintLadder);
+  ctx.hintLadder = hintLadder;
 
   ctx.hintTextGO.setVisible(false);
   ctx.promptText.setText(template.prompt.text);
@@ -102,7 +111,9 @@ export async function loadQuestion(
     `Level ${ctx.levelNumber}, question ${index + 1} of ${SESSION_GOAL}. ${template.prompt.text}`
   );
 
-  callbacks.setQuestionStartTime(Date.now());
+  const questionStartTime = Date.now();
+  callbacks.setQuestionStartTime(questionStartTime);
+  ctx.questionStartTime = questionStartTime;
 
   const interaction = getInteractionForArchetype(template.archetype, template.validatorId);
   callbacks.setActiveInteraction(interaction);
@@ -143,6 +154,7 @@ export async function commitQuestion(
     payload,
   });
   callbacks.setLastPayload(payload);
+  ctx.lastPayload = payload;
   await submitQuestion(ctx, callbacks);
 }
 
@@ -152,6 +164,7 @@ export async function submitQuestion(
 ): Promise<void> {
   if (ctx.inputLocked || ctx.lastPayload === null) return;
   callbacks.setInputLocked(true);
+  ctx.inputLocked = true;
   ctx.submitButtonContainer?.setAlpha(0.5);
 
   log.valid('submit', {

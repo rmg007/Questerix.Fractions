@@ -124,7 +124,7 @@ function buildPanel(): HTMLElement {
       () => {
         copyBtn.textContent = 'Failed';
         setTimeout(() => (copyBtn.textContent = 'Copy'), 1200);
-      },
+      }
     );
   });
 

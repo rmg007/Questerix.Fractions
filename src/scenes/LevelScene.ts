@@ -595,6 +595,11 @@ export class LevelScene extends Phaser.Scene {
   // ── Hints ────────────────────────────────────────────────────────────────────
 
   private onHintRequest(): void {
+    if (!this.currentTemplate) {
+      this.time.delayedCall(100, () => this.onHintRequest());
+      return;
+    }
+    this.hintLadder ??= new HintLadder(this.currentTemplate.difficultyTier);
     const tier = this.hintLadder.next();
     const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
       'hint.tier': tier,

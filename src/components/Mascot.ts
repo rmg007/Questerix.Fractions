@@ -26,7 +26,15 @@ const BODY_R = 40;
 const HAT_BASE = 50;
 const HAT_H = 55;
 
-export type MascotState = 'idle' | 'cheer' | 'think' | 'oops' | 'cheer-big' | 'wave' | 'celebrate' | 'sleep';
+export type MascotState =
+  | 'idle'
+  | 'cheer'
+  | 'think'
+  | 'oops'
+  | 'cheer-big'
+  | 'wave'
+  | 'celebrate'
+  | 'sleep';
 
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
@@ -255,6 +263,8 @@ export class Mascot extends Phaser.GameObjects.Container {
    */
   oops(): void {
     this.stopCurrent();
+    super.setState('oops');
+    this.stateSentinel?.setAttribute('data-state', 'oops');
 
     if (this.reduceMotion) {
       this.setState('idle');
@@ -285,7 +295,7 @@ export class Mascot extends Phaser.GameObjects.Container {
           y: this.baseY,
           scaleX: bs,
           scaleY: bs,
-          duration: 120,
+          duration: 720,
           ease: 'Sine.easeInOut',
           onComplete: () => {
             this.setState('idle');
@@ -746,7 +756,7 @@ export class Mascot extends Phaser.GameObjects.Container {
     if (typeof document === 'undefined') return null;
     const existing = document.querySelector('[data-testid="mascot-state"]');
     if (existing instanceof HTMLElement) {
-      return existing;
+      existing.remove();
     }
     const el = document.createElement('div');
     el.setAttribute('data-testid', 'mascot-state');

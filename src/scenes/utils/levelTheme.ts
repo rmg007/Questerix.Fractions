@@ -210,9 +210,9 @@ export function createHintPillButton(
   const face = scene.add.graphics();
 
   const txt = scene.add
-    .text(0, 0, '💡 Hint', {
+    .text(0, 0, '💡 Need a hint?', {
       fontFamily: TITLE_FONT,
-      fontSize: '22px',
+      fontSize: '18px',
       color: HINT_TEXT_CLR,
       fontStyle: 'bold',
     })

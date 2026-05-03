@@ -8,12 +8,12 @@ import * as Phaser from 'phaser';
 
 // ── Chocolate palette ─────────────────────────────────────────────────────────
 
-const CHOC_DARK = 0x4a2100;   // outer border / dividers
-const CHOC_MID = 0x7c3a00;    // main fill
-const CHOC_LIGHT = 0xa05c20;  // emboss highlight
-const CHOC_GOLD = 0xf59e0b;   // selected-segment fill
-const CHOC_GREY = 0x9ca3af;   // unselected segment (post-commit feedback)
-const GLOSS = 0xffffff;       // gloss highlight
+const CHOC_DARK = 0x4a2100; // outer border / dividers
+const CHOC_MID = 0x7c3a00; // main fill
+const CHOC_LIGHT = 0xa05c20; // emboss highlight
+const CHOC_GOLD = 0xf59e0b; // selected-segment fill
+const CHOC_GREY = 0x9ca3af; // unselected segment (post-commit feedback)
+const GLOSS = 0xffffff; // gloss highlight
 
 export interface ChocolateBarModelOpts {
   scene: Phaser.Scene;

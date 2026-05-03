@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './_fixture';
+import { navigateToLevel01 } from './test-helpers';
 
 test.describe('iPad Safari touch-drag', () => {
   test.use({
@@ -7,17 +8,8 @@ test.describe('iPad Safari touch-drag', () => {
     hasTouch: true,
   });
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/?testHooks=1');
-    const startBtn = page.locator('[data-testid="boot-start-btn"]');
-    await expect(startBtn).toBeVisible({ timeout: 15000 });
-    await startBtn.click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
-  });
-
   test('touch-tap partition target on L1 registers interaction', async ({ page }) => {
-    await page.locator('[data-testid="level-card-L1"]').click();
-    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
+    await navigateToLevel01(page);
 
     const target = page.locator('[data-testid="partition-target"]');
     await expect(target).toBeVisible({ timeout: 10000 });
@@ -30,8 +22,7 @@ test.describe('iPad Safari touch-drag', () => {
   });
 
   test('canvas element has touch-action: none for drag prevention', async ({ page }) => {
-    await page.locator('[data-testid="level-card-L1"]').click();
-    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
+    await navigateToLevel01(page);
 
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
@@ -40,8 +31,7 @@ test.describe('iPad Safari touch-drag', () => {
   });
 
   test('no scroll bounce during game interaction', async ({ page }) => {
-    await page.locator('[data-testid="level-card-L1"]').click();
-    await expect(page.locator('[data-testid="level01-scene"]')).toBeVisible({ timeout: 15000 });
+    await navigateToLevel01(page);
 
     const scrollBefore = await page.evaluate(() => window.scrollY);
 

@@ -110,7 +110,7 @@ export async function showOutcome(
   if (kind === 'correct') {
     ctx.mascot?.setState('cheer');
     ctx.activeInteraction?.showCorrectFeedback?.();
-  } else if (kind === 'incorrect') {
+  } else {
     ctx.mascot?.setState('oops');
   }
 

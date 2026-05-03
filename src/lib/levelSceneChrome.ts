@@ -133,7 +133,11 @@ export function createHeader(
   });
 
   const counterContainer = scene.add
-    .container(ctrX + CTR_W / 2, ctrY + CTR_H / 2, stars as unknown as Phaser.GameObjects.GameObject[])
+    .container(
+      ctrX + CTR_W / 2,
+      ctrY + CTR_H / 2,
+      stars as unknown as Phaser.GameObjects.GameObject[]
+    )
     .setDepth(6);
 
   // Hidden legacy text kept so existing ctx.questionCounterText.setText() calls

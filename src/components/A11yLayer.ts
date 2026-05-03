@@ -29,22 +29,23 @@ const STYLE = `
 }
 .qf-a11y-container button {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+  pointer-events: none;
 }
 .qf-a11y-container button:focus,
 .qf-a11y-container button:focus-visible {
   position: fixed;
   top: 8px;
   left: 8px;
-  width: auto;
-  height: auto;
+  min-width: 44px;
+  min-height: 44px;
   margin: 0;
   padding: 12px 24px;
   overflow: visible;
@@ -59,6 +60,7 @@ const STYLE = `
   outline: none;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   cursor: pointer;
+  pointer-events: auto;
 }
 #${LIVE_REGION_ID} {
   position: absolute;

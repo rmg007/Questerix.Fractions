@@ -5,14 +5,25 @@ import { navigateToLevel01 } from './test-helpers';
 
 test.describe('Level 01 — full 5-attempt flow', () => {
   test.beforeEach(async ({ page }) => {
+    // Clear IndexedDB + storage so prior session state can't bleed across runs.
+    await page.goto('/');
+    await page.evaluate(async () => {
+      await new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase('questerix-fractions');
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+        req.onblocked = () => resolve();
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+    });
     await navigateToLevel01(page);
   });
 
-  // TODO: 5-attempt flow flakes when the suite runs sequentially — likely
-  // shared IndexedDB state across tests. Track via PLANS/E2E_FOLLOWUPS.md.
-  test.skip('completes 5 attempts and shows completion screen with ProgressBar 5/5', async ({
+  test('completes 5 attempts and shows completion screen with ProgressBar 5/5', async ({
     page,
   }) => {
+    test.setTimeout(90000);
     const partitionTarget = page.locator('[data-testid="partition-target"]');
     const feedbackOverlay = page.locator('[data-testid="feedback-overlay"]');
     const feedbackNext = page.locator('[data-testid="feedback-next-btn"]');
