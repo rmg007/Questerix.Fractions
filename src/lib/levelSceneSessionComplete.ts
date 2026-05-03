@@ -55,7 +55,7 @@ export async function showSessionCompleteForLevel(
     correctCount: ctx.correctCount,
   });
   if (gate.passed) callbacks.markLevelComplete();
-  if (gate.passed) void callbacks.persistCompletion();
+  if (gate.passed) await callbacks.persistCompletion();
 
   const nextLevel =
     ctx.levelNumber < 9 ? ((ctx.levelNumber + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) : null;
@@ -97,5 +97,5 @@ export async function showSessionCompleteForLevel(
     ctx.mascot.setState(gate.passed ? 'cheer-big' : 'idle');
   }
 
-  void callbacks.closeSession();
+  await callbacks.closeSession();
 }
