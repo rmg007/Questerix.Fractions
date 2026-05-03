@@ -11,6 +11,7 @@
  */
 
 import { db } from '../db';
+import { log } from '../../lib/log';
 import type { StudentId } from '../../types';
 
 function todayISO(): string {
@@ -26,20 +27,23 @@ function yesterdayISO(): string {
 export const streakRecordRepo = {
   /**
    * Returns the current streak count for a student, or 0 if no record.
-   * Errors are swallowed — telemetry is best-effort.
+   * Errors are logged but swallowed — telemetry is best-effort.
    */
   async getCount(studentId: StudentId): Promise<number> {
     try {
       const row = await db.streakRecord.get(studentId);
       return row?.count ?? 0;
-    } catch {
+    } catch (err) {
+      if (err instanceof Error) {
+        log.warn('DB', 'read_failed', { table: 'streakRecord', error: err.message });
+      }
       return 0;
     }
   },
 
   /**
    * Increment / reset / hold the streak for a student per the streak rules.
-   * Returns the new count. Errors are swallowed and yield 0.
+   * Returns the new count. Errors are logged but swallowed and yield 0.
    */
   async update(studentId: StudentId): Promise<number> {
     try {
@@ -60,7 +64,10 @@ export const streakRecordRepo = {
 
       await db.streakRecord.put({ studentId, count: newCount, lastDate: today });
       return newCount;
-    } catch {
+    } catch (err) {
+      if (err instanceof Error) {
+        log.warn('DB', 'write_failed', { table: 'streakRecord', error: err.message });
+      }
       return 0;
     }
   },

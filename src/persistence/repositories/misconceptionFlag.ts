@@ -25,7 +25,10 @@ export const misconceptionFlagRepo = {
         log.warn('DB', 'quota_exceeded', { table: 'misconceptionFlags' });
         return;
       }
-      // swallow non-quota write errors
+      // Log non-quota write errors for debugging
+      if (err instanceof Error) {
+        log.warn('DB', 'write_failed', { table: 'misconceptionFlags', error: err.message });
+      }
     }
   },
 

@@ -26,7 +26,10 @@ export const progressionStatRepo = {
         log.warn('DB', 'quota_exceeded', { table: 'progressionStat' });
         return;
       }
-      // swallow non-quota write errors; caller retries on next session close
+      // Log non-quota write errors; caller retries on next session close
+      if (err instanceof Error) {
+        log.error('DB', 'write_failed', { table: 'progressionStat', error: err.message });
+      }
     }
   },
 

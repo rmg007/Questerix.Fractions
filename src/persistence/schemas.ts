@@ -121,7 +121,7 @@ const hintEventSchema = z
     id: z.string().min(1).max(256),
     attemptId: z.string().min(1).max(256).optional(),
     hintId: z.string().min(1).max(256),
-    tier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    tier: z.enum(['verbal', 'visual_overlay', 'worked_example']),
     shownAt: z.number(),
     acceptedByStudent: z.boolean(),
     pointCostApplied: z.number(),

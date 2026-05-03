@@ -6,11 +6,6 @@ import './styles/index.css';
 import './lib/i18n/keys/quest';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
-// Side-effect import: registers Quest microcopy in the typed i18n catalog.
-// Per ux-elevation §9 T28 — keys must be available before any scene calls
-// catalog.get('quest.…'). registerCatalog is HMR-safe (idempotent on
-// deep-equal content), so re-evaluation under Vite hot reload is fine.
-import './lib/i18n/keys/quest';
 
 // R8: Catch synchronous errors (e.g., in scene callbacks) that could freeze the canvas.
 window.addEventListener('error', (event) => {

@@ -85,7 +85,12 @@ export function selectNextQuestion(
 ): SelectionResult {
   const snapPct = snapPctForMastery(masteryEstimate);
   const targetTier = difficultyTierForMastery(masteryEstimate);
-  const _rng = rng ?? { random: () => Math.random() };
+  // Use provided RNG or throw — caller MUST provide a seeded RNG for determinism.
+  // (In tests, inject a seeded generator; in production, pass MathRandomRng from adapters.)
+  if (!rng) {
+    throw new Error('selectNextQuestion: RNG is required for deterministic selection');
+  }
+  const _rng = rng;
 
   if (templatePool.length === 0) {
     const unused = SYNTHETIC_QUESTIONS.filter((q) => !usedQuestionIds.has(q.id));
