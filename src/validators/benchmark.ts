@@ -6,6 +6,8 @@ import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
 export type BenchmarkZone = 'zero' | 'half' | 'one';
 
+// ── benchmarkSortToZone variant ────────────────────────────────────────────
+
 export interface BenchmarkInput {
   /** fracId → student-chosen zone */
   studentPlacements: Map<string, BenchmarkZone>;
@@ -14,6 +16,16 @@ export interface BenchmarkInput {
 export interface BenchmarkExpected {
   /** fracId → correct zone */
   correctPlacements: Map<string, BenchmarkZone>;
+}
+
+// ── benchmarkClosest variant ───────────────────────────────────────────────
+
+export interface BenchmarkClosestInput {
+  studentBenchmark: BenchmarkZone;
+}
+
+export interface BenchmarkClosestExpected {
+  correctBenchmark: BenchmarkZone;
 }
 
 // ── validator.benchmark.sortToZone ────────────────────────────────────────
@@ -47,4 +59,25 @@ export const benchmarkSortToZone: ValidatorRegistration<BenchmarkInput, Benchmar
   },
 };
 
-export default [benchmarkSortToZone];
+// ── validator.benchmark.closestBenchmark ────────────────────────────────────
+
+/**
+ * Returns EXACT if student picks the closest benchmark label.
+ * per activity-archetypes.md §6 closestBenchmark variant
+ */
+export const benchmarkClosest: ValidatorRegistration<
+  BenchmarkClosestInput,
+  BenchmarkClosestExpected
+> = {
+  id: 'validator.benchmark.closestBenchmark',
+  archetype: 'benchmark',
+  variant: 'closestBenchmark',
+  fn(input, expected): ValidatorResult {
+    if (input.studentBenchmark === expected.correctBenchmark) {
+      return { outcome: 'correct', score: 1 };
+    }
+    return { outcome: 'incorrect', score: 0 };
+  },
+};
+
+export default [benchmarkClosest, benchmarkSortToZone];

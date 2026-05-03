@@ -6,6 +6,8 @@ import type { ValidatorRegistration, ValidatorResult } from '@/types';
 
 export type Relation = '<' | '=' | '>';
 
+// ── compareRelation variant ────────────────────────────────────────────────
+
 export interface CompareInput {
   studentRelation: Relation;
 }
@@ -15,6 +17,16 @@ export interface CompareExpected {
   rightDecimal: number;
   /** Pre-computed true relation; set at authoring time. */
   trueRelation: Relation;
+}
+
+// ── compareGreaterThan variant ────────────────────────────────────────────
+
+export interface CompareGreaterThanInput {
+  studentChoice: 'A' | 'B' | 'equal';
+}
+
+export interface CompareGreaterThanExpected {
+  correctChoice: 'A' | 'B' | 'equal';
 }
 
 // ── validator.compare.relation ────────────────────────────────────────────
@@ -53,4 +65,26 @@ export const compareRelation: ValidatorRegistration<CompareInput, CompareExpecte
   },
 };
 
-export default [compareRelation];
+// ── validator.compare.greaterThan ────────────────────────────────────────
+
+/**
+ * Returns EXACT if student choice matches correct choice.
+ * Choices: 'A' (left is greater), 'B' (right is greater), or 'equal'.
+ * per activity-archetypes.md §11 row 5b
+ */
+export const compareGreaterThan: ValidatorRegistration<
+  CompareGreaterThanInput,
+  CompareGreaterThanExpected
+> = {
+  id: 'validator.compare.greaterThan',
+  archetype: 'compare',
+  variant: 'greaterThan',
+  fn(input, expected): ValidatorResult {
+    if (input.studentChoice === expected.correctChoice) {
+      return { outcome: 'correct', score: 1 };
+    }
+    return { outcome: 'incorrect', score: 0 };
+  },
+};
+
+export default [compareRelation, compareGreaterThan];
