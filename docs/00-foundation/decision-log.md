@@ -2,7 +2,7 @@
 title: Decision Log
 status: active
 owner: solo
-last_reviewed: 2026-04-24
+last_reviewed: 2026-05-02
 applies_to: [mvp]
 related: [constraints.md, open-questions.md]
 ---
@@ -21,6 +21,22 @@ Format:
 - **Source** (which docs reflect this decision)
 
 Decisions are ordered chronologically. **Newest at the top.**
+
+---
+
+## D-31 — 2026-05-02 — Post-MVP scope expanded to Grade 1–7; C3 staged for retirement
+
+**Decision:** The product vision extends Questerix Fractions from a K–2 MVP to a full Grade 1–7 fraction curriculum. Constraint C3 ("Levels 1–9 only — no Grade 3+ content") remains in force for the MVP but is explicitly staged for retirement at the start of the Grade 3 build phase (post-validation).
+
+The Grade 1–7 curriculum vision is documented in `docs/50-roadmap/vision-grade-1-to-7.md`.
+
+**Why:** `Topics.docx` (ingested 2026-05-02) contains a complete K–7 fraction skill inventory. Limiting the product vision to K–2 would prevent natural curriculum expansion once MVP validation passes. Documenting the full scope now lets the architecture and LEVEL_META schema be designed to accommodate future levels rather than retrofitting later.
+
+**Alternatives considered:**
+- *Keep C3 forever*: rejected. C3 was a scope-limitation for the MVP validation phase, not a permanent product ceiling.
+- *Retire C3 immediately*: rejected. C3 is still the right constraint for the current MVP sprint — retiring it prematurely would invite scope creep before the validation question is answered.
+
+**Source:** `docs/50-roadmap/vision-grade-1-to-7.md`, `Topics.docx`, `00-foundation/constraints.md`
 
 ---
 

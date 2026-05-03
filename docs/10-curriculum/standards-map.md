@@ -1,8 +1,8 @@
 ---
 title: Standards Map (CCSS Crosswalk)
-status: draft
+status: active
 owner: solo
-last_reviewed: 2026-04-25
+last_reviewed: 2026-05-02
 applies_to: [mvp]
 constraint_refs: [C3, C8, C10]
 related: [scope-and-sequence.md, levels/, misconceptions.md, ../50-roadmap/post-mvp-2029.md]
