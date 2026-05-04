@@ -4,6 +4,10 @@ Date: 2026-05-03
 Status: planning / findings
 Scope: Questerix.Fractions full codebase, reconciled from `CLAUDE.md`, `docs/00-foundation/constraints.md`, existing audit reports, and live static scans.
 
+Audit snapshot (update when code changes):
+- Branch: `fix/2026-05-03-finish-fsh-cleanup`
+- Commit: `bd62ba4`
+
 ## Ground Rules
 
 - Read `CLAUDE.md` and `docs/00-foundation/constraints.md` before implementation. This file assumes those rules are binding.
@@ -11,16 +15,15 @@ Scope: Questerix.Fractions full codebase, reconciled from `CLAUDE.md`, `docs/00-
 - Branch format for implementation: `fix/YYYY-MM-DD-<slug>`.
 - Command note (PowerShell): if `npm run ...` fails due to shell profile wrappers, use `npm.cmd run ...` instead (confirmed working in this environment).
 - Each implementation group must be independently green before the next group starts:
-  - `npm run typecheck`
-  - `npm run test:unit`
+  - `npm.cmd run typecheck`
+  - `npm.cmd run test:unit`
 - Completion gate before PR:
-  - `npm run typecheck`
-  - `npm run lint`
-  - `npm run test:unit`
-  - `npm run test:e2e`
-  - `npm run measure-bundle`
-  - `npm run validate:curriculum`
-- Existing dirty tree note: `PLANS/codex-fixes.md` is already untracked on `main`; do not overwrite it without an explicit request.
+  - `npm.cmd run typecheck`
+  - `npm.cmd run lint`
+  - `npm.cmd run test:unit`
+  - `npm.cmd run test:e2e`
+  - `npm.cmd run measure-bundle`
+  - `npm.cmd run validate:curriculum`
 - `rg` was unavailable in this Codex session due a Windows app execution permission error, so live scans used PowerShell `Select-String`.
 
 ## Decision Register
@@ -77,29 +80,21 @@ For every phase below, enforce this structure in commits/PR descriptions (even i
 
 ## Current Baseline Findings
 
-Previous reports disagree: `PLANS/production.readiness.2026-05-03.md` says production-ready, while `PLANS/codex.audit.md` and `PLANS/claude.audit.2026-05-03.md` still identify real issues. Live scans on 2026-05-03 confirm that several high-priority findings remain in the working tree.
+Code changes quickly and older audit artifacts may be renamed or removed. Treat this file as the living “plan of record”; when code changes, update the audit snapshot at the top and refresh any “confirmed” bullets below by re-running scans.
 
 ### Working Tree Reality Check (Important)
 
-`git status` currently shows uncommitted edits touching core files:
+This section must be updated whenever the code changes. It exists to prevent the plan from talking about a different tree than the one you are actually on.
 
-- `src/main.ts`
-- `src/lib/observability/index.ts`
-- `src/persistence/backup.ts`
-- `src/persistence/db.ts`
-- `src/persistence/schemas.ts`
-- `src/scenes/OnboardingScene.ts`
+Record current state here:
 
-Those edits appear to address multiple previously-audited issues (fatal error banner DOM XSS sink, observability network gating, backup completeness, hintEvents migration, onboarding TTS preference gating), but they are not committed/merged. This plan treats them as “in-flight” and calls out remaining gaps they introduce.
-
-Current verification status for this working tree:
-
-- `npm.cmd run typecheck` passes
-- `npm.cmd run test:unit` passes (702 tests)
+- `git status --short --branch`:
+- `npm.cmd run typecheck`:
+- `npm.cmd run test:unit`:
 
 Confirmed live findings:
 
-- `src/main.ts` fatal error banner: on `main` (HEAD) this used `innerHTML` with `${error.message}` interpolation; in the current working tree it has been rewritten to DOM node construction + `textContent` (see `git diff src/main.ts`).
+- Fatal error banner: ensure `src/main.ts` never uses `innerHTML` for error rendering; use DOM nodes + `textContent` and avoid rendering `error.stack`.
 - `src/curriculum/seed.ts:202`, `src/lib/observability/errorReporter.ts`, `src/lib/observability/tracer.ts`, `src/lib/level01SessionComplete.ts`, `src/lib/levelSceneOutcomeFlow.ts`, `src/lib/levelSceneQuestionFlow.ts`, `src/lib/levelSceneSessionComplete.ts`, `src/lib/log.ts`, `src/lib/logViewer.ts`, and `src/validators/registry.ts` still contain explicit `any` usage.
 - `src/lib/levelSceneHintFlow.ts:144` and `src/scenes/Level01SceneHintSystem.ts:118` still create fake pending attempt IDs via `'' as unknown as AttemptId`.
 - `src/curriculum/seed.ts:202`, `src/components/LevelVignette.ts:249`, `src/components/Mascot.ts:380`, `src/components/Mascot.ts:439`, `src/lib/levelSceneChrome.ts:139`, `src/lib/levelSceneSession.ts:180`, `src/persistence/backup.ts:145`, and `src/persistence/repositories/questionTemplate.ts:32` still contain `as unknown as` casts.
@@ -109,7 +104,7 @@ Confirmed live findings:
 - `src/persistence/repositories/levelProgression.ts:34` catches writes and can hide progression save failures.
 - `src/persistence/repositories/skillMastery.ts:26` catches writes and can break transaction atomicity when called by session recording.
 - Multiple repository write paths still lack explicit try/catch logging and rethrow behavior.
-- `src/persistence/schemas.ts` hardening is incomplete: several row schemas are still underconstrained, and the `HintEvent.tier` validator appears mismatched vs runtime (`src/types/hint.ts:8` vs `src/persistence/schemas.ts:119-129`).
+- `src/persistence/schemas.ts` hardening is incomplete: several row schemas are still underconstrained. Also watch for `hintEvents` drift across boundaries (runtime types vs restore schema vs tests), since `npm.cmd run typecheck` excludes `tests/**`.
 - `src/lib/levelSceneHintFlow.ts` records generic-level hints with pending/fake attempt IDs, while the generic attempt path needs explicit linking.
 - The codebase has broad `setInteractive()`, `tweens.add()`, and `time.delayedCall()` surfaces; several require a11y, reduced-motion, and teardown verification.
 - Player-facing strings remain hardcoded in scenes/components; `main.ts` imports the quest i18n key side effect twice.
@@ -138,15 +133,15 @@ This pass needs a single explicit resolution:
 ### Deep Finding: HintEvent Tier Shape Likely Mismatched in Backup Schemas
 
 - Runtime `HintTier` is a string union (`src/types/hint.ts:8`).
-- `hintEventRepo.record()` writes `tier` as that string (`src/persistence/repositories/hintEvent.ts:12-24`).
-- `src/persistence/schemas.ts:119-129` currently validates `tier` as numeric `1|2|3`.
+- `src/persistence/schemas.ts` should validate `HintEvent.tier` as that same string union and allow `attemptId` to be optional until linked.
+- Watch for test/fixture drift: `npm.cmd run typecheck` does not include `tests/**`, so Vitest fixtures can silently diverge from runtime types unless you add explicit runtime assertions in tests.
 
-This is a high-likelihood restore bug that is not obviously covered by existing backup-validation fixtures (unit tests are green, but fixtures may not include real hintEvent rows).
+This is a high-likelihood restore correctness risk unless backup-validation fixtures cover real `hintEvents` rows.
 
-Positive baseline checks from prior audit that should be preserved:
+Positive baseline checks from prior audit runs that should be preserved:
 
-- `npm run typecheck` was clean in the prior Codex audit.
-- `npm run measure-bundle` was under budget at about 488-489 KB gzipped JS.
+- `npm.cmd run typecheck` was clean in the prior audit run.
+- `npm.cmd run measure-bundle` was under budget at about 488-489 KB gzipped JS.
 - Curriculum bundle parity was previously confirmed by SHA256.
 - No `@ts-ignore` or `@ts-expect-error` directives were found in `src/**/*.ts` in the prior audit.
 - `src/engine/selection.ts` did not contain direct host-global calls in the prior audit.
@@ -155,7 +150,7 @@ Positive baseline checks from prior audit that should be preserved:
 
 ## Phase 1 - TypeScript Hardening
 
-Gate: no explicit `any`, no unjustified suppression directives, `npm run typecheck && npm run test:unit` green.
+Gate: no explicit `any`, no unjustified suppression directives, `npm.cmd run typecheck && npm.cmd run test:unit` green.
 
 Findings to fix:
 
@@ -342,7 +337,7 @@ Commit message: `fix: harden core components`
 
 ## Phase 8 - Accessibility
 
-Gate: typecheck + unit green, `npm run test:a11y` green where applicable.
+Gate: typecheck + unit green, `npm.cmd run test:a11y` green where applicable.
 
 Findings to fix:
 
@@ -442,7 +437,7 @@ Commit message: `fix: enforce curriculum parity and fallback`
 
 ## Phase 13 - Performance
 
-Gate: typecheck + unit green, `npm run measure-bundle` under 1 MB gzipped JS.
+Gate: typecheck + unit green, `npm.cmd run measure-bundle` under 1 MB gzipped JS.
 
 Findings to fix:
 
@@ -450,7 +445,7 @@ Findings to fix:
 - `BootScene` currently performs several serialized async setup steps; add visible progress/error state and defer non-critical work.
 - Lazy-import `tracer.ts` and `errorReporter.ts` only when activation conditions are met.
 - Keep observability off the critical path and out of default chunks as much as possible.
-- Run `npm run measure-bundle` after all changes.
+- Run `npm.cmd run measure-bundle` after all changes.
 - If total gzipped JS exceeds 1 MB, inspect chunks and code-split the largest non-Phaser contributor.
 
 Commit message: `fix: defer noncritical startup work`
@@ -521,10 +516,9 @@ HintEvent tier/type mismatches and restore risk:
 
 - `src/types/hint.ts:8` defines `HintTier` as `'verbal' | 'visual_overlay' | 'worked_example'`.
 - `src/types/runtime.ts:161-175` defines `HintEvent.tier: HintTier` and `attemptId?: AttemptId` (pending-link model).
-- But persistence/restore expects different shapes:
-  - `src/persistence/schemas.ts:119-129` validates `HintEvent.tier` as numeric `1|2|3` and requires `attemptId` (string) instead of treating it as optional.
-  - `tests/unit/persistence/hintEvent.test.ts:21-33` constructs HintEvents with numeric `tier: 1|2|3`. This compiles because `npm run typecheck` does not typecheck tests; it does not prove runtime/type alignment.
-- Result: backup restore can reject real-world rows or accept malformed ones, depending on which shape actually hits disk.
+- Backup restore schemas must match runtime types exactly. Because `npm.cmd run typecheck` excludes tests, fixture drift is easy:
+  - If tests use numeric tiers, they can pass even if runtime types/schemas are string tiers, and they may seed invalid rows into fake-indexeddb.
+  - Ensure backup-validation fixtures include representative `hintEvents` rows and assert the stored shape is valid against `backupEnvelopeSchema`.
 
 HintEvent storage schema drift (Dexie schema vs repo expectations):
 
@@ -556,9 +550,9 @@ Legacy Level01 replay path remains:
 - `Math.random()` usage outside engine ports is limited to:
   - `src/lib/observability/logger.ts:110`
   - `src/scenes/Level01SceneSelection.ts:88` (fallback path)
-- Working tree is currently green on:
+- Replace this block with fresh command results whenever code changes:
   - `npm.cmd run typecheck`
-  - `npm.cmd run test:unit` (702 passing)
+  - `npm.cmd run test:unit`
 
 ## Final Completion Checklist
 
@@ -577,12 +571,12 @@ Legacy Level01 replay path remains:
 - [ ] TTS respects device preference before every speak path.
 - [ ] Curriculum files are byte-identical and parity is enforced.
 - [ ] Bundle remains <= 1 MB gzipped JS.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run lint` passes with 0 warnings.
-- [ ] `npm run test:unit` passes.
-- [ ] `npm run test:e2e` passes.
-- [ ] `npm run measure-bundle` passes.
-- [ ] `npm run validate:curriculum` passes.
+- [ ] `npm.cmd run typecheck` passes.
+- [ ] `npm.cmd run lint` passes with 0 warnings.
+- [ ] `npm.cmd run test:unit` passes.
+- [ ] `npm.cmd run test:e2e` passes.
+- [ ] `npm.cmd run measure-bundle` passes.
+- [ ] `npm.cmd run validate:curriculum` passes.
 
 ### Constraint Checkpoints (Run At End Of Every Phase)
 

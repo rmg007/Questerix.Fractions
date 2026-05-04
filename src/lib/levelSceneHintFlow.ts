@@ -38,7 +38,7 @@ function payloadDenominator(template: QuestionTemplate): number | null {
   return null;
 }
 
-function questHintText(
+export function questHintText(
   archetype: string,
   tier: HintTier,
   template: QuestionTemplate
