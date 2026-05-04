@@ -28,7 +28,7 @@ export default defineConfig(async () => {
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'script',
-        includeAssets: ['manifest.json', 'icons/*.png'],
+        includeAssets: ['manifest.json', 'icons/*.png', 'screenshots/*.png'],
         workbox: {
           navigateFallback: '/index.html',
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -61,23 +61,41 @@ export default defineConfig(async () => {
         manifest: {
           name: 'Questerix Fractions',
           short_name: 'Questerix',
+          description: 'K-2 fraction concepts educational game',
           display: 'standalone',
+          orientation: 'portrait',
+          start_url: '/',
           theme_color: '#2F6FED',
           background_color: '#FFFFFF',
+          categories: ['education', 'games'],
           icons: [
             { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
             { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
             {
-              src: '/icons/icon-maskable-192.png',
+              src: '/icons/icon-192-maskable.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'maskable',
             },
             {
-              src: '/icons/icon-maskable-512.png',
+              src: '/icons/icon-512-maskable.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
+            },
+          ],
+          screenshots: [
+            {
+              src: '/screenshots/mobile-540x720.png',
+              sizes: '540x720',
+              form_factor: 'narrow',
+              type: 'image/png',
+            },
+            {
+              src: '/screenshots/tablet-1024x768.png',
+              sizes: '1024x768',
+              form_factor: 'wide',
+              type: 'image/png',
             },
           ],
         },
@@ -94,6 +112,44 @@ export default defineConfig(async () => {
     name: 'inject-build-version',
     transformIndexHtml(html: string) {
       return html.replace(/%BUILD_SHA%/g, buildSha).replace(/%BUILD_TIME%/g, buildTime);
+    },
+  });
+
+  // Plugin to upload source maps to Sentry after build
+  // Gated on SENTRY_AUTH_TOKEN to enable in CI/production builds
+  plugins.push({
+    name: 'sentry-sourcemap-upload',
+    apply: 'build',
+    async writeBundle() {
+      const sentryAuthToken = process.env['SENTRY_AUTH_TOKEN'];
+      const sentryDsn = process.env['VITE_SENTRY_DSN'];
+
+      if (!sentryAuthToken || !sentryDsn) {
+        return; // Skip upload if credentials are not configured
+      }
+
+      // Parse DSN to extract org and project
+      // DSN format: https://key@host/organization/project
+      const dsnMatch = sentryDsn.match(/https?:\/\/[^@]+@[^/]+\/([^/]+)\/([^/]+)/);
+      if (!dsnMatch) {
+        console.warn('[sentry] Invalid VITE_SENTRY_DSN format, skipping source map upload');
+        return;
+      }
+
+      const org = dsnMatch[1];
+      const project = dsnMatch[2];
+
+      try {
+        console.log(`[sentry] Uploading source maps for release ${buildSha}...`);
+        execSync(
+          `sentry-cli releases files upload-sourcemaps ./dist/assets --org ${org} --project ${project} --release ${buildSha}`,
+          { stdio: 'inherit' }
+        );
+        console.log('[sentry] Source maps uploaded successfully');
+      } catch (error) {
+        console.warn('[sentry] Source map upload failed:', error instanceof Error ? error.message : String(error));
+        // Non-fatal: don't fail the build if upload fails
+      }
     },
   });
 

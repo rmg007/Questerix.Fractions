@@ -53,7 +53,8 @@ function tierFor(branch) {
   // claude/* and worktree-agent-* are agent branches; treat like fix/* —
   // medium by default, auto-escalated to full if src/** was touched.
   if (/^(claude\/|worktree-agent-)/.test(branch)) return 'medium';
-  // main, detached, unknown — defensive default
+  // main, release/*, detached, unknown — defensive default: full tier
+  // (escalates test:unit:changed → full test:unit for release safety)
   return 'full';
 }
 

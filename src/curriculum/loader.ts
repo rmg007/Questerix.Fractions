@@ -189,7 +189,19 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
 
   // Parse comprehensive format (preferred)
   if (bundle.questionTemplates || bundle.skills) {
-    const validatedTemplates = (bundle.questionTemplates ?? []).filter(validateTemplateRow);
+    const totalRows = bundle.questionTemplates ?? [];
+    const validatedTemplates = totalRows.filter(validateTemplateRow);
+    const droppedRows = totalRows.length - validatedTemplates.length;
+
+    // Phase 12.2: Emit dropped-rows warning if any rows failed schema validation
+    if (droppedRows > 0) {
+      log.warn('CURRICULUM', 'templates.dropped', {
+        droppedCount: droppedRows,
+        totalRows: totalRows.length,
+        percentDropped: Math.round((droppedRows / totalRows.length) * 100),
+      });
+    }
+
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: bundle.curriculumPacks ?? [],
@@ -208,6 +220,17 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
   if (bundle.levels && typeof bundle.levels === 'object') {
     const allTemplates = Object.values(bundle.levels).flat();
     const validatedTemplates = allTemplates.filter(validateTemplateRow);
+    const droppedRows = allTemplates.length - validatedTemplates.length;
+
+    // Phase 12.2: Emit dropped-rows warning if any rows failed schema validation
+    if (droppedRows > 0) {
+      log.warn('CURRICULUM', 'templates.dropped', {
+        droppedCount: droppedRows,
+        totalRows: allTemplates.length,
+        percentDropped: Math.round((droppedRows / allTemplates.length) * 100),
+      });
+    }
+
     return {
       contentVersion: bundle.contentVersion,
       curriculumPacks: [],

@@ -97,6 +97,7 @@ npm run dev:app              # Vite dev server → http://localhost:5000
 npm run typecheck            # tsc --noEmit — must be clean
 npm run lint                 # eslint + prettier check (0 warnings)
 npm run lint:fix             # auto-fix formatting
+npm run lint:ci              # residual lint: timeout consistency + bundle budget (CI only)
 npm run test:unit            # Vitest unit + integration
 npm run test:e2e             # Playwright E2E (Chromium)
 npm run test:a11y            # Playwright + axe-core
@@ -105,6 +106,8 @@ npm run build:curriculum     # sync BOTH curriculum files (see below)
 npm run validate:curriculum  # JSON schema check
 npm run measure-bundle       # gzipped JS vs 1 MB budget
 ```
+
+**`lint` vs `lint:ci`:** `lint` runs full eslint + prettier checks on every commit (pre-push gate). `lint:ci` runs only residual checks that can't be enforced structurally (timeout consistency in specs, bundle size via estimate). `lint:ci` is invoked by CI consistency job for quick early-fail before expensive test runs.
 
 All three — `typecheck`, `test:unit`, `test:e2e` — must be green before any commit.
 

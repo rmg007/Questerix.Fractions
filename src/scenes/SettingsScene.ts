@@ -15,7 +15,7 @@ import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import { backupToFile, restoreFromFile } from '../persistence/backup';
 import { db } from '../persistence/db';
 import { lastUsedStudent } from '../persistence/lastUsedStudent';
-import { toggleUnlockGateBypass, isUnlockGateBypassEnabled } from '../lib/preferences';
+import { attachVersionTapToggle } from './settings/versionTapToggle';
 
 const CW = 800;
 const CH = 1280;
@@ -66,14 +66,12 @@ export class SettingsScene extends Phaser.Scene {
     this.sectionLabel(cx, 940, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
-    // Canvas top ~100px; section label at 190 canvas px.
-    // We position relative to viewport using approximate mapping.
-    const canvasTop = this.sys.game.canvas.getBoundingClientRect?.().top ?? 0;
+    const rect = this.sys.game.canvas.getBoundingClientRect?.();
+    const canvasTop = rect?.top ?? 0;
+    const canvasLeft = rect?.left ?? 0;
     const scaleY = this.sys.game.canvas.clientHeight / CH;
-
     const toViewport = (canvasY: number) => `${canvasTop + canvasY * scaleY}px`;
-
-    const halfCanvas = `${(this.sys.game.canvas.getBoundingClientRect?.().left ?? 0) + this.sys.game.canvas.clientWidth / 2}px`;
+    const halfCanvas = `${canvasLeft + this.sys.game.canvas.clientWidth / 2}px`;
 
     this.toggles.push(
       new PreferenceToggle(
@@ -131,6 +129,23 @@ export class SettingsScene extends Phaser.Scene {
     });
     this.createResetButton(cx, 820);
 
+    // ── Check for App Update button (Phase 14) ──────────────────────────────
+    // Allows users to explicitly check for and apply app updates.
+    TestHooks.mountInteractive('settings-update-btn', () => void this.doCheckForAppUpdate(), {
+      top: toViewport(910),
+      left: halfCanvas,
+      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+      height: `${BTN_H * scaleY}px`,
+    });
+    this.createButton(
+      cx,
+      910,
+      'Check for App Update',
+      CLR.primary,
+      HEX.neutral0,
+      () => void this.doCheckForAppUpdate()
+    );
+
     // ── Refresh Curriculum button (Phase 11.1) ─────────────────────────────
     // Sits inside the Data section so a parent can force a curriculum
     // re-download when the pipeline ships new question content. Deletes the
@@ -140,7 +155,7 @@ export class SettingsScene extends Phaser.Scene {
       'settings-refresh-curriculum-btn',
       () => void this.doRefreshCurriculum(),
       {
-        top: toViewport(880),
+        top: toViewport(1000),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
@@ -148,7 +163,7 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.createButton(
       cx,
-      880,
+      1000,
       'Refresh Curriculum',
       CLR.primary,
       HEX.neutral0,
@@ -168,7 +183,7 @@ export class SettingsScene extends Phaser.Scene {
     this.createButton(cx, 1100, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
     // ── Version label (triple-tap = researcher unlock-gate bypass; D-1) ────
-    this.createVersionTapToggle(cx, 1200);
+    attachVersionTapToggle(this, cx, 1200);
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -325,79 +340,100 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   // ── Export ─────────────────────────────────────────────────────────────────
-  private exportStatusText: Phaser.GameObjects.Text | null = null;
+  // ── Status Display (consolidated) ─────────────────────────────────────────
+  private statusText: Phaser.GameObjects.Text | null = null;
 
+  private showStatus(
+    msg: string,
+    y: number,
+    duration: number | null = 3000,
+    isError = false
+  ): void {
+    this.statusText?.destroy();
+    const color = isError ? '#DC2626' : '#059669';
+    this.statusText = this.add
+      .text(CW / 2, y, msg, { fontSize: '16px', fontFamily: BODY_FONT, color })
+      .setOrigin(0.5)
+      .setDepth(5);
+    if (duration) {
+      this.time.delayedCall(duration, () => {
+        this.statusText?.destroy();
+        this.statusText = null;
+      });
+    }
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
   private async doExport(): Promise<void> {
     try {
       await backupToFile();
-      this.showExportStatus('Saved! Check your downloads.');
+      this.showStatus('Saved! Check your downloads.', 680);
       AccessibilityAnnouncer.announce('Backup downloaded successfully.');
     } catch (err) {
-      this.showExportStatus('Export failed — please try again.');
+      this.showStatus('Export failed — please try again.', 680);
       AccessibilityAnnouncer.announce('Export failed. Please try again.');
     }
   }
 
-  private showExportStatus(msg: string): void {
-    this.exportStatusText?.destroy();
-    this.exportStatusText = this.add
-      .text(CW / 2, 680, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
-    this.time.delayedCall(3000, () => {
-      this.exportStatusText?.destroy();
-      this.exportStatusText = null;
-    });
-  }
-
   // ── Refresh Curriculum (Phase 11.1) ────────────────────────────────────────
-  private refreshStatusText: Phaser.GameObjects.Text | null = null;
-
-  /**
-   * Drop the service-worker `curriculum-cache` and reload so the next boot
-   * fetches the latest `/curriculum/v1.json` from the network. Cache name
-   * must stay in sync with vite.config.ts. Failure is non-fatal — the
-   * reload still happens so the user sees a fresh boot.
-   */
   private async doRefreshCurriculum(): Promise<void> {
     let cacheCleared = false;
     try {
       if (typeof caches !== 'undefined') {
-        // Workbox uses the cacheName verbatim — no prefix.
         cacheCleared = await caches.delete('curriculum-cache');
       }
     } catch (err) {
       console.warn('[SettingsScene] curriculum-cache delete failed:', err);
     }
 
-    this.showRefreshStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…');
-
-    // Allow the toast to paint before the reload tears down the page.
+    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 935, null);
     this.time.delayedCall(600, () => {
       if (typeof location !== 'undefined') location.reload();
     });
   }
 
-  private showRefreshStatus(msg: string): void {
-    this.refreshStatusText?.destroy();
-    this.refreshStatusText = this.add
-      .text(CW / 2, 935, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
+  // ── Check for App Update (Phase 14) ────────────────────────────────────────
+  private updateCheckListener: ((e: Event) => void) | null = null;
+
+  private async doCheckForAppUpdate(): Promise<void> {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      this.showStatus('Updates not available', 960);
+      return;
+    }
+
+    this.showStatus('Checking for updates...', 960, null);
+    let updateFound = false;
+
+    const handleControllerChange = (): void => {
+      if (updateFound) return;
+      updateFound = true;
+      this.showStatus('New version ready — reloading...', 960, null);
+      this.time.delayedCall(1000, () => {
+        if (typeof location !== 'undefined') location.reload();
+      });
+    };
+
+    this.updateCheckListener = handleControllerChange;
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg) await reg.update();
+    } catch (err) {
+      console.warn('[SettingsScene] update check failed:', err);
+    }
+
+    this.time.delayedCall(5000, () => {
+      if (!updateFound && this.updateCheckListener) {
+        navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
+        this.updateCheckListener = null;
+        this.showStatus('Up to date', 960);
+      }
+    });
   }
 
   // ── Restore ────────────────────────────────────────────────────────────────
   private fileInput: HTMLInputElement | null = null;
-  private restoreStatusText: Phaser.GameObjects.Text | null = null;
 
   private setupFileInput(): void {
     if (typeof document === 'undefined') return;
@@ -423,7 +459,7 @@ export class SettingsScene extends Phaser.Scene {
     if (!file) return;
     try {
       const result = await restoreFromFile(file);
-      this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      this.showStatus(`Restored ${result.added} records — reloading…`, 770);
       AccessibilityAnnouncer.announce(`Restored ${result.added} records successfully. Reloading…`);
       this.time.delayedCall(3000, () => {
         if (typeof location !== 'undefined') location.reload();
@@ -431,33 +467,16 @@ export class SettingsScene extends Phaser.Scene {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
-        this.showRestoreStatus('Error: incompatible backup file', true);
+        this.showStatus('Error: incompatible backup file', 770, 3000, true);
         AccessibilityAnnouncer.announce('Error: incompatible backup file.');
       } else if (msg.includes('invalid JSON')) {
-        this.showRestoreStatus('Error: not a valid backup file', true);
+        this.showStatus('Error: not a valid backup file', 770, 3000, true);
         AccessibilityAnnouncer.announce('Error: not a valid backup file.');
       } else {
-        this.showRestoreStatus('Restore failed — please try again', true);
+        this.showStatus('Restore failed — please try again', 770, 3000, true);
         AccessibilityAnnouncer.announce('Restore failed. Please try again.');
       }
     }
-  }
-
-  private showRestoreStatus(msg: string, isError = false): void {
-    this.restoreStatusText?.destroy();
-    this.restoreStatusText = this.add
-      .text(CW / 2, 770, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: isError ? '#DC2626' : '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
-    this.time.delayedCall(3000, () => {
-      this.restoreStatusText?.destroy();
-      this.restoreStatusText = null;
-    });
   }
 
   // ── Privacy link ───────────────────────────────────────────────────────────
@@ -466,16 +485,13 @@ export class SettingsScene extends Phaser.Scene {
       .text(cx, y, 'Privacy Notice →', {
         fontSize: '16px',
         fontFamily: BODY_FONT,
-        color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
+        color: '#5848D6',
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
-
     text.on('pointerup', () => {
-      if (typeof window !== 'undefined') {
-        window.open('/privacy.html', '_blank', 'noopener');
-      }
+      if (typeof window !== 'undefined') window.open('/privacy.html', '_blank', 'noopener');
     });
   }
 
@@ -507,7 +523,6 @@ export class SettingsScene extends Phaser.Scene {
       g.fillRoundedRect(x - BTN_W / 2, y - BTN_H / 2, BTN_W, BTN_H, BTN_RADIUS);
     };
     draw();
-
     this.add
       .text(x, y, label, {
         fontSize: '22px',
@@ -517,62 +532,17 @@ export class SettingsScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(2);
-
     const hitZone = this.add
       .rectangle(x, y, BTN_W, BTN_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
-
     hitZone.on('pointerdown', () => draw(0.75));
     hitZone.on('pointerup', () => {
       draw();
       onTap();
     });
     hitZone.on('pointerout', () => draw());
-
     g.setDepth(1);
-  }
-
-  // ── Researcher escape hatch (Phase 2a / D-1) ───────────────────────────
-  private versionTapCount = 0;
-  private versionTapTimer: Phaser.Time.TimerEvent | null = null;
-  private researcherToast: Phaser.GameObjects.Text | null = null;
-
-  private createVersionTapToggle(cx: number, y: number): void {
-    const sha = (import.meta.env.VITE_GIT_SHA as string | undefined) ?? 'dev';
-    const label = `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`;
-    const txt = this.add
-      .text(cx, y, label, { fontSize: '14px', fontFamily: BODY_FONT, color: HEX.neutral600 })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
-    txt.on('pointerup', () => void this.handleVersionTap(txt, sha));
-  }
-
-  private async handleVersionTap(txt: Phaser.GameObjects.Text, sha: string): Promise<void> {
-    this.versionTapCount += 1;
-    this.versionTapTimer?.remove();
-    this.versionTapTimer = this.time.delayedCall(800, () => {
-      this.versionTapCount = 0;
-    });
-    if (this.versionTapCount >= 3) {
-      this.versionTapCount = 0;
-      const next = await toggleUnlockGateBypass();
-      txt.setText(`v ${sha}${next ? '  (researcher)' : ''}`);
-      this.showResearcherToast(next ? 'Researcher mode ON' : 'Researcher mode OFF');
-    }
-  }
-
-  private showResearcherToast(msg: string): void {
-    this.researcherToast?.destroy();
-    this.researcherToast = this.add
-      .text(CW / 2, 1240, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this.time.delayedCall(2000, () => {
-      this.researcherToast?.destroy();
-      this.researcherToast = null;
-    });
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
@@ -585,6 +555,14 @@ export class SettingsScene extends Phaser.Scene {
     if (this._keyHandler && typeof document !== 'undefined') {
       document.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
+    }
+    if (
+      this.updateCheckListener &&
+      typeof navigator !== 'undefined' &&
+      'serviceWorker' in navigator
+    ) {
+      navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
+      this.updateCheckListener = null;
     }
     this.toggles.forEach((t) => t.destroy());
     this.toggles = [];

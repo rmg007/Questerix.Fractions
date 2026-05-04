@@ -137,10 +137,7 @@ export class Level01Scene extends Phaser.Scene {
     this.wrongCount = 0;
     this.correctStreak = 0;
     this.inputLocked = false;
-    this.currentMasteryEstimate = 0.1;
-    this.currentSnapPct = 0.15;
     this.usedQuestionIds = new Set<string>();
-    this.calibrationState = null;
     this.recentOutcomes = [];
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
@@ -280,8 +277,10 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private async openSession(): Promise<void> {
-    const sid = this.studentId as import('@/types').StudentId | null;
-    const result = await openSessionOrResume(sid, this.resume);
+    const result = await openSessionOrResume(
+      this.studentId as import('@/types').StudentId | null,
+      this.resume
+    );
     this.sessionId = result ? String(result) : null;
   }
 
@@ -412,19 +411,11 @@ export class Level01Scene extends Phaser.Scene {
     this.showOutcome(result);
   }
 
-  private questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
-    return getQuestFeedback(kind, this.currentArchetype as string | undefined);
-  }
-
-  private questHintText(tier: import('@/types').HintTier): string {
-    return getQuestHint(tier);
-  }
-
   private showOutcome(result: ValidatorResult): void {
     const kind = classifyOutcome(result.outcome);
     if (kind === 'correct') this.progressBar.setProgress(this.attemptCount + 1);
 
-    const questText = this.questFeedbackText(kind);
+    const questText = getQuestFeedback(kind, this.currentArchetype as string | undefined);
     this.feedbackOverlay.show(
       kind,
       () => {
@@ -458,13 +449,12 @@ export class Level01Scene extends Phaser.Scene {
       wrongCountThisQ: this.wrongCount,
     });
 
-    const streak = this.correctStreak;
-    const streakLine = streakMicrocopy(streak);
+    const streakLine = streakMicrocopy(this.correctStreak);
     if (streakLine) {
       this.time.delayedCall(1700, () => this.mascot?.showSpeechBubble(streakLine, 2000));
     }
-    if (streak === 3 || streak === 5) {
-      this.time.delayedCall(1800, () => showStreakBanner(this, streak, this.mascot));
+    if (this.correctStreak === 3 || this.correctStreak === 5) {
+      this.time.delayedCall(1800, () => showStreakBanner(this, this.correctStreak, this.mascot));
     }
 
     if (this.attemptCount >= SESSION_GOAL) {
@@ -494,7 +484,7 @@ export class Level01Scene extends Phaser.Scene {
 
     const tier = this.hintLadder.tierForAttemptCount(this.wrongCount);
     if (tier) {
-      const questMsg = this.questHintText(tier);
+      const questMsg = getQuestHint(tier);
       this.hintSystem.showHintForTier(tier, questMsg, SHAPE_CY, this.inputLocked, (locked) => {
         this.inputLocked = locked;
       });
@@ -526,7 +516,7 @@ export class Level01Scene extends Phaser.Scene {
       this.mascot?.showSpeechBubble("Here's a secret... 🤫", 2000);
     }
 
-    const hintMessage = this.questHintText(tier);
+    const hintMessage = getQuestHint(tier);
     this.hintSystem.showHintForTier(tier, hintMessage, SHAPE_CY, this.inputLocked, (locked) => {
       this.inputLocked = locked;
     });
@@ -551,9 +541,8 @@ export class Level01Scene extends Phaser.Scene {
     responseMs: number,
     input: PartitionInput
   ): Promise<void> {
-    const sid = this.studentId as import('@/types').StudentId | null;
     const estimate = await recordAttemptAndMastery(
-      sid,
+      this.studentId as import('@/types').StudentId | null,
       this.sessionId as import('@/types').SessionId | null,
       this.currentQuestion.id,
       this.questionIndex,
@@ -573,16 +562,12 @@ export class Level01Scene extends Phaser.Scene {
 
   // ── Session complete ───────────────────────────────────────────────────────
 
-  private async _allLevelsComplete(): Promise<boolean> {
-    const sid = this.studentId as import('@/types').StudentId | null;
-    return await checkAllLevelsComplete(sid);
-  }
-
   private async showSessionComplete(): Promise<void> {
     this.inputLocked = true;
+    const sid = this.studentId as import('@/types').StudentId | null;
     await runSessionCompleteFlow({
       scene: this,
-      studentId: this.studentId as import('@/types').StudentId | null,
+      studentId: sid,
       correctCount: this.correctCount,
       totalAttempts: this.totalQuestionsAttempted,
       responseTimes: this.responseTimes,
@@ -590,22 +575,16 @@ export class Level01Scene extends Phaser.Scene {
       recentOutcomes: this.recentOutcomes,
       calibrationState: this.calibrationState,
       mascot: this.mascot,
-      persistLevelCompletion: () => this.persistLevelCompletion(),
-      checkAllLevelsComplete: () => this._allLevelsComplete(),
+      persistLevelCompletion: () => persistLevelCompletion(sid, this.correctCount),
+      checkAllLevelsComplete: () => checkAllLevelsComplete(sid),
     });
     await this.closeSession();
   }
 
-  private async persistLevelCompletion(): Promise<void> {
-    const sid = this.studentId as import('@/types').StudentId | null;
-    await persistLevelCompletion(sid, this.correctCount);
-  }
-
   private async closeSession(): Promise<void> {
-    const sid = this.studentId as import('@/types').StudentId | null;
     await closeSessionWithSummary(
       this.sessionId as import('@/types').SessionId | null,
-      sid,
+      this.studentId as import('@/types').StudentId | null,
       this.totalQuestionsAttempted,
       this.correctCount,
       this.responseTimes,
@@ -625,6 +604,14 @@ export class Level01Scene extends Phaser.Scene {
     (this.dragHandle as DragHandle | undefined)?.moveTo(next, false);
     const pct = Math.round(((next - minX) / SHAPE_W) * 100);
     A11yLayer.announce(`Partition at ${pct} percent across.`);
+  }
+
+  questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
+    return getQuestFeedback(kind, this.currentArchetype as string | undefined);
+  }
+
+  questHintText(tier: import('@/types').HintTier): string {
+    return getQuestHint(tier);
   }
 
   preDestroy(): void {
