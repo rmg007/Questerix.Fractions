@@ -16,9 +16,8 @@ name: Weekly Agent Telemetry
 #     "sha":             "<git sha>"
 #   }
 #
-# Each agent-dispatching workflow appends one line per run to a file under
-# .claude/agent-runs/<workflow-slug>.jsonl  (committed to the repo or stored
-# as a workflow artifact — either path is supported here).
+# Agent-dispatching workflows currently write JSONL telemetry under either
+# .claude/agent-runs/ or .github/telemetry/.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -58,13 +57,17 @@ jobs:
       - name: Check for telemetry files
         id: check
         run: |
-          JSONL_FILES=$(find .claude/agent-runs -name '*.jsonl' 2>/dev/null | head -200)
+          JSONL_FILES=$(
+            find .claude/agent-runs .github/telemetry -name '*.jsonl' 2>/dev/null \
+              | sort \
+              | head -200
+          )
           if [ -z "$JSONL_FILES" ]; then
             echo "has_data=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_data=true" >> "$GITHUB_OUTPUT"
             # Store newline-safe list for the next step
-            printf '%s\n' $JSONL_FILES > /tmp/jsonl_file_list.txt
+            printf '%s\n' "$JSONL_FILES" > /tmp/jsonl_file_list.txt
           fi
 
       # ───────────────────────────────────────────────────────────
@@ -76,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TITLE="[Autonomy] Weekly Agent Telemetry — $(date +%Y-%m-%d)"
-          BODY="## Weekly Agent Telemetry\n\nNo agent telemetry yet — no \`.jsonl\` files found under \`.claude/agent-runs/\`.\n\nAgent-dispatching workflows will append telemetry here once they run.\n\n> To disable agents: set repo variable \`AGENT_AUTONOMY_ENABLED\` to \`false\`"
+          BODY="## Weekly Agent Telemetry\n\nNo agent telemetry yet — no \`.jsonl\` files found under \`.claude/agent-runs/\` or \`.github/telemetry/\`.\n\nAgent-dispatching workflows will append telemetry once they run.\n\n> To disable agents: set repo variable \`AGENT_AUTONOMY_ENABLED\` to \`false\`"
           gh issue create \
             --title "$TITLE" \
             --body "$(printf '%b' "$BODY")" \
