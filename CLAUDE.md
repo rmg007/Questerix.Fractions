@@ -15,10 +15,9 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 - `/decision` — Append a new architectural decision entry to docs/00-foundation/decision-log.md
 - `/economy` — Summarize this session's token cost — file reads vs tool output vs assistant prose
 - `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
-- `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
-- `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
+- `/recreate-pr` — Re-open a PR that the dependabot-auto-merge title-substring guard auto-closed (legacy stragglers only).
+- `/retro-weekly` — Weekly activity rollup — group _session-log.md by day, flag heavy-activity days
 - `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
-- `/sprint-status` — Print active sprint blockers and their current status in compact form
 <!-- AUTO:slash-commands-list:end -->
 
 > The list above is auto-generated from `.claude/commands/*.md` frontmatter by `npm run sync:claude-md`. Edit the source files, not this section.
@@ -52,6 +51,8 @@ Delegate to these via the Agent tool when scope warrants. CI auto-fires them on 
 | `c1-c10-auditor` | Audits a diff or branch for violations of the locked C1–C10 constraints. Use proactively when significant code changes touch persistence, networking, UI surface area, dependencies, or device targets. |
 | `curriculum-byte-parity` | Confirms public/curriculum/v1.json and src/curriculum/bundle.json are byte-identical (sha256 match). Use whenever a diff touches either curriculum bundle file or pipeline output. |
 | `engine-determinism-auditor` | Audits diffs touching src/engine/** for direct host-global calls (Math.random, Date.now, crypto.randomUUID) and points to the correct port in src/engine/ports.ts. Use proactively whenever engine code changes. |
+| `level-spec-parity` | Confirms that a level spec doc (docs/10-curriculum/levels/level-NN.md), LEVEL_META entry, and curriculum bundle are consistent with each other. Use after modifying a level spec or after running build:curriculum. |
+| `pedagogy-reviewer` | Audits a level spec (docs/10-curriculum/levels/level-NN.md) for pedagogical correctness — skill progression, misconception coverage, denominator ordering, and question density. Use before authoring pipeline content for any new level, and on PRs that add or modify a level spec. |
 | `validator-parity-checker` | Confirms that a changed TypeScript validator has a matching Python clone in pipeline/validators_py.py and that parity fixtures still pass. Use after any change to src/validators/*.ts. |
 <!-- AUTO:subagents-table:end -->
 
