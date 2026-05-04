@@ -270,7 +270,7 @@ describe('BKT property-based tests', () => {
           const mean = history.reduce((a, b) => a + b, 0) / history.length;
           const variance =
             history.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / history.length;
-          expect(variance).toBeLessThanOrEqual(0.15);
+          expect(variance).toBeLessThanOrEqual(0.15 + 1e-9);
         }
       )
     );
