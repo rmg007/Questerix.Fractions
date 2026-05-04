@@ -163,6 +163,15 @@ const levelProgressionSchema = z
     lastUpdatedAt: z.number(),
     syncState: syncStateSchema,
   })
+  .refine((data) => data.unlockedLevels.length > 0, {
+    message: 'unlockedLevels must not be empty',
+  })
+  .refine((data) => new Set(data.unlockedLevels).size === data.unlockedLevels.length, {
+    message: 'unlockedLevels must not contain duplicates',
+  })
+  .refine((data) => new Set(data.completedLevels).size === data.completedLevels.length, {
+    message: 'completedLevels must not contain duplicates',
+  })
   .passthrough();
 
 const streakRecordSchema = z
@@ -215,9 +224,9 @@ export const backupEnvelopeSchema = z
         streakRecord: z.array(streakRecordSchema).default([]),
         telemetryEvents: z.array(telemetryEventSchema).default([]),
       })
-      .passthrough(),
+      .passthrough(), // Allow future table additions
   })
-  .passthrough();
+  .passthrough(); // Allow future envelope fields (forward compatibility)
 
 export type BackupEnvelopeInput = z.infer<typeof backupEnvelopeSchema>;
 

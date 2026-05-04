@@ -46,7 +46,7 @@ const RULE_LABELS: Record<string, string> = {
 };
 
 export class ExplainYourOrderInteraction implements Interaction {
-  readonly archetype = 'order' as const;
+  readonly archetype = 'explain_your_order' as const;
   private gameObjects: Phaser.GameObjects.GameObject[] = [];
   private bars: BarModel[] = [];
   private sequence: (string | null)[] = [];

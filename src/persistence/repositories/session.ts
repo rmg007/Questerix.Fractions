@@ -30,12 +30,13 @@ export const sessionRepo = {
     }
   },
 
-  async listForStudent(studentId: StudentId): Promise<Session[]> {
+  async listForStudent(studentId: StudentId, options?: { limit?: number }): Promise<Session[]> {
     try {
       return await db.sessions
         .where('[studentId+startedAt]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .reverse()
+        .limit(options?.limit ?? 1000)
         .toArray();
     } catch (err) {
       return [];

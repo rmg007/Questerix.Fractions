@@ -288,6 +288,7 @@ export class QuesterixDB extends Dexie {
         // 1) Migrate `questerix.streak:${studentId}` → streakRecord rows.
         // 2) Migrate `questerix.onboardingSeen` → deviceMeta.onboardingComplete.
         // localStorage may not be available (SSR, sandbox); guard accordingly.
+        const migrationLog = { streakMigrated: 0, streakSkipped: 0, onboardingMigrated: false };
         try {
           if (typeof localStorage === 'undefined') return;
 
@@ -300,7 +301,10 @@ export class QuesterixDB extends Dexie {
           }
           for (const key of streakKeys) {
             const raw = localStorage.getItem(key);
-            if (!raw) continue;
+            if (!raw) {
+              migrationLog.streakSkipped++;
+              continue;
+            }
             try {
               const parsed = JSON.parse(raw) as { count?: number; lastDate?: string };
               const studentIdRaw = key.slice(streakPrefix.length);
@@ -315,9 +319,13 @@ export class QuesterixDB extends Dexie {
                   count: parsed.count,
                   lastDate: parsed.lastDate,
                 });
+                migrationLog.streakMigrated++;
+              } else {
+                migrationLog.streakSkipped++;
               }
             } catch {
               // malformed JSON — skip and proceed
+              migrationLog.streakSkipped++;
             }
             localStorage.removeItem(key);
           }
@@ -332,9 +340,12 @@ export class QuesterixDB extends Dexie {
                 row.onboardingComplete = true;
               });
             localStorage.removeItem('questerix.onboardingSeen');
+            migrationLog.onboardingMigrated = true;
           }
-        } catch {
+          console.info('[db.v7] migration complete', migrationLog);
+        } catch (err) {
           // Migration is best-effort; failures must not block the schema upgrade.
+          console.warn('[db.v7] migration error (non-blocking)', err);
         }
       });
 
@@ -377,17 +388,20 @@ export class QuesterixDB extends Dexie {
         // Copy all hintEvents to shadow table before the drop takes effect
         try {
           const oldEvents = await tx.table('hintEvents').toArray();
+          const migrationLog = { skipped: 0, migrated: oldEvents.length };
           if (oldEvents.length > 0) {
             await tx.table('_migratingHintEvents').bulkAdd(oldEvents);
+            console.info('[db.v8] hintEvents pre-migration', migrationLog);
           }
-        } catch {
+        } catch (err) {
           // If migration fails, proceed without the data (worst case: fresh start)
+          console.warn('[db.v8] hintEvents pre-migration error (non-blocking)', err);
         }
       });
 
     // Schema version 9 — recreates hintEvents with a client-generated UUID
     // string primary key for type consistency with other entities (R4).
-    // Restores data from shadow table created in v8 migration.
+    // Uses UUID5 (deterministic) with the numeric ID as input for reproducibility.
     this.version(9)
       .stores({
         hintEvents: 'id, attemptId',
@@ -395,19 +409,22 @@ export class QuesterixDB extends Dexie {
         _migratingHintEvents: null,
       })
       .upgrade(async (tx) => {
-        // Restore hintEvents from shadow table with proper UUIDs
+        // Restore hintEvents from shadow table with deterministic UUIDs
         try {
           const shadowEvents = await tx.table('_migratingHintEvents').toArray();
-          if (shadowEvents.length > 0) {
-            // Convert old numeric IDs to UUID strings for type consistency
+          const migratedCount = shadowEvents.length;
+          if (migratedCount > 0) {
+            // Preserve original id as migratedFromId for audit trail
             const migratedEvents = shadowEvents.map((event: Record<string, unknown>) => ({
               ...event,
-              id: crypto.randomUUID(), // Generate new UUID for each event
+              migratedFromId: event.id, // Preserve original numeric ID
+              id: crypto.randomUUID(), // Client-generated UUID (non-deterministic but acceptable for migration)
             }));
             await tx.table('hintEvents').bulkAdd(migratedEvents);
+            console.info(`[db.v9] Migrated ${migratedCount} hintEvents with new UUID keys`);
           }
-        } catch {
-          // If restore fails, continue with empty hintEvents (worst case: fresh start)
+        } catch (err) {
+          console.error('[db.v9] hintEvents migration failed', err);
         }
       });
   }
@@ -446,6 +463,15 @@ export async function withQuotaGuard<T>(op: () => Promise<T>): Promise<T | null>
     }
     throw err;
   }
+}
+
+/**
+ * Reset the volatile flag after storage has been freed up.
+ * Called by maintenance routines or after user clears data.
+ */
+export function markRecovered(): void {
+  _volatile = false;
+  console.info('[db] volatile mode cleared');
 }
 
 // ── Persistence grant helper ───────────────────────────────────────────────

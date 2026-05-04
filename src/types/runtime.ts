@@ -172,6 +172,8 @@ export interface HintEvent {
   acceptedByStudent: boolean;
   pointCostApplied: number;
   syncState: SyncState;
+  /** Audit trail: original numeric ID from v8 migration (preserved for reproducibility). */
+  migratedFromId?: number;
 }
 
 // ── §3.5 MisconceptionFlag ─────────────────────────────────────────────────

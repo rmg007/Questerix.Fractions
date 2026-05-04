@@ -173,10 +173,23 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
         await table.add(row);
         added++;
       } catch (err) {
-        // Dexie throws ConstraintError on PK violation (acceptable for restore)
-        // Other errors are genuine constraint violations — re-raise
+        // Dexie throws ConstraintError on both PK and other constraint violations.
+        // For restore semantics, PK collisions are acceptable (skip silently);
+        // non-PK constraint violations should also be skipped with logging.
         if (err instanceof Error && err.name === 'ConstraintError') {
-          skipped++;
+          // Log the collision for visibility but don't fail the entire restore
+          if (err.message.includes('PRIMARY KEY')) {
+            // PK collision — expected in restore, skip silently
+            skipped++;
+          } else {
+            // Non-PK constraint violation — log and skip
+            log.warn('BACKUP', 'restore.constraint_violation', {
+              table: table.name,
+              error: err.message,
+              row: row,
+            });
+            skipped++;
+          }
         } else {
           throw err;
         }
@@ -229,19 +242,23 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       );
       await tryAddAll(db.streakRecord, (t.streakRecord ?? []) as unknown as StreakRecord[]);
       await tryAddAll(db.telemetryEvents, (t.telemetryEvents ?? []) as unknown as TelemetryEvent[]);
-      // Restore deviceMeta with merge strategy: keep newer lastBackupAt
+      // Restore deviceMeta with merge strategy: keep newer lastBackupAt.
+      // Wrapped in nested transaction to avoid race between read and write.
       if (t.deviceMeta && t.deviceMeta.length > 0) {
-        const live = await db.deviceMeta.toCollection().first();
         for (const backupMeta of t.deviceMeta) {
           const backupMetaTyped = backupMeta as unknown as DeviceMeta;
-          if (live && (live.lastBackupAt ?? 0) > (backupMetaTyped.lastBackupAt ?? 0)) {
-            // Keep live data if it's newer
-            console.info('[backup.restore] Keeping newer live deviceMeta (lastBackupAt)');
-          } else {
-            // Update with backup data
-            await db.deviceMeta.update(backupMetaTyped.installId, backupMetaTyped);
-            added++;
-          }
+          // Atomic read-compare-write: ensure no other update sneaks between read and update
+          await db.transaction('rw', db.deviceMeta, async () => {
+            const live = await db.deviceMeta.get(backupMetaTyped.installId);
+            if (live && (live.lastBackupAt ?? 0) > (backupMetaTyped.lastBackupAt ?? 0)) {
+              // Keep live data if it's newer
+              console.info('[backup.restore] Keeping newer live deviceMeta (lastBackupAt)');
+            } else {
+              // Update with backup data
+              await db.deviceMeta.put(backupMetaTyped);
+              added++;
+            }
+          });
         }
       }
     }

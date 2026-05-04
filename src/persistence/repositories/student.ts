@@ -37,9 +37,13 @@ export const studentRepo = {
     }
   },
 
-  async list(): Promise<Student[]> {
+  async list(options?: { limit?: number }): Promise<Student[]> {
     try {
-      return await db.students.orderBy('createdAt').toArray();
+      return await db.students
+        .orderBy('createdAt')
+        .reverse()
+        .limit(options?.limit ?? 1000)
+        .toArray();
     } catch (err) {
       return [];
     }

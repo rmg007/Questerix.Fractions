@@ -37,11 +37,14 @@ export const questionTemplateRepo = {
    * per runtime-architecture.md §4.1 (CurriculumLoader.getQuestionsForLevel)
    */
   async getByLevel(level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<QuestionTemplate[]> {
-    const prefix = `:L${level}:`;
-    // IndexedDB doesn't support substring search; filter in JS after a levelGroup pre-filter.
+    // IndexedDB doesn't support substring search; filter via levelGroup index then validate.
     const group: LevelGroup = deriveLevelGroup(`q:x:L${level}:0001`);
     const candidates = await db.questionTemplates.where('levelGroup').equals(group).toArray();
-    return candidates.filter((t) => t.id.includes(prefix));
+    // Validate format: q:*:L{N}:*
+    return candidates.filter((t) => {
+      const parts = t.id.split(':');
+      return parts.length === 4 && parts[2] === `L${level}`;
+    });
   },
 
   /**

@@ -4,7 +4,7 @@
  */
 
 import Dexie from 'dexie';
-import { db } from '../db';
+import { db, withQuotaGuard } from '../db';
 import { log } from '../../lib/log';
 import type {
   MisconceptionFlag,
@@ -23,17 +23,9 @@ export const misconceptionFlagRepo = {
   },
 
   async upsert(flag: MisconceptionFlag): Promise<void> {
-    try {
-      await db.misconceptionFlags.put(flag);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
-        log.warn('DB', 'quota_exceeded', { table: 'misconceptionFlags' });
-        return;
-      }
-      // Log non-quota write errors for debugging
-      if (err instanceof Error) {
-        log.warn('DB', 'write_failed', { table: 'misconceptionFlags', error: err.message });
-      }
+    const result = await withQuotaGuard(() => db.misconceptionFlags.put(flag));
+    if (result === null) {
+      log.warn('DB', 'quota_exceeded', { table: 'misconceptionFlags' });
     }
   },
 
@@ -52,11 +44,15 @@ export const misconceptionFlagRepo = {
     }
   },
 
-  async getActiveForStudent(studentId: StudentId): Promise<MisconceptionFlag[]> {
+  async getActiveForStudent(
+    studentId: StudentId,
+    options?: { limit?: number }
+  ): Promise<MisconceptionFlag[]> {
     try {
       const all = await db.misconceptionFlags
         .where('[studentId+misconceptionId]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
+        .limit(options?.limit ?? 1000)
         .toArray();
       return all.filter((f) => f.resolvedAt === null);
     } catch (err) {
@@ -64,11 +60,15 @@ export const misconceptionFlagRepo = {
     }
   },
 
-  async getAllForStudent(studentId: StudentId): Promise<MisconceptionFlag[]> {
+  async getAllForStudent(
+    studentId: StudentId,
+    options?: { limit?: number }
+  ): Promise<MisconceptionFlag[]> {
     try {
       return await db.misconceptionFlags
         .where('[studentId+misconceptionId]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
+        .limit(options?.limit ?? 1000)
         .toArray();
     } catch (err) {
       return [];

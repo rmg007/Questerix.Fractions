@@ -47,12 +47,15 @@ export const attemptRepo = {
     }
   },
 
-  async listForStudent(studentId: StudentId): Promise<Attempt[]> {
+  async listForStudent(studentId: StudentId, options?: { limit?: number }): Promise<Attempt[]> {
     try {
-      return await db.attempts
+      let results = await db.attempts
         .where('[studentId+submittedAt]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
+        .reverse()
+        .limit(options?.limit ?? 1000)
         .toArray();
+      return results;
     } catch (err) {
       return [];
     }

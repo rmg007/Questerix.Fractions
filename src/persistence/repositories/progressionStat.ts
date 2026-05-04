@@ -5,7 +5,7 @@
  */
 
 import Dexie from 'dexie';
-import { db } from '../db';
+import { db, withQuotaGuard } from '../db';
 import { log } from '../../lib/log';
 import type { ProgressionStat, StudentId, ActivityId } from '../../types';
 
@@ -19,17 +19,9 @@ export const progressionStatRepo = {
   },
 
   async upsert(stat: ProgressionStat): Promise<void> {
-    try {
-      await db.progressionStat.put(stat);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
-        log.warn('DB', 'quota_exceeded', { table: 'progressionStat' });
-        return;
-      }
-      // Log non-quota write errors; caller retries on next session close
-      if (err instanceof Error) {
-        log.error('DB', 'write_failed', { table: 'progressionStat', error: err.message });
-      }
+    const result = await withQuotaGuard(() => db.progressionStat.put(stat));
+    if (result === null) {
+      log.warn('DB', 'quota_exceeded', { table: 'progressionStat' });
     }
   },
 

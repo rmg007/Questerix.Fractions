@@ -159,6 +159,15 @@ export class DragHandle {
       }
       onCommit?.(this._pos);
     });
+
+    // Phase 6: Handle pointer cancellation (e.g., system gesture, touch outside bounds)
+    // Reset drag state but do NOT commit — let scene handle interrupted drag
+    this.hitZone.on('pointercancel', () => {
+      if (!this.isDragging) return;
+      this.isDragging = false;
+      this.visibleLine.setFillStyle(CLR.primary);
+      this.hideGlow();
+    });
   }
 
   private wireKeyboardEvents(): void {

@@ -9,7 +9,7 @@
  * consecutive failures the next level unlocks silently.
  */
 
-import { db } from '../db';
+import { db, withQuotaGuard } from '../db';
 import { log } from '../../lib/log';
 import type { LevelProgression, StudentId } from '../../types';
 
@@ -28,20 +28,13 @@ export const levelProgressionRepo = {
 
   /**
    * Upsert (insert or replace) a level progression record.
-   * Caller should supply the full LevelProgression shape.
-   * Logs quota and constraint errors but always throws for visibility.
+   * Quota errors enter volatile mode and resolve with null;
+   * other errors rethrow for visibility.
    */
   async upsert(progression: LevelProgression): Promise<void> {
-    try {
-      await db.levelProgression.put(progression);
-    } catch (err) {
-      // Log write errors for debugging. Re-throw to signal failure to caller.
-      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
-        log.warn('DB', 'quota_exceeded', { table: 'levelProgression' });
-      } else if (err instanceof Error) {
-        log.error('DB', 'write_failed', { table: 'levelProgression', error: err.message });
-      }
-      throw err;
+    const result = await withQuotaGuard(() => db.levelProgression.put(progression));
+    if (result === null) {
+      log.warn('DB', 'quota_exceeded', { table: 'levelProgression' });
     }
   },
 
