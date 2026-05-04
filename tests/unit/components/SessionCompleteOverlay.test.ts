@@ -42,16 +42,25 @@ vi.mock('@/scenes/utils/TestHooks', () => ({
   },
 }));
 
-import { starsFromAccuracy } from '@/components/SessionCompleteOverlay';
+import { starsFromAccuracy } from '@/components/sessionComplete/scoring';
 import { SessionCompleteOverlay } from '@/components/SessionCompleteOverlay';
 import { TestHooks } from '@/scenes/utils/TestHooks';
 
 function makeGameObject() {
   const go: Record<string, unknown> = { x: 400, y: 640, depth: 100, alpha: 1, scale: 1 };
   for (const m of [
-    'setDepth', 'setVisible', 'setOrigin', 'setScale', 'setAlpha',
-    'setX', 'setY', 'setFillStyle', 'setText', 'setColor',
-    'setInteractive', 'on',
+    'setDepth',
+    'setVisible',
+    'setOrigin',
+    'setScale',
+    'setAlpha',
+    'setX',
+    'setY',
+    'setFillStyle',
+    'setText',
+    'setColor',
+    'setInteractive',
+    'on',
   ]) {
     go[m] = vi.fn().mockReturnValue(go);
   }
@@ -70,8 +79,13 @@ function makeContainer() {
 function makeGraphics() {
   const g: Record<string, unknown> = {};
   for (const m of [
-    'fillStyle', 'fillRect', 'fillRoundedRect', 'lineStyle',
-    'lineBetween', 'strokeRoundedRect', 'setDepth',
+    'fillStyle',
+    'fillRect',
+    'fillRoundedRect',
+    'lineStyle',
+    'lineBetween',
+    'strokeRoundedRect',
+    'setDepth',
   ]) {
     g[m] = vi.fn().mockReturnValue(g);
   }
