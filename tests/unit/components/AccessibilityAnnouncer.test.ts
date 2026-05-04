@@ -7,17 +7,17 @@ import { AccessibilityAnnouncer } from '@/components/AccessibilityAnnouncer';
 
 describe('AccessibilityAnnouncer', () => {
   beforeEach(() => {
-    // Clean up any existing region before each test
     const existing = document.getElementById('qf-a11y-live');
     if (existing) existing.remove();
-    // Mock requestAnimationFrame to avoid async issues in tests
-    vi.useFakeTimers();
+    // Stub requestAnimationFrame to fire synchronously
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
-    // Clean up after each test
+    vi.unstubAllGlobals();
     const region = document.getElementById('qf-a11y-live');
     if (region) region.remove();
   });
@@ -33,7 +33,6 @@ describe('AccessibilityAnnouncer', () => {
 
   it('announces text to live region', () => {
     AccessibilityAnnouncer.announce('Test message');
-    vi.runAllTimers(); // Flush requestAnimationFrame
 
     const region = document.getElementById('qf-a11y-live');
     expect(region?.textContent).toBe('Test message');
@@ -41,9 +40,7 @@ describe('AccessibilityAnnouncer', () => {
 
   it('handles multiple messages in sequence', () => {
     AccessibilityAnnouncer.announce('First');
-    vi.runAllTimers();
     AccessibilityAnnouncer.announce('Second');
-    vi.runAllTimers();
 
     const region = document.getElementById('qf-a11y-live');
     expect(region?.textContent).toBe('Second');
@@ -71,14 +68,12 @@ describe('AccessibilityAnnouncer', () => {
 
   it('clears text before announcing new message', () => {
     AccessibilityAnnouncer.announce('First');
-    vi.runAllTimers();
 
     const region = document.getElementById('qf-a11y-live');
     expect(region?.textContent).toBe('First');
 
     // Announce the same text again - should still clear and re-announce
     AccessibilityAnnouncer.announce('First');
-    vi.runAllTimers();
 
     expect(region?.textContent).toBe('First');
   });
