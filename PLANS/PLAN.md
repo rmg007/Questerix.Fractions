@@ -20,7 +20,13 @@
 
 ## Active trackers
 
-*(none — E2E clusters unblocked, refactor remaining)*
+**Phase 8 — WCAG 2.1 AA Accessibility Hardening** (in progress)
+- ✅ Color contrast: darkened primary #2F6FED → #1E54CE (5:1 on white), added contrast unit tests
+- ✅ ARIA labels: SessionCompleteOverlay buttons now registered in A11yLayer (MUST FIX completed)
+- ✅ Hit targets: all interactive elements ≥44×44 CSS px (verified)
+- ✅ Reduced-motion: all tweens guarded via checkReduceMotion() (verified)
+- ✅ AccessibilityAnnouncer: live regions working, all outcomes announced (verified)
+- 🔄 Gate: npm run test:a11y must pass (running now)
 
 ---
 
