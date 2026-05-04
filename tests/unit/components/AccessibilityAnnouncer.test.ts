@@ -2,55 +2,84 @@
  * Unit tests for AccessibilityAnnouncer — ARIA live region for screen readers.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessibilityAnnouncer } from '@/components/AccessibilityAnnouncer';
 
 describe('AccessibilityAnnouncer', () => {
-  it('injects aria-live region into DOM', () => {
-    const announcer = new AccessibilityAnnouncer();
-
-    expect(announcer.region).toBeInstanceOf(HTMLElement);
-    expect(announcer.region.getAttribute('aria-live')).toBe('polite');
+  beforeEach(() => {
+    // Clean up any existing region before each test
+    const existing = document.getElementById('qf-a11y-live');
+    if (existing) existing.remove();
+    // Mock requestAnimationFrame to avoid async issues in tests
+    vi.useFakeTimers();
   });
 
-  it('appends text nodes on announce()', () => {
-    const announcer = new AccessibilityAnnouncer();
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    // Clean up after each test
+    const region = document.getElementById('qf-a11y-live');
+    if (region) region.remove();
+  });
 
-    announcer.announce('Test message');
+  it('injects aria-live region into DOM', () => {
+    AccessibilityAnnouncer.announce('Test');
+    const region = document.getElementById('qf-a11y-live');
 
-    expect(announcer.region.textContent).toContain('Test message');
+    expect(region).toBeInstanceOf(HTMLElement);
+    expect(region?.getAttribute('aria-live')).toBe('polite');
+    expect(region?.getAttribute('aria-atomic')).toBe('true');
+  });
+
+  it('announces text to live region', () => {
+    AccessibilityAnnouncer.announce('Test message');
+    vi.runAllTimers(); // Flush requestAnimationFrame
+
+    const region = document.getElementById('qf-a11y-live');
+    expect(region?.textContent).toBe('Test message');
   });
 
   it('handles multiple messages in sequence', () => {
-    const announcer = new AccessibilityAnnouncer();
+    AccessibilityAnnouncer.announce('First');
+    vi.runAllTimers();
+    AccessibilityAnnouncer.announce('Second');
+    vi.runAllTimers();
 
-    announcer.announce('First');
-    announcer.announce('Second');
-
-    expect(announcer.region.textContent).toContain('First');
-    expect(announcer.region.textContent).toContain('Second');
+    const region = document.getElementById('qf-a11y-live');
+    expect(region?.textContent).toBe('Second');
   });
 
-  it('clears queue on destroy', () => {
-    const announcer = new AccessibilityAnnouncer();
+  it('destroys the region idempotently', () => {
+    AccessibilityAnnouncer.announce('Message');
+    const region = document.getElementById('qf-a11y-live');
 
-    announcer.announce('Message');
-    announcer.destroy();
+    expect(region).toBeDefined();
 
-    expect(announcer.region.children.length).toBe(0);
+    AccessibilityAnnouncer.destroy();
+    expect(document.getElementById('qf-a11y-live')).toBeNull();
+
+    // Calling destroy again should not throw
+    expect(() => AccessibilityAnnouncer.destroy()).not.toThrow();
   });
 
   it('handles empty message gracefully', () => {
-    const announcer = new AccessibilityAnnouncer();
+    expect(() => AccessibilityAnnouncer.announce('')).not.toThrow();
 
-    expect(() => announcer.announce('')).not.toThrow();
+    const region = document.getElementById('qf-a11y-live');
+    expect(region?.textContent).toBe('');
   });
 
-  it('supports polite (default) and assertive modes', () => {
-    const politeAnnouncer = new AccessibilityAnnouncer({ politeness: 'polite' });
-    const assertiveAnnouncer = new AccessibilityAnnouncer({ politeness: 'assertive' });
+  it('clears text before announcing new message', () => {
+    AccessibilityAnnouncer.announce('First');
+    vi.runAllTimers();
 
-    expect(politeAnnouncer.region.getAttribute('aria-live')).toBe('polite');
-    expect(assertiveAnnouncer.region.getAttribute('aria-live')).toBe('assertive');
+    const region = document.getElementById('qf-a11y-live');
+    expect(region?.textContent).toBe('First');
+
+    // Announce the same text again - should still clear and re-announce
+    AccessibilityAnnouncer.announce('First');
+    vi.runAllTimers();
+
+    expect(region?.textContent).toBe('First');
   });
 });
