@@ -11,9 +11,15 @@ import { A11yLayer } from './A11yLayer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
-import { animateTrophyWave, startGlowSync, animateStars } from './sessionComplete/animations';
+import {
+  animateTrophyWave,
+  startGlowSync,
+  animateStars,
+  animateEntrance,
+} from './sessionComplete/animations';
 import { createButton } from './sessionComplete/buttons';
 import { createScaffoldBanner } from './sessionComplete/scaffoldBanner';
+import { starsFromAccuracy, calculateAccuracy } from './sessionComplete/scoring';
 import {
   createCardBackground,
   createTrophy,
@@ -44,14 +50,6 @@ export interface SessionCompleteConfig {
   isPerfect?: boolean;
 }
 
-export function starsFromAccuracy(correct: number, total: number): 1 | 2 | 3 {
-  if (total === 0) return 1;
-  const acc = correct / total;
-  if (acc >= 0.9) return 3;
-  if (acc >= 0.6) return 2;
-  return 1;
-}
-
 export class SessionCompleteOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly starTexts: Phaser.GameObjects.Text[] = [];
@@ -79,7 +77,7 @@ export class SessionCompleteOverlay {
     const reduceMotion = checkReduceMotion();
 
     const starCount = starsFromAccuracy(correctCount, totalAttempts);
-    const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
+    const accuracy = calculateAccuracy(correctCount, totalAttempts);
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
     this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
@@ -235,29 +233,22 @@ export class SessionCompleteOverlay {
     }
 
     // Overlay entrance — panel slides in from below the viewport.
-    scene.tweens.add({
-      targets: this.container,
-      y: 0,
-      duration: 420,
-      ease: 'Back.Out',
-      delay: 60,
-      onComplete: () => {
-        if (isPerfect) sfx.playPerfectFanfare();
-        else sfx.playComplete();
-        animateTrophyWave(scene, trophyT, () => {
-          this.glowTween = startGlowSync(scene, headingT);
-          animateStars(
-            scene,
-            this.starTexts,
-            cx,
-            530,
-            depth,
-            () => this.announce(levelNumber, starCount),
-            isPerfect ? 80 : 40,
-            isPerfect
-          );
-        });
-      },
+    animateEntrance(scene, this.container, () => {
+      if (isPerfect) sfx.playPerfectFanfare();
+      else sfx.playComplete();
+      animateTrophyWave(scene, trophyT, () => {
+        this.glowTween = startGlowSync(scene, headingT);
+        animateStars(
+          scene,
+          this.starTexts,
+          cx,
+          530,
+          depth,
+          () => this.announce(levelNumber, starCount),
+          isPerfect ? 80 : 40,
+          isPerfect
+        );
+      });
     });
   }
 

@@ -101,3 +101,18 @@ export function animateStars(
   }
   if (starTexts.length === 0) onDone();
 }
+
+export function animateEntrance(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  onComplete: () => void
+): void {
+  scene.tweens.add({
+    targets: container,
+    y: 0,
+    duration: 420,
+    ease: 'Back.Out',
+    delay: 60,
+    onComplete,
+  });
+}

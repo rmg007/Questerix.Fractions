@@ -11,11 +11,10 @@ import { BODY_FONT } from './utils/levelTheme';
 import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
-import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
-import { backupToFile, restoreFromFile } from '../persistence/backup';
-import { db } from '../persistence/db';
-import { lastUsedStudent } from '../persistence/lastUsedStudent';
 import { attachVersionTapToggle } from './settings/versionTapToggle';
+
+import { ResetDeviceHandler } from './settings/ResetDeviceHandler';
+import { BackupRestoreHandler } from './settings/BackupRestoreHandler';
 
 const CW = 800;
 const CH = 1280;
@@ -23,16 +22,20 @@ const BTN_W = 360;
 const BTN_H = 60;
 const BTN_RADIUS = 10;
 
-type ResetStep = 'idle' | 'confirm';
-
 export class SettingsScene extends Phaser.Scene {
   private toggles: PreferenceToggle[] = [];
+  private resetHandler!: ResetDeviceHandler;
+  private backupHandler!: BackupRestoreHandler;
+  private statusText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'SettingsScene' });
   }
 
   create(): void {
+    this.resetHandler = new ResetDeviceHandler(this);
+    this.backupHandler = new BackupRestoreHandler(this);
+
     TestHooks.unmountAll();
     TestHooks.mountSentinel('settings-scene');
 
@@ -93,7 +96,7 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     // ── Export button ──────────────────────────────────────────────────────
-    TestHooks.mountInteractive('settings-export-btn', () => void this.doExport(), {
+    TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(680), {
       top: toViewport(630),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
@@ -105,29 +108,36 @@ export class SettingsScene extends Phaser.Scene {
       'Export My Backup',
       CLR.primary,
       HEX.neutral0,
-      () => void this.doExport()
+      () => void this.backupHandler.doExport(680)
     );
 
     // ── Restore button ─────────────────────────────────────────────────────
-    this.setupFileInput();
-    TestHooks.mountInteractive('settings-restore-btn', () => this.triggerFilePicker(), {
-      top: toViewport(720),
-      left: halfCanvas,
-      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
-      height: `${BTN_H * scaleY}px`,
-    });
+    TestHooks.mountInteractive(
+      'settings-restore-btn',
+      () => this.backupHandler.triggerFilePicker(),
+      {
+        top: toViewport(720),
+        left: halfCanvas,
+        width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+        height: `${BTN_H * scaleY}px`,
+      }
+    );
     this.createButton(cx, 720, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
-      this.triggerFilePicker()
+      this.backupHandler.triggerFilePicker()
     );
 
     // ── Reset button ───────────────────────────────────────────────────────
-    TestHooks.mountInteractive('settings-reset-btn', () => this.handleReset(), {
-      top: toViewport(820),
-      left: halfCanvas,
-      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
-      height: `${BTN_H * scaleY}px`,
-    });
-    this.createResetButton(cx, 820);
+    TestHooks.mountInteractive(
+      'settings-reset-btn',
+      () => this.resetHandler.handleExternalReset(),
+      {
+        top: toViewport(820),
+        left: halfCanvas,
+        width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+        height: `${BTN_H * scaleY}px`,
+      }
+    );
+    this.resetHandler.create(cx, 820);
 
     // ── Check for App Update button (Phase 14) ──────────────────────────────
     // Allows users to explicitly check for and apply app updates.
@@ -196,153 +206,6 @@ export class SettingsScene extends Phaser.Scene {
 
   private _keyHandler: ((e: KeyboardEvent) => void) | null = null;
 
-  // ── Reset state ───────────────────────────────────────────────────────────
-  private resetStep: ResetStep = 'idle';
-  private resetGraphics: Phaser.GameObjects.Graphics | null = null;
-  private resetTexts: Phaser.GameObjects.Text[] = [];
-  private resetButtons: Phaser.GameObjects.Rectangle[] = [];
-
-  private createResetButton(cx: number, y: number): void {
-    this.resetGraphics = this.add.graphics();
-    this.drawResetIdle(cx, y);
-
-    const resetText = this.add
-      .text(cx, y, 'Reset Device', {
-        fontSize: '22px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: '#DC2626',
-      })
-      .setOrigin(0.5)
-      .setDepth(2);
-
-    const hitZone = this.add
-      .rectangle(cx, y, BTN_W, BTN_H, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
-
-    hitZone.on('pointerup', () => {
-      if (this.resetStep === 'idle') {
-        this.resetStep = 'confirm';
-        resetText.setVisible(false);
-        hitZone.setVisible(false);
-        this.showConfirmUI(cx, y);
-      }
-    });
-
-    this.resetTexts.push(resetText);
-    this.resetButtons.push(hitZone);
-  }
-
-  private drawResetIdle(cx: number, y: number): void {
-    if (!this.resetGraphics) return;
-    this.resetGraphics.clear();
-    this.resetGraphics.fillStyle(0xfee2e2, 1);
-    this.resetGraphics.fillRoundedRect(cx - BTN_W / 2, y - BTN_H / 2, BTN_W, BTN_H, BTN_RADIUS);
-    this.resetGraphics.setDepth(1);
-  }
-
-  private confirmTexts: Phaser.GameObjects.Text[] = [];
-  private confirmButtons: Phaser.GameObjects.Rectangle[] = [];
-  private confirmGraphics: Phaser.GameObjects.Graphics[] = [];
-
-  private showConfirmUI(cx: number, baseY: number): void {
-    // Confirmation label
-    const label = this.add
-      .text(cx, baseY - 20, 'Reset Device — are you sure?\nThis deletes everything.', {
-        fontSize: '18px',
-        fontFamily: BODY_FONT,
-        color: '#DC2626',
-        align: 'center',
-      })
-      .setOrigin(0.5)
-      .setDepth(2);
-
-    // "Yes, reset" button
-    const yesG = this.add.graphics();
-    yesG.fillStyle(0xdc2626, 1);
-    yesG.fillRoundedRect(cx - 170, baseY + 50, 150, 48, 8);
-    yesG.setDepth(1);
-
-    const yesText = this.add
-      .text(cx - 95, baseY + 74, 'Yes, reset', {
-        fontSize: '18px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: '#FFFFFF',
-      })
-      .setOrigin(0.5)
-      .setDepth(2);
-
-    const yesHit = this.add
-      .rectangle(cx - 95, baseY + 74, 150, 48, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
-
-    yesHit.on('pointerup', () => void this.executeReset());
-
-    // "Cancel" button
-    const cancelG = this.add.graphics();
-    cancelG.fillStyle(0xe5e7eb, 1);
-    cancelG.fillRoundedRect(cx + 20, baseY + 50, 150, 48, 8);
-    cancelG.setDepth(1);
-
-    const cancelText = this.add
-      .text(cx + 95, baseY + 74, 'Cancel', {
-        fontSize: '18px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: '#374151',
-      })
-      .setOrigin(0.5)
-      .setDepth(2);
-
-    const cancelHit = this.add
-      .rectangle(cx + 95, baseY + 74, 150, 48, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
-
-    cancelHit.on('pointerup', () => this.cancelReset(cx, baseY));
-
-    this.confirmTexts.push(label, yesText, cancelText);
-    this.confirmGraphics.push(yesG, cancelG);
-    this.confirmButtons.push(yesHit, cancelHit);
-  }
-
-  private cancelReset(cx: number, y: number): void {
-    this.resetStep = 'idle';
-    this.confirmTexts.forEach((t) => t.destroy());
-    this.confirmButtons.forEach((b) => b.destroy());
-    this.confirmGraphics.forEach((g) => g.destroy());
-    this.confirmTexts = [];
-    this.confirmButtons = [];
-    this.confirmGraphics = [];
-    this.resetTexts.forEach((t) => t.setVisible(true));
-    this.resetButtons.forEach((b) => b.setVisible(true));
-    this.drawResetIdle(cx, y);
-  }
-
-  private async executeReset(): Promise<void> {
-    AccessibilityAnnouncer.announce('Resetting device. Please wait.');
-    try {
-      await db.delete();
-    } catch (err) {
-      // ignore — DB may already be gone
-    }
-    lastUsedStudent.clear();
-    if (typeof location !== 'undefined') location.reload();
-  }
-
-  private handleReset(): void {
-    // Programmatic trigger from TestHook overlay — simulate step 1 click on canvas button
-    const hit = this.resetButtons[0];
-    if (hit) hit.emit('pointerup');
-  }
-
-  // ── Export ─────────────────────────────────────────────────────────────────
-  // ── Status Display (consolidated) ─────────────────────────────────────────
-  private statusText: Phaser.GameObjects.Text | null = null;
-
   private showStatus(
     msg: string,
     y: number,
@@ -360,18 +223,6 @@ export class SettingsScene extends Phaser.Scene {
         this.statusText?.destroy();
         this.statusText = null;
       });
-    }
-  }
-
-  // ── Export ─────────────────────────────────────────────────────────────────
-  private async doExport(): Promise<void> {
-    try {
-      await backupToFile();
-      this.showStatus('Saved! Check your downloads.', 680);
-      AccessibilityAnnouncer.announce('Backup downloaded successfully.');
-    } catch (err) {
-      this.showStatus('Export failed — please try again.', 680);
-      AccessibilityAnnouncer.announce('Export failed. Please try again.');
     }
   }
 
@@ -430,53 +281,6 @@ export class SettingsScene extends Phaser.Scene {
         this.showStatus('Up to date', 960);
       }
     });
-  }
-
-  // ── Restore ────────────────────────────────────────────────────────────────
-  private fileInput: HTMLInputElement | null = null;
-
-  private setupFileInput(): void {
-    if (typeof document === 'undefined') return;
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.style.display = 'none';
-    input.setAttribute('aria-hidden', 'true');
-    input.addEventListener('change', () => {
-      const file = input.files?.[0];
-      if (file) void this.doRestore(file);
-      input.value = '';
-    });
-    document.body.appendChild(input);
-    this.fileInput = input;
-  }
-
-  private triggerFilePicker(): void {
-    this.fileInput?.click();
-  }
-
-  private async doRestore(file?: File): Promise<void> {
-    if (!file) return;
-    try {
-      const result = await restoreFromFile(file);
-      this.showStatus(`Restored ${result.added} records — reloading…`, 770);
-      AccessibilityAnnouncer.announce(`Restored ${result.added} records successfully. Reloading…`);
-      this.time.delayedCall(3000, () => {
-        if (typeof location !== 'undefined') location.reload();
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      if (msg.includes('unsupported schema version')) {
-        this.showStatus('Error: incompatible backup file', 770, 3000, true);
-        AccessibilityAnnouncer.announce('Error: incompatible backup file.');
-      } else if (msg.includes('invalid JSON')) {
-        this.showStatus('Error: not a valid backup file', 770, 3000, true);
-        AccessibilityAnnouncer.announce('Error: not a valid backup file.');
-      } else {
-        this.showStatus('Restore failed — please try again', 770, 3000, true);
-        AccessibilityAnnouncer.announce('Restore failed. Please try again.');
-      }
-    }
   }
 
   // ── Privacy link ───────────────────────────────────────────────────────────
@@ -568,10 +372,9 @@ export class SettingsScene extends Phaser.Scene {
     this.toggles = [];
     PreferenceToggle.destroyAll();
     TestHooks.unmountAll();
-    if (this.fileInput) {
-      this.fileInput.remove();
-      this.fileInput = null;
-    }
+    this.resetHandler.destroy();
+    this.backupHandler.destroy();
+    this.statusText?.destroy();
   }
 
   shutdown(): void {
