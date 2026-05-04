@@ -42,6 +42,12 @@ import {
   type QuestionFlowCallbacks,
 } from '../lib/levelSceneQuestionFlow';
 import {
+  showHintForTier as showHintForTierFlow,
+  pulseHintButton as pulseHintButtonFlow,
+  type HintFlowContext,
+  type HintFlowCallbacks,
+} from '../lib/levelSceneHintFlow';
+import {
   showOutcome as showOutcomeFlow,
   type OutcomeFlowContext,
   type OutcomeFlowCallbacks,
@@ -51,6 +57,7 @@ import {
   loadTemplatesForLevel,
   showOfflineCurriculumToast as showOfflineCurriculumToastLib,
 } from '../lib/levelSceneTemplates';
+import { showSessionCompleteForLevel } from '../lib/levelSceneSessionComplete';
 import { LevelVignette } from '../components/LevelVignette';
 import {
   createHeader as createHeaderLib,
@@ -59,14 +66,6 @@ import {
   createHintButton as createHintButtonLib,
   createSubmitButton as createSubmitButtonLib,
 } from '../lib/levelSceneChrome';
-import { HintController } from './controllers/HintController';
-import { ProgressionController } from './controllers/ProgressionController';
-import {
-  buildQuestionFlowContext,
-  buildQuestionFlowCallbacks,
-  type QuestionFlowState,
-  type QuestionFlowCallbackSetters,
-} from './utils/levelSceneContextBuilder';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
