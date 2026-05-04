@@ -4,6 +4,7 @@ import './styles/index.css';
 // catalog.get('quest.…'). registerCatalog is HMR-safe (idempotent on
 // deep-equal content), so re-evaluation under Vite hot reload is fine.
 import './lib/i18n/keys/quest';
+import './lib/i18n/keys/system';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
 
