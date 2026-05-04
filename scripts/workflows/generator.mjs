@@ -43,6 +43,9 @@ concurrency:
   group: \${{ github.workflow }}-\${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # Fast-fail gate: catches config drift before the 20-min cascade
   # Fails if workflows were edited manually instead of via gen:workflows
@@ -215,6 +218,9 @@ on:
   schedule:
     - cron: '0 6 * * 1' # Every Monday 06:00 UTC
   workflow_dispatch: # On-demand manual trigger
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   playtest:
