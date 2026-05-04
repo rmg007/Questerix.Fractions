@@ -1,0 +1,66 @@
+[
+  {
+    "validatorId": "validator.benchmark.sortToZone",
+    "input": {
+      "studentPlacements": {
+        "frac:1/2": "half",
+        "frac:1/4": "zero",
+        "frac:3/4": "one"
+      }
+    },
+    "expected": {
+      "correctPlacements": {
+        "frac:1/2": "half",
+        "frac:1/4": "zero",
+        "frac:3/4": "one"
+      }
+    },
+    "outcome": "correct"
+  },
+  {
+    "validatorId": "validator.benchmark.sortToZone",
+    "input": {
+      "studentPlacements": {
+        "frac:1/2": "half",
+        "frac:1/4": "zero",
+        "frac:3/4": "half"
+      }
+    },
+    "expected": {
+      "correctPlacements": {
+        "frac:1/2": "half",
+        "frac:1/4": "zero",
+        "frac:3/4": "one"
+      }
+    },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.benchmark.sortToZone",
+    "input": {
+      "studentPlacements": {
+        "frac:1/2": "zero",
+        "frac:1/4": "half",
+        "frac:3/4": "one"
+      }
+    },
+    "expected": {
+      "correctPlacements": {
+        "frac:1/2": "half",
+        "frac:1/4": "zero",
+        "frac:3/4": "one"
+      }
+    },
+    "outcome": "incorrect"
+  },
+  {
+    "validatorId": "validator.benchmark.sortToZone",
+    "input": {
+      "studentPlacements": {}
+    },
+    "expected": {
+      "correctPlacements": {}
+    },
+    "outcome": "correct"
+  }
+]
