@@ -19,22 +19,52 @@ export function makeGameObject() {
     scale: 1,
     visible: true,
     active: true,
-    setDepth: vi.fn(function() { return this; }),
-    setVisible: vi.fn(function() { return this; }),
-    setAlpha: vi.fn(function() { return this; }),
-    setX: vi.fn(function() { return this; }),
-    setY: vi.fn(function() { return this; }),
-    setPosition: vi.fn(function() { return this; }),
-    setScale: vi.fn(function() { return this; }),
+    setDepth: vi.fn(function () {
+      return this;
+    }),
+    setVisible: vi.fn(function () {
+      return this;
+    }),
+    setAlpha: vi.fn(function () {
+      return this;
+    }),
+    setX: vi.fn(function () {
+      return this;
+    }),
+    setY: vi.fn(function () {
+      return this;
+    }),
+    setPosition: vi.fn(function () {
+      return this;
+    }),
+    setScale: vi.fn(function () {
+      return this;
+    }),
     destroy: vi.fn(),
-    on: vi.fn(function() { return this; }),
-    off: vi.fn(function() { return this; }),
-    once: vi.fn(function() { return this; }),
-    emit: vi.fn(function() { return this; }),
-    setInteractive: vi.fn(function() { return this; }),
-    disableInteractive: vi.fn(function() { return this; }),
-    setStrokeStyle: vi.fn(function() { return this; }),
-    setFillStyle: vi.fn(function() { return this; }),
+    on: vi.fn(function () {
+      return this;
+    }),
+    off: vi.fn(function () {
+      return this;
+    }),
+    once: vi.fn(function () {
+      return this;
+    }),
+    emit: vi.fn(function () {
+      return this;
+    }),
+    setInteractive: vi.fn(function () {
+      return this;
+    }),
+    disableInteractive: vi.fn(function () {
+      return this;
+    }),
+    setStrokeStyle: vi.fn(function () {
+      return this;
+    }),
+    setFillStyle: vi.fn(function () {
+      return this;
+    }),
   };
   return go as any;
 }
@@ -49,46 +79,62 @@ export function makeGraphics() {
     x: 0,
     y: 0,
     depth: 0,
-    fillStyle: vi.fn(function(color: number) {
+    fillStyle: vi.fn(function (color: number) {
       calls.push({ method: 'fillStyle', args: [color] });
       return this;
     }),
-    fillRect: vi.fn(function(x: number, y: number, w: number, h: number) {
+    fillRect: vi.fn(function (x: number, y: number, w: number, h: number) {
       calls.push({ method: 'fillRect', args: [x, y, w, h] });
       return this;
     }),
-    fillRoundedRect: vi.fn(function(x: number, y: number, w: number, h: number, r: number) {
+    fillRoundedRect: vi.fn(function (x: number, y: number, w: number, h: number, r: number) {
       calls.push({ method: 'fillRoundedRect', args: [x, y, w, h, r] });
       return this;
     }),
-    lineStyle: vi.fn(function(width: number, color: number) {
+    lineStyle: vi.fn(function (width: number, color: number) {
       calls.push({ method: 'lineStyle', args: [width, color] });
       return this;
     }),
-    strokePath: vi.fn(function() {
+    strokePath: vi.fn(function () {
       calls.push({ method: 'strokePath', args: [] });
       return this;
     }),
-    strokeRect: vi.fn(function(x: number, y: number, w: number, h: number) {
+    strokeRect: vi.fn(function (x: number, y: number, w: number, h: number) {
       calls.push({ method: 'strokeRect', args: [x, y, w, h] });
       return this;
     }),
-    fillPath: vi.fn(function() {
+    fillPath: vi.fn(function () {
       calls.push({ method: 'fillPath', args: [] });
       return this;
     }),
-    clear: vi.fn(function() {
+    beginPath: vi.fn(function () {
+      calls.push({ method: 'beginPath', args: [] });
+      return this;
+    }),
+    closePath: vi.fn(function () {
+      calls.push({ method: 'closePath', args: [] });
+      return this;
+    }),
+    moveTo: vi.fn(function (x: number, y: number) {
+      calls.push({ method: 'moveTo', args: [x, y] });
+      return this;
+    }),
+    lineTo: vi.fn(function (x: number, y: number) {
+      calls.push({ method: 'lineTo', args: [x, y] });
+      return this;
+    }),
+    clear: vi.fn(function () {
       calls.push({ method: 'clear', args: [] });
       calls.length = 0; // reset on clear
       return this;
     }),
-    setDepth: vi.fn(function(depth: number) {
+    setDepth: vi.fn(function (depth: number) {
       return this;
     }),
-    setVisible: vi.fn(function(visible: boolean) {
+    setVisible: vi.fn(function (visible: boolean) {
       return this;
     }),
-    setAlpha: vi.fn(function(alpha: number) {
+    setAlpha: vi.fn(function (alpha: number) {
       return this;
     }),
     destroy: vi.fn(),
@@ -108,30 +154,50 @@ export function makeContainer() {
     depth: 0,
     alpha: 1,
     list: [] as any[],
-    add: vi.fn(function(child: any) {
+    add: vi.fn(function (child: any) {
       this.list.push(child);
       return this;
     }),
-    remove: vi.fn(function(child: any) {
+    remove: vi.fn(function (child: any) {
       const idx = this.list.indexOf(child);
       if (idx >= 0) this.list.splice(idx, 1);
       return this;
     }),
-    removeAll: vi.fn(function() {
+    removeAll: vi.fn(function () {
       this.list.length = 0;
       return this;
     }),
-    setDepth: vi.fn(function() { return this; }),
-    setVisible: vi.fn(function() { return this; }),
-    setAlpha: vi.fn(function() { return this; }),
-    setX: vi.fn(function() { return this; }),
-    setY: vi.fn(function() { return this; }),
-    setPosition: vi.fn(function() { return this; }),
-    setScale: vi.fn(function() { return this; }),
+    setDepth: vi.fn(function () {
+      return this;
+    }),
+    setVisible: vi.fn(function () {
+      return this;
+    }),
+    setAlpha: vi.fn(function () {
+      return this;
+    }),
+    setX: vi.fn(function () {
+      return this;
+    }),
+    setY: vi.fn(function () {
+      return this;
+    }),
+    setPosition: vi.fn(function () {
+      return this;
+    }),
+    setScale: vi.fn(function () {
+      return this;
+    }),
     destroy: vi.fn(),
-    on: vi.fn(function() { return this; }),
-    off: vi.fn(function() { return this; }),
-    setInteractive: vi.fn(function() { return this; }),
+    on: vi.fn(function () {
+      return this;
+    }),
+    off: vi.fn(function () {
+      return this;
+    }),
+    setInteractive: vi.fn(function () {
+      return this;
+    }),
   };
   return container as any;
 }
@@ -192,14 +258,22 @@ export function makeText(initialText = '') {
   const text = {
     ...makeGameObject(),
     text: initialText,
-    setText: vi.fn(function(t: string) {
+    setText: vi.fn(function (t: string) {
       this.text = t;
       return this;
     }),
-    setColor: vi.fn(function() { return this; }),
-    setFontSize: vi.fn(function() { return this; }),
-    setOrigin: vi.fn(function() { return this; }),
-    setAlign: vi.fn(function() { return this; }),
+    setColor: vi.fn(function () {
+      return this;
+    }),
+    setFontSize: vi.fn(function () {
+      return this;
+    }),
+    setOrigin: vi.fn(function () {
+      return this;
+    }),
+    setAlign: vi.fn(function () {
+      return this;
+    }),
   };
   return text as any;
 }

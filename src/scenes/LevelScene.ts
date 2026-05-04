@@ -26,6 +26,7 @@ import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '..
 import { withSpan } from '../lib/observability/withSpan';
 import { SPAN_NAMES } from '../lib/observability/span-names';
 import { questFeedbackText as questFeedbackTextLib } from '../lib/levelSceneFeedback';
+import { questHintText as questHintTextLib } from '../lib/levelSceneHintFlow';
 import {
   loadQuestion as loadQuestionFlow,
   submitQuestion,
@@ -431,6 +432,10 @@ export class LevelScene extends Phaser.Scene {
       this.currentTemplate?.archetype as string | undefined,
       this.payloadDenominator()
     );
+  }
+
+  questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
+    return questHintTextLib(archetype, tier, this.currentTemplate);
   }
 
   private onHintRequest(): void {
