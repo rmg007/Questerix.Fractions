@@ -66,14 +66,12 @@ export class SettingsScene extends Phaser.Scene {
     this.sectionLabel(cx, 940, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
-    // Canvas top ~100px; section label at 190 canvas px.
-    // We position relative to viewport using approximate mapping.
-    const canvasTop = this.sys.game.canvas.getBoundingClientRect?.().top ?? 0;
+    const rect = this.sys.game.canvas.getBoundingClientRect?.();
+    const canvasTop = rect?.top ?? 0;
+    const canvasLeft = rect?.left ?? 0;
     const scaleY = this.sys.game.canvas.clientHeight / CH;
-
     const toViewport = (canvasY: number) => `${canvasTop + canvasY * scaleY}px`;
-
-    const halfCanvas = `${(this.sys.game.canvas.getBoundingClientRect?.().left ?? 0) + this.sys.game.canvas.clientWidth / 2}px`;
+    const halfCanvas = `${canvasLeft + this.sys.game.canvas.clientWidth / 2}px`;
 
     this.toggles.push(
       new PreferenceToggle(
@@ -357,19 +355,8 @@ export class SettingsScene extends Phaser.Scene {
 
   private showExportStatus(msg: string): void {
     this.exportStatusText?.destroy();
-    this.exportStatusText = this.add
-      .text(CW / 2, 680, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
-    this.time.delayedCall(3000, () => {
-      this.exportStatusText?.destroy();
-      this.exportStatusText = null;
-    });
+    this.exportStatusText = this.add.text(CW / 2, 680, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' }).setOrigin(0.5).setDepth(5);
+    this.time.delayedCall(3000, () => { this.exportStatusText?.destroy(); this.exportStatusText = null; });
   }
 
   // ── Refresh Curriculum (Phase 11.1) ────────────────────────────────────────
@@ -402,14 +389,7 @@ export class SettingsScene extends Phaser.Scene {
 
   private showRefreshStatus(msg: string): void {
     this.refreshStatusText?.destroy();
-    this.refreshStatusText = this.add
-      .text(CW / 2, 935, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
+    this.refreshStatusText = this.add.text(CW / 2, 935, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' }).setOrigin(0.5).setDepth(5);
   }
 
   // ── Check for App Update (Phase 14) ────────────────────────────────────────
@@ -455,20 +435,9 @@ export class SettingsScene extends Phaser.Scene {
 
   private showUpdateStatus(msg: string): void {
     this.updateStatusText?.destroy();
-    this.updateStatusText = this.add
-      .text(CW / 2, 960, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
+    this.updateStatusText = this.add.text(CW / 2, 960, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' }).setOrigin(0.5).setDepth(5);
     if (!msg.includes('Checking') && !msg.includes('reloading')) {
-      this.time.delayedCall(3000, () => {
-        this.updateStatusText?.destroy();
-        this.updateStatusText = null;
-      });
+      this.time.delayedCall(3000, () => { this.updateStatusText?.destroy(); this.updateStatusText = null; });
     }
   }
 
@@ -522,50 +491,19 @@ export class SettingsScene extends Phaser.Scene {
 
   private showRestoreStatus(msg: string, isError = false): void {
     this.restoreStatusText?.destroy();
-    this.restoreStatusText = this.add
-      .text(CW / 2, 770, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: isError ? '#DC2626' : '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-
-    this.time.delayedCall(3000, () => {
-      this.restoreStatusText?.destroy();
-      this.restoreStatusText = null;
-    });
+    this.restoreStatusText = this.add.text(CW / 2, 770, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: isError ? '#DC2626' : '#059669' }).setOrigin(0.5).setDepth(5);
+    this.time.delayedCall(3000, () => { this.restoreStatusText?.destroy(); this.restoreStatusText = null; });
   }
 
   // ── Privacy link ───────────────────────────────────────────────────────────
   private createPrivacyLink(cx: number, y: number): void {
-    const text = this.add
-      .text(cx, y, 'Privacy Notice →', {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: '#5848D6', // C6.1: darkened to 5.2:1 contrast (WCAG AA 4.5:1)
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
-
-    text.on('pointerup', () => {
-      if (typeof window !== 'undefined') {
-        window.open('/privacy.html', '_blank', 'noopener');
-      }
-    });
+    const text = this.add.text(cx, y, 'Privacy Notice →', { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(3);
+    text.on('pointerup', () => { if (typeof window !== 'undefined') window.open('/privacy.html', '_blank', 'noopener'); });
   }
 
   // ── Section label ──────────────────────────────────────────────────────────
   private sectionLabel(cx: number, y: number, label: string): void {
-    this.add
-      .text(cx, y, label, {
-        fontSize: '22px',
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        color: HEX.neutral600,
-      })
-      .setOrigin(0.5);
+    this.add.text(cx, y, label, { fontSize: '22px', fontFamily: BODY_FONT, fontStyle: 'bold', color: HEX.neutral600 }).setOrigin(0.5);
   }
 
   // ── Generic button ─────────────────────────────────────────────────────────
@@ -617,12 +555,7 @@ export class SettingsScene extends Phaser.Scene {
 
   private createVersionTapToggle(cx: number, y: number): void {
     const sha = (import.meta.env.VITE_GIT_SHA as string | undefined) ?? 'dev';
-    const label = `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`;
-    const txt = this.add
-      .text(cx, y, label, { fontSize: '14px', fontFamily: BODY_FONT, color: HEX.neutral600 })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(3);
+    const txt = this.add.text(cx, y, `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`, { fontSize: '14px', fontFamily: BODY_FONT, color: HEX.neutral600 }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(3);
     txt.on('pointerup', () => void this.handleVersionTap(txt, sha));
   }
 
@@ -642,14 +575,8 @@ export class SettingsScene extends Phaser.Scene {
 
   private showResearcherToast(msg: string): void {
     this.researcherToast?.destroy();
-    this.researcherToast = this.add
-      .text(CW / 2, 1240, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this.time.delayedCall(2000, () => {
-      this.researcherToast?.destroy();
-      this.researcherToast = null;
-    });
+    this.researcherToast = this.add.text(CW / 2, 1240, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' }).setOrigin(0.5).setDepth(5);
+    this.time.delayedCall(2000, () => { this.researcherToast?.destroy(); this.researcherToast = null; });
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
