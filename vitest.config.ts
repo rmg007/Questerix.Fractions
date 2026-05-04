@@ -35,16 +35,19 @@ export default defineConfig({
         'src/curriculum/bundle.json',
         'src/types/**',
       ],
-      // Phase 6.4 — coverage gate on the three pure layers.
+      // Phase 15 — expanded coverage gates to enforce backfill progress.
       // Thresholds set against the actual unit-suite baseline measured
       // 2026-05-01 (NOT the integration suite, which adds ~25 pts to
       // persistence coverage but runs separately via vitest.integration.config.ts):
-      //   src/engine        — ~95% lines  → gate 90 / 85 functions
-      //   src/validators    — ~91% lines  → gate 85 / 80 functions
-      //   src/persistence   — ~50% lines  → gate 45 / 45 functions (regression
+      //   src/engine           — ~95% lines  → gate 90 / 85 functions
+      //   src/validators       — ~91% lines  → gate 85 / 80 functions
+      //   src/persistence      — ~50% lines  → gate 45 / 45 functions (regression
       //     prevention only; absolute coverage is bolstered by the integration
       //     suite. Tighten once tests/integration is folded into the unit run
       //     OR after a dedicated test-writing pass on the under-covered repos.)
+      //   src/components/**    — ~39% lines → gate 40% (happy path + 1 edge per file)
+      //   src/lib/**           — ~26% lines → gate 40% (happy path + 1 edge per file)
+      //   src/curriculum/**    — data-heavy → gate 60% (high ROI, mostly JSON)
       // Branch thresholds intentionally omitted for v1 — line coverage is
       // the conservative gate; ratchet branch later as tests grow.
       thresholds: {
@@ -59,6 +62,15 @@ export default defineConfig({
         'src/persistence/**/*.ts': {
           lines: 45,
           functions: 45,
+        },
+        'src/components/**/*.ts': {
+          lines: 40,
+        },
+        'src/lib/**/*.ts': {
+          lines: 40,
+        },
+        'src/curriculum/**': {
+          lines: 60,
         },
       },
       reporter: ['text', 'html', 'json-summary'],

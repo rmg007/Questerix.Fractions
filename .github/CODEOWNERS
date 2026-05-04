@@ -1,2 +1,8 @@
 # All files — solo project
 * @ryanmidogonzalez
+
+# Workflows are auto-generated from .github/workflows/templates/*.yml via
+# npm run gen:workflows. Do NOT edit YAML files manually. Changes must be made to
+# the generator or templates, then regenerate with 'npm run gen:workflows'.
+# The pre-push hook and CI consistency job enforce this.
+.github/workflows/ @ryanmidogonzalez

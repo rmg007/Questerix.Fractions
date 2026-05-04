@@ -131,6 +131,23 @@ export class SettingsScene extends Phaser.Scene {
     });
     this.createResetButton(cx, 820);
 
+    // ── Check for App Update button (Phase 14) ──────────────────────────────
+    // Allows users to explicitly check for and apply app updates.
+    TestHooks.mountInteractive('settings-update-btn', () => void this.doCheckForAppUpdate(), {
+      top: toViewport(910),
+      left: halfCanvas,
+      width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
+      height: `${BTN_H * scaleY}px`,
+    });
+    this.createButton(
+      cx,
+      910,
+      'Check for App Update',
+      CLR.primary,
+      HEX.neutral0,
+      () => void this.doCheckForAppUpdate()
+    );
+
     // ── Refresh Curriculum button (Phase 11.1) ─────────────────────────────
     // Sits inside the Data section so a parent can force a curriculum
     // re-download when the pipeline ships new question content. Deletes the
@@ -140,7 +157,7 @@ export class SettingsScene extends Phaser.Scene {
       'settings-refresh-curriculum-btn',
       () => void this.doRefreshCurriculum(),
       {
-        top: toViewport(880),
+        top: toViewport(1000),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
@@ -148,7 +165,7 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.createButton(
       cx,
-      880,
+      1000,
       'Refresh Curriculum',
       CLR.primary,
       HEX.neutral0,
@@ -395,6 +412,66 @@ export class SettingsScene extends Phaser.Scene {
       .setDepth(5);
   }
 
+  // ── Check for App Update (Phase 14) ────────────────────────────────────────
+  private updateStatusText: Phaser.GameObjects.Text | null = null;
+  private updateCheckListener: ((e: Event) => void) | null = null;
+
+  private async doCheckForAppUpdate(): Promise<void> {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      this.showUpdateStatus('Updates not available');
+      return;
+    }
+
+    this.showUpdateStatus('Checking for updates...');
+    let updateFound = false;
+
+    const handleControllerChange = (): void => {
+      if (updateFound) return;
+      updateFound = true;
+      this.showUpdateStatus('New version ready — reloading...');
+      this.time.delayedCall(1000, () => {
+        if (typeof location !== 'undefined') location.reload();
+      });
+    };
+
+    this.updateCheckListener = handleControllerChange;
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg) await reg.update();
+    } catch (err) {
+      console.warn('[SettingsScene] update check failed:', err);
+    }
+
+    this.time.delayedCall(5000, () => {
+      if (!updateFound && this.updateCheckListener) {
+        navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
+        this.updateCheckListener = null;
+        this.showUpdateStatus('Up to date');
+      }
+    });
+  }
+
+  private showUpdateStatus(msg: string): void {
+    this.updateStatusText?.destroy();
+    this.updateStatusText = this.add
+      .text(CW / 2, 960, msg, {
+        fontSize: '16px',
+        fontFamily: BODY_FONT,
+        color: '#059669',
+      })
+      .setOrigin(0.5)
+      .setDepth(5);
+
+    if (!msg.includes('Checking') && !msg.includes('reloading')) {
+      this.time.delayedCall(3000, () => {
+        this.updateStatusText?.destroy();
+        this.updateStatusText = null;
+      });
+    }
+  }
+
   // ── Restore ────────────────────────────────────────────────────────────────
   private fileInput: HTMLInputElement | null = null;
   private restoreStatusText: Phaser.GameObjects.Text | null = null;
@@ -585,6 +662,14 @@ export class SettingsScene extends Phaser.Scene {
     if (this._keyHandler && typeof document !== 'undefined') {
       document.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
+    }
+    if (
+      this.updateCheckListener &&
+      typeof navigator !== 'undefined' &&
+      'serviceWorker' in navigator
+    ) {
+      navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
+      this.updateCheckListener = null;
     }
     this.toggles.forEach((t) => t.destroy());
     this.toggles = [];

@@ -1,15 +1,28 @@
 /**
  * E2E tests for SettingsScene — open Settings, verify Export/Reset presence.
  * per test-strategy.md §1.3 (E2E happy path)
+ *
+ * Flake in suite mode (Cluster D) fixed in Phase 15 via IndexedDB cleanup in beforeEach.
  */
 
 import { test, expect } from './_fixture';
 
-// TODO: settings.spec flakes in suite mode under CI conditions —
-// boot timing / IndexedDB state shared across tests pushes both assertions
-// past their 8s/3s sentinel timeouts. Track via PLANS/E2E_FOLLOWUPS.md
-// (Cluster D — shared state flake).
-test.describe.skip('Settings scene', () => {
+test.describe('Settings scene', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear IndexedDB state before each test to prevent shared state leaks
+    // (Cluster D flake: IndexedDB state was persisting across tests in suite mode)
+    await page.evaluate(async () => {
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        const dbs = (await window.indexedDB.databases?.()) || [];
+        for (const dbInfo of dbs) {
+          if (dbInfo.name === 'questerix-fractions') {
+            window.indexedDB.deleteDatabase('questerix-fractions');
+          }
+        }
+      }
+    });
+  });
+
   test('navigates Boot → Menu → Settings, renders settings-scene sentinel', async ({ page }) => {
     await page.goto('/');
 
@@ -30,9 +43,7 @@ test.describe.skip('Settings scene', () => {
     await expect(page.locator('[data-testid="settings-scene"]')).toBeVisible({ timeout: 5000 });
   });
 
-  // TODO: passes in isolation but flakes in suite — same shared-IndexedDB
-  // pattern as Cluster D in PLANS/E2E_FOLLOWUPS.md.
-  test.skip('Settings scene exposes Export and Reset interactive buttons', async ({ page }) => {
+  test('Settings scene exposes Export and Reset interactive buttons', async ({ page }) => {
     await page.goto('/');
 
     const startBtn = page.locator('[data-testid="boot-start-btn"]');

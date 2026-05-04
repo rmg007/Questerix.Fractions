@@ -5,17 +5,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { gzipSync, brotliCompressSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
+import { BUDGET_BYTES, CHUNK_BUDGETS } from './config.mjs';
 
 const distDir = resolve(process.cwd(), 'dist', 'assets');
-const BUDGET_BYTES = 1_048_576; // 1 MB
-
-// Per-chunk budgets in KB (gzipped)
-const CHUNK_BUDGETS = {
-  phaser: 380,
-  scenes: 100,
-  observability: 12,
-  dexie: 35,
-};
 
 let files;
 try {

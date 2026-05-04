@@ -10,6 +10,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { BUDGET_BYTES } from './config.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(__dirname, '..')
@@ -109,7 +110,6 @@ for (const file of specFiles) {
 
 // Rule 2: Bundle size budget (1.0 MB gzipped)
 console.log('Checking bundle size...')
-const BUNDLE_BUDGET = 1048576 // 1 MB in bytes
 
 try {
   const distDir = path.join(REPO_ROOT, 'dist')
@@ -126,8 +126,8 @@ try {
       totalGzipped += estimatedGz
     }
 
-    if (totalGzipped > BUNDLE_BUDGET) {
-      const budgetKB = Math.round(BUNDLE_BUDGET / 1024)
+    if (totalGzipped > BUDGET_BYTES) {
+      const budgetKB = Math.round(BUDGET_BYTES / 1024)
       const actualKB = Math.round(totalGzipped / 1024)
       violations.push(
         new Violation(
@@ -138,7 +138,7 @@ try {
         )
       )
     } else {
-      console.log(`✓ Bundle size OK: ~${Math.round(totalGzipped / 1024)}KB (budget: ${Math.round(BUNDLE_BUDGET / 1024)}KB)`)
+      console.log(`✓ Bundle size OK: ~${Math.round(totalGzipped / 1024)}KB (budget: ${Math.round(BUDGET_BYTES / 1024)}KB)`)
     }
   }
 } catch (err) {

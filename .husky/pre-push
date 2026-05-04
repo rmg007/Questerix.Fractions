@@ -19,6 +19,14 @@ case "$BRANCH" in
       echo "See docs/00-foundation/git-workflow.md and CLAUDE.md → 'Git workflow'."
       exit 1
     fi
+    # Check branch name length (max 60 chars total)
+    if [ ${#BRANCH} -gt 60 ]; then
+      echo ""
+      echo "ERROR: branch name exceeds 60 character limit (${#BRANCH} chars)."
+      echo "Current: $BRANCH"
+      echo "Shorten the slug to fit within 60 chars total."
+      exit 1
+    fi
     ;;
 esac
 
