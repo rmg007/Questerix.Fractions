@@ -66,17 +66,12 @@ describe('Curriculum Loader Coverage', () => {
     expect(result.contentVersion).toBeDefined();
   });
 
-  it('emits failure when fallback also fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
-
-    // We need to mock assertBundleShape or make bundledData invalid
-    // But bundledData is an import. We can mock the module if needed.
-    // Actually, let's just test the emitFailure logic via a malformed response
+  it('emits failure on HTTP error', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ version: 'invalid' }), // Will throw in assertBundleShape
+        ok: false,
+        status: 404,
       })
     );
 
@@ -86,8 +81,8 @@ describe('Curriculum Loader Coverage', () => {
     await loadCurriculumBundle();
 
     expect(getLastCurriculumLoadFailure()).not.toBeNull();
-    // Since it wasn't a TypeError, it tried fallback. If fallback worked, it won't emit.
-    // If we want to force fallback failure, we'd need to mock the import or assertBundleShape.
+    expect(getLastCurriculumLoadFailure()?.reason).toBe('http_error');
+    expect(listener).toHaveBeenCalled();
   });
 
   it('handles clearLastCurriculumLoadFailure', () => {
