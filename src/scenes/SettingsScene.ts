@@ -340,84 +340,74 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   // ── Export ─────────────────────────────────────────────────────────────────
-  private exportStatusText: Phaser.GameObjects.Text | null = null;
+  // ── Status Display (consolidated) ─────────────────────────────────────────
+  private statusText: Phaser.GameObjects.Text | null = null;
 
+  private showStatus(
+    msg: string,
+    y: number,
+    duration: number | null = 3000,
+    isError = false
+  ): void {
+    this.statusText?.destroy();
+    const color = isError ? '#DC2626' : '#059669';
+    this.statusText = this.add
+      .text(CW / 2, y, msg, { fontSize: '16px', fontFamily: BODY_FONT, color })
+      .setOrigin(0.5)
+      .setDepth(5);
+    if (duration) {
+      this.time.delayedCall(duration, () => {
+        this.statusText?.destroy();
+        this.statusText = null;
+      });
+    }
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
   private async doExport(): Promise<void> {
     try {
       await backupToFile();
-      this.showExportStatus('Saved! Check your downloads.');
+      this.showStatus('Saved! Check your downloads.', 680);
       AccessibilityAnnouncer.announce('Backup downloaded successfully.');
     } catch (err) {
-      this.showExportStatus('Export failed — please try again.');
+      this.showStatus('Export failed — please try again.', 680);
       AccessibilityAnnouncer.announce('Export failed. Please try again.');
     }
   }
 
-  private showExportStatus(msg: string): void {
-    this.exportStatusText?.destroy();
-    this.exportStatusText = this.add
-      .text(CW / 2, 680, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this.time.delayedCall(3000, () => {
-      this.exportStatusText?.destroy();
-      this.exportStatusText = null;
-    });
-  }
-
   // ── Refresh Curriculum (Phase 11.1) ────────────────────────────────────────
-  private refreshStatusText: Phaser.GameObjects.Text | null = null;
-
-  /**
-   * Drop the service-worker `curriculum-cache` and reload so the next boot
-   * fetches the latest `/curriculum/v1.json` from the network. Cache name
-   * must stay in sync with vite.config.ts. Failure is non-fatal — the
-   * reload still happens so the user sees a fresh boot.
-   */
   private async doRefreshCurriculum(): Promise<void> {
     let cacheCleared = false;
     try {
       if (typeof caches !== 'undefined') {
-        // Workbox uses the cacheName verbatim — no prefix.
         cacheCleared = await caches.delete('curriculum-cache');
       }
     } catch (err) {
       console.warn('[SettingsScene] curriculum-cache delete failed:', err);
     }
 
-    this.showRefreshStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…');
-
-    // Allow the toast to paint before the reload tears down the page.
+    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 935, null);
     this.time.delayedCall(600, () => {
       if (typeof location !== 'undefined') location.reload();
     });
   }
 
-  private showRefreshStatus(msg: string): void {
-    this.refreshStatusText?.destroy();
-    this.refreshStatusText = this.add
-      .text(CW / 2, 935, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' })
-      .setOrigin(0.5)
-      .setDepth(5);
-  }
-
   // ── Check for App Update (Phase 14) ────────────────────────────────────────
-  private updateStatusText: Phaser.GameObjects.Text | null = null;
   private updateCheckListener: ((e: Event) => void) | null = null;
 
   private async doCheckForAppUpdate(): Promise<void> {
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
-      this.showUpdateStatus('Updates not available');
+      this.showStatus('Updates not available', 960);
       return;
     }
 
-    this.showUpdateStatus('Checking for updates...');
+    this.showStatus('Checking for updates...', 960, null);
     let updateFound = false;
 
     const handleControllerChange = (): void => {
       if (updateFound) return;
       updateFound = true;
-      this.showUpdateStatus('New version ready — reloading...');
+      this.showStatus('New version ready — reloading...', 960, null);
       this.time.delayedCall(1000, () => {
         if (typeof location !== 'undefined') location.reload();
       });
@@ -437,28 +427,13 @@ export class SettingsScene extends Phaser.Scene {
       if (!updateFound && this.updateCheckListener) {
         navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
         this.updateCheckListener = null;
-        this.showUpdateStatus('Up to date');
+        this.showStatus('Up to date', 960);
       }
     });
   }
 
-  private showUpdateStatus(msg: string): void {
-    this.updateStatusText?.destroy();
-    this.updateStatusText = this.add
-      .text(CW / 2, 960, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#059669' })
-      .setOrigin(0.5)
-      .setDepth(5);
-    if (!msg.includes('Checking') && !msg.includes('reloading')) {
-      this.time.delayedCall(3000, () => {
-        this.updateStatusText?.destroy();
-        this.updateStatusText = null;
-      });
-    }
-  }
-
   // ── Restore ────────────────────────────────────────────────────────────────
   private fileInput: HTMLInputElement | null = null;
-  private restoreStatusText: Phaser.GameObjects.Text | null = null;
 
   private setupFileInput(): void {
     if (typeof document === 'undefined') return;
@@ -484,7 +459,7 @@ export class SettingsScene extends Phaser.Scene {
     if (!file) return;
     try {
       const result = await restoreFromFile(file);
-      this.showRestoreStatus(`Restored ${result.added} records — reloading…`);
+      this.showStatus(`Restored ${result.added} records — reloading…`, 770);
       AccessibilityAnnouncer.announce(`Restored ${result.added} records successfully. Reloading…`);
       this.time.delayedCall(3000, () => {
         if (typeof location !== 'undefined') location.reload();
@@ -492,32 +467,16 @@ export class SettingsScene extends Phaser.Scene {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       if (msg.includes('unsupported schema version')) {
-        this.showRestoreStatus('Error: incompatible backup file', true);
+        this.showStatus('Error: incompatible backup file', 770, 3000, true);
         AccessibilityAnnouncer.announce('Error: incompatible backup file.');
       } else if (msg.includes('invalid JSON')) {
-        this.showRestoreStatus('Error: not a valid backup file', true);
+        this.showStatus('Error: not a valid backup file', 770, 3000, true);
         AccessibilityAnnouncer.announce('Error: not a valid backup file.');
       } else {
-        this.showRestoreStatus('Restore failed — please try again', true);
+        this.showStatus('Restore failed — please try again', 770, 3000, true);
         AccessibilityAnnouncer.announce('Restore failed. Please try again.');
       }
     }
-  }
-
-  private showRestoreStatus(msg: string, isError = false): void {
-    this.restoreStatusText?.destroy();
-    this.restoreStatusText = this.add
-      .text(CW / 2, 770, msg, {
-        fontSize: '16px',
-        fontFamily: BODY_FONT,
-        color: isError ? '#DC2626' : '#059669',
-      })
-      .setOrigin(0.5)
-      .setDepth(5);
-    this.time.delayedCall(3000, () => {
-      this.restoreStatusText?.destroy();
-      this.restoreStatusText = null;
-    });
   }
 
   // ── Privacy link ───────────────────────────────────────────────────────────
