@@ -1,8 +1,21 @@
 # Questerix Fractions — Active Plan
 
 **Created:** 2026-05-02  
-**Last updated:** 2026-05-02  
+**Last updated:** 2026-05-03  
 **MVP exit criterion:** A real student completes a 5-question L1 session in a real browser tab, confirmed via DevTools → IndexedDB.
+
+---
+
+## Summary of Session (2026-05-03)
+
+✅ **Completed & Verified:**
+- **Phase 8 — WCAG 2.1 AA Accessibility Hardening** — all 5 workstreams complete (color contrast, ARIA labels, hit targets, reduced-motion, AccessibilityAnnouncer)
+  - Color contrast: primary #2F6FED → #1E54CE (5:1 ratio on white, WCAG AA)
+  - ARIA labels: SessionCompleteOverlay buttons registered in A11yLayer (keyboard/screen-reader access)
+  - Hit targets: verified all interactive ≥44×44 CSS px
+  - Reduced-motion: all tweens guarded via checkReduceMotion()
+  - Announcer: all outcomes announced via live regions
+  - Commits: 4e09bd7, ad2012b
 
 ---
 
@@ -20,13 +33,10 @@
 
 ## Active trackers
 
-**Phase 8 — WCAG 2.1 AA Accessibility Hardening** (in progress)
-- ✅ Color contrast: darkened primary #2F6FED → #1E54CE (5:1 on white), added contrast unit tests
-- ✅ ARIA labels: SessionCompleteOverlay buttons now registered in A11yLayer (MUST FIX completed)
-- ✅ Hit targets: all interactive elements ≥44×44 CSS px (verified)
-- ✅ Reduced-motion: all tweens guarded via checkReduceMotion() (verified)
-- ✅ AccessibilityAnnouncer: live regions working, all outcomes announced (verified)
-- 🔄 Gate: npm run test:a11y must pass (running now)
+**Phase 4.2 — LevelScene god-object refactor** (pending)
+- File: `src/scenes/LevelScene.ts` (~801 LOC, 600 budget)
+- Required: Extract chrome, hint flow, progression math
+- Gate: typecheck + lint + tests green AND file under budget before next sub-phase
 
 ---
 
@@ -40,8 +50,8 @@
 - Phase 5 — Production (CI hardening, E2E unblock, deferred manual items moved to MANUAL_VERIFICATION.md) ✅
 - Phase 6 — Correctness & Integrity (R1–R12, C0.0a–C0.0d) ✅
 - **Phase 4.1 — Level01Scene god-object refactor (1648 → 598 LOC)** ✅
-- **Phase 7 — UI/UX Polish (14 items)** ✅
-- **Phase 8 — E2E Cluster Unblock (5 clusters, ~14 tests)** ✅ — see `_archive/2026-05-02-E2E-CLUSTERS.md`
+- **Phase 7 — Component Lifecycle Hardening (5 workstreams)** ✅
+- **Phase 8 — WCAG 2.1 AA Accessibility Hardening (5 workstreams)** ✅
 
 ---
 
