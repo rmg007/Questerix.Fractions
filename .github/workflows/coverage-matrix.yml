@@ -68,13 +68,13 @@ jobs:
       # ------------------------------------------------------------------
       - name: Dispatch agent
         id: agent
-        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        uses: ./.github/actions/agent-dispatch
         with:
           prompt_template: coverage-matrix
           context_json: '{}'
           working_branch: ${{ steps.branch.outputs.branch }}
           timeout_minutes: 20
-        secrets:
+        env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 

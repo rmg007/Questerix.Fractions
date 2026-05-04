@@ -91,14 +91,14 @@ jobs:
       - name: Dispatch agent
         if: steps.changed.outputs.skip != 'true'
         id: agent
-        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        uses: ./.github/actions/agent-dispatch
         with:
           prompt_template: misconception-synthesis
           context_json: >-
             {"NEW_CURRICULUM_FILES": ${{ steps.changed.outputs.files_json }}}
           working_branch: ${{ steps.branch.outputs.branch }}
           timeout_minutes: 35
-        secrets:
+        env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 

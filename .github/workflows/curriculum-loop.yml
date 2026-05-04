@@ -64,14 +64,14 @@ jobs:
 
       - name: Dispatch agent
         id: agent
-        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        uses: ./.github/actions/agent-dispatch
         with:
           prompt_template: curriculum-refresh
           context_json: >-
             {"DATE": "$(date +%Y-%m-%d)"}
           working_branch: ${{ env.REFRESH_BRANCH }}
           timeout_minutes: 45
-        secrets:
+        env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 

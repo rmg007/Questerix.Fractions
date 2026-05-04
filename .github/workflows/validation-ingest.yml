@@ -82,14 +82,14 @@ jobs:
       - name: Dispatch agent
         if: steps.find-cycles.outputs.found == 'true'
         id: agent
-        uses: ./.github/workflows/_shared/agent-dispatch.yml
+        uses: ./.github/actions/agent-dispatch
         with:
           prompt_template: validation-ingestion
           context_json: >-
             {"NOTES_DIR": "${{ steps.find-cycles.outputs.notes_dir }}", "CYCLE_ID": "${{ steps.find-cycles.outputs.cycle_id }}"}
           working_branch: ${{ env.INGEST_BRANCH }}
           timeout_minutes: 30
-        secrets:
+        env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
