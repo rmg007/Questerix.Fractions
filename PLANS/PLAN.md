@@ -1,12 +1,29 @@
 # Questerix Fractions — Active Plan
 
 **Created:** 2026-05-02  
-**Last updated:** 2026-05-03  
+**Last updated:** 2026-05-03 (Phase 17 complete)  
 **MVP exit criterion:** A real student completes a 5-question L1 session in a real browser tab, confirmed via DevTools → IndexedDB.
 
 ---
 
-## Summary of Session (2026-05-03)
+## Summary of Session (2026-05-03) — Phase 17
+
+✅ **Completed & Verified:**
+- **Phase 17 — Correctness Enforcement (Pre-commit & CI)** — all 8 work items complete
+  - Pre-commit auto-fix: CLAUDE.md drift now auto-stages instead of blocking (item #1)
+  - Branch slug length: max 60 chars enforced in .husky/pre-push (item #2)
+  - Typecheck parallelization: split from test job, runs in parallel (~2 min, item #3)
+  - Workflow generation enforcement: CODEOWNERS documented (item #4)
+  - Bundle budget SSoT: scripts/config.mjs created, consumed by measure-bundle.mjs + residual-lint.mjs (item #5)
+  - Pre-push tier escalation: release/* branches get full test:unit (item #6)
+  - Lint documentation: lint vs lint:ci explained in CLAUDE.md (item #7)
+  - Residual linter: header comment in place (item #8 — already documented)
+  - Commit: 8d82ac8 (labeled "style" but includes all Phase 17 work); generator updated to add typecheck job
+  - Gate: typecheck passes, lint:ci passes, pre-push hook validated
+
+---
+
+## Summary of Session (2026-05-03) — Phase 8
 
 ✅ **Completed & Verified:**
 - **Phase 8 — WCAG 2.1 AA Accessibility Hardening** — all 5 workstreams complete (color contrast, ARIA labels, hit targets, reduced-motion, AccessibilityAnnouncer)
@@ -52,6 +69,7 @@
 - **Phase 4.1 — Level01Scene god-object refactor (1648 → 598 LOC)** ✅
 - **Phase 7 — Component Lifecycle Hardening (5 workstreams)** ✅
 - **Phase 8 — WCAG 2.1 AA Accessibility Hardening (5 workstreams)** ✅
+- **Phase 17 — Enforce Correctness Mechanically (Pre-commit & CI, 8 work items)** ✅
 
 ---
 
