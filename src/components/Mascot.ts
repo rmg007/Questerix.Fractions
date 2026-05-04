@@ -21,16 +21,14 @@ import {
 } from './mascot/stateAnimations';
 import { createSpeechBubble } from './mascot/speechBubble';
 import { createSleepFxState, clearSleepFx, scheduleZzz, type SleepFxState } from './mascot/sleepFx';
+import {
+  createIdleTimerState,
+  clearIdleTimer,
+  startIdleTimer,
+  type IdleTimerState,
+} from './mascot/idleTimer';
 
-export type MascotState =
-  | 'idle'
-  | 'cheer'
-  | 'think'
-  | 'oops'
-  | 'cheer-big'
-  | 'wave'
-  | 'celebrate'
-  | 'sleep';
+import { MascotState } from './mascot/types';
 
 export class Mascot extends Phaser.GameObjects.Container {
   private readonly reduceMotion: boolean;
@@ -46,7 +44,7 @@ export class Mascot extends Phaser.GameObjects.Container {
 
   private stateSentinel: HTMLElement | null = null;
   private currentBubble: Phaser.GameObjects.Container | null = null;
-  private idleTimerEvents: Phaser.Time.TimerEvent[] = [];
+  private idleTimerState: IdleTimerState = createIdleTimerState();
   private sleepFx: SleepFxState = createSleepFxState();
 
   constructor(scene: Phaser.Scene, x: number, y: number, scale = 1) {
@@ -195,30 +193,14 @@ export class Mascot extends Phaser.GameObjects.Container {
   }
 
   startIdleTimer(): void {
-    this.resetIdleTimer();
-    const add = (delay: number, fn: () => void): void => {
-      this.idleTimerEvents.push(
-        this.scene.time.addEvent({ delay, callback: fn, callbackScope: this })
-      );
-    };
-    add(10_000, () => {
-      this.setState('think');
-      this.showSpeechBubble('Hmm... 🤔', 3000);
+    startIdleTimer(this.idleTimerState, this.scene, {
+      setState: (s) => this.setState(s),
+      showSpeechBubble: (txt, dur) => this.showSpeechBubble(txt, dur),
     });
-    add(18_000, () => {
-      this.setState('wave');
-      this.showSpeechBubble('Psst! Over here! 👋', 3000);
-    });
-    add(28_000, () => {
-      this.setState('cheer');
-      this.showSpeechBubble("Let's go, I believe in you! ⭐", 3000);
-    });
-    add(38_000, () => this.setState('sleep'));
   }
 
   resetIdleTimer(): void {
-    for (const ev of this.idleTimerEvents) ev.destroy();
-    this.idleTimerEvents = [];
+    clearIdleTimer(this.idleTimerState);
     this.dismissBubble();
   }
 

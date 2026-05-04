@@ -222,6 +222,15 @@ export function makeScene() {
         stop: vi.fn(),
         destroy: vi.fn(),
       })),
+      chain: vi.fn((config) => {
+        if (config.tweens && config.tweens.length > 0) {
+          const lastTween = config.tweens[config.tweens.length - 1];
+          if (lastTween.onComplete) lastTween.onComplete();
+        }
+        if (config.onComplete) config.onComplete();
+        return { stop: vi.fn(), destroy: vi.fn() };
+      }),
+      killTweensOf: vi.fn(),
     },
     physics: {
       add: {

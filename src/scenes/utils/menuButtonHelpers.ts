@@ -1,6 +1,10 @@
 import * as Phaser from 'phaser';
 import { BODY_FONT, TITLE_FONT } from './levelTheme';
-import { WHITE, NAVY } from './menuLayoutHelpers';
+import { WHITE, NAVY, CW, STATION_X, PLAY_Y } from './menuLayoutHelpers';
+import { getStreak } from '../../lib/streak';
+import { get } from '../../lib/i18n/catalog';
+
+const NAVY_HEX = '#1E3A8A';
 
 interface StationButtonOpts {
   x: number;
@@ -134,4 +138,77 @@ export function drawTaglinePill(
 
   const container = scene.add.container(cx, cy, [bg, txt]).setDepth(20);
   if (text.includes('!')) container.setAngle(-2.5);
+}
+
+/**
+ * T17: Load the daily streak from the DB and render a flame pill badge
+ * in the top-right corner. Uses amber background with white text.
+ */
+export async function renderStreakDisplay(
+  scene: Phaser.Scene,
+  studentId: string | null
+): Promise<void> {
+  const streak = await getStreak(studentId);
+  if (streak <= 0) return;
+
+  const label = `🔥 ${streak}`;
+  const PILL_H = 40;
+  const PILL_PAD = 16;
+
+  // Measure text width
+  const probe = scene.add
+    .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
+    .setAlpha(0);
+  const tw = probe.width + PILL_PAD * 2;
+  probe.destroy();
+
+  const px = CW - 16 - tw / 2;
+  const py = 36;
+
+  const bg = scene.add.graphics().setDepth(25);
+  bg.fillStyle(0xf59e0b, 1); // amber-400
+  bg.fillRoundedRect(px - tw / 2, py - PILL_H / 2, tw, PILL_H, PILL_H / 2);
+
+  scene.add
+    .text(px, py, label, {
+      fontFamily: BODY_FONT,
+      fontSize: '18px',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+    })
+    .setOrigin(0.5)
+    .setDepth(26);
+}
+
+/**
+ * Tiny pill button that opens the in-scene choose-level overlay.
+ * Placed below the Play button so it doesn't compete with primary CTA.
+ */
+export function createChooseLevelButton(scene: Phaser.Scene, onTap: () => void): void {
+  const bx = STATION_X;
+  const by = PLAY_Y + 90;
+  const W = 220,
+    H = 48;
+
+  const g = scene.add.graphics().setDepth(16);
+  g.fillStyle(WHITE, 0.9);
+  g.fillRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
+  g.lineStyle(3, NAVY, 1);
+  g.strokeRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
+
+  scene.add
+    .text(bx, by, get('menu.choose_level'), {
+      fontFamily: BODY_FONT,
+      fontStyle: 'bold',
+      fontSize: '22px',
+      color: NAVY_HEX,
+    })
+    .setOrigin(0.5)
+    .setDepth(17);
+
+  scene.add
+    .rectangle(bx, by, W, H, 0, 0)
+    .setInteractive({ useHandCursor: true })
+    .setDepth(18)
+    .on('pointerup', onTap);
 }

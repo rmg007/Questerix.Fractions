@@ -25,7 +25,6 @@ import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
-import { getStreak } from '../lib/streak';
 import { get } from '../lib/i18n/catalog';
 import {
   CW,
@@ -35,24 +34,27 @@ import {
   SET_Y,
   STATION_X,
   SKY_BG,
-  PATH_BLUE,
-  WHITE,
-  NAVY,
+  SET_FILL,
+  SET_HOVER,
   PLAY_FILL,
   PLAY_HOVER,
   CONT_FILL,
   CONT_HOVER,
-  SET_FILL,
-  SET_HOVER,
   GLOW_EMERALD,
   GLOW_BLUE,
   samplePath,
 } from './utils/menuLayoutHelpers';
-import { createStationButton, drawTaglinePill } from './utils/menuButtonHelpers';
+import {
+  createStationButton,
+  drawTaglinePill,
+  renderStreakDisplay,
+  createChooseLevelButton,
+} from './utils/menuButtonHelpers';
 import { openChooseLevelOverlay } from './utils/menuOverlayHelpers';
+import { drawSoftGlow, drawMenuPath } from './utils/menuPathHelpers';
 
 // Tracks whether the greeting wave has already fired this browser session.
-// Module-level so it persists across _closeLevelGrid re-renders and scene returns.
+// Module-level so it persists across re-renders and scene returns.
 let mascotGreeted = false;
 
 interface MenuData {
@@ -96,6 +98,7 @@ export class MenuScene extends Phaser.Scene {
     const menuCreateStart = performance.now();
     console.info('[MenuScene] Create started');
     this.reduceMotion = checkReduceMotion();
+    console.debug(`[MenuScene] Body font: ${BODY_FONT}`);
 
     // Fade in from black on arrival (complements the 300ms fade-out on departure)
     if (!this.reduceMotion) {
@@ -205,8 +208,8 @@ export class MenuScene extends Phaser.Scene {
     this.add.rectangle(CW / 2, CH / 2, CW, CH, SKY_BG).setDepth(0);
 
     // Decorative soft glows (multi-layer ellipses fake the blur)
-    this.drawSoftGlow(120, CH - 120, 280, GLOW_EMERALD, 0.45);
-    this.drawSoftGlow(CW - 80, 480, 320, GLOW_BLUE, 0.45);
+    drawSoftGlow(this, 120, CH - 120, 280, GLOW_EMERALD, 0.45);
+    drawSoftGlow(this, CW - 80, 480, 320, GLOW_BLUE, 0.45);
 
     // ── Title ─────────────────────────────────────────────────────────────
     this.add
@@ -234,7 +237,7 @@ export class MenuScene extends Phaser.Scene {
 
     // ── The number line path ──────────────────────────────────────────────
     const pathPts = samplePath();
-    this.drawPath(pathPts);
+    this.dashTickHandler = drawMenuPath(this, pathPts, this.reduceMotion);
 
     // ── Stations ──────────────────────────────────────────────────────────
     const hasContinue = !!this.lastStudentId;
@@ -309,18 +312,18 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // T17: Streak pill — async load from DB, render below Play button
-    void this.renderStreakDisplay();
+    void renderStreakDisplay(this, this.lastStudentId);
 
     // "Choose Level" pill button — opens the Adventure Map (LevelMapScene)
     // where players can see all levels on a winding path and tap to choose one.
-    this.createChooseLevelButton();
+    createChooseLevelButton(this, () => void this._openChooseLevelOverlay());
 
     // ── Mascot — friendly guide character ────────────────────────────────────
-    // Destroy previous mascot instance (create() is re-called by _closeLevelGrid)
+    // Destroy previous mascot instance (create() is re-called by re-renders)
     this.mascot?.destroy();
     this.mascot = new Mascot(this, 680, 980);
     this.mascot.setState('idle');
-    // Wave only on the first menu load; skip on _closeLevelGrid re-renders
+    // Wave only on the first menu load
     if (!mascotGreeted) {
       mascotGreeted = true;
       this.time.delayedCall(400, () => {
@@ -343,78 +346,6 @@ export class MenuScene extends Phaser.Scene {
     );
   }
 
-  // ── Adventure Map entry button ────────────────────────────────────────────
-
-  /**
-   * Tiny pill button that opens the in-scene choose-level overlay.
-   * Placed below the Play button so it doesn't compete with primary CTA.
-   */
-  private createChooseLevelButton(): void {
-    const bx = STATION_X;
-    const by = PLAY_Y + 90;
-    const W = 220,
-      H = 48;
-
-    const g = this.add.graphics().setDepth(16);
-    g.fillStyle(WHITE, 0.9);
-    g.fillRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
-    g.lineStyle(3, NAVY, 1);
-    g.strokeRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
-
-    this.add
-      .text(bx, by, get('menu.choose_level'), {
-        fontFamily: BODY_FONT,
-        fontStyle: 'bold',
-        fontSize: '22px',
-        color: NAVY_HEX,
-      })
-      .setOrigin(0.5)
-      .setDepth(17);
-
-    this.add
-      .rectangle(bx, by, W, H, 0, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(18)
-      .on('pointerup', () => void this._openChooseLevelOverlay());
-  }
-
-  /**
-   * T17: Load the daily streak from the DB and render a flame pill badge
-   * in the top-right corner. Uses amber background with white text.
-   */
-  private async renderStreakDisplay(): Promise<void> {
-    const streak = await getStreak(this.lastStudentId);
-    if (streak <= 0) return;
-
-    const label = `🔥 ${streak}`;
-    const PILL_H = 40;
-    const PILL_PAD = 16;
-
-    // Measure text width
-    const probe = this.add
-      .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
-      .setAlpha(0);
-    const tw = probe.width + PILL_PAD * 2;
-    probe.destroy();
-
-    const px = CW - 16 - tw / 2;
-    const py = 36;
-
-    const bg = this.add.graphics().setDepth(25);
-    bg.fillStyle(0xf59e0b, 1); // amber-400
-    bg.fillRoundedRect(px - tw / 2, py - PILL_H / 2, tw, PILL_H, PILL_H / 2);
-
-    this.add
-      .text(px, py, label, {
-        fontFamily: BODY_FONT,
-        fontSize: '18px',
-        color: '#FFFFFF',
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5)
-      .setDepth(26);
-  }
-
   /** Show the choose-level overlay. */
   private async _openChooseLevelOverlay(): Promise<void> {
     await openChooseLevelOverlay(
@@ -433,7 +364,6 @@ export class MenuScene extends Phaser.Scene {
     try {
       return await levelProgressionRepo.getCompletedLevels(StudentId(this.lastStudentId));
     } catch {
-      // Ignore storage errors — default to empty set
       return new Set();
     }
   }
@@ -446,12 +376,10 @@ export class MenuScene extends Phaser.Scene {
     try {
       return await levelProgressionRepo.getUnlockedLevels(StudentId(this.lastStudentId));
     } catch {
-      // Ignore storage errors — default to level 1 only
       return new Set([1]);
     }
   }
 
-  /** Persist that a level was completed so the next one unlocks. */
   /** Helper to route to Level01 (hardcoded archetype) or LevelScene (generic). */
   private _startLevel(levelNumber: number, resume = false): void {
     const data = { levelNumber, studentId: this.lastStudentId, resume };
@@ -463,93 +391,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   static async markLevelComplete(levelNumber: number, studentId: string | null): Promise<void> {
-    if (!studentId) return; // No-op for non-logged-in students
+    if (!studentId) return;
     try {
       await levelProgressionRepo.complete(StudentId(studentId), levelNumber);
     } catch (err) {
-      // Ignore storage errors — caller will retry on next session
-    }
-  }
-
-  // ── Drawing helpers ───────────────────────────────────────────────────────
-
-  /**
-   * Approximate a CSS-style blur by stacking translucent ellipses. Faster and
-   * more reliable across browsers than Phaser blur shaders.
-   */
-  private drawSoftGlow(cx: number, cy: number, radius: number, color: number, alpha: number): void {
-    const g = this.add.graphics().setDepth(1);
-    const layers = 5;
-    for (let i = 0; i < layers; i++) {
-      const t = (i + 1) / layers;
-      g.fillStyle(color, alpha * (1 - t * 0.6));
-      g.fillCircle(cx, cy, radius * t);
-    }
-  }
-
-  private drawPath(pathPts: { x: number; y: number }[]): void {
-    // Wide light-blue base stroke
-    const base = this.add.graphics().setDepth(2);
-    base.lineStyle(28, PATH_BLUE, 1);
-    base.beginPath();
-    base.moveTo(pathPts[0]!.x, pathPts[0]!.y);
-    for (let i = 1; i < pathPts.length; i++) base.lineTo(pathPts[i]!.x, pathPts[i]!.y);
-    base.strokePath();
-    // Round caps via filled circles at endpoints
-    base.fillStyle(PATH_BLUE, 1);
-    base.fillCircle(pathPts[0]!.x, pathPts[0]!.y, 14);
-    base.fillCircle(pathPts[pathPts.length - 1]!.x, pathPts[pathPts.length - 1]!.y, 14);
-
-    // Marching white dashes on top
-    const dashG = this.add.graphics().setDepth(3);
-    const dashLen = 14;
-    const gapLen = 14;
-    const cycle = dashLen + gapLen;
-
-    const drawDashes = (offset: number) => {
-      dashG.clear();
-      dashG.lineStyle(10, WHITE, 1);
-      let traveled = -offset;
-      for (let i = 1; i < pathPts.length; i++) {
-        const a = pathPts[i - 1]!;
-        const b = pathPts[i]!;
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const segLen = Math.hypot(dx, dy);
-        if (segLen === 0) continue;
-        const ux = dx / segLen;
-        const uy = dy / segLen;
-        // Find the first dash start in this segment
-        let local = -traveled;
-        // Snap to cycle so dashes are continuous across segments
-        while (local < 0) local += cycle;
-        while (local < segLen) {
-          const dashStart = local;
-          const dashEnd = Math.min(segLen, local + dashLen);
-          if (dashEnd > dashStart) {
-            dashG.lineBetween(
-              a.x + ux * dashStart,
-              a.y + uy * dashStart,
-              a.x + ux * dashEnd,
-              a.y + uy * dashEnd
-            );
-          }
-          local += cycle;
-        }
-        traveled += segLen;
-      }
-    };
-
-    drawDashes(0);
-
-    if (!this.reduceMotion) {
-      let phase = 0;
-      const tick = () => {
-        phase = (phase + 0.6) % cycle;
-        drawDashes(phase);
-      };
-      this.events.on('update', tick);
-      this.dashTickHandler = tick;
+      // Ignore storage errors
     }
   }
 

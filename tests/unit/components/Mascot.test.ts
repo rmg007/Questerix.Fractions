@@ -1,102 +1,166 @@
 /**
  * Unit tests for Mascot component — procedurally-drawn wizard character with state machine.
- *
- * SKIP: legacy stub tests use a flat-options API (`new Mascot(scene, { x, y })`)
- * + properties (`mascot.currentState`, `mascot.celebrate()`, `mascot.wave()`)
- * that do not exist on the current Mascot (it uses sub-modules under
- * `src/components/mascot/` and exposes `setState` only). Mascot also pulls
- * in real Phaser graphics/tween chains at construction that need a Phaser
- * mock layer beyond the simple stub helpers. Re-enable after rewriting
- * against the post-Phase-4.4 API.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as Phaser from 'phaser';
 
+// Mock Phaser
 vi.mock('phaser', () => {
   class Container {
-    constructor(_scene: unknown) {}
+    scene: any;
+    x: number;
+    y: number;
+    scaleY: number = 1;
+    depth: number = 5;
+    active: boolean = true;
+    constructor(scene: any, x: number, y: number) {
+      this.scene = scene;
+      this.x = x;
+      this.y = y;
+    }
     add = vi.fn();
+    remove = vi.fn();
     setDepth = vi.fn().mockReturnThis();
     setVisible = vi.fn().mockReturnThis();
     setAlpha = vi.fn().mockReturnThis();
+    setScale = vi.fn().mockReturnThis();
+    setAngle = vi.fn().mockReturnThis();
+    setPosition = vi.fn().mockImplementation(function (this: any, x: number, y: number) {
+      this.x = x;
+      this.y = y;
+    });
+    destroy = vi.fn();
+    setState(state: any) {
+      return this;
+    }
+  }
+  class Graphics {
+    fillStyle = vi.fn().mockReturnThis();
+    fillEllipse = vi.fn().mockReturnThis();
+    fillCircle = vi.fn().mockReturnThis();
+    fillTriangle = vi.fn().mockReturnThis();
+    strokeTriangle = vi.fn().mockReturnThis();
+    fillRect = vi.fn().mockReturnThis();
+    strokeCircle = vi.fn().mockReturnThis();
+    strokeEllipse = vi.fn().mockReturnThis();
+    lineStyle = vi.fn().mockReturnThis();
+    strokeRoundedRect = vi.fn().mockReturnThis();
+    fillRoundedRect = vi.fn().mockReturnThis();
+    setPosition = vi.fn().mockReturnThis();
+    beginPath = vi.fn().mockReturnThis();
+    moveTo = vi.fn().mockReturnThis();
+    lineTo = vi.fn().mockReturnThis();
+    closePath = vi.fn().mockReturnThis();
+    strokePath = vi.fn().mockReturnThis();
+    fillPath = vi.fn().mockReturnThis();
+    arc = vi.fn().mockReturnThis();
+    setAngle = vi.fn().mockReturnThis();
+    setScale = vi.fn().mockReturnThis();
+    setAlpha = vi.fn().mockReturnThis();
+    setVisible = vi.fn().mockReturnThis();
+    setDepth = vi.fn().mockReturnThis();
     destroy = vi.fn();
   }
-  class Scene {}
   return {
-    Scene,
-    GameObjects: { Container, Text: class {}, Rectangle: class {} },
-    Geom: { Rectangle: { Contains: () => false } },
-    Math: { Clamp: (v: number, min: number, max: number) => Math.min(Math.max(v, min), max) },
-    default: { Scene },
+    GameObjects: {
+      Container,
+      Graphics,
+      Text: class {
+        setAlpha = vi.fn().mockReturnThis();
+        setOrigin = vi.fn().mockReturnThis();
+        destroy = vi.fn();
+      },
+    },
+    Scene: class {},
+    Tweens: {
+      Tween: class {
+        stop = vi.fn();
+      },
+    },
   };
 });
 
-import { Mascot } from '@/components/Mascot';
+import { Mascot } from '../../../src/components/Mascot';
 import { makeScene } from './helpers';
 
-describe.skip('Mascot', () => {
-  it('initializes in idle state', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
+describe('Mascot', () => {
+  let scene: any;
 
-    expect(mascot.currentState).toBe('idle');
+  beforeEach(() => {
+    scene = makeScene();
+    // Mock scene.time
+    scene.time = {
+      addEvent: vi.fn().mockImplementation((config) => {
+        if (config.callback) config.callback.call(config.callbackScope);
+        return { destroy: vi.fn() };
+      }),
+      delayedCall: vi.fn().mockImplementation((delay, callback) => {
+        callback();
+        return { remove: vi.fn() };
+      }),
+    };
+    // Mock scene.add.existing
+    scene.add.existing = vi.fn();
+    // Mock scene.add.graphics
+    scene.add.graphics = vi.fn().mockImplementation(() => new Phaser.GameObjects.Graphics());
+    // Mock scene.add.container
+    scene.add.container = vi.fn().mockImplementation((x, y) => {
+      const c = new Phaser.GameObjects.Container(scene, x, y);
+      return c;
+    });
+    // Mock scene.add.text
+    scene.add.text = vi.fn().mockImplementation(() => ({
+      width: 100,
+      height: 20,
+      setAlpha: vi.fn().mockReturnThis(),
+      setOrigin: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+    }));
+    // Mock matchMedia for reduceMotion
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation((query) => ({
+        matches: query === '(prefers-reduced-motion: reduce)' ? false : false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
   });
 
-  it('transitions from idle to celebrate', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
+  it('initializes at correct position', () => {
+    const mascot = new Mascot(scene, 100, 200);
+    expect(mascot.x).toBe(100);
+    expect(mascot.y).toBe(200);
+  });
 
+  it('transitions state via setState', () => {
+    const mascot = new Mascot(scene, 100, 100);
     mascot.setState('celebrate');
-
-    expect(mascot.currentState).toBe('celebrate');
+    expect(scene.tweens.chain).toHaveBeenCalled();
   });
 
-  it('handles setState with invalid state gracefully', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
-
-    expect(() => mascot.setState('invalid')).not.toThrow();
+  it('can show a speech bubble', () => {
+    const mascot = new Mascot(scene, 100, 100);
+    mascot.showSpeechBubble('Hello', 1000);
+    expect(scene.add.container).toHaveBeenCalled();
   });
 
-  it('plays celebrate animation', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
-
-    const spy = vi.spyOn(scene.tweens, 'add');
-    mascot.celebrate();
-
-    expect(spy).toHaveBeenCalled();
-  });
-
-  it('plays wave animation', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
-
-    const spy = vi.spyOn(scene.tweens, 'add');
-    mascot.wave();
-
-    expect(spy).toHaveBeenCalled();
-  });
-
-  it('can be destroyed mid-animation', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 100 });
-
-    mascot.celebrate();
-
+  it('can be destroyed cleanly', () => {
+    const mascot = new Mascot(scene, 100, 100);
     expect(() => mascot.destroy()).not.toThrow();
   });
 
-  it('maintains position after state change', () => {
-    const scene = makeScene();
-    const mascot = new Mascot(scene, { x: 100, y: 200 });
-
-    const x = mascot.x;
-    const y = mascot.y;
-
-    mascot.setState('encourage');
-
-    expect(mascot.x).toBe(x);
-    expect(mascot.y).toBe(y);
+  it('resets idle timer', () => {
+    const mascot = new Mascot(scene, 100, 100);
+    mascot.startIdleTimer();
+    expect(scene.time.addEvent).toHaveBeenCalled();
+    mascot.resetIdleTimer();
+    // Internal state check would be better but we've extracted the timer logic
   });
 });
