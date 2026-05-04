@@ -91,7 +91,9 @@ export class TTSService {
     try {
       this.synth?.cancel();
     } catch (err) {
-      // safe to swallow
+      if (import.meta.env.DEV) {
+        console.warn('[TTSService] stop() error:', err);
+      }
     }
   }
 

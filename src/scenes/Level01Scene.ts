@@ -121,6 +121,9 @@ export class Level01Scene extends Phaser.Scene {
   private submitButtonContainer!: Phaser.GameObjects.Container;
   private handlePos: number = SHAPE_CX;
 
+  // Event listeners (tracked for cleanup)
+  private pointerdownHandler?: () => void;
+
   constructor() {
     super({ key: 'Level01Scene' });
   }
@@ -131,6 +134,7 @@ export class Level01Scene extends Phaser.Scene {
     this.questionIndex = 0;
     this.attemptCount = 0;
     this.wrongCount = 0;
+    this.correctStreak = 0;
     this.inputLocked = false;
     this.currentMasteryEstimate = 0.1;
     this.currentSnapPct = 0.15;
@@ -264,10 +268,11 @@ export class Level01Scene extends Phaser.Scene {
     log.scene('create_done');
 
     // T14: Any pointer input resets the idle timer so Quest stops escalating.
-    this.input.on('pointerdown', () => {
+    this.pointerdownHandler = () => {
       this.mascot?.resetIdleTimer();
       this.mascot?.startIdleTimer();
-    });
+    };
+    this.input.on('pointerdown', this.pointerdownHandler);
 
     // Load first question
     this.loadQuestion(0);
@@ -623,6 +628,7 @@ export class Level01Scene extends Phaser.Scene {
     this.time.removeAllEvents();
     log.scene('destroy');
     this.tweens.killAll();
+    this.input.off('pointerdown', this.pointerdownHandler);
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();
     this.progressBar?.destroy();

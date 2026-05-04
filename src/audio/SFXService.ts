@@ -37,7 +37,9 @@ export class SFXService {
         this.ctx = new AudioCtx();
       }
       if (this.ctx.state === 'suspended') {
-        void this.ctx.resume();
+        this.ctx.resume().catch(() => {
+          // Resume may fail on some platforms; game continues unaffected
+        });
       }
       return this.ctx;
     } catch {
@@ -128,6 +130,18 @@ export class SFXService {
 
   getVolume(): number {
     return this.volume;
+  }
+
+  destroy(): void {
+    try {
+      if (this.ctx && this.ctx.state !== 'closed') {
+        this.ctx.close();
+      }
+    } catch {
+      // Ignore errors during cleanup
+    }
+    this.ctx = null;
+    this.buffers.clear();
   }
 }
 

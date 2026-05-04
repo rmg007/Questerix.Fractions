@@ -57,6 +57,7 @@ export class Mascot extends Phaser.GameObjects.Container {
   // Sleep state
   private sleepGfx: Phaser.GameObjects.Graphics | null = null;
   private zzzTimer: Phaser.Time.TimerEvent | null = null;
+  private zzzTimerChain: Phaser.Time.TimerEvent[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number, scale = 1) {
     super(scene, x, y);
@@ -405,11 +406,13 @@ export class Mascot extends Phaser.GameObjects.Container {
     this.zzzTimer = this.scene.time.delayedCall(700, () => {
       if ((this.state as string) !== 'sleep') return;
       this.floatOneZzz('Z', 20);
-      this.scene.time.delayedCall(700, () => {
+      const t2 = this.scene.time.delayedCall(700, () => {
         if ((this.state as string) !== 'sleep') return;
         this.floatOneZzz('Z', 26);
-        this.scene.time.delayedCall(1800, () => this.scheduleZzz());
+        const t3 = this.scene.time.delayedCall(1800, () => this.scheduleZzz());
+        this.zzzTimerChain.push(t3);
       });
+      this.zzzTimerChain.push(t2);
     });
   }
 
@@ -442,6 +445,8 @@ export class Mascot extends Phaser.GameObjects.Container {
     }
     this.zzzTimer?.remove(false);
     this.zzzTimer = null;
+    for (const t of this.zzzTimerChain) t.remove(false);
+    this.zzzTimerChain = [];
   }
 
   /** Arm-raise wave (~850ms), then returns to idle. */

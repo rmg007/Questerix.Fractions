@@ -48,6 +48,7 @@ export class DragHandle {
   private chevrons: Phaser.GameObjects.Text;
   private glowTween: Phaser.Tweens.Tween | null = null;
   private loadPulseTween: Phaser.Tweens.Tween | null = null;
+  private hideGlowTween: Phaser.Tweens.Tween | null = null;
   private readonly scene: Phaser.Scene;
 
   private _pos: number;
@@ -250,7 +251,7 @@ export class DragHandle {
   private hideGlow(): void {
     this.glowTween?.stop();
     this.glowTween = null;
-    this.scene.tweens.add({
+    this.hideGlowTween = this.scene.tweens.add({
       targets: this.glowCircle,
       alpha: 0,
       scaleX: 1,
@@ -302,6 +303,7 @@ export class DragHandle {
   destroy(): void {
     this.glowTween?.stop();
     this.loadPulseTween?.stop();
+    this.hideGlowTween?.stop();
     this.glowCircle.destroy();
     this.visibleLine.destroy();
     this.gripper.destroy();

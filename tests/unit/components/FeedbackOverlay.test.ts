@@ -96,6 +96,12 @@ function makeSceneStub(textureExists: boolean) {
       }),
       particles: vi.fn().mockReturnValue(emitter),
     },
+    cameras: {
+      main: {
+        centerX: 400,
+        centerY: 640,
+      },
+    },
     time: { delayedCall: vi.fn() },
     tweens: {
       add: vi.fn().mockImplementation((cfg: Record<string, unknown>) => {

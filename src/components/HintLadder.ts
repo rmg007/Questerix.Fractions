@@ -40,7 +40,11 @@ export class HintLadder {
     this.tiers = TIER_BUDGETS[difficulty];
   }
 
-  /** Returns the next tier to show, or the last tier if already exhausted. */
+  /**
+   * Advances to the next tier and returns it. Once all tiers are exhausted,
+   * repeated calls return the last tier. Callers should check `state.exhausted`
+   * to detect when no new tiers remain.
+   */
   next(): HintTier {
     if (this.index < this.tiers.length - 1) {
       this.index++;

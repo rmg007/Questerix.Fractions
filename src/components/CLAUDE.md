@@ -25,8 +25,13 @@ Reusable UI components built on Phaser. Not pure — they import Phaser — but 
 - **No `scenes/` imports.** Components are leaves; scenes are roots.
 - **No DB writes.** Components are display-only; persistence is the scene's job.
 - **Every interactive component registers in A11yLayer.** One `addElement()` call per interactive surface — don't skip it for "simple" elements.
-- **Destroy in `destroy()` override.** Every tween, every event listener, every DOM element created in the constructor. Scenes call `destroy()` on their components; don't rely on Phaser's auto-cleanup.
-- **Reduced-motion gating.** Use `motionBudget.ts` helpers or a manual `prefers-reduced-motion` media query check before every `scene.tweens.add(...)` call.
+- **A11yLayer lifecycle.** Scenes that `pushLayer()` (e.g., modals) MUST `popLayer()` on `scene.events.once('shutdown')` to prevent DOM orphans. Pattern:
+  ```ts
+  A11yLayer.pushLayer('my-modal', 'Modal Label');
+  scene.events.once('shutdown', () => A11yLayer.popLayer());
+  ```
+- **Destroy in `destroy()` override.** Every tween, every event listener, every DOM element, every particle emitter created in the constructor. Scenes call `destroy()` on their components; don't rely on Phaser's auto-cleanup.
+- **Reduced-motion gating.** Use `checkReduceMotion()` before every `scene.tweens.add(...)` call and before playing sound effects.
 
 ## Hint ladder pattern
 

@@ -112,6 +112,9 @@ export class LevelScene extends Phaser.Scene {
   // Current interaction
   private activeInteraction: Interaction | null = null;
 
+  // Event listeners (tracked for cleanup)
+  private pointerdownHandler?: () => void;
+
   // UI components
   private feedbackOverlay!: FeedbackOverlay;
   private progressBar!: ProgressBar;
@@ -138,6 +141,7 @@ export class LevelScene extends Phaser.Scene {
     this.attemptCount = 0;
     this.wrongCount = 0;
     this.correctCount = 0;
+    this.correctStreak = 0;
     this.responseTimes = [];
     this.questionStartTime = 0;
     this.inputLocked = false;
@@ -266,10 +270,11 @@ export class LevelScene extends Phaser.Scene {
     }
 
     // T14: Any pointer input resets the idle timer.
-    this.input.on('pointerdown', () => {
+    this.pointerdownHandler = () => {
       this.mascot?.resetIdleTimer();
       this.mascot?.startIdleTimer();
-    });
+    };
+    this.input.on('pointerdown', this.pointerdownHandler);
 
     // §3-E — play once-per-session level intro vignette, then start questions
     this.levelVignette = new LevelVignette(this, this.levelNumber);
@@ -791,7 +796,9 @@ export class LevelScene extends Phaser.Scene {
     // timers, or DOM listeners (Mascot idleTween, FeedbackOverlay dismissTimer, hint
     // pulse tween) require explicit cleanup. killAll() catches any in-flight tween
     // (badge bounce, hint pulse) when the scene shuts down.
+    this.time.removeAllEvents();
     this.tweens.killAll();
+    this.input.off('pointerdown', this.pointerdownHandler);
     this.levelVignette?.destroy();
     this.activeInteraction?.unmount();
     this.feedbackOverlay?.destroy();
