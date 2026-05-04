@@ -50,7 +50,7 @@ const STYLE = `
   padding: 12px 24px;
   overflow: visible;
   clip: auto;
-  background: #2F6FED;
+  background: #1E54CE;
   color: #ffffff;
   border: 3px solid #1E3A8A;
   border-radius: 8px;

@@ -17,6 +17,7 @@ import {
   ACTION_TEXT,
 } from '../scenes/utils/levelTheme';
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
+import { A11yLayer } from './A11yLayer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
@@ -79,6 +80,12 @@ export class SessionCompleteOverlay {
 
     // Container origin at (0, 0); starts below viewport, slides to y = 0.
     this.container = scene.add.container(0, reduceMotion ? 0 : height).setDepth(depth);
+
+    // WCAG 2.1 AA: register accessibility layer for buttons
+    A11yLayer.pushLayer(
+      'session-complete',
+      `Level ${levelNumber} complete! You earned ${starCount} ${starCount === 1 ? 'star' : 'stars'}.`
+    );
 
     // T15: Gold background for perfect sessions, sky-blue for standard
     const cardBg = scene.add.graphics();
@@ -232,6 +239,15 @@ export class SessionCompleteOverlay {
           }
         });
 
+      A11yLayer.mountAction('a11y-scaffold-banner', bannerText, () => {
+        if (scaffoldRecommendation === 'advance' && nextLevelNumber && onNextLevel) {
+          onNextLevel();
+        } else if (scaffoldRecommendation === 'stay') {
+          onPlayAgain();
+        } else if (scaffoldRecommendation === 'regress') {
+          onMenu();
+        }
+      });
       this.container.add([bannerBg, bannerTxt, bannerHit]);
 
       // Animate the banner in 400ms after the overlay lands (stars finish at ~900ms + 400ms)
@@ -331,6 +347,7 @@ export class SessionCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    A11yLayer.mountAction('a11y-session-complete-again', 'Play this level again', onTap);
     this.container.add([shadow, face, txt, hit]);
   }
 
@@ -364,6 +381,7 @@ export class SessionCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    A11yLayer.mountAction('a11y-session-complete-next', 'Continue to the next level', onTap);
     TestHooks.mountInteractive('next-level-btn', onTap, {
       width: '200px',
       height: '60px',
@@ -400,6 +418,7 @@ export class SessionCompleteOverlay {
       .on('pointerup', onTap)
       .setDepth(50);
 
+    A11yLayer.mountAction('a11y-session-complete-menu', 'Return to main menu', onTap);
     this.container.add([bg, txt, hit]);
 
     // Add TestHooks for E2E testing and accessibility
@@ -534,6 +553,7 @@ export class SessionCompleteOverlay {
       this.glowTween.stop();
       this.glowTween = null;
     }
+    A11yLayer.popLayer();
     this.container.destroy(true);
     this.starTexts.length = 0;
   }

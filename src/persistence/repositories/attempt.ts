@@ -49,7 +49,7 @@ export const attemptRepo = {
 
   async listForStudent(studentId: StudentId, options?: { limit?: number }): Promise<Attempt[]> {
     try {
-      let results = await db.attempts
+      const results = await db.attempts
         .where('[studentId+submittedAt]')
         .between([studentId, Dexie.minKey], [studentId, Dexie.maxKey])
         .reverse()

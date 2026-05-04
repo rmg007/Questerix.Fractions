@@ -37,6 +37,7 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private currentValue: number = 0;
   private readonly goal: number;
   private sentinel: HTMLElement | null = null;
+  private activeTweens: Phaser.Tweens.Tween[] = [];
 
   constructor(config: ProgressBarConfig) {
     const { scene, x, y, width, goal = DEFAULT_GOAL, depth = 10 } = config;
@@ -91,12 +92,16 @@ export class ProgressBar extends Phaser.GameObjects.Container {
       // Bounce the newly filled star
       if (!reduceMotion && filled && i === prev) {
         star.setScale(1.4);
-        this.scene.tweens.add({
+        const tween = this.scene.tweens.add({
           targets: star,
           scale: 1,
           duration: ANIMATE_MS,
           ease: 'Back.easeOut',
+          onComplete: () => {
+            this.activeTweens = this.activeTweens.filter((t) => t !== tween);
+          },
         });
+        this.activeTweens.push(tween);
       } else {
         star.setScale(1);
       }
@@ -118,5 +123,13 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   }
   get isComplete(): boolean {
     return this.currentValue >= this.goal;
+  }
+
+  override destroy(): void {
+    for (const tween of this.activeTweens) {
+      tween.remove();
+    }
+    this.activeTweens = [];
+    super.destroy();
   }
 }

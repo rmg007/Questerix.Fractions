@@ -8,7 +8,8 @@
 
 export const HEX = {
   // §2.1 Primary
-  primary: '#2F6FED',
+  // Updated 2026-05-03: #2F6FED → #1E54CE for WCAG AA 5:1 contrast on white
+  primary: '#1E54CE',
   primarySoft: '#D9E5FB',
   primaryStrong: '#1A4FBF',
 

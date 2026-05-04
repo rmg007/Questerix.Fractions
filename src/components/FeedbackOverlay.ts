@@ -47,13 +47,13 @@ export class FeedbackOverlay {
   private iconGO: Phaser.GameObjects.Text;
   private dismissTimer: Phaser.Time.TimerEvent | null = null;
   private readonly scene: Phaser.Scene;
-  private readonly cx: number;
   private readonly showY: number;
   private readonly hideY: number;
   private readonly panelW: number;
   private readonly depth: number;
   private activeParticleEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
   private panelColor: number = DEFAULT_PANEL_COLOR;
+  private isAnimating: boolean = false;
 
   readonly events: Phaser.Events.EventEmitter;
 
@@ -64,14 +64,13 @@ export class FeedbackOverlay {
     this.depth = depth;
     this.events = new Phaser.Events.EventEmitter();
     this.panelW = width;
-    this.cx = width / 2;
     this.showY = height - PANEL_H / 2;
     this.hideY = height + PANEL_H / 2 + 10;
 
     this.panel = scene.add.graphics().setDepth(depth).setVisible(false);
 
     this.iconGO = scene.add
-      .text(this.cx, this.hideY - 65, '✓', {
+      .text(scene.cameras.main.centerX, this.hideY - 65, '✓', {
         fontSize: ICON_FONT_SIZE,
         fontFamily: TITLE_FONT,
         color: '#ffffff',
@@ -81,7 +80,7 @@ export class FeedbackOverlay {
       .setVisible(false);
 
     this.label = scene.add
-      .text(this.cx, this.hideY + 10, '', {
+      .text(scene.cameras.main.centerX, this.hideY + 10, '', {
         fontSize: LABEL_FONT_SIZE,
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
@@ -94,6 +93,11 @@ export class FeedbackOverlay {
       .setVisible(false);
   }
 
+  /** Get current camera center x-position for dynamic positioning. */
+  private getCx(): number {
+    return this.scene.cameras.main.centerX;
+  }
+
   /**
    * Show feedback for the given kind. Slides up from the bottom, auto-dismisses.
    * per interaction-model.md §2 — visual feedback must start within 300ms of submit.
@@ -103,32 +107,39 @@ export class FeedbackOverlay {
     const reduceMotion = checkReduceMotion();
     const labelText = text && text.trim().length > 0 ? text : cfg.text;
     this.panelColor = cfg.color;
+    const cx = this.getCx();
 
     this.iconGO
       .setText(cfg.icon)
       .setColor(cfg.textHex)
       .setY(this.hideY - 65)
+      .setX(cx)
       .setAlpha(1)
       .setVisible(true);
     this.label
       .setText(labelText)
       .setColor(cfg.textHex)
       .setY(this.hideY + 10)
+      .setX(cx)
       .setAlpha(1)
       .setVisible(true);
 
     this.redrawPanel(this.hideY, 1);
     this.panel.setVisible(true);
     this.dismissTimer?.remove(false);
+    this.isAnimating = true;
 
-    if (kind === 'correct') sfx.playCorrect();
-    else if (kind === 'incorrect') sfx.playIncorrect();
+    if (!reduceMotion) {
+      if (kind === 'correct') sfx.playCorrect();
+      else if (kind === 'incorrect') sfx.playIncorrect();
+    }
 
     TestHooks.mountSentinel('feedback-overlay');
     TestHooks.setText('feedback-overlay', labelText);
     TestHooks.mountInteractive(
       'feedback-next-btn',
       () => {
+        if (!this.isAnimating) return; // Ignore clicks during animation
         this.dismissTimer?.remove(false);
         this.dismissTimer = null;
         this.hide();
@@ -143,13 +154,17 @@ export class FeedbackOverlay {
     const dismiss = () => {
       if (reduceMotion) {
         this.hide();
+        this.isAnimating = false;
       } else {
         this.scene.tweens.add({
           targets: [this.iconGO, this.label, this.panel],
           alpha: 0,
           duration: FADE_MS,
           ease: 'Cubic.easeIn',
-          onComplete: () => this.hide(),
+          onComplete: () => {
+            this.hide();
+            this.isAnimating = false;
+          },
         });
       }
       TestHooks.unmount('feedback-overlay');
@@ -162,6 +177,7 @@ export class FeedbackOverlay {
       this.redrawPanel(this.showY, 1);
       this.iconGO.setY(this.showY - 65);
       this.label.setY(this.showY + 10);
+      this.isAnimating = false;
       this.dismissTimer = this.scene.time.delayedCall(DISPLAY_MS[kind], dismiss);
       return;
     }
@@ -188,6 +204,7 @@ export class FeedbackOverlay {
       duration: SLIDE_MS,
       ease: 'Back.easeOut',
       onComplete: () => {
+        this.isAnimating = false;
         const ctx = this.buildAnimContext();
         if (kind === 'correct') {
           anim.animateCorrectEntry(ctx);
@@ -209,7 +226,7 @@ export class FeedbackOverlay {
       label: this.label,
       panel: this.panel,
       showY: this.showY,
-      cx: this.cx,
+      cx: this.getCx(),
       panelW: this.panelW,
       depth: this.depth,
       redrawPanel: this.redrawPanel.bind(this),
@@ -227,6 +244,7 @@ export class FeedbackOverlay {
   }
 
   private hide(): void {
+    const cx = this.getCx();
     this.panel.setVisible(false).setAlpha(1).setX(0);
     this.panel.clear();
     this.iconGO
@@ -234,13 +252,13 @@ export class FeedbackOverlay {
       .setAlpha(1)
       .setScale(1)
       .setY(this.hideY - 65)
-      .setX(this.cx);
+      .setX(cx);
     this.label
       .setVisible(false)
       .setAlpha(1)
       .setScale(1)
       .setY(this.hideY + 10)
-      .setX(this.cx);
+      .setX(cx);
     for (const e of this.activeParticleEmitters) e.destroy();
     this.activeParticleEmitters = [];
     TestHooks.unmount('sparkle-burst');
