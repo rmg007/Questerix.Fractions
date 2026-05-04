@@ -11,7 +11,6 @@ import { drawLevelBackground } from './utils/levelBackgrounds';
 import { TestHooks } from './utils/TestHooks';
 import { A11yLayer } from '../components/A11yLayer';
 import { FeedbackOverlay, type FeedbackKind } from '../components/FeedbackOverlay';
-import { HintLadder } from '../components/HintLadder';
 import { ProgressBar } from '../components/ProgressBar';
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
 import type { Interaction } from './interactions/types';
@@ -26,14 +25,7 @@ import { checkReduceMotion } from '../lib/preferences';
 import { get as getCopy } from '../lib/i18n/catalog';
 import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
 import { withSpan } from '../lib/observability/withSpan';
-import { tracerService } from '../lib/observability/tracer';
 import { SPAN_NAMES } from '../lib/observability/span-names';
-import {
-  openSessionForLevel,
-  recordAttemptAndMasteryForLevel,
-  closeSessionForLevel,
-  persistLevelCompletionForLevel,
-} from '../lib/levelSceneSession';
 import { questFeedbackText as questFeedbackTextLib } from '../lib/levelSceneFeedback';
 import {
   loadQuestion as loadQuestionFlow,
@@ -41,12 +33,6 @@ import {
   type QuestionFlowContext,
   type QuestionFlowCallbacks,
 } from '../lib/levelSceneQuestionFlow';
-import {
-  showHintForTier as showHintForTierFlow,
-  pulseHintButton as pulseHintButtonFlow,
-  type HintFlowContext,
-  type HintFlowCallbacks,
-} from '../lib/levelSceneHintFlow';
 import {
   showOutcome as showOutcomeFlow,
   type OutcomeFlowContext,
@@ -57,7 +43,6 @@ import {
   loadTemplatesForLevel,
   showOfflineCurriculumToast as showOfflineCurriculumToastLib,
 } from '../lib/levelSceneTemplates';
-import { showSessionCompleteForLevel } from '../lib/levelSceneSessionComplete';
 import { LevelVignette } from '../components/LevelVignette';
 import {
   createHeader as createHeaderLib,
@@ -66,6 +51,8 @@ import {
   createHintButton as createHintButtonLib,
   createSubmitButton as createSubmitButtonLib,
 } from '../lib/levelSceneChrome';
+import { HintController } from './controllers/HintController';
+import { ProgressionController } from './controllers/ProgressionController';
 
 // ── Canvas constants ────────────────────────────────────────────────────────
 
@@ -87,7 +74,6 @@ export class LevelScene extends Phaser.Scene {
   // Init data
   protected levelNumber: number = 1;
   private studentId: string | null = null;
-  private sessionId: string | null = null;
   // Session state
   private questionIndex: number = 0;
   private attemptCount: number = 0;
@@ -102,9 +88,6 @@ export class LevelScene extends Phaser.Scene {
   private questionStartTime: number = 0;
   private currentRoundEvents: import('@/types').ProgressionEvent[] = [];
 
-  // R3: hint events linked to attempt records via hintEventRepo.linkToAttempt() (UUID strings)
-  private currentQuestionHintIds: string[] = [];
-
   // Template pool
   private templatePool: QuestionTemplate[] = [];
   private currentTemplate!: QuestionTemplate;
@@ -118,7 +101,6 @@ export class LevelScene extends Phaser.Scene {
   // UI components
   private feedbackOverlay!: FeedbackOverlay;
   private progressBar!: ProgressBar;
-  private hintLadder!: HintLadder;
   private promptText!: Phaser.GameObjects.Text;
   private hintTextGO!: Phaser.GameObjects.Text;
   private hintButton!: Phaser.GameObjects.Container;
@@ -128,7 +110,10 @@ export class LevelScene extends Phaser.Scene {
   private questionCounterText!: Phaser.GameObjects.Text;
   private counterContainer!: Phaser.GameObjects.Container;
   private updateCounter!: (answered: number, total: number) => void;
-  protected studentDisplayName: string | null = null;
+
+  // Controllers (encapsulate complex state and operations)
+  private hintController!: HintController;
+  private progressionController!: ProgressionController;
 
   constructor(key = 'LevelScene') {
     super({ key });
@@ -146,11 +131,9 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
-    // Reset the cached display name on every scene init so a previous
-    // student's name can't leak into a later anonymous session-complete
-    // line. `openSession()` re-resolves it from Dexie when a studentId
-    // is bound; otherwise `resolveQuestName(null)` falls back to "friend".
-    this.studentDisplayName = null;
+    // Initialize controllers
+    this.hintController = new HintController(this);
+    this.progressionController = new ProgressionController(this);
     log.scene('init', {
       level: this.levelNumber,
       studentId: this.studentId,
@@ -309,11 +292,11 @@ export class LevelScene extends Phaser.Scene {
       inputLocked: this.inputLocked,
       lastPayload: this.lastPayload,
       currentTemplate: this.currentTemplate,
-      hintLadder: this.hintLadder ?? null,
+      hintLadder: this.hintController.getHintLadder(),
       questionStartTime: this.questionStartTime,
       responseTimes: this.responseTimes,
       submitButtonContainer: this.submitButtonContainer,
-      currentQuestionHintIds: this.currentQuestionHintIds,
+      currentQuestionHintIds: this.hintController.getCurrentQuestionHintIds(),
       currentRoundEvents: this.currentRoundEvents,
       activeInteraction: this.activeInteraction,
       promptText: this.promptText,
@@ -342,15 +325,16 @@ export class LevelScene extends Phaser.Scene {
       },
       setCurrentTemplate: (t) => {
         this.currentTemplate = t;
+        this.hintController.setCurrentTemplate(t);
       },
       setHintLadder: (h) => {
-        this.hintLadder = h;
+        this.hintController.setHintLadder(h);
       },
       setQuestionStartTime: (t) => {
         this.questionStartTime = t;
       },
       setCurrentQuestionHintIds: (ids) => {
-        this.currentQuestionHintIds = ids;
+        this.hintController.setCurrentQuestionHintIds(ids);
       },
       setCurrentRoundEvents: (events) => {
         this.currentRoundEvents = events;
@@ -440,11 +424,11 @@ export class LevelScene extends Phaser.Scene {
       inputLocked: this.inputLocked,
       lastPayload: this.lastPayload,
       currentTemplate: this.currentTemplate,
-      hintLadder: this.hintLadder ?? null,
+      hintLadder: this.hintController.getHintLadder(),
       questionStartTime: this.questionStartTime,
       responseTimes: this.responseTimes,
       submitButtonContainer: this.submitButtonContainer,
-      currentQuestionHintIds: this.currentQuestionHintIds,
+      currentQuestionHintIds: this.hintController.getCurrentQuestionHintIds(),
       currentRoundEvents: this.currentRoundEvents,
       activeInteraction: this.activeInteraction,
       promptText: this.promptText,
@@ -473,15 +457,16 @@ export class LevelScene extends Phaser.Scene {
       },
       setCurrentTemplate: (t) => {
         this.currentTemplate = t;
+        this.hintController.setCurrentTemplate(t);
       },
       setHintLadder: (h) => {
-        this.hintLadder = h;
+        this.hintController.setHintLadder(h);
       },
       setQuestionStartTime: (t) => {
         this.questionStartTime = t;
       },
       setCurrentQuestionHintIds: (ids) => {
-        this.currentQuestionHintIds = ids;
+        this.hintController.setCurrentQuestionHintIds(ids);
       },
       setCurrentRoundEvents: (events) => {
         this.currentRoundEvents = events;
@@ -509,7 +494,7 @@ export class LevelScene extends Phaser.Scene {
       progressBar: this.progressBar,
       feedbackOverlay: this.feedbackOverlay,
       submitButtonContainer: this.submitButtonContainer,
-      hintLadder: this.hintLadder ?? null,
+      hintLadder: this.hintController.getHintLadder(),
       mascot: this.mascot,
       activeInteraction: this.activeInteraction,
     };
@@ -537,7 +522,7 @@ export class LevelScene extends Phaser.Scene {
       },
       showSessionComplete: () => this.showSessionComplete(),
       setCurrentQuestionHintIds: (ids) => {
-        this.currentQuestionHintIds = ids;
+        this.hintController.setCurrentQuestionHintIds(ids);
       },
       onHintRequest: async () => {
         this.onHintRequest();
@@ -604,91 +589,57 @@ export class LevelScene extends Phaser.Scene {
   // ── Hints ────────────────────────────────────────────────────────────────────
 
   private onHintRequest(): void {
-    if (!this.currentTemplate) {
-      this.time.delayedCall(100, () => this.onHintRequest());
-      return;
-    }
-    this.hintLadder ??= new HintLadder(this.currentTemplate.difficultyTier);
-    const tier = this.hintLadder.next();
-    const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
-      'hint.tier': tier,
-      'scene.level': this.levelNumber,
-      'question.archetype': this.currentTemplate?.archetype,
-    });
-    try {
-      log.hint('request', {
-        tier,
-        level: this.levelNumber,
-        questionIndex: this.questionIndex,
-        wrongCount: this.wrongCount,
-      });
-      this.mascot?.setState('think');
-      void this.showHintForTier(tier);
-    } finally {
-      span.end();
-    }
+    this.hintController.onHintRequest(
+      this.levelNumber,
+      this.questionIndex,
+      this.wrongCount,
+      this.mascot,
+      (tier) => this.showHintForTier(tier)
+    );
   }
 
   private async showHintForTier(tier: import('@/types').HintTier): Promise<void> {
-    const ctx: HintFlowContext = {
+    await this.hintController.showHintForTier(tier, {
       scene: this,
       levelNumber: this.levelNumber,
       questionIndex: this.questionIndex,
       wrongCount: this.wrongCount,
       currentTemplate: this.currentTemplate,
-      hintLadder: this.hintLadder,
       hintButton: this.hintButton,
       hintTextGO: this.hintTextGO,
-      currentQuestionHintIds: this.currentQuestionHintIds,
+      currentQuestionHintIds: this.hintController.getCurrentQuestionHintIds(),
       mascot: this.mascot,
       activeInteraction: this.activeInteraction,
-    };
-    const callbacks: HintFlowCallbacks = {
-      setCurrentQuestionHintIds: (ids) => {
-        this.currentQuestionHintIds = ids;
-      },
-    };
-    await showHintForTierFlow(tier, ctx, callbacks);
+      hintLadder: this.hintController.getHintLadder(),
+    });
   }
 
   private pulseHintButton(): void {
-    pulseHintButtonFlow({
-      scene: this,
-      levelNumber: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
-      currentTemplate: this.currentTemplate,
-      hintLadder: this.hintLadder,
-      hintButton: this.hintButton,
-      hintTextGO: this.hintTextGO,
-      currentQuestionHintIds: this.currentQuestionHintIds,
-      mascot: this.mascot,
-      activeInteraction: this.activeInteraction,
-    });
+    this.hintController.pulseHintButton(
+      this.levelNumber,
+      this.questionIndex,
+      this.wrongCount,
+      this.hintButton,
+      this.hintTextGO,
+      this.mascot,
+      this.activeInteraction
+    );
   }
 
   // ── Persistence ──────────────────────────────────────────────────────────────
 
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
-    try {
-      const { studentRepo } = await import('@/persistence/repositories/student');
-      const student = await studentRepo.get(this.studentId as import('@/types').StudentId);
-      this.studentDisplayName = student?.displayName ?? null;
-    } catch (err) {
-      log.warn('SESS', 'displayname_lookup_error', { error: String(err) });
-      this.studentDisplayName = null;
-    }
-    this.sessionId = await openSessionForLevel(
+    await this.progressionController.openSession(
       this.studentId as import('@/types').StudentId,
       this.levelNumber
     );
   }
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
-    await recordAttemptAndMasteryForLevel(
+    if (!this.studentId) return;
+    await this.progressionController.recordAttempt(
       this.studentId as import('@/types').StudentId,
-      this.sessionId as import('@/types').SessionId,
       this.levelNumber,
       this.currentTemplate,
       this.questionIndex,
@@ -696,7 +647,7 @@ export class LevelScene extends Phaser.Scene {
       result,
       responseMs,
       this.lastPayload,
-      this.currentQuestionHintIds,
+      this.hintController.getCurrentQuestionHintIds(),
       this.currentRoundEvents
     );
   }
@@ -704,18 +655,15 @@ export class LevelScene extends Phaser.Scene {
   // ── Session complete ─────────────────────────────────────────────────────────
 
   private async showSessionComplete(): Promise<void> {
-    await showSessionCompleteForLevel(
-      {
-        scene: this,
-        levelNumber: this.levelNumber,
-        studentId: this.studentId,
-        attemptCount: this.attemptCount,
-        correctCount: this.correctCount,
-        responseTimes: this.responseTimes,
-        canvasWidth: CW,
-        canvasHeight: CH,
-        mascot: this.mascot,
-      },
+    await this.progressionController.showSessionComplete(
+      this.levelNumber,
+      this.studentId as import('@/types').StudentId | null,
+      this.attemptCount,
+      this.correctCount,
+      this.responseTimes,
+      CW,
+      CH,
+      this.mascot,
       {
         setInputLocked: (l) => {
           this.inputLocked = l;
@@ -741,13 +689,9 @@ export class LevelScene extends Phaser.Scene {
     );
   }
 
-  /**
-   * G-5: Write (or update) a ProgressionStat row in IndexedDB marking this level
-   * as completed and advancing highestLevelReached to levelNumber + 1.
-   * This is a best-effort write — persistence failure never blocks gameplay.
-   */
   private async persistLevelCompletion(): Promise<void> {
-    await persistLevelCompletionForLevel(
+    if (!this.studentId) return;
+    await this.progressionController.persistLevelCompletion(
       this.studentId as import('@/types').StudentId,
       this.levelNumber,
       this.correctCount
@@ -755,8 +699,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private async closeSession(): Promise<void> {
-    await closeSessionForLevel(
-      this.sessionId as import('@/types').SessionId,
+    await this.progressionController.closeSession(
       this.levelNumber,
       this.attemptCount,
       this.correctCount,
