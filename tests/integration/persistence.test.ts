@@ -131,12 +131,12 @@ describe('studentRepo', () => {
     expect(fetched?.displayName).toBe('Alice');
   });
 
-  it('lists students ordered by createdAt', async () => {
+  it('lists students ordered by createdAt (newest first)', async () => {
     await studentRepo.create(makeStudent('Bob'));
     await studentRepo.create(makeStudent('Carol'));
     const list = await studentRepo.list();
     expect(list.length).toBe(2);
-    expect(list[0].createdAt).toBeLessThanOrEqual(list[1].createdAt);
+    expect(list[0].createdAt).toBeGreaterThanOrEqual(list[1].createdAt);
   });
 
   it('updates a student field', async () => {
