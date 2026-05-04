@@ -30,6 +30,7 @@
  */
 
 import { errorReporter, logger } from './observability';
+// Window.__LOG shape is declared in src/vite-env.d.ts (project-wide ambient type)
 
 const START = Date.now();
 

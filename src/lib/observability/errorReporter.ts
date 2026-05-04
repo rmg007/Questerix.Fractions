@@ -1,12 +1,13 @@
 import { logger } from './logger';
 import type { StudentId, SessionId } from '../../types';
+import type { ErrorEvent as SentryErrorEvent } from '@sentry/browser';
 
 // @sentry/browser is dynamically imported inside init() and gated on the
 // build-time `VITE_SENTRY_DSN` env var so Rolldown can dead-code-eliminate
 // the entire Sentry chunk (~140 KB gzipped) from default MVP builds.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SentryModule = any;
+/** Type of the dynamically-imported @sentry/browser namespace. */
+type SentryModule = typeof import('@sentry/browser');
 
 interface ReporterConfig {
   dsn?: string;
@@ -91,9 +92,8 @@ class ErrorReporter {
       // COPPA compliance: disable default PII collection
       sendDefaultPii: false,
       // Scrub potential sensitive info from URLs
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      beforeSend(event: any) {
-        if (event?.request?.url) {
+      beforeSend(event: SentryErrorEvent) {
+        if (event.request?.url) {
           event.request.url = event.request.url.replace(/\/[0-9a-f-]{36}/g, '/[id]');
         }
         return event;
@@ -133,8 +133,7 @@ class ErrorReporter {
     logger.setContext(studentId, sessionId);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  report(error: Error, context?: Record<string, any>) {
+  report(error: Error, context?: Record<string, unknown>) {
     logger.error(error.message, {
       error,
       ...(context !== undefined ? { data: context } : {}),
@@ -146,8 +145,7 @@ class ErrorReporter {
       // that may contain raw IDs by accident (defense in depth).
       const cleaned = stripPII(context);
       const sentry = this.sentry;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sentry.withScope((scope: any) => {
+      sentry.withScope((scope) => {
         if (cleaned && Object.keys(cleaned).length > 0) scope.setExtras(cleaned);
         sentry.captureException(error);
       });

@@ -12,6 +12,7 @@
  */
 
 import { getRing, getContext } from './log';
+// Window.__LOG augmentation is declared in log.ts (same module graph)
 
 const VIEWER_ID = 'qf-log-viewer';
 
