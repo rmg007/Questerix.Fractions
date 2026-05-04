@@ -1,5 +1,6 @@
 import { trace, type Tracer } from '@opentelemetry/api';
 import type { SpanProcessor } from '@opentelemetry/sdk-trace-base';
+import type { Attributes } from '@opentelemetry/api';
 
 // Heavy OTel SDK packages are dynamically imported inside _doInit() and gated
 // on `import.meta.env.VITE_OTLP_URL` / `import.meta.env.DEV` so Rolldown can
@@ -100,8 +101,7 @@ class TracerService {
     return this.tracer ?? trace.getTracer('noop');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  startSpan(name: string, attributes?: Record<string, any>) {
+  startSpan(name: string, attributes?: Attributes) {
     return this.getTracer().startSpan(name, attributes ? { attributes } : {});
   }
 }

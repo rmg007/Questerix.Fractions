@@ -54,7 +54,7 @@ const sessionSchema = z
 
 const attemptSchema = z
   .object({
-    id: z.number().int().min(1),
+    id: z.string().min(1).max(256), // DR-01: UUID string PK (migrated from numeric ++id in v11)
     sessionId: z.string().min(1).max(256),
     studentId: z.string().min(1).max(256),
     questionTemplateId: z.string().min(1).max(256),

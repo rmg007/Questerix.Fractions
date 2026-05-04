@@ -11,15 +11,16 @@ import type { Attempt, AttemptId, StudentId, SessionId, QuestionTemplateId } fro
 
 export const attemptRepo = {
   /**
-   * Append a new attempt row. Returns the record with the auto-incremented id
-   * cast back to AttemptId for type consistency.
+   * Append a new attempt row. The caller may supply an id (DR-01: UUID string);
+   * if absent a fresh UUID is generated. Returns the persisted row.
    * per persistence-spec.md §4 — append-only
    */
   async record(attempt: Omit<Attempt, 'id'> & { id?: AttemptId }): Promise<Attempt | undefined> {
-    const toWrite = { ...attempt, syncState: 'local' as const };
+    const id: AttemptId = attempt.id ?? (crypto.randomUUID() as AttemptId);
+    const toWrite: Attempt = { ...attempt, id, syncState: 'local' };
     try {
-      const key = await db.attempts.add(toWrite as Attempt);
-      return { ...toWrite, id: String(key) as AttemptId };
+      await db.attempts.add(toWrite);
+      return toWrite;
     } catch (err) {
       if (err instanceof DOMException && err.name === 'QuotaExceededError') {
         log.warn('DB', 'quota_exceeded', { table: 'attempts' });
@@ -31,9 +32,7 @@ export const attemptRepo = {
 
   async get(id: AttemptId): Promise<Attempt | undefined> {
     try {
-      // auto-increment PK is stored as number in IndexedDB
-      const numericId = Number(id);
-      return await db.attempts.get(numericId);
+      return await db.attempts.get(id);
     } catch (err) {
       return undefined;
     }

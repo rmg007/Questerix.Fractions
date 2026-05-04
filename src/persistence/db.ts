@@ -47,7 +47,7 @@ export class QuesterixDB extends Dexie {
   // Dynamic stores (student progress) — per persistence-spec.md §4
   students!: Table<Student, string>;
   sessions!: Table<Session, string>;
-  attempts!: Table<Attempt, number>;
+  attempts!: Table<Attempt, string>;
   skillMastery!: Table<SkillMastery, [string, string]>;
   deviceMeta!: Table<DeviceMeta, string>;
   bookmarks!: Table<Bookmark, string>;
@@ -425,6 +425,77 @@ export class QuesterixDB extends Dexie {
           }
         } catch (err) {
           console.error('[db.v9] hintEvents migration failed', err);
+        }
+      });
+
+    // Schema version 10 — drops the attempts store so v11 can recreate it
+    // with a client-generated UUID string primary key (DR-01). Same two-bump
+    // pattern used for hintEvents in v8/v9. History is preserved via shadow table.
+    this.version(10)
+      .stores({
+        // Carry all static stores forward (unchanged).
+        curriculumPacks: 'id',
+        standards: 'id',
+        skills: 'id, gradeLevel',
+        activities: 'id, levelGroup, archetype',
+        activityLevels: 'id, [activityId+levelNumber]',
+        fractionBank: 'id, denominatorFamily, benchmark',
+        questionTemplates: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId',
+        misconceptions: 'id',
+        hints: 'id, [questionTemplateId+order]',
+        // Dynamic stores (carry from v9 unchanged).
+        students: 'id, displayName, createdAt',
+        sessions: 'id, studentId, startedAt, [studentId+startedAt]',
+        // Drop attempts — recreated with UUID string PK in v11.
+        attempts: null,
+        skillMastery: '[studentId+skillId], studentId, skillId, lastAttemptAt',
+        deviceMeta: '&installId',
+        bookmarks: 'id, studentId',
+        sessionTelemetry: 'sessionId, studentId',
+        hintEvents: 'id, attemptId',
+        misconceptionFlags: 'id, [studentId+misconceptionId], [studentId+resolvedAt]',
+        progressionStat: '[studentId+activityId], [studentId+lastSessionAt]',
+        telemetryEvents: '++id, timestamp, event, severity, syncState',
+        levelProgression: '&studentId',
+        streakRecord: '&studentId',
+        // Shadow table preserving old rows before drop.
+        _migratingAttempts: '++id',
+      })
+      .upgrade(async (tx) => {
+        try {
+          const oldAttempts = await tx.table('attempts').toArray();
+          if (oldAttempts.length > 0) {
+            await tx.table('_migratingAttempts').bulkAdd(oldAttempts);
+            console.info(`[db.v10] copied ${oldAttempts.length} attempts to shadow table`);
+          }
+        } catch (err) {
+          console.warn('[db.v10] attempts pre-migration error (non-blocking)', err);
+        }
+      });
+
+    // Schema version 11 — recreates attempts with a client-generated UUID string
+    // primary key (DR-01). Restores rows from the shadow table with new UUID PKs.
+    this.version(11)
+      .stores({
+        attempts:
+          'id, sessionId, studentId, questionTemplateId, submittedAt, [studentId+submittedAt], [studentId+questionTemplateId], [archetype+submittedAt]',
+        // Remove shadow table after restoring.
+        _migratingAttempts: null,
+      })
+      .upgrade(async (tx) => {
+        try {
+          const shadowAttempts = await tx.table('_migratingAttempts').toArray();
+          if (shadowAttempts.length > 0) {
+            const migratedAttempts = shadowAttempts.map((row: Record<string, unknown>) => ({
+              ...row,
+              migratedFromId: row.id,
+              id: crypto.randomUUID(),
+            }));
+            await tx.table('attempts').bulkAdd(migratedAttempts);
+            console.info(`[db.v11] migrated ${shadowAttempts.length} attempts with UUID PKs`);
+          }
+        } catch (err) {
+          console.error('[db.v11] attempts migration failed', err);
         }
       });
   }

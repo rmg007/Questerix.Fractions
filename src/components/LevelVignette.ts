@@ -115,8 +115,8 @@ export class LevelVignette {
     for (const t of this.timerRefs) t.remove(false);
     for (const tw of this.tweenRefs) tw.stop();
     for (const obj of this.artObjects) {
-      if ((obj as Phaser.GameObjects.GameObject & { destroy?: () => void }).destroy) {
-        (obj as Phaser.GameObjects.GameObject & { destroy: () => void }).destroy();
+      if (typeof (obj as { destroy?: () => void }).destroy === 'function') {
+        (obj as { destroy: () => void }).destroy();
       }
     }
     this.overlay?.destroy();
@@ -211,7 +211,7 @@ export class LevelVignette {
 
   private cleanupAndComplete(): void {
     for (const obj of this.artObjects) {
-      (obj as unknown as { destroy(): void }).destroy?.();
+      (obj as { destroy?(): void }).destroy?.();
     }
     this.overlay.destroy();
     this.card.destroy();

@@ -21,6 +21,7 @@ class Logger {
   private consentGranted = false;
   private studentId: StudentId | undefined;
   private sessionId: SessionId | undefined;
+  private bufferWriteCount = 0;
 
   setConsent(granted: boolean) {
     this.consentGranted = granted;
@@ -105,10 +106,10 @@ class Logger {
 
       await db.telemetryEvents.add(telemetryEvent);
 
-      // Simple ring buffer logic: if more than 1000 events, trim old ones.
-      // This can be moved to a periodic worker, but for MVP we do it occasionally.
-      if (Math.random() < 0.01) {
-        this.trimBuffer();
+      // Deterministic ring-buffer trim: check every 100 writes instead of randomly.
+      this.bufferWriteCount++;
+      if (this.bufferWriteCount % 100 === 0) {
+        void this.trimBuffer();
       }
     } catch (err) {
       // Fail silently to avoid recursion or crash-loops

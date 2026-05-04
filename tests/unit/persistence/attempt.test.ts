@@ -56,24 +56,24 @@ describe('attemptRepo', () => {
   });
 
   describe('record()', () => {
-    it('adds a row and returns the attempt with an auto-increment id', async () => {
+    it('adds a row and returns the attempt with a UUID id', async () => {
       const result = await attemptRepo.record(makeAttempt());
 
       expect(result).toBeDefined();
       expect(typeof result.id).toBe('string');
-      // id is the stringified auto-increment number — should be numeric
-      expect(Number(result.id)).toBeGreaterThan(0);
+      // DR-01: id is a UUID string (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
       expect(result.sessionId).toBe(sessionId);
       expect(result.studentId).toBe(studentId);
       expect(result.outcome).toBe('EXACT');
       expect(result.syncState).toBe('local');
     });
 
-    it('assigns incrementing ids for successive records', async () => {
+    it('assigns distinct UUID ids for successive records', async () => {
       const a1 = await attemptRepo.record(makeAttempt({ roundNumber: 1 }));
       const a2 = await attemptRepo.record(makeAttempt({ roundNumber: 2 }));
 
-      expect(Number(a1.id)).toBeLessThan(Number(a2.id));
+      expect(a1.id).not.toBe(a2.id);
     });
 
     it('persists the row so get() can retrieve it', async () => {
@@ -81,10 +81,7 @@ describe('attemptRepo', () => {
       const fetched = await attemptRepo.get(inserted.id as AttemptId);
 
       expect(fetched).toBeDefined();
-      // record() returns id as a string (String(key)); Dexie stores ++id as a number.
-      // get() looks up by Number(id), so the returned row has the numeric key from IndexedDB.
-      // We compare the numeric values rather than the raw type to avoid a string/number mismatch.
-      expect(Number(fetched?.id)).toBe(Number(inserted.id));
+      expect(fetched?.id).toBe(inserted.id);
       expect(fetched?.outcome).toBe('EXACT');
     });
 
@@ -137,7 +134,7 @@ describe('attemptRepo', () => {
 
   describe('get()', () => {
     it('returns undefined for an unknown id', async () => {
-      const result = await attemptRepo.get(AttemptId('9999'));
+      const result = await attemptRepo.get(AttemptId('00000000-0000-0000-0000-000000000000'));
       expect(result).toBeUndefined();
     });
   });

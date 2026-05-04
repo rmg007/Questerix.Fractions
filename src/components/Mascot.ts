@@ -160,7 +160,8 @@ export class Mascot extends Phaser.GameObjects.Container {
     });
     this.sleepFx.sleepGfx = this.scene.add.graphics();
     drawSleepEyelids(this.sleepFx.sleepGfx);
-    this.add(this.sleepFx.sleepGfx as unknown as Phaser.GameObjects.GameObject);
+    // sleepGfx was just assigned above — non-null at this point
+    this.add(this.sleepFx.sleepGfx!);
     scheduleZzz(this.sleepFx, this.scene, this, () => (this.state as string) === 'sleep');
   }
 

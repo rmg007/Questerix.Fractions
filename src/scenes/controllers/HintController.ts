@@ -9,6 +9,7 @@ import {
   showHintForTier as showHintForTierFlow,
   pulseHintButton as pulseHintButtonFlow,
   type HintFlowCallbacks,
+  type HintFlowContext,
 } from '../../lib/levelSceneHintFlow';
 import type { Mascot } from '../../components/Mascot';
 import type { Interaction } from '../interactions/types';
@@ -123,16 +124,11 @@ export class HintController {
     }
   }
 
-  async showHintForTier(
-    tier: HintTier,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ctx: Omit<any, 'hintLadder'>
-  ): Promise<void> {
-    const fullCtx = {
+  async showHintForTier(tier: HintTier, ctx: HintFlowContext): Promise<void> {
+    const fullCtx: HintFlowContext = {
       ...ctx,
-      hintLadder: this.hintLadder ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+      ...(this.hintLadder !== null ? { hintLadder: this.hintLadder } : {}),
+    };
     const callbacks: HintFlowCallbacks = {
       setCurrentQuestionHintIds: (ids: string[]) => {
         this.setCurrentQuestionHintIds(ids);

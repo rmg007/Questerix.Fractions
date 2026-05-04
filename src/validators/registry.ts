@@ -21,16 +21,22 @@ import placementValidators from './placement';
 import explainYourOrderValidators from './explain_your_order';
 
 /**
- * Type alias for validator registrations with unknown input/payload types.
- * Used in the registry to accommodate heterogeneous validators while preserving
- * type safety: each validator is strongly typed in its source module, but at
- * the registry level we use unknown. Callers narrow types at the call site
- * based on the archetype or validator ID.
+ * Type alias for validator registrations held in the registry map.
+ * The registry stores heterogeneous validators (each strongly typed in its own
+ * module). At the registry boundary the fn signature must accept unknown so
+ * callers can call any validator without a concrete type; the ValidatorFn
+ * parameters are contravariant, so we wrap with an explicit `unknown` fn shape
+ * rather than narrowing to ValidatorRegistration<unknown, unknown> (which would
+ * conflict with the concrete input types on each module's export).
  *
- * See getValidatorEntry() and getValidator() below for safe retrieval.
+ * The approach: store as `Omit<ValidatorRegistration, 'fn'> & { fn: (i: unknown, p: unknown) => ValidatorResult }`
+ * to keep all metadata fields typed while erasing the generic input types at
+ * the registry level. Callers that need the concrete types retrieve them via
+ * getValidatorEntry() which exposes only the erased fn signature.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyValidatorRegistration = ValidatorRegistration<any, any>;
+type AnyValidatorRegistration = Omit<ValidatorRegistration, 'fn'> & {
+  fn: (input: unknown, payload: unknown) => ValidatorResult;
+};
 
 /**
  * Type-safe entry returned from validatorRegistry.get().
@@ -40,6 +46,11 @@ export interface ValidatorEntry {
   fn: (input: unknown, payload: unknown) => ValidatorResult;
 }
 
+// Each individual validator module is strongly typed (e.g. ValidatorRegistration<EqualCountInput, EqualCountExpected>).
+// At the registry boundary we erase the generic parameters: ValidatorFn is contravariant in TInput/TExpected,
+// so a strongly-typed fn is NOT directly assignable to (unknown, unknown) => ValidatorResult.
+// The cast below is safe: callers always access the erased fn via getValidatorEntry() and are
+// responsible for passing the correct payload shape (enforced by the archetype→validator mapping).
 const allValidators: AnyValidatorRegistration[] = [
   ...partitionValidators,
   ...identifyValidators,
@@ -52,7 +63,7 @@ const allValidators: AnyValidatorRegistration[] = [
   ...equalOrNotValidators,
   ...placementValidators,
   ...explainYourOrderValidators,
-];
+] as AnyValidatorRegistration[];
 
 export const validatorRegistry = new Map<string, AnyValidatorRegistration>(
   allValidators.map((v) => [v.id, v])

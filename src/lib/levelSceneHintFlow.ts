@@ -16,7 +16,7 @@ export interface HintFlowContext {
   questionIndex: number;
   wrongCount: number;
   currentTemplate: QuestionTemplate;
-  hintLadder: HintLadder;
+  hintLadder: HintLadder | null;
   hintButton: Phaser.GameObjects.Container;
   hintTextGO: Phaser.GameObjects.Text;
   currentQuestionHintIds: string[];
@@ -79,6 +79,7 @@ export async function onHintRequest(
   ctx: HintFlowContext,
   callbacks: HintFlowCallbacks
 ): Promise<void> {
+  if (!ctx.hintLadder) return;
   const tier = ctx.hintLadder.next();
   const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
     'hint.tier': tier,
