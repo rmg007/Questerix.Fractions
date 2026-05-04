@@ -10,6 +10,9 @@ concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false # Don't cancel a deploy in progress
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
