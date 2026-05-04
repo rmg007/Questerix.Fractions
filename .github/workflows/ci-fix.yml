@@ -37,6 +37,7 @@ jobs:
 
       # ── Guard 3: PR-only (not pushes to main) ────────────────────────────
       - name: Guard — PR-only
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && vars.AGENT_AUTONOMY_ENABLED == 'true' }}
         id: pr-check
         uses: actions/github-script@v7
         with:
@@ -65,6 +66,7 @@ jobs:
 
       # ── Guard 4: skip bot PRs ────────────────────────────────────────────
       - name: Guard — skip bot PRs
+        if: ${{ steps.pr-check.outputs.skip == 'false' }}
         id: bot-check
         uses: actions/github-script@v7
         with:
@@ -85,11 +87,12 @@ jobs:
             }
 
       - name: Exit if bot PR
-        if: steps.bot-check.outputs.skip == 'true'
+        if: ${{ steps.bot-check.outputs.skip == 'true' }}
         run: exit 0
 
       # ── Checkout to read agent-runs tracking file ────────────────────────
       - uses: actions/checkout@v4
+        if: ${{ steps.pr-check.outputs.skip == 'false' && steps.bot-check.outputs.skip == 'false' }}
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -97,6 +100,7 @@ jobs:
 
       # ── Guard 5: per-SHA limit ───────────────────────────────────────────
       - name: Guard — per-SHA dedup
+        if: ${{ steps.pr-check.outputs.skip == 'false' && steps.bot-check.outputs.skip == 'false' }}
         id: sha-check
         run: |
           SHA="${{ github.event.workflow_run.head_sha }}"
@@ -109,11 +113,12 @@ jobs:
           fi
 
       - name: Exit if already attempted
-        if: steps.sha-check.outputs.skip == 'true'
+        if: ${{ steps.sha-check.outputs.skip == 'true' }}
         run: exit 0
 
       # ── Fetch failing step info ──────────────────────────────────────────
       - name: Fetch failing step info
+        if: ${{ steps.pr-check.outputs.skip == 'false' && steps.bot-check.outputs.skip == 'false' && steps.sha-check.outputs.skip == 'false' }}
         id: failing-step
         uses: actions/github-script@v7
         with:
@@ -175,6 +180,7 @@ jobs:
 
       # ── Create fix branch ────────────────────────────────────────────────
       - name: Create fix branch
+        if: ${{ steps.pr-check.outputs.skip == 'false' && steps.bot-check.outputs.skip == 'false' && steps.sha-check.outputs.skip == 'false' }}
         id: create-branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -193,6 +199,7 @@ jobs:
 
       # ── Dispatch agent ───────────────────────────────────────────────────
       - name: Dispatch agent
+        if: ${{ steps.pr-check.outputs.skip == 'false' && steps.bot-check.outputs.skip == 'false' && steps.sha-check.outputs.skip == 'false' }}
         id: agent
         uses: ./.github/actions/agent-dispatch
         with:
@@ -213,7 +220,7 @@ jobs:
 
       # ── Handle outcome: success/partial → open fix PR ────────────────────
       - name: Open fix PR on success or partial
-        if: steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial'
+        if: ${{ steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -245,7 +252,7 @@ jobs:
 
       # ── Handle outcome: failed → post comment ────────────────────────────
       - name: Post failure comment
-        if: steps.agent.outputs.outcome == 'failed'
+        if: ${{ steps.agent.outputs.outcome == 'failed' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -268,6 +275,7 @@ jobs:
 
       # ── Record SHA to prevent re-runs ────────────────────────────────────
       - name: Record attempted SHA
+        if: ${{ steps.agent.outputs.outcome == 'success' || steps.agent.outputs.outcome == 'partial' || steps.agent.outputs.outcome == 'failed' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -287,7 +295,7 @@ jobs:
 
       # ── Telemetry ─────────────────────────────────────────────────────────
       - name: Telemetry
-        if: always()
+        if: ${{ always() && steps.create-branch.outputs.fix_branch != '' }}
         run: |
           MONTH=$(date +%Y-%m)
           TELEMETRY_FILE=".claude/agent-runs/${MONTH}.jsonl"
