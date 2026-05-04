@@ -48,15 +48,31 @@ for (const f of files.sort()) {
 
 const maxLen = Math.max(...rows.map((r) => r.file.length));
 console.log('\nBundle composition (dist/assets/*.js):\n');
-for (const { file, raw, gz } of rows) {
+for (const { file, raw, gz, br } of rows) {
   const padded = file.padEnd(maxLen);
-  console.log(`  ${padded}  ${String(raw).padStart(10)} raw  /  ${String(gz).padStart(8)} gz`);
+  console.log(`  ${padded}  ${String(raw).padStart(10)} raw  /  ${String(gz).padStart(8)} gz  /  ${String(br).padStart(8)} br`);
 }
 
 const pct = ((totalGz / BUDGET_BYTES) * 100).toFixed(1);
 const status = totalGz <= BUDGET_BYTES ? 'PASS' : 'FAIL';
 console.log(`\nTotal gzipped JS : ${totalGz} bytes (${(totalGz / 1024).toFixed(1)} KB)`);
+console.log(`Total brotli JS  : ${totalBr} bytes (${(totalBr / 1024).toFixed(1)} KB)`);
 console.log(`Budget (1 MB)    : ${BUDGET_BYTES} bytes`);
 console.log(`Budget used      : ${pct}%  [${status}]`);
 
-if (totalGz > BUDGET_BYTES) process.exit(1);
+// Per-chunk budget validation
+console.log('\nPer-chunk budgets (gzipped):');
+let chunkBudgetStatus = 'PASS';
+for (const [chunkName, budget] of Object.entries(CHUNK_BUDGETS)) {
+  const size = chunkSizes[chunkName];
+  if (size) {
+    const budgetKB = budget;
+    const sizeKB = (size.gz / 1024).toFixed(1);
+    const chunkPct = ((size.gz / size.budgetBytes) * 100).toFixed(1);
+    const chunkStatus = size.gz <= size.budgetBytes ? 'PASS' : 'FAIL';
+    console.log(`  ${chunkName.padEnd(15)} : ${sizeKB.padStart(6)} KB / ${budgetKB} KB (${chunkPct}%) [${chunkStatus}]`);
+    if (chunkStatus === 'FAIL') chunkBudgetStatus = 'FAIL';
+  }
+}
+
+if (totalGz > BUDGET_BYTES || chunkBudgetStatus === 'FAIL') process.exit(1);

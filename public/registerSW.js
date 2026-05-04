@@ -19,6 +19,10 @@ if ('serviceWorker' in navigator) {
           });
         });
       })
-      .catch((err) => console.warn('[SW] Registration failed:', err));
+      .catch((err) => {
+        console.warn('[SW] Registration failed:', err);
+        // Dispatch error event so main.ts can surface error UI to user
+        window.dispatchEvent(new CustomEvent('sw-register-failed', { detail: err }));
+      });
   });
 }

@@ -162,6 +162,16 @@ async function boot(): Promise<void> {
     });
   }
 
+  // Phase 14 — Service worker registration error handling.
+  // If SW registration fails (e.g., blocked by corporate proxy, offline),
+  // dispatch an event for visibility. Only log; error UX is non-critical.
+  if (typeof window !== 'undefined') {
+    window.addEventListener('sw-register-failed', (evt: Event) => {
+      const err = (evt as CustomEvent).detail;
+      console.warn('[main] SW registration failed; offline features unavailable:', err);
+    });
+  }
+
   // Phase 11.3 — Update-available banner.
   // `vite-plugin-pwa` is configured with `registerType: 'autoUpdate'`, so a
   // new bundle activates automatically; the running tab keeps executing the
