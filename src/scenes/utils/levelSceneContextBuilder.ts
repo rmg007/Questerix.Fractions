@@ -1,56 +1,39 @@
 import type Phaser from 'phaser';
-import type { QuestionTemplate, ValidatorResult, ProgressionEvent } from '@/types';
+import type { QuestionTemplate, ValidatorResult, ProgressionEvent, HintTier } from '@/types';
 import type { QuestionFlowContext, QuestionFlowCallbacks } from '../../lib/levelSceneQuestionFlow';
+import type { OutcomeFlowContext, OutcomeFlowCallbacks } from '../../lib/levelSceneOutcomeFlow';
 import type { HintLadder } from '../../components/HintLadder';
 import type { Mascot } from '../../components/Mascot';
+import type { ProgressBar } from '../../components/ProgressBar';
+import type { FeedbackOverlay } from '../../components/FeedbackOverlay';
 import type { Interaction } from '../interactions/types';
 
 /**
  * Builds the context object shared by loadQuestion and onSubmit.
  * Reduces ~45 LOC of duplication between the two methods.
  */
-export function buildQuestionFlowContext(
-  scene: Phaser.Scene,
-  levelNumber: number,
-  questionIndex: number,
-  wrongCount: number,
-  inputLocked: boolean,
-  lastPayload: unknown,
-  currentTemplate: QuestionTemplate,
-  hintLadder: HintLadder | null,
-  questionStartTime: number,
-  responseTimes: number[],
-  submitButtonContainer: Phaser.GameObjects.Container,
-  currentQuestionHintIds: string[],
-  currentRoundEvents: ProgressionEvent[],
-  activeInteraction: Interaction | null,
-  promptText: Phaser.GameObjects.Text,
-  hintTextGO: Phaser.GameObjects.Text,
-  questionCounterText: Phaser.GameObjects.Text,
-  updateCounter: (answered: number, total: number) => void,
-  mascot: Mascot
-): QuestionFlowContext {
-  return {
-    scene,
-    levelNumber,
-    questionIndex,
-    wrongCount,
-    inputLocked,
-    lastPayload,
-    currentTemplate,
-    hintLadder: hintLadder ?? null,
-    questionStartTime,
-    responseTimes,
-    submitButtonContainer,
-    currentQuestionHintIds,
-    currentRoundEvents,
-    activeInteraction,
-    promptText,
-    hintTextGO,
-    questionCounterText,
-    updateCounter: (n, t) => updateCounter(n, t),
-    mascot,
-  };
+export function buildQuestionFlowContext(args: {
+  scene: Phaser.Scene;
+  levelNumber: number;
+  questionIndex: number;
+  wrongCount: number;
+  inputLocked: boolean;
+  lastPayload: unknown;
+  currentTemplate: QuestionTemplate;
+  hintLadder: HintLadder | null;
+  questionStartTime: number;
+  responseTimes: number[];
+  submitButtonContainer: Phaser.GameObjects.Container;
+  currentQuestionHintIds: string[];
+  currentRoundEvents: ProgressionEvent[];
+  activeInteraction: Interaction | null;
+  promptText: Phaser.GameObjects.Text;
+  hintTextGO: Phaser.GameObjects.Text;
+  questionCounterText: Phaser.GameObjects.Text;
+  updateCounter: (answered: number, total: number) => void;
+  mascot: Mascot;
+}): QuestionFlowContext {
+  return { ...args };
 }
 
 /**
@@ -75,24 +58,47 @@ export function buildQuestionFlowCallbacks(sceneCallbacks: {
   setActiveInteraction: (i: Interaction | null) => void;
   addResponseTime: (ms: number) => void;
 }): QuestionFlowCallbacks {
-  return {
-    recordAttempt: (result: ValidatorResult, responseMs: number) =>
-      sceneCallbacks.recordAttempt(result, responseMs),
-    showOutcome: (result: ValidatorResult) => sceneCallbacks.showOutcome(result),
-    makeFallbackTemplate: () => sceneCallbacks.makeFallbackTemplate(),
-    getTemplatePool: () => sceneCallbacks.getTemplatePool(),
-    animateCounterBadge: () => sceneCallbacks.animateCounterBadge(),
-    setQuestionIndex: (i: number) => sceneCallbacks.setQuestionIndex(i),
-    setWrongCount: (c: number) => sceneCallbacks.setWrongCount(c),
-    setInputLocked: (l: boolean) => sceneCallbacks.setInputLocked(l),
-    setLastPayload: (p: unknown) => sceneCallbacks.setLastPayload(p),
-    setCurrentTemplate: (t: QuestionTemplate) => sceneCallbacks.setCurrentTemplate(t),
-    setHintLadder: (h: HintLadder | null) => sceneCallbacks.setHintLadder(h),
-    setQuestionStartTime: (t: number) => sceneCallbacks.setQuestionStartTime(t),
-    setCurrentQuestionHintIds: (ids: string[]) => sceneCallbacks.setCurrentQuestionHintIds(ids),
-    setCurrentRoundEvents: (events: ProgressionEvent[]) =>
-      sceneCallbacks.setCurrentRoundEvents(events),
-    setActiveInteraction: (i: Interaction | null) => sceneCallbacks.setActiveInteraction(i),
-    addResponseTime: (ms: number) => sceneCallbacks.addResponseTime(ms),
-  };
+  return { ...sceneCallbacks };
+}
+
+/**
+ * Builds the OutcomeFlow context object for showOutcome().
+ */
+export function buildOutcomeFlowContext(args: {
+  scene: Phaser.Scene;
+  levelNumber: number;
+  questionIndex: number;
+  wrongCount: number;
+  attemptCount: number;
+  correctCount: number;
+  correctStreak: number;
+  currentTemplate: QuestionTemplate;
+  progressBar: ProgressBar;
+  feedbackOverlay: FeedbackOverlay;
+  submitButtonContainer: Phaser.GameObjects.Container | null;
+  hintLadder: HintLadder | null;
+  mascot: Mascot | null;
+  activeInteraction: Interaction | null;
+}): OutcomeFlowContext {
+  return { ...args };
+}
+
+/**
+ * Builds the OutcomeFlow callbacks object for showOutcome().
+ */
+export function buildOutcomeFlowCallbacks(sceneCallbacks: {
+  setWrongCount: (c: number) => void;
+  setAttemptCount: (c: number) => void;
+  setCorrectCount: (c: number) => void;
+  setCorrectStreak: (s: number) => void;
+  setInputLocked: (l: boolean) => void;
+  setLastPayload: (p: unknown) => void;
+  loadQuestion: (i: number) => void;
+  showSessionComplete: () => Promise<void>;
+  setCurrentQuestionHintIds: (ids: string[]) => void;
+  onHintRequest: () => Promise<void>;
+  pulseHintButton: () => void;
+  showHintForTier: (tier: HintTier) => void;
+}): OutcomeFlowCallbacks {
+  return { ...sceneCallbacks };
 }

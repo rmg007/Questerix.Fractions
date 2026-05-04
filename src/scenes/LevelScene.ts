@@ -22,7 +22,6 @@ import { log } from '../lib/log';
 import { Mascot } from '../components/Mascot';
 import { fadeAndStart } from './utils/sceneTransition';
 import { checkReduceMotion } from '../lib/preferences';
-import { get as getCopy } from '../lib/i18n/catalog';
 import { getLastCurriculumLoadFailure, clearLastCurriculumLoadFailure } from '../curriculum/loader';
 import { withSpan } from '../lib/observability/withSpan';
 import { SPAN_NAMES } from '../lib/observability/span-names';
@@ -33,11 +32,7 @@ import {
   type QuestionFlowContext,
   type QuestionFlowCallbacks,
 } from '../lib/levelSceneQuestionFlow';
-import {
-  showOutcome as showOutcomeFlow,
-  type OutcomeFlowContext,
-  type OutcomeFlowCallbacks,
-} from '../lib/levelSceneOutcomeFlow';
+import { showOutcome as showOutcomeFlow } from '../lib/levelSceneOutcomeFlow';
 import {
   makeFallbackTemplate as makeFallbackTemplateLib,
   loadTemplatesForLevel,
@@ -53,22 +48,22 @@ import {
 } from '../lib/levelSceneChrome';
 import { HintController } from './controllers/HintController';
 import { ProgressionController } from './controllers/ProgressionController';
-
-// ── Canvas constants ────────────────────────────────────────────────────────
+import {
+  buildQuestionFlowContext,
+  buildQuestionFlowCallbacks,
+  buildOutcomeFlowContext,
+  buildOutcomeFlowCallbacks,
+} from './utils/levelSceneContextBuilder';
 
 const CW = 800;
 const CH = 1280;
 const SESSION_GOAL = 5;
-
-// ── Init data ────────────────────────────────────────────────────────────────
 
 export interface LevelSceneData {
   levelNumber: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   studentId?: string | null;
   resume?: boolean | undefined;
 }
-
-// ── Scene ────────────────────────────────────────────────────────────────────
 
 export class LevelScene extends Phaser.Scene {
   // Init data
@@ -161,13 +156,11 @@ export class LevelScene extends Phaser.Scene {
       this.cameras.main.fadeIn(300, 0, 0, 0);
     }
 
-    // Load templates
-    await this.loadTemplates();
+    this.templatePool = await loadTemplatesForLevel(
+      this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    );
 
-    // Phase 11.2 — offline-curriculum affordance.
-    // If the boot-time curriculum fetch failed AND we have no usable templates,
-    // surface a user-facing toast and fall back to MenuScene rather than
-    // entering the synthetic-fallback path silently.
+    // Phase 11.2 — fall back to MenuScene if curriculum fetch failed and no usable templates.
     const loadFailure = getLastCurriculumLoadFailure();
     if (loadFailure && this.templatePool.length === 0) {
       log.warn('TMPL', 'offline_uncached', {
@@ -175,19 +168,50 @@ export class LevelScene extends Phaser.Scene {
         reason: loadFailure.reason,
       });
       clearLastCurriculumLoadFailure();
-      this.showOfflineCurriculumToast();
+      showOfflineCurriculumToastLib(this, this.studentId, CW, CH);
       return;
     }
 
-    // Open session record
     await this.openSession();
 
     // Build chrome
-    this.createHeader();
-    this.createPromptArea();
-    this.createHintArea();
-    this.createHintButton();
-    this.createSubmitButton();
+    const header = createHeaderLib(this, this.levelNumber, {
+      sessionGoal: SESSION_GOAL,
+      onBackToMenu: () => fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId }),
+      backLogContext: () => ({
+        level: this.levelNumber,
+        questionIndex: this.questionIndex,
+        attemptCount: this.attemptCount,
+      }),
+    });
+    this.questionCounterText = header.questionCounterText;
+    this.updateCounter = header.updateCounter;
+    this.counterContainer = header.counterContainer;
+    this.promptText = createPromptAreaLib(this);
+    this.hintTextGO = createHintAreaLib(this);
+    this.hintButton = createHintButtonLib(this, {
+      onTap: () => this.onHintRequest(),
+      logContext: () => ({
+        level: this.levelNumber,
+        questionIndex: this.questionIndex,
+        wrongCount: this.wrongCount,
+      }),
+    });
+    TestHooks.mountInteractive('hint-button', () => this.onHintRequest(), {
+      width: '160px',
+      height: '60px',
+      left: '50%',
+      top: '56%',
+    });
+    this.submitButtonContainer = createSubmitButtonLib(this, {
+      onTap: () => void this.onSubmit(),
+      logContext: () => ({
+        level: this.levelNumber,
+        lastPayload: this.lastPayload,
+        inputLocked: this.inputLocked,
+        questionIndex: this.questionIndex,
+      }),
+    });
 
     const progressCardG = this.add.graphics().setDepth(3);
     progressCardG.fillStyle(OPTION_BG, 1);
@@ -205,11 +229,9 @@ export class LevelScene extends Phaser.Scene {
 
     this.feedbackOverlay = new FeedbackOverlay({ scene: this });
 
-    // ── Mascot — always-visible guide in top-right corner (smaller scale) ──
     this.mascot = new Mascot(this, 720, 160, 0.75);
     this.mascot.setState('idle');
 
-    // ── Accessibility: real DOM buttons mirror canvas controls (WCAG 4.1.2)
     A11yLayer.unmountAll();
     A11yLayer.mountAction('a11y-submit', 'Check my answer', () => {
       void this.onSubmit();
@@ -267,27 +289,11 @@ export class LevelScene extends Phaser.Scene {
     });
   }
 
-  // ── Phase 11.2: offline-curriculum toast ────────────────────────────────────
-
-  private showOfflineCurriculumToast(): void {
-    showOfflineCurriculumToastLib(this, this.studentId, CW, CH);
-  }
-
-  // ── Template loading ────────────────────────────────────────────────────────
-
-  private async loadTemplates(): Promise<void> {
-    this.templatePool = await loadTemplatesForLevel(
-      this.levelNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-    );
-  }
-
-  // ── Question loading ─────────────────────────────────────────────────────────
-
-  private async loadQuestion(index: number): Promise<void> {
-    const ctx: QuestionFlowContext = {
+  private buildQFContext(questionIndexOverride?: number): QuestionFlowContext {
+    return buildQuestionFlowContext({
       scene: this,
       levelNumber: this.levelNumber,
-      questionIndex: index,
+      questionIndex: questionIndexOverride ?? this.questionIndex,
       wrongCount: this.wrongCount,
       inputLocked: this.inputLocked,
       lastPayload: this.lastPayload,
@@ -304,11 +310,14 @@ export class LevelScene extends Phaser.Scene {
       questionCounterText: this.questionCounterText,
       updateCounter: (n, t) => this.updateCounter(n, t),
       mascot: this.mascot,
-    };
-    const callbacks: QuestionFlowCallbacks = {
+    });
+  }
+
+  private buildQFCallbacks(): QuestionFlowCallbacks {
+    return buildQuestionFlowCallbacks({
       recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
       showOutcome: (result) => this.showOutcome(result),
-      makeFallbackTemplate: () => this.makeFallbackTemplate(),
+      makeFallbackTemplate: () => makeFallbackTemplateLib(this.levelNumber),
       getTemplatePool: () => this.templatePool,
       animateCounterBadge: () => this.animateCounterBadge(),
       setQuestionIndex: (i) => {
@@ -327,15 +336,11 @@ export class LevelScene extends Phaser.Scene {
         this.currentTemplate = t;
         this.hintController.setCurrentTemplate(t);
       },
-      setHintLadder: (h) => {
-        this.hintController.setHintLadder(h);
-      },
+      setHintLadder: (h) => this.hintController.setHintLadder(h),
       setQuestionStartTime: (t) => {
         this.questionStartTime = t;
       },
-      setCurrentQuestionHintIds: (ids) => {
-        this.hintController.setCurrentQuestionHintIds(ids);
-      },
+      setCurrentQuestionHintIds: (ids) => this.hintController.setCurrentQuestionHintIds(ids),
       setCurrentRoundEvents: (events) => {
         this.currentRoundEvents = events;
       },
@@ -345,144 +350,21 @@ export class LevelScene extends Phaser.Scene {
       addResponseTime: (ms) => {
         this.responseTimes.push(ms);
       },
-    };
-    await loadQuestionFlow(index, ctx, callbacks);
-  }
-
-  private makeFallbackTemplate(): QuestionTemplate {
-    return makeFallbackTemplateLib(this.levelNumber);
-  }
-
-  // ── Header / chrome ─────────────────────────────────────────────────────────
-
-  private createHeader(): void {
-    const { questionCounterText, updateCounter, counterContainer } = createHeaderLib(
-      this,
-      this.levelNumber,
-      {
-        sessionGoal: SESSION_GOAL,
-        onBackToMenu: () => fadeAndStart(this, 'MenuScene', { lastStudentId: this.studentId }),
-        backLogContext: () => ({
-          level: this.levelNumber,
-          questionIndex: this.questionIndex,
-          attemptCount: this.attemptCount,
-        }),
-      }
-    );
-    this.questionCounterText = questionCounterText;
-    this.updateCounter = updateCounter;
-    this.counterContainer = counterContainer;
-  }
-
-  private createPromptArea(): void {
-    this.promptText = createPromptAreaLib(this);
-  }
-
-  private createHintArea(): void {
-    this.hintTextGO = createHintAreaLib(this);
-  }
-
-  private createHintButton(): void {
-    this.hintButton = createHintButtonLib(this, {
-      onTap: () => this.onHintRequest(),
-      logContext: () => ({
-        level: this.levelNumber,
-        questionIndex: this.questionIndex,
-        wrongCount: this.wrongCount,
-      }),
-    });
-    TestHooks.mountInteractive('hint-button', () => this.onHintRequest(), {
-      width: '160px',
-      height: '60px',
-      left: '50%',
-      top: '56%',
     });
   }
 
-  private createSubmitButton(): void {
-    this.submitButtonContainer = createSubmitButtonLib(this, {
-      onTap: () => void this.onSubmit(),
-      logContext: () => ({
-        level: this.levelNumber,
-        lastPayload: this.lastPayload,
-        inputLocked: this.inputLocked,
-        questionIndex: this.questionIndex,
-      }),
-    });
+  private async loadQuestion(index: number): Promise<void> {
+    await loadQuestionFlow(index, this.buildQFContext(index), this.buildQFCallbacks());
   }
-
-  // ── Commit / Validation ──────────────────────────────────────────────────────
 
   private lastPayload: unknown = null;
 
   private async onSubmit(): Promise<void> {
-    const ctx: QuestionFlowContext = {
-      scene: this,
-      levelNumber: this.levelNumber,
-      questionIndex: this.questionIndex,
-      wrongCount: this.wrongCount,
-      inputLocked: this.inputLocked,
-      lastPayload: this.lastPayload,
-      currentTemplate: this.currentTemplate,
-      hintLadder: this.hintController.getHintLadder(),
-      questionStartTime: this.questionStartTime,
-      responseTimes: this.responseTimes,
-      submitButtonContainer: this.submitButtonContainer,
-      currentQuestionHintIds: this.hintController.getCurrentQuestionHintIds(),
-      currentRoundEvents: this.currentRoundEvents,
-      activeInteraction: this.activeInteraction,
-      promptText: this.promptText,
-      hintTextGO: this.hintTextGO,
-      questionCounterText: this.questionCounterText,
-      updateCounter: (n, t) => this.updateCounter(n, t),
-      mascot: this.mascot,
-    };
-    const callbacks: QuestionFlowCallbacks = {
-      recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
-      showOutcome: (result) => this.showOutcome(result),
-      makeFallbackTemplate: () => this.makeFallbackTemplate(),
-      getTemplatePool: () => this.templatePool,
-      animateCounterBadge: () => this.animateCounterBadge(),
-      setQuestionIndex: (i) => {
-        this.questionIndex = i;
-      },
-      setWrongCount: (c) => {
-        this.wrongCount = c;
-      },
-      setInputLocked: (l) => {
-        this.inputLocked = l;
-      },
-      setLastPayload: (p) => {
-        this.lastPayload = p;
-      },
-      setCurrentTemplate: (t) => {
-        this.currentTemplate = t;
-        this.hintController.setCurrentTemplate(t);
-      },
-      setHintLadder: (h) => {
-        this.hintController.setHintLadder(h);
-      },
-      setQuestionStartTime: (t) => {
-        this.questionStartTime = t;
-      },
-      setCurrentQuestionHintIds: (ids) => {
-        this.hintController.setCurrentQuestionHintIds(ids);
-      },
-      setCurrentRoundEvents: (events) => {
-        this.currentRoundEvents = events;
-      },
-      setActiveInteraction: (i) => {
-        this.activeInteraction = i;
-      },
-      addResponseTime: (ms) => {
-        this.responseTimes.push(ms);
-      },
-    };
-    await submitQuestion(ctx, callbacks);
+    await submitQuestion(this.buildQFContext(), this.buildQFCallbacks());
   }
 
   private showOutcome(result: ValidatorResult): void {
-    const ctx: OutcomeFlowContext = {
+    const ctx = buildOutcomeFlowContext({
       scene: this,
       levelNumber: this.levelNumber,
       questionIndex: this.questionIndex,
@@ -497,8 +379,8 @@ export class LevelScene extends Phaser.Scene {
       hintLadder: this.hintController.getHintLadder(),
       mascot: this.mascot,
       activeInteraction: this.activeInteraction,
-    };
-    const callbacks: OutcomeFlowCallbacks = {
+    });
+    const callbacks = buildOutcomeFlowCallbacks({
       setWrongCount: (c) => {
         this.wrongCount = c;
       },
@@ -521,9 +403,7 @@ export class LevelScene extends Phaser.Scene {
         void this.loadQuestion(i);
       },
       showSessionComplete: () => this.showSessionComplete(),
-      setCurrentQuestionHintIds: (ids) => {
-        this.hintController.setCurrentQuestionHintIds(ids);
-      },
+      setCurrentQuestionHintIds: (ids) => this.hintController.setCurrentQuestionHintIds(ids),
       onHintRequest: async () => {
         this.onHintRequest();
       },
@@ -531,7 +411,7 @@ export class LevelScene extends Phaser.Scene {
       showHintForTier: (tier) => {
         void this.showHintForTier(tier);
       },
-    };
+    });
     void showOutcomeFlow(result, ctx, callbacks);
   }
 
@@ -545,39 +425,6 @@ export class LevelScene extends Phaser.Scene {
     return null;
   }
 
-  questHintText(archetype: string, tier: import('@/types').HintTier): string | null {
-    if (archetype === 'partition') {
-      const d = this.payloadDenominator();
-      switch (d) {
-        case 2:
-          return getCopy('quest.hint.split2');
-        case 3:
-          return getCopy('quest.hint.split3');
-        case 4:
-          return getCopy('quest.hint.split4');
-        default:
-          return null;
-      }
-    }
-    const suffix = tier === 'verbal' ? 'verbal' : tier === 'visual_overlay' ? 'visual' : 'worked';
-    switch (archetype) {
-      case 'equal_or_not':
-      case 'compare':
-      case 'order':
-      case 'benchmark':
-      case 'label':
-      case 'make':
-      case 'snap_match':
-        try {
-          return getCopy(`quest.hint.${archetype}.${suffix}`);
-        } catch {
-          return null;
-        }
-      default:
-        return null;
-    }
-  }
-
   questFeedbackText(kind: FeedbackKind): string | null {
     return questFeedbackTextLib(
       kind,
@@ -585,8 +432,6 @@ export class LevelScene extends Phaser.Scene {
       this.payloadDenominator()
     );
   }
-
-  // ── Hints ────────────────────────────────────────────────────────────────────
 
   private onHintRequest(): void {
     this.hintController.onHintRequest(
@@ -626,8 +471,6 @@ export class LevelScene extends Phaser.Scene {
     );
   }
 
-  // ── Persistence ──────────────────────────────────────────────────────────────
-
   private async openSession(): Promise<void> {
     if (!this.studentId) return;
     await this.progressionController.openSession(
@@ -652,12 +495,11 @@ export class LevelScene extends Phaser.Scene {
     );
   }
 
-  // ── Session complete ─────────────────────────────────────────────────────────
-
   private async showSessionComplete(): Promise<void> {
+    const studentId = this.studentId as import('@/types').StudentId | null;
     await this.progressionController.showSessionComplete(
       this.levelNumber,
-      this.studentId as import('@/types').StudentId | null,
+      studentId,
       this.attemptCount,
       this.correctCount,
       this.responseTimes,
@@ -669,8 +511,21 @@ export class LevelScene extends Phaser.Scene {
           this.inputLocked = l;
         },
         markLevelComplete: () => MenuScene.markLevelComplete(this.levelNumber, this.studentId),
-        persistCompletion: () => this.persistLevelCompletion(),
-        closeSession: () => this.closeSession(),
+        persistCompletion: async () => {
+          if (!studentId) return;
+          await this.progressionController.persistLevelCompletion(
+            studentId,
+            this.levelNumber,
+            this.correctCount
+          );
+        },
+        closeSession: () =>
+          this.progressionController.closeSession(
+            this.levelNumber,
+            this.attemptCount,
+            this.correctCount,
+            this.responseTimes
+          ),
         navigateNextLevel: (next) =>
           fadeAndStart(this, 'LevelScene', { levelNumber: next, studentId: this.studentId }),
         navigatePlayAgain: () =>
@@ -689,31 +544,6 @@ export class LevelScene extends Phaser.Scene {
     );
   }
 
-  private async persistLevelCompletion(): Promise<void> {
-    if (!this.studentId) return;
-    await this.progressionController.persistLevelCompletion(
-      this.studentId as import('@/types').StudentId,
-      this.levelNumber,
-      this.correctCount
-    );
-  }
-
-  private async closeSession(): Promise<void> {
-    await this.progressionController.closeSession(
-      this.levelNumber,
-      this.attemptCount,
-      this.correctCount,
-      this.responseTimes
-    );
-  }
-
-  // ── Utilities ────────────────────────────────────────────────────────────────
-
-  /**
-   * Plays a brief scale-bounce (1.0 → 1.25 → 1.0, ~200 ms) on the question
-   * counter badge so young children notice it updating. Skipped when the OS
-   * reports prefers-reduced-motion.
-   */
   private animateCounterBadge(): void {
     if (checkReduceMotion()) return;
     const badge = this.counterContainer;
