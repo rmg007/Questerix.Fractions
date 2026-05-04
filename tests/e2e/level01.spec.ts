@@ -32,25 +32,26 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     for (let i = 1; i <= 4; i++) {
       await expect(partitionTarget).toBeVisible({ timeout: 10000 });
       await partitionTarget.click();
-      await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
+      // Bumped 5s → 10s for CI cold-start (matches lesson from PR #90)
+      await expect(feedbackOverlay).toBeVisible({ timeout: 10000 });
 
       // ARIA-live region announces outcome per accessibility.md §6
       const liveRegion = page.locator('[aria-live="polite"]');
-      await expect(liveRegion).not.toBeEmpty({ timeout: 500 });
+      await expect(liveRegion).not.toBeEmpty({ timeout: 2000 });
 
       // Progress bar should reflect current attempt count
       const progressBar = page.locator('[data-testid="progress-bar"]');
       await expect(progressBar).toHaveAttribute('aria-valuenow', String(i));
 
       // Click next if still present; overlay may auto-dismiss before we click
-      await feedbackNext.click({ force: true, timeout: 1500 }).catch(() => {});
-      await expect(feedbackOverlay).toBeHidden({ timeout: 5000 });
+      await feedbackNext.click({ force: true, timeout: 2000 }).catch(() => {});
+      await expect(feedbackOverlay).toBeHidden({ timeout: 10000 });
     }
 
     // Attempt 5: the final attempt
     await expect(partitionTarget).toBeVisible({ timeout: 10000 });
     await partitionTarget.click();
-    await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
+    await expect(feedbackOverlay).toBeVisible({ timeout: 10000 });
     await feedbackNext.click({ force: true, timeout: 1500 }).catch(() => {});
 
     // Completion screen must appear

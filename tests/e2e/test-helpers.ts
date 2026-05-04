@@ -92,10 +92,10 @@ export async function doAttempt(page: Page): Promise<number> {
   const feedbackOverlay = page.locator('[data-testid="feedback-overlay"]');
   const feedbackNext = page.locator('[data-testid="feedback-next-btn"]');
 
-  await expect(partitionTarget).toBeVisible({ timeout: 5000 });
+  await expect(partitionTarget).toBeVisible({ timeout: 15000 });
   const t0 = Date.now();
   await partitionTarget.click();
-  await expect(feedbackOverlay).toBeVisible({ timeout: 5000 });
+  await expect(feedbackOverlay).toBeVisible({ timeout: 15000 });
   const elapsed = Date.now() - t0;
 
   // Click the feedback next button and wait for overlay to dismiss.

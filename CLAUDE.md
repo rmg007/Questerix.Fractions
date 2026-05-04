@@ -281,17 +281,9 @@ Full strategy: `docs/30-architecture/test-strategy.md`
 
 ---
 
-## Active bugs (as of 2026-05-01)
+## Active bugs
 
-**No active Sprint 0 bugs.** All 5 (BUG-01, BUG-02, BUG-04, G-E1, G-C7) verified fixed against the current `Level01Scene.ts`:
-
-- BUG-01: filtered to partition archetype at `Level01Scene.ts:231` (`// Fix 1 (BUG-01)`)
-- BUG-02: progress increment + session-complete check land in correct order at `Level01Scene.ts:1058,1105-1106,1114`
-- BUG-04: hint tiers advance via `hintLadder.next()` at `Level01Scene.ts:1125-1135` (`// Fix 3 (BUG-04)`)
-- G-E1: `updateMastery()` is called at `Level01Scene.ts:1348-1369`
-- G-C7: "Play Again" routes through `LevelScene { levelNumber: ... }` at `Level01Scene.ts:1518,1542` — no longer re-enters `Level01Scene` directly
-
-Sprint 0 exit criteria: student completes a 5-question session at `localhost:5000` in a real browser tab.
+None. The Sprint 0 set (BUG-01, BUG-02, BUG-04, G-E1, G-C7) was verified fixed on 2026-05-01 — see `PLANS/_archive/2026-05-02-PLAN.md` for context. The line numbers cited there refer to a pre-refactor `Level01Scene.ts`; do not chase them in the current source.
 
 ---
 
@@ -306,6 +298,6 @@ Sprint 0 exit criteria: student completes a 5-question session at `localhost:500
 | Performance budget breakdown | `docs/30-architecture/performance-budget.md` |
 | Misconception catalog (MC-*) | `docs/10-curriculum/misconceptions.md` |
 | Skill registry (SK-*) | `docs/10-curriculum/skills.md` |
-| Roadmap + sprint plan | `PLANS/PLAN.md` |
+| Roadmap + sprint history | `PLANS/_archive/` (latest dated file) |
 | UI/UX design principles | `docs/00-foundation/ui-design-principles.md` |
 | Git branch + PR process | `docs/00-foundation/git-workflow.md` |
