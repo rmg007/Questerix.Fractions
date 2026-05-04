@@ -48,7 +48,7 @@ export const MAX_COGNITIVE_ELEMENTS = 7;
 export function assertCognitiveElementCount(sceneKey: string, count: number): void {
   if (count <= MAX_COGNITIVE_ELEMENTS) return;
   const msg = `[cognitiveLoad] ${sceneKey}: ${count} cognitive elements exceeds budget of ${MAX_COGNITIVE_ELEMENTS}`;
-  if (typeof process !== 'undefined' && process.env && process.env['NODE_ENV'] === 'production') {
+  if (import.meta.env.PROD) {
     // eslint-disable-next-line no-console
     console.warn(msg);
   } else {

@@ -10,6 +10,7 @@ import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { questionTemplateRepo } from '../persistence/repositories/questionTemplate';
 import { deriveLevelGroup, type LevelGroup } from './levelGroup';
 import { loadCurriculumBundle, type ParsedBundle } from './loader';
+import { log } from '../lib/log';
 
 // ── APP_CONTENT_VERSION ────────────────────────────────────────────────────
 
@@ -19,7 +20,7 @@ import { loadCurriculumBundle, type ParsedBundle } from './loader';
  * Must match CurriculumBundle.contentVersion for no wipe.
  * Per persistence-spec.md §5 step 3.
  */
-const APP_CONTENT_VERSION = '1.0.0';
+export const APP_CONTENT_VERSION = '1.0.0';
 
 export interface SeedResult {
   seeded: number;
@@ -129,15 +130,22 @@ async function _doSeed(): Promise<SeedResult> {
  * Bulk seed all static stores from the curriculum bundle.
  * Optionally wipes stores first (atomically, within transaction) on version mismatch (R2).
  * Returns total record count seeded.
+ * Phase 12.3: Validates malformed IDs, bundle shape, and levelGroup population.
  */
 async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false): Promise<number> {
   let total = 0;
 
   // Pre-transform questionTemplates to add levelGroup before transaction
-  const templatesWithGroup = bundle.questionTemplates.map((t) => ({
-    ...t,
-    levelGroup: deriveLevelGroup(t.id) satisfies LevelGroup,
-  }));
+  // Phase 12.3: Guard against malformed template IDs before levelGroup derivation
+  const templatesWithGroup = bundle.questionTemplates.map((t) => {
+    if (!t.id || typeof t.id !== 'string' || !t.id.match(/^q:[a-z_]+:L[0-9]+:[0-9]{4}$/)) {
+      log.warn('CURRICULUM', 'seed.malformed_template_id', { id: t.id });
+    }
+    return {
+      ...t,
+      levelGroup: deriveLevelGroup(t.id) satisfies LevelGroup,
+    };
+  });
 
   // Transaction wraps all seeds (and optional wipe) in one atomic operation per persistence-spec.md §5 (R2)
   await db.transaction(
@@ -170,6 +178,31 @@ async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false):
         console.info('[seedAllStores] Wiped all static stores within transaction');
       }
 
+      // Phase 12.3: Guard against malformed bundle shape before seeding
+      const badTemplates = bundle.questionTemplates.filter(
+        (t) =>
+          !t.id ||
+          !t.archetype ||
+          !t.payload ||
+          !t.validatorId ||
+          !Array.isArray(t.skillIds) ||
+          t.skillIds.length === 0
+      );
+      if (badTemplates.length > 0) {
+        log.warn('CURRICULUM', 'seed.invalid_templates_detected', {
+          count: badTemplates.length,
+          examples: badTemplates.slice(0, 3).map((t) => {
+            const missing: string[] = [];
+            if (!t.id) missing.push('id');
+            if (!t.archetype) missing.push('archetype');
+            if (!t.payload) missing.push('payload');
+            if (!t.validatorId) missing.push('validatorId');
+            if (!Array.isArray(t.skillIds) || t.skillIds.length === 0) missing.push('skillIds');
+            return { id: t.id, missing };
+          }),
+        });
+      }
+
       if (bundle.curriculumPacks.length > 0) {
         await db.curriculumPacks.bulkPut(bundle.curriculumPacks);
         total += bundle.curriculumPacks.length;
@@ -195,9 +228,17 @@ async function seedAllStores(bundle: ParsedBundle, shouldWipe: boolean = false):
         total += bundle.fractionBank.length;
       }
       if (templatesWithGroup.length > 0) {
+        // Phase 12.3: Assert levelGroup populated before bulkPut
         // levelGroup is an indexed field in the questionTemplates store
         // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup') —
         // it MUST be persisted, not stripped. Without it, getByLevel() returns 0 rows.
+        const missingGroup = templatesWithGroup.filter((t) => !t.levelGroup);
+        if (missingGroup.length > 0) {
+          log.error('CURRICULUM', 'seed.levelGroup_missing', {
+            count: missingGroup.length,
+            examples: missingGroup.slice(0, 3).map((t) => t.id),
+          });
+        }
         await db.questionTemplates.bulkPut(templatesWithGroup);
         total += templatesWithGroup.length;
       }

@@ -3,11 +3,19 @@
 // Usage: node scripts/measure-bundle.mjs
 // Or via: npm run measure-bundle
 import { readFileSync, readdirSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, brotliCompressSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
 
 const distDir = resolve(process.cwd(), 'dist', 'assets');
 const BUDGET_BYTES = 1_048_576; // 1 MB
+
+// Per-chunk budgets in KB (gzipped)
+const CHUNK_BUDGETS = {
+  phaser: 380,
+  scenes: 100,
+  observability: 12,
+  dexie: 35,
+};
 
 let files;
 try {
@@ -18,13 +26,24 @@ try {
 }
 
 let totalGz = 0;
+let totalBr = 0;
 const rows = [];
+const chunkSizes = {};
 
 for (const f of files.sort()) {
   const raw = readFileSync(join(distDir, f));
   const gz = gzipSync(raw).length;
+  const br = brotliCompressSync(raw).length;
   totalGz += gz;
-  rows.push({ file: f, raw: raw.length, gz });
+  totalBr += br;
+  rows.push({ file: f, raw: raw.length, gz, br });
+
+  // Track chunk sizes for per-chunk budget validation
+  for (const [chunkName, budgetKB] of Object.entries(CHUNK_BUDGETS)) {
+    if (f.includes(`${chunkName}-`)) {
+      chunkSizes[chunkName] = { gz, br, budgetBytes: budgetKB * 1024 };
+    }
+  }
 }
 
 const maxLen = Math.max(...rows.map((r) => r.file.length));
