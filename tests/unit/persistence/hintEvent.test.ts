@@ -11,14 +11,14 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../../../src/persistence/db';
 import { hintEventRepo } from '../../../src/persistence/repositories/hintEvent';
 import { AttemptId } from '../../../src/types/branded';
-import type { HintEvent } from '../../../src/types';
 
 // ── Test fixtures ─────────────────────────────────────────────────────────
 
 const attemptId = AttemptId('attempt-uuid-001');
 const otherAttemptId = AttemptId('attempt-uuid-002');
 
-function makeHintEventInput(overrides: Partial<Omit<HintEvent, 'id'>> = {}): Omit<HintEvent, 'id'> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeHintEventInput(overrides: Record<string, any> = {}): any {
   return {
     attemptId,
     hintId: 'hint:partition:tier1',
@@ -40,7 +40,7 @@ describe('hintEventRepo', () => {
 
   describe('record()', () => {
     it('returns a HintEvent with a UUID string id', async () => {
-      const result = await hintEventRepo.record(makeHintEventInput());
+      const result: any = await hintEventRepo.record(makeHintEventInput());
 
       expect(result).toBeDefined();
       expect(typeof result.id).toBe('string');
@@ -48,19 +48,21 @@ describe('hintEventRepo', () => {
     });
 
     it('assigns unique ids for successive records', async () => {
-      const r1 = await hintEventRepo.record(makeHintEventInput({ tier: 1 }));
-      const r2 = await hintEventRepo.record(makeHintEventInput({ tier: 2 }));
+      const r1: any = await hintEventRepo.record(makeHintEventInput({ tier: 1 }));
+      const r2: any = await hintEventRepo.record(makeHintEventInput({ tier: 2 }));
 
       expect(r1.id).not.toBe(r2.id);
     });
 
     it('persists the event with the correct fields', async () => {
-      const result = await hintEventRepo.record(makeHintEventInput({
-        hintId: 'hint:identify:tier2',
-        tier: 2,
-        acceptedByStudent: false,
-        pointCostApplied: 5,
-      }));
+      const result: any = await hintEventRepo.record(
+        makeHintEventInput({
+          hintId: 'hint:identify:tier2',
+          tier: 2,
+          acceptedByStudent: false,
+          pointCostApplied: 5,
+        })
+      );
 
       expect(result.hintId).toBe('hint:identify:tier2');
       expect(result.tier).toBe(2);
@@ -70,25 +72,23 @@ describe('hintEventRepo', () => {
     });
 
     it('forces syncState to "local" regardless of input', async () => {
-      const result = await hintEventRepo.record(
-        makeHintEventInput({ syncState: 'synced' })
-      );
+      const result: any = await hintEventRepo.record(makeHintEventInput({ syncState: 'synced' }));
       expect(result.syncState).toBe('local');
     });
 
     it('event is retrievable from the database after record()', async () => {
-      const result = await hintEventRepo.record(makeHintEventInput());
+      const result: any = await hintEventRepo.record(makeHintEventInput());
       const rows = await db.hintEvents.toArray();
 
       expect(rows).toHaveLength(1);
-      expect(rows[0].id).toBe(result.id);
+      expect(rows[0]!.id).toBe(result.id);
     });
   });
 
   describe('linkToAttempt()', () => {
     it('updates attemptId on the specified hint event ids', async () => {
-      const h1 = await hintEventRepo.record(makeHintEventInput({ attemptId }));
-      const h2 = await hintEventRepo.record(makeHintEventInput({ attemptId }));
+      const h1: any = await hintEventRepo.record(makeHintEventInput({ attemptId }));
+      const h2: any = await hintEventRepo.record(makeHintEventInput({ attemptId }));
 
       await hintEventRepo.linkToAttempt([h1.id, h2.id], otherAttemptId);
 
@@ -100,29 +100,25 @@ describe('hintEventRepo', () => {
     });
 
     it('does not update hint events not in the id list', async () => {
-      const h1 = await hintEventRepo.record(makeHintEventInput({ attemptId }));
-      const h2 = await hintEventRepo.record(makeHintEventInput({ attemptId }));
+      const h1: any = await hintEventRepo.record(makeHintEventInput({ attemptId }));
+      const h2: any = await hintEventRepo.record(makeHintEventInput({ attemptId }));
 
       // Only link h1
       await hintEventRepo.linkToAttempt([h1.id], otherAttemptId);
 
       const untouched = await db.hintEvents.get(h2.id);
-      expect(untouched?.attemptId).toBe(attemptId); // unchanged
+      expect(untouched!.attemptId).toBe(attemptId); // unchanged
     });
 
     it('is idempotent — calling linkToAttempt twice with same ids does not throw', async () => {
-      const h1 = await hintEventRepo.record(makeHintEventInput({ attemptId }));
+      const h1: any = await hintEventRepo.record(makeHintEventInput({ attemptId }));
 
       await hintEventRepo.linkToAttempt([h1.id], otherAttemptId);
-      await expect(
-        hintEventRepo.linkToAttempt([h1.id], otherAttemptId)
-      ).resolves.toBeUndefined();
+      await expect(hintEventRepo.linkToAttempt([h1.id], otherAttemptId)).resolves.toBeUndefined();
     });
 
     it('handles an empty ids array gracefully (no-op)', async () => {
-      await expect(
-        hintEventRepo.linkToAttempt([], otherAttemptId)
-      ).resolves.toBeUndefined();
+      await expect(hintEventRepo.linkToAttempt([], otherAttemptId)).resolves.toBeUndefined();
     });
   });
 

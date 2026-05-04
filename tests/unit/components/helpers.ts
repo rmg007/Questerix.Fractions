@@ -4,7 +4,7 @@
  * LevelCard.test.ts and SessionCompleteOverlay.test.ts.
  */
 
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 /**
  * Create a fluent-chaining Phaser GameObject mock.
@@ -19,50 +19,50 @@ export function makeGameObject() {
     scale: 1,
     visible: true,
     active: true,
-    setDepth: vi.fn(function () {
+    setDepth: vi.fn(function (this: unknown) {
       return this;
     }),
-    setVisible: vi.fn(function () {
+    setVisible: vi.fn(function (this: unknown) {
       return this;
     }),
-    setAlpha: vi.fn(function () {
+    setAlpha: vi.fn(function (this: unknown) {
       return this;
     }),
-    setX: vi.fn(function () {
+    setX: vi.fn(function (this: unknown) {
       return this;
     }),
-    setY: vi.fn(function () {
+    setY: vi.fn(function (this: unknown) {
       return this;
     }),
-    setPosition: vi.fn(function () {
+    setPosition: vi.fn(function (this: unknown) {
       return this;
     }),
-    setScale: vi.fn(function () {
+    setScale: vi.fn(function (this: unknown) {
       return this;
     }),
     destroy: vi.fn(),
-    on: vi.fn(function () {
+    on: vi.fn(function (this: unknown) {
       return this;
     }),
-    off: vi.fn(function () {
+    off: vi.fn(function (this: unknown) {
       return this;
     }),
-    once: vi.fn(function () {
+    once: vi.fn(function (this: unknown) {
       return this;
     }),
-    emit: vi.fn(function () {
+    emit: vi.fn(function (this: unknown) {
       return this;
     }),
-    setInteractive: vi.fn(function () {
+    setInteractive: vi.fn(function (this: unknown) {
       return this;
     }),
-    disableInteractive: vi.fn(function () {
+    disableInteractive: vi.fn(function (this: unknown) {
       return this;
     }),
-    setStrokeStyle: vi.fn(function () {
+    setStrokeStyle: vi.fn(function (this: unknown) {
       return this;
     }),
-    setFillStyle: vi.fn(function () {
+    setFillStyle: vi.fn(function (this: unknown) {
       return this;
     }),
   };
@@ -79,62 +79,69 @@ export function makeGraphics() {
     x: 0,
     y: 0,
     depth: 0,
-    fillStyle: vi.fn(function (color: number) {
+    fillStyle: vi.fn(function (this: unknown, color: number) {
       calls.push({ method: 'fillStyle', args: [color] });
       return this;
     }),
-    fillRect: vi.fn(function (x: number, y: number, w: number, h: number) {
+    fillRect: vi.fn(function (this: unknown, x: number, y: number, w: number, h: number) {
       calls.push({ method: 'fillRect', args: [x, y, w, h] });
       return this;
     }),
-    fillRoundedRect: vi.fn(function (x: number, y: number, w: number, h: number, r: number) {
+    fillRoundedRect: vi.fn(function (
+      this: unknown,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number
+    ) {
       calls.push({ method: 'fillRoundedRect', args: [x, y, w, h, r] });
       return this;
     }),
-    lineStyle: vi.fn(function (width: number, color: number) {
+    lineStyle: vi.fn(function (this: unknown, width: number, color: number) {
       calls.push({ method: 'lineStyle', args: [width, color] });
       return this;
     }),
-    strokePath: vi.fn(function () {
+    strokePath: vi.fn(function (this: unknown) {
       calls.push({ method: 'strokePath', args: [] });
       return this;
     }),
-    strokeRect: vi.fn(function (x: number, y: number, w: number, h: number) {
+    strokeRect: vi.fn(function (this: unknown, x: number, y: number, w: number, h: number) {
       calls.push({ method: 'strokeRect', args: [x, y, w, h] });
       return this;
     }),
-    fillPath: vi.fn(function () {
+    fillPath: vi.fn(function (this: unknown) {
       calls.push({ method: 'fillPath', args: [] });
       return this;
     }),
-    beginPath: vi.fn(function () {
+    beginPath: vi.fn(function (this: unknown) {
       calls.push({ method: 'beginPath', args: [] });
       return this;
     }),
-    closePath: vi.fn(function () {
+    closePath: vi.fn(function (this: unknown) {
       calls.push({ method: 'closePath', args: [] });
       return this;
     }),
-    moveTo: vi.fn(function (x: number, y: number) {
+    moveTo: vi.fn(function (this: unknown, x: number, y: number) {
       calls.push({ method: 'moveTo', args: [x, y] });
       return this;
     }),
-    lineTo: vi.fn(function (x: number, y: number) {
+    lineTo: vi.fn(function (this: unknown, x: number, y: number) {
       calls.push({ method: 'lineTo', args: [x, y] });
       return this;
     }),
-    clear: vi.fn(function () {
+    clear: vi.fn(function (this: unknown) {
       calls.push({ method: 'clear', args: [] });
       calls.length = 0; // reset on clear
       return this;
     }),
-    setDepth: vi.fn(function (depth: number) {
+    setDepth: vi.fn(function (this: unknown, _depth: number) {
       return this;
     }),
-    setVisible: vi.fn(function (visible: boolean) {
+    setVisible: vi.fn(function (this: unknown, _visible: boolean) {
       return this;
     }),
-    setAlpha: vi.fn(function (alpha: number) {
+    setAlpha: vi.fn(function (this: unknown, _alpha: number) {
       return this;
     }),
     destroy: vi.fn(),
@@ -154,48 +161,48 @@ export function makeContainer() {
     depth: 0,
     alpha: 1,
     list: [] as any[],
-    add: vi.fn(function (child: any) {
+    add: vi.fn(function (this: { list: any[] }, child: any) {
       this.list.push(child);
       return this;
     }),
-    remove: vi.fn(function (child: any) {
+    remove: vi.fn(function (this: { list: any[] }, child: any) {
       const idx = this.list.indexOf(child);
       if (idx >= 0) this.list.splice(idx, 1);
       return this;
     }),
-    removeAll: vi.fn(function () {
+    removeAll: vi.fn(function (this: { list: any[] }) {
       this.list.length = 0;
       return this;
     }),
-    setDepth: vi.fn(function () {
+    setDepth: vi.fn(function (this: unknown) {
       return this;
     }),
-    setVisible: vi.fn(function () {
+    setVisible: vi.fn(function (this: unknown) {
       return this;
     }),
-    setAlpha: vi.fn(function () {
+    setAlpha: vi.fn(function (this: unknown) {
       return this;
     }),
-    setX: vi.fn(function () {
+    setX: vi.fn(function (this: unknown) {
       return this;
     }),
-    setY: vi.fn(function () {
+    setY: vi.fn(function (this: unknown) {
       return this;
     }),
-    setPosition: vi.fn(function () {
+    setPosition: vi.fn(function (this: unknown) {
       return this;
     }),
-    setScale: vi.fn(function () {
+    setScale: vi.fn(function (this: unknown) {
       return this;
     }),
     destroy: vi.fn(),
-    on: vi.fn(function () {
+    on: vi.fn(function (this: unknown) {
       return this;
     }),
-    off: vi.fn(function () {
+    off: vi.fn(function (this: unknown) {
       return this;
     }),
-    setInteractive: vi.fn(function () {
+    setInteractive: vi.fn(function (this: unknown) {
       return this;
     }),
   };
@@ -267,20 +274,20 @@ export function makeText(initialText = '') {
   const text = {
     ...makeGameObject(),
     text: initialText,
-    setText: vi.fn(function (t: string) {
+    setText: vi.fn(function (this: { text: string }, t: string) {
       this.text = t;
       return this;
     }),
-    setColor: vi.fn(function () {
+    setColor: vi.fn(function (this: unknown) {
       return this;
     }),
-    setFontSize: vi.fn(function () {
+    setFontSize: vi.fn(function (this: unknown) {
       return this;
     }),
-    setOrigin: vi.fn(function () {
+    setOrigin: vi.fn(function (this: unknown) {
       return this;
     }),
-    setAlign: vi.fn(function () {
+    setAlign: vi.fn(function (this: unknown) {
       return this;
     }),
   };

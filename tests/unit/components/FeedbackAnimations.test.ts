@@ -8,6 +8,11 @@ import { describe, it, expect, vi } from 'vitest';
 // import { FeedbackAnimations } from '@/components/FeedbackAnimations';
 // import { makeScene } from './helpers';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const makeScene: () => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const FeedbackAnimations: any;
+
 describe.skip('FeedbackAnimations', () => {
   it('triggers entry animation', () => {
     const scene = makeScene();
@@ -48,7 +53,7 @@ describe.skip('FeedbackAnimations', () => {
     anim.playBounce(scene, { x: 0, y: 0 });
 
     expect(spy).toHaveBeenCalled();
-    const call = spy.mock.calls[0]?.[0];
+    const call = spy.mock.calls[0]?.[0] as any;
     expect(call?.ease).toBeDefined();
   });
 

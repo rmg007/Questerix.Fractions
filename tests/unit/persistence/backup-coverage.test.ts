@@ -32,7 +32,7 @@ describe('Backup/Restore Coverage', () => {
         totalQuestions: 10,
       });
     }
-    await db.sessions.bulkAdd(sessions);
+    await db.sessions.bulkAdd(sessions as any);
 
     const blob = await backupToFile();
     const text = await blob.text();
@@ -69,7 +69,7 @@ describe('Backup/Restore Coverage', () => {
       lastActiveAt: Date.now(),
       syncState: 'local' as const,
     };
-    await db.students.add(student);
+    await db.students.add(student as any);
 
     const backupContent = {
       version: 1,
@@ -106,6 +106,7 @@ describe('Backup/Restore Coverage', () => {
     await db.deviceMeta.add({
       installId,
       lastBackupAt: 2000,
+      lastRestoredAt: null,
       syncState: 'local',
       schemaVersion: 1,
       contentVersion: '1.0',
@@ -122,7 +123,7 @@ describe('Backup/Restore Coverage', () => {
         telemetryConsent: false,
         persistGranted: true,
       },
-    });
+    } as any);
 
     const backupContent = {
       version: 1,
@@ -166,6 +167,7 @@ describe('Backup/Restore Coverage', () => {
     await db.deviceMeta.add({
       installId,
       lastBackupAt: 1000,
+      lastRestoredAt: null,
       syncState: 'local',
       schemaVersion: 1,
       contentVersion: '1.0',
@@ -182,7 +184,7 @@ describe('Backup/Restore Coverage', () => {
         telemetryConsent: false,
         persistGranted: true,
       },
-    });
+    } as any);
 
     const backupContent = {
       version: 1,

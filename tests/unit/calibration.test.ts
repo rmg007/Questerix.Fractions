@@ -12,7 +12,7 @@ import {
   CALIBRATION_ITEMS,
 } from '@/engine/calibration';
 import type { Session } from '@/types';
-import { StudentId, SessionId, SkillId, ActivityId, LevelId } from '@/types';
+import { StudentId, SessionId, SkillId, ActivityId } from '@/types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

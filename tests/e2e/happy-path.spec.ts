@@ -38,7 +38,6 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     // Step 4: Complete 5 attempts
     const attemptTimings: number[] = [];
     for (let i = 1; i <= 5; i++) {
-      const attemptStart = Date.now();
       const elapsedMs = await doAttempt(page);
       attemptTimings.push(elapsedMs);
 

@@ -15,12 +15,15 @@ import { QuestionTemplateId, ValidatorId, SkillId, MisconceptionId } from '../..
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-function makeTemplate(
-  overrides: Partial<QuestionTemplate> & { id: string; archetype: string }
-): QuestionTemplate {
+function makeTemplate({
+  id,
+  archetype,
+  ...overrides
+}: Omit<Partial<QuestionTemplate>, 'id' | 'archetype'> & {
+  id: string;
+  archetype: string;
+}): QuestionTemplate {
   return {
-    id: QuestionTemplateId(overrides.id),
-    archetype: overrides.archetype as ArchetypeId,
     prompt: { text: 'Test prompt', ttsKey: 'tts.test' },
     payload: { targetPartitions: 2, areaTolerance: 0.05 },
     correctAnswer: true,
@@ -29,6 +32,8 @@ function makeTemplate(
     misconceptionTraps: [MisconceptionId('MC-WHB-01')],
     difficultyTier: 'easy',
     ...overrides,
+    id: QuestionTemplateId(id),
+    archetype: archetype as ArchetypeId,
   } as QuestionTemplate;
 }
 
@@ -92,6 +97,7 @@ describe('seedIfEmpty', () => {
       installId: 'device',
       schemaVersion: 3,
       contentVersion: '1.0.0',
+      onboardingComplete: false,
       preferences: {
         audio: true,
         reduceMotion: false,
@@ -99,6 +105,9 @@ describe('seedIfEmpty', () => {
         ttsLocale: 'en-US',
         largeTouchTargets: false,
         persistGranted: false,
+        volume: 1,
+        ttsEnabled: true,
+        telemetryConsent: false,
       },
       lastBackupAt: null,
       lastRestoredAt: null,

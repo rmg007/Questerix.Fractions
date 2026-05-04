@@ -42,7 +42,7 @@ const makeCtx = (): DetectorContext & {
     logger: {
       debug: () => undefined,
       info: () => undefined,
-      warn: (event, attrs) => warnings.push({ event, attrs }),
+      warn: (event, attrs) => warnings.push(attrs !== undefined ? { event, attrs } : { event }),
       error: () => undefined,
     },
   };
@@ -450,7 +450,7 @@ describe('runRules', () => {
     });
     const ctx = makeCtx();
     const flags = runRules([trap, trap, trap, trap], 1, ctx);
-    const ids = flags.map((f) => f.misconceptionId);
+    const ids = flags.map((f) => f.misconceptionId as string);
     expect(ids).toContain('MC-EOL-01');
     expect(ids).toContain('MC-EOL-03');
     // EOL-01 appears earlier in the table than EOL-03.

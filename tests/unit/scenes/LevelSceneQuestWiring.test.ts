@@ -37,11 +37,7 @@ import { LevelScene } from '@/scenes/LevelScene';
 // eslint-disable-next-line import/order
 import type { HintTier } from '@/types';
 
-type AnyScene = LevelScene & {
-  currentTemplate: { archetype: string; payload?: Record<string, unknown> };
-  questFeedbackText: (kind: 'correct' | 'incorrect') => string | null;
-  questHintText: (archetype: string, tier: HintTier) => string | null;
-};
+type AnyScene = any;
 
 /** Build a partial LevelScene with just enough state for the wiring helpers. */
 function makeScene(archetype: string, payload: Record<string, unknown> = {}): AnyScene {

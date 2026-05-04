@@ -10,7 +10,8 @@ import { makeScene } from './helpers';
 describe.skip('HintLadder edge cases', () => {
   it('progresses through all three tiers: verbal → visual_overlay → worked_example', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     expect(ladder.currentTier).toBe(0); // verbal
 
@@ -23,7 +24,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('does not advance tier when at top (no-op)', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     ladder.next();
     ladder.next();
@@ -36,7 +38,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('can be destroyed mid-animation without errors', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     ladder.next(); // trigger animation
 
@@ -47,7 +50,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('handles setState with invalid state gracefully', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     // Should not throw on invalid state
     expect(() => {
@@ -57,7 +61,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('resets to tier 0 on reinit', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     ladder.next();
     ladder.next();
@@ -69,7 +74,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('animates tier transition when next() is called', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     const spy = vi.spyOn(scene.tweens, 'add');
 
@@ -80,7 +86,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('maintains visibility after multiple next() calls', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     expect(ladder.visible).toBe(true);
 
@@ -93,7 +100,8 @@ describe.skip('HintLadder edge cases', () => {
 
   it('handles destroy after reset', () => {
     const scene = makeScene();
-    const ladder = new HintLadder(scene, { x: 100, y: 100 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ladder: any = new (HintLadder as any)(scene, { x: 100, y: 100 });
 
     ladder.next();
     ladder.reset();

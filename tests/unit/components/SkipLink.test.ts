@@ -29,17 +29,16 @@ describe.skip('SkipLink', () => {
   });
 
   it('renders a hidden-until-focused anchor link', () => {
-    const link = new SkipLink(container, { href: '#canvas-root' });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const link: any = new (SkipLink as any)(container, { href: '#canvas-root' });
     expect(link.element).toBeInstanceOf(HTMLAnchorElement);
     expect(link.element.href).toContain('canvas-root');
   });
 
   it('has proper accessibility attributes', () => {
-    const link = new SkipLink(container, { href: '#main-content' });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const link: any = new (SkipLink as any)(container, { href: '#main-content' });
     expect(link.element.getAttribute('href')).toBe('#main-content');
-    // Should be accessible to keyboard users
     expect(link.element.tabIndex).toBeGreaterThanOrEqual(0);
   });
 
@@ -47,25 +46,22 @@ describe.skip('SkipLink', () => {
     const target = document.createElement('div');
     target.id = 'test-target';
     document.body.appendChild(target);
-
-    const link = new SkipLink(container, { href: '#test-target' });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const link: any = new (SkipLink as any)(container, { href: '#test-target' });
     link.element.click();
-
-    // After click, focus should move (or be intended to move) to target
     expect(link.element).toBeDefined();
-
     document.body.removeChild(target);
   });
 
   it('supports custom text label', () => {
-    const link = new SkipLink(container, { href: '#canvas', label: 'Skip to game' });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const link: any = new (SkipLink as any)(container, { href: '#canvas', label: 'Skip to game' });
     expect(link.element.textContent).toContain('Skip to game');
   });
 
   it('can be destroyed', () => {
-    const link = new SkipLink(container, { href: '#canvas' });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const link: any = new (SkipLink as any)(container, { href: '#canvas' });
     expect(() => link.destroy()).not.toThrow();
   });
 });

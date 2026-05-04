@@ -48,7 +48,9 @@ describe('skillMasteryRepo', () => {
     });
 
     it('returns undefined when the student exists but skill does not', async () => {
-      await skillMasteryRepo.upsert(makeSkillMastery({ skillId, compositeKey: [studentId, skillId] }));
+      await skillMasteryRepo.upsert(
+        makeSkillMastery({ skillId, compositeKey: [studentId, skillId] })
+      );
 
       const result = await skillMasteryRepo.get(studentId, SkillId('SK-99'));
       expect(result).toBeUndefined();
@@ -100,20 +102,24 @@ describe('skillMasteryRepo', () => {
 
       const allRows = await db.skillMastery.toArray();
       expect(allRows).toHaveLength(1);
-      expect(allRows[0].masteryEstimate).toBe(0.6);
+      expect(allRows[0]!.masteryEstimate).toBe(0.6);
     });
 
     it('stores separate rows for different skills of the same student', async () => {
-      await skillMasteryRepo.upsert(makeSkillMastery({
-        skillId,
-        compositeKey: [studentId, skillId],
-        masteryEstimate: 0.4,
-      }));
-      await skillMasteryRepo.upsert(makeSkillMastery({
-        skillId: otherSkillId,
-        compositeKey: [studentId, otherSkillId],
-        masteryEstimate: 0.7,
-      }));
+      await skillMasteryRepo.upsert(
+        makeSkillMastery({
+          skillId,
+          compositeKey: [studentId, skillId],
+          masteryEstimate: 0.4,
+        })
+      );
+      await skillMasteryRepo.upsert(
+        makeSkillMastery({
+          skillId: otherSkillId,
+          compositeKey: [studentId, otherSkillId],
+          masteryEstimate: 0.7,
+        })
+      );
 
       const r1 = await skillMasteryRepo.get(studentId, skillId);
       const r2 = await skillMasteryRepo.get(studentId, otherSkillId);
@@ -125,14 +131,18 @@ describe('skillMasteryRepo', () => {
 
   describe('getAllForStudent()', () => {
     it('returns all mastery rows for the given student', async () => {
-      await skillMasteryRepo.upsert(makeSkillMastery({
-        skillId,
-        compositeKey: [studentId, skillId],
-      }));
-      await skillMasteryRepo.upsert(makeSkillMastery({
-        skillId: otherSkillId,
-        compositeKey: [studentId, otherSkillId],
-      }));
+      await skillMasteryRepo.upsert(
+        makeSkillMastery({
+          skillId,
+          compositeKey: [studentId, skillId],
+        })
+      );
+      await skillMasteryRepo.upsert(
+        makeSkillMastery({
+          skillId: otherSkillId,
+          compositeKey: [studentId, otherSkillId],
+        })
+      );
 
       const results = await skillMasteryRepo.getAllForStudent(studentId);
       expect(results).toHaveLength(2);
@@ -155,7 +165,9 @@ describe('skillMasteryRepo', () => {
     });
 
     it('is idempotent — deleting a non-existent row does not throw', async () => {
-      await expect(skillMasteryRepo.delete(StudentId('nobody'), SkillId('SK-99'))).resolves.toBeUndefined();
+      await expect(
+        skillMasteryRepo.delete(StudentId('nobody'), SkillId('SK-99'))
+      ).resolves.toBeUndefined();
     });
   });
 });

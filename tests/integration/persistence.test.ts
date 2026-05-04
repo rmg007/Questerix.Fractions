@@ -15,15 +15,14 @@ import { deviceMetaRepo } from '../../src/persistence/repositories/deviceMeta';
 import { bookmarkRepo } from '../../src/persistence/repositories/bookmark';
 import { levelProgressionRepo } from '../../src/persistence/repositories/levelProgression';
 import { backupToFile, restoreFromFile } from '../../src/persistence/backup';
-import type { Student, Session, Attempt, SkillMastery } from '../../src/types';
+import type { Session, Attempt, SkillMastery } from '../../src/types';
 import {
   StudentId,
   SessionId,
-  AttemptId,
   ActivityId,
   SkillId,
   QuestionTemplateId,
-  MisconceptionId,
+  BookmarkId,
 } from '../../src/types';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -45,7 +44,7 @@ function makeSession(studentId: ReturnType<typeof StudentId>, n: number): Sessio
   return {
     id: SessionId(`session-${n}`),
     studentId,
-    activityId: ActivityId('magnitude_scales'),
+    activityId: ActivityId('partition'),
     levelNumber: 1,
     scaffoldLevel: 3,
     startedAt: Date.now() + n,
@@ -70,8 +69,8 @@ function makeAttempt(
   return {
     sessionId,
     studentId,
-    questionTemplateId: QuestionTemplateId(`q:ms:L1:000${n}`),
-    archetype: 'magnitude_scales',
+    questionTemplateId: QuestionTemplateId(`q:ph:L1:000${n}`),
+    archetype: 'partition',
     roundNumber: 1,
     attemptNumber: 1,
     startedAt: Date.now() + n,
@@ -122,7 +121,7 @@ beforeEach(async () => {
 describe('studentRepo', () => {
   it('creates and retrieves a student', async () => {
     const input = makeStudent('Alice');
-    const created = await studentRepo.create(input);
+    const created = (await studentRepo.create(input))!;
     expect(created.id).toBe(input.id);
     expect(created.syncState).toBe('local');
     expect(created.createdAt).toBeTypeOf('number');
@@ -136,11 +135,11 @@ describe('studentRepo', () => {
     await studentRepo.create(makeStudent('Carol'));
     const list = await studentRepo.list();
     expect(list.length).toBe(2);
-    expect(list[0].createdAt).toBeGreaterThanOrEqual(list[1].createdAt);
+    expect(list[0]?.createdAt).toBeGreaterThanOrEqual(list[1]?.createdAt ?? 0);
   });
 
   it('updates a student field', async () => {
-    const { id } = await studentRepo.create(makeStudent('Dave'));
+    const { id } = (await studentRepo.create(makeStudent('Dave')))!;
     const ok = await studentRepo.update(id, { displayName: 'David' });
     expect(ok).toBe(true);
     const fetched = await studentRepo.get(id);
@@ -157,7 +156,7 @@ describe('studentRepo', () => {
 
 describe('sessionRepo', () => {
   it('creates and retrieves a session', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Eve'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Eve')))!;
     const session = makeSession(studentId, 1);
     await sessionRepo.create(session);
     const fetched = await sessionRepo.get(session.id);
@@ -165,7 +164,7 @@ describe('sessionRepo', () => {
   });
 
   it('lists sessions for a student', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Frank'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Frank')))!;
     await sessionRepo.create(makeSession(studentId, 1));
     await sessionRepo.create(makeSession(studentId, 2));
     const list = await sessionRepo.listForStudent(studentId);
@@ -173,7 +172,7 @@ describe('sessionRepo', () => {
   });
 
   it('closes a session with summary data', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Grace'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Grace')))!;
     const session = makeSession(studentId, 1);
     await sessionRepo.create(session);
     const ok = await sessionRepo.close(session.id, {
@@ -196,7 +195,7 @@ describe('sessionRepo', () => {
 
 describe('attemptRepo', () => {
   it('records 5 attempts append-only and counts them', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Heidi'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Heidi')))!;
     const session = makeSession(studentId, 1);
     await sessionRepo.create(session);
 
@@ -212,10 +211,10 @@ describe('attemptRepo', () => {
   });
 
   it('returned attempt has string id', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Ivan'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Ivan')))!;
     const session = makeSession(studentId, 1);
     await sessionRepo.create(session);
-    const result = await attemptRepo.record(makeAttempt(studentId, session.id, 0));
+    const result = (await attemptRepo.record(makeAttempt(studentId, session.id, 0)))!;
     expect(typeof result.id).toBe('string');
   });
 });
@@ -224,7 +223,7 @@ describe('attemptRepo', () => {
 
 describe('skillMasteryRepo', () => {
   it('upserts and retrieves by composite key', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Judy'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Judy')))!;
     const skillId = SkillId('SK-03');
     const mastery = makeMastery(studentId, skillId);
     await skillMasteryRepo.upsert(mastery);
@@ -234,7 +233,7 @@ describe('skillMasteryRepo', () => {
   });
 
   it('replaces on second upsert', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Karl'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Karl')))!;
     const skillId = SkillId('SK-01');
     await skillMasteryRepo.upsert(makeMastery(studentId, skillId));
     await skillMasteryRepo.upsert({
@@ -247,7 +246,7 @@ describe('skillMasteryRepo', () => {
   });
 
   it('getAllForStudent returns all mastery rows', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Laura'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Laura')))!;
     await skillMasteryRepo.upsert(makeMastery(studentId, SkillId('SK-01')));
     await skillMasteryRepo.upsert(makeMastery(studentId, SkillId('SK-02')));
     const all = await skillMasteryRepo.getAllForStudent(studentId);
@@ -284,24 +283,24 @@ describe('deviceMetaRepo', () => {
 
 describe('bookmarkRepo', () => {
   it('saves and retrieves a bookmark', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Mallory'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Mallory')))!;
     const bm = {
-      id: 'bm-1',
+      id: BookmarkId('bm-1'),
       studentId,
-      activityId: ActivityId('magnitude_scales'),
+      activityId: ActivityId('partition'),
       levelNumber: 3,
       savedAt: Date.now(),
       syncState: 'local' as const,
     };
     await bookmarkRepo.save(bm);
-    const fetched = await bookmarkRepo.get('bm-1');
+    const fetched = await bookmarkRepo.get('bm-1' as any);
     expect(fetched?.levelNumber).toBe(3);
   });
 
   it('getLatestForStudent returns the most recent', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Nina'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Nina')))!;
     await bookmarkRepo.save({
-      id: 'bm-a',
+      id: BookmarkId('bm-a'),
       studentId,
       activityId: ActivityId('a'),
       levelNumber: 1,
@@ -309,7 +308,7 @@ describe('bookmarkRepo', () => {
       syncState: 'local',
     });
     await bookmarkRepo.save({
-      id: 'bm-b',
+      id: BookmarkId('bm-b'),
       studentId,
       activityId: ActivityId('a'),
       levelNumber: 2,
@@ -447,7 +446,7 @@ describe('levelProgressionRepo', () => {
 describe('backup and restore', () => {
   it('exports all rows and restores to fresh DB with correct counts', async () => {
     // Seed data
-    const { id: studentId } = await studentRepo.create(makeStudent('Oscar'));
+    const { id: studentId } = (await studentRepo.create(makeStudent('Oscar')))!;
     const session = makeSession(studentId, 1);
     await sessionRepo.create(session);
     for (let i = 0; i < 5; i++) {
@@ -483,7 +482,7 @@ describe('backup and restore', () => {
   });
 
   it('skips duplicate records on second restore', async () => {
-    const { id: studentId } = await studentRepo.create(makeStudent('Peggy'));
+    await studentRepo.create(makeStudent('Peggy'));
     const blob = await backupToFile();
     const file = new File([blob], 'backup.json', { type: 'application/json' });
 

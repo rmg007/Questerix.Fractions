@@ -30,7 +30,8 @@ describe.skip('PreferenceToggle', () => {
   });
 
   it('renders a toggle switch with correct ARIA attributes', () => {
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'Reduce motion',
       initialValue: false,
       onChange: vi.fn(),
@@ -42,7 +43,8 @@ describe.skip('PreferenceToggle', () => {
   });
 
   it('reflects initial state in aria-checked', () => {
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'High contrast',
       initialValue: true,
       onChange: vi.fn(),
@@ -53,7 +55,8 @@ describe.skip('PreferenceToggle', () => {
 
   it('calls onChange callback when toggled', () => {
     const onChange = vi.fn();
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'Test toggle',
       initialValue: false,
       onChange,
@@ -67,7 +70,8 @@ describe.skip('PreferenceToggle', () => {
 
   it('updates aria-checked when state changes', () => {
     const onChange = vi.fn();
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'Toggle',
       initialValue: false,
       onChange,
@@ -82,7 +86,8 @@ describe.skip('PreferenceToggle', () => {
 
   it('supports keyboard activation (Enter key)', () => {
     const onChange = vi.fn();
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'Keyboard test',
       initialValue: false,
       onChange,
@@ -96,7 +101,8 @@ describe.skip('PreferenceToggle', () => {
   });
 
   it('cleans up on destroy', () => {
-    const toggle = new PreferenceToggle(container, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const toggle: any = new (PreferenceToggle as any)(container, {
       label: 'Test',
       initialValue: false,
       onChange: vi.fn(),

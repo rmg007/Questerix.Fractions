@@ -112,7 +112,8 @@ const baseMeta: LevelMeta = {
   number: 1,
   name: 'Halves',
   concept: 'Equal parts',
-  gradeBand: 'K–2',
+  gradeBand: 'K' as LevelMeta['gradeBand'],
+  track: 'partition',
 };
 
 function makeCardOpts(scene: ReturnType<typeof makeSceneStub>, mastered: boolean) {

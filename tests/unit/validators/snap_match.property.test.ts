@@ -98,7 +98,7 @@ describe('snapMatchAllPairs property tests', () => {
     );
 
     // All runs should produce identical results
-    const firstOutcome = results[0].outcome;
+    const firstOutcome = results[0]?.outcome;
     expect(results.every((r) => r.outcome === firstOutcome)).toBe(true);
   });
 });
@@ -114,10 +114,7 @@ describe('snapMatchAllPairs boundary tests', () => {
   });
 
   it('handles empty pair list', () => {
-    const result = snapMatchAllPairs.fn(
-      { studentPairs: [] },
-      { expectedPairs: [] }
-    );
+    const result = snapMatchAllPairs.fn({ studentPairs: [] }, { expectedPairs: [] });
 
     expect(result.outcome).toBe('correct');
   });

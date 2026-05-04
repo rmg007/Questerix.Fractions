@@ -22,7 +22,13 @@ import { makeScene } from './helpers';
 describe.skip('FractionDisplay', () => {
   it('renders a valid fraction (3/4) with stacked layout', () => {
     const scene = makeScene();
-    const display = new FractionDisplay(scene, { x: 0, y: 0, numerator: 3, denominator: 4 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (FractionDisplay as any)(scene, {
+      x: 0,
+      y: 0,
+      numerator: 3,
+      denominator: 4,
+    });
 
     // Verify the display has been created with the correct fraction
     expect(display.container).toBeDefined();
@@ -32,7 +38,13 @@ describe.skip('FractionDisplay', () => {
 
   it('handles edge case: 0/1 (zero numerator)', () => {
     const scene = makeScene();
-    const display = new FractionDisplay(scene, { x: 0, y: 0, numerator: 0, denominator: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (FractionDisplay as any)(scene, {
+      x: 0,
+      y: 0,
+      numerator: 0,
+      denominator: 1,
+    });
 
     // Should render without throwing division by zero
     expect(() => display.update({ numerator: 0, denominator: 1 })).not.toThrow();
@@ -41,7 +53,13 @@ describe.skip('FractionDisplay', () => {
 
   it('handles edge case: 1/1 (whole fraction)', () => {
     const scene = makeScene();
-    const display = new FractionDisplay(scene, { x: 0, y: 0, numerator: 1, denominator: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (FractionDisplay as any)(scene, {
+      x: 0,
+      y: 0,
+      numerator: 1,
+      denominator: 1,
+    });
 
     expect(() => display.update({ numerator: 1, denominator: 1 })).not.toThrow();
     expect(display.container).toBeDefined();
@@ -49,7 +67,13 @@ describe.skip('FractionDisplay', () => {
 
   it('preserves numerator when updating denominator only', () => {
     const scene = makeScene();
-    const display = new FractionDisplay(scene, { x: 0, y: 0, numerator: 2, denominator: 3 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (FractionDisplay as any)(scene, {
+      x: 0,
+      y: 0,
+      numerator: 2,
+      denominator: 3,
+    });
 
     // Update to 2/5
     display.update({ numerator: 2, denominator: 5 });
@@ -60,7 +84,13 @@ describe.skip('FractionDisplay', () => {
 
   it('destroys container on cleanup', () => {
     const scene = makeScene();
-    const display = new FractionDisplay(scene, { x: 0, y: 0, numerator: 1, denominator: 2 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (FractionDisplay as any)(scene, {
+      x: 0,
+      y: 0,
+      numerator: 1,
+      denominator: 2,
+    });
 
     expect(() => display.destroy()).not.toThrow();
   });

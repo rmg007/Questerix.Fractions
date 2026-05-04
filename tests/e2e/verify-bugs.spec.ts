@@ -104,7 +104,6 @@ test.describe('Level 01 — bug verification playtest', () => {
       // We skip tier-3 here because its animateWorkedExample() resets the canvas
       // and breaks the immediate submit. The full 3-tier behavior is verified via
       // console-logs.txt (hint-events.txt) — see [HINT] next entries.
-      const hintBtn = page.locator('[data-testid="hint-btn"]');
 
       await clickTestHook(page, 'hint-btn');
       await page.waitForTimeout(800);

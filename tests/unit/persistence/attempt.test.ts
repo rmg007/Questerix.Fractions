@@ -57,7 +57,7 @@ describe('attemptRepo', () => {
 
   describe('record()', () => {
     it('adds a row and returns the attempt with a UUID id', async () => {
-      const result = await attemptRepo.record(makeAttempt());
+      const result: any = await attemptRepo.record(makeAttempt());
 
       expect(result).toBeDefined();
       expect(typeof result.id).toBe('string');
@@ -70,24 +70,24 @@ describe('attemptRepo', () => {
     });
 
     it('assigns distinct UUID ids for successive records', async () => {
-      const a1 = await attemptRepo.record(makeAttempt({ roundNumber: 1 }));
-      const a2 = await attemptRepo.record(makeAttempt({ roundNumber: 2 }));
+      const a1: any = await attemptRepo.record(makeAttempt({ roundNumber: 1 }));
+      const a2: any = await attemptRepo.record(makeAttempt({ roundNumber: 2 }));
 
       expect(a1.id).not.toBe(a2.id);
     });
 
     it('persists the row so get() can retrieve it', async () => {
       const inserted = await attemptRepo.record(makeAttempt());
-      const fetched = await attemptRepo.get(inserted.id as AttemptId);
+      const fetched = await attemptRepo.get(inserted!.id as AttemptId);
 
       expect(fetched).toBeDefined();
-      expect(fetched?.id).toBe(inserted.id);
+      expect(fetched?.id).toBe(inserted!.id);
       expect(fetched?.outcome).toBe('EXACT');
     });
 
     it('handles missing optional fields gracefully (roundEvents, payload, skillIds)', async () => {
       // Omitting all optional fields — should not throw
-      const result = await attemptRepo.record(makeAttempt());
+      const result: any = await attemptRepo.record(makeAttempt());
 
       expect(result).toBeDefined();
       // Optional fields are absent or undefined — not required
@@ -97,7 +97,7 @@ describe('attemptRepo', () => {
     });
 
     it('stores syncState as "local"', async () => {
-      const result = await attemptRepo.record(makeAttempt({ syncState: 'synced' }));
+      const result: any = await attemptRepo.record(makeAttempt({ syncState: 'synced' }));
       // record() forces syncState to 'local' regardless of input
       expect(result.syncState).toBe('local');
     });
@@ -179,7 +179,7 @@ describe('attemptRepo', () => {
       const results = await attemptRepo.listForStudentTemplate(studentId, questionTemplateId);
 
       expect(results).toHaveLength(1);
-      expect(results[0].questionTemplateId).toBe(questionTemplateId);
+      expect(results[0]!.questionTemplateId).toBe(questionTemplateId);
 
       // Suppress unused variable warning
       void actId;

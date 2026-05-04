@@ -12,7 +12,7 @@ import { selectNextQuestion, RECENCY_WINDOW } from '@/engine/selection';
 import type { SelectionArgs } from '@/engine/selection';
 import type { Rng } from '@/engine/ports';
 import type { QuestionTemplate, SkillMastery } from '@/types';
-import { SkillId, QuestionTemplateId, StudentId, ValidatorId, ActivityId } from '@/types';
+import { SkillId, QuestionTemplateId, StudentId, ValidatorId } from '@/types';
 
 /** Math.random-backed RNG for tests that don't care about determinism. */
 const PROD_RNG: Rng = { random: () => Math.random() };
@@ -113,7 +113,7 @@ describe('ZPD window filtering', () => {
     const picks = new Set<string>();
     for (let i = 0; i < 20; i++) {
       const result = selectNextQuestion(
-        makeArgs({ candidates: [zpdTemplate, masteredTemplate], studentMastery: mastery }),
+        makeArgs({ candidates: [zpdTemplate, masteredTemplate], studentMastery: mastery })
       );
       if (result) picks.add(result.id);
     }
@@ -133,7 +133,9 @@ describe('ZPD window filtering', () => {
 
     const picks = new Set<string>();
     for (let i = 0; i < 20; i++) {
-      const r = selectNextQuestion(makeArgs({ candidates: [belowZpd, inZpd], studentMastery: mastery }));
+      const r = selectNextQuestion(
+        makeArgs({ candidates: [belowZpd, inZpd], studentMastery: mastery })
+      );
       if (r) picks.add(r.id);
     }
     expect(picks.has(QuestionTemplateId('zpd'))).toBe(true);
@@ -143,7 +145,9 @@ describe('ZPD window filtering', () => {
   it('falls back to any candidate when no ZPD or unmastered candidates exist', () => {
     const mastered = makeTemplate('m', ['SK-MASTERED']);
     const mastery = new Map([[SkillId('SK-MASTERED'), makeMastery('SK-MASTERED', 0.95)]]);
-    const result = selectNextQuestion(makeArgs({ candidates: [mastered], studentMastery: mastery }));
+    const result = selectNextQuestion(
+      makeArgs({ candidates: [mastered], studentMastery: mastery })
+    );
     expect(result).toBe(mastered);
   });
 });
@@ -163,7 +167,11 @@ describe('preferUnmastered fallback', () => {
     const picks = new Set<string>();
     for (let i = 0; i < 20; i++) {
       const r = selectNextQuestion(
-        makeArgs({ candidates: [belowZpd, mastered], studentMastery: mastery, preferUnmastered: true }),
+        makeArgs({
+          candidates: [belowZpd, mastered],
+          studentMastery: mastery,
+          preferUnmastered: true,
+        })
       );
       if (r) picks.add(r.id);
     }
@@ -186,7 +194,7 @@ describe('recency window', () => {
     const picks = new Set<string>();
     for (let i = 0; i < 20; i++) {
       const r = selectNextQuestion(
-        makeArgs({ candidates: [recent, fresh], studentMastery: mastery, recentTemplateIds }),
+        makeArgs({ candidates: [recent, fresh], studentMastery: mastery, recentTemplateIds })
       );
       if (r) picks.add(r.id);
     }
@@ -221,7 +229,9 @@ describe('deterministic invariants', () => {
 
   it('returns null only when candidates array is empty', () => {
     expect(selectNextQuestion(makeArgs({ candidates: [] }))).toBeNull();
-    expect(selectNextQuestion(makeArgs({ candidates: [makeTemplate('q1', ['SK-01'])] }))).not.toBeNull();
+    expect(
+      selectNextQuestion(makeArgs({ candidates: [makeTemplate('q1', ['SK-01'])] }))
+    ).not.toBeNull();
   });
 });
 

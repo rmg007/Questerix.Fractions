@@ -3,7 +3,7 @@
  * per docs/30-architecture/accessibility.md §7
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SFXService } from '@/audio/SFXService';
 import { TTSService } from '@/audio/TTSService';
 
@@ -125,7 +125,7 @@ describe('TTSService', () => {
     const mockSynth = makeMockSynth();
     mockSynth.cancel = vi.fn(() => {
       throw new Error('cancel failed');
-    });
+    }) as any;
     installMocks(mockSynth);
     const svc = new TTSService();
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -158,11 +158,12 @@ describe('SFXService', () => {
   }
 
   function installAudioMocks(ctx: AudioContext | null) {
-    const win = window as Record<string, unknown>;
+    const win = window as unknown as Record<string, unknown>;
     if (ctx) {
       win.AudioContext = class {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         constructor() {
-          return ctx;
+          return ctx as any;
         }
       } as unknown as typeof AudioContext;
     } else {

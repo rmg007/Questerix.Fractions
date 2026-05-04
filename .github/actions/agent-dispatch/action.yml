@@ -6,7 +6,7 @@ inputs:
     description: "Name of file under .github/agent-prompts/ (without .md extension)"
     required: true
   context_json:
-    description: "JSON string of key/value pairs injected into the prompt via ${{VAR}} substitution"
+    description: "JSON string of key/value pairs injected into the prompt via {{VAR}} substitution"
     required: false
     default: "{}"
   working_branch:
@@ -27,6 +27,16 @@ inputs:
     description: "If the triggering commit is from github-actions[bot], skip"
     required: false
     default: "true"
+  agent_autonomy_enabled:
+    description: "Kill switch state from vars"
+    required: false
+    default: "true"
+  anthropic_api_key:
+    description: "Anthropic API key"
+    required: true
+  gh_token:
+    description: "GitHub token"
+    required: true
 
 outputs:
   outcome:
@@ -43,7 +53,7 @@ runs:
       id: autonomy-check
       shell: bash
       run: |
-        if [ "${{ vars.AGENT_AUTONOMY_ENABLED }}" = "false" ]; then
+        if [ "${{ inputs.agent_autonomy_enabled }}" = "false" ]; then
           echo "::notice::Agent autonomy is disabled (AGENT_AUTONOMY_ENABLED=false). Skipping."
           echo "skip=true" >> $GITHUB_OUTPUT
         else
@@ -79,7 +89,7 @@ runs:
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.working_branch || github.ref }}
-        token: ${{ env.GH_TOKEN }}
+        token: ${{ inputs.gh_token }}
 
     - name: Setup Node 24
       if: steps.resolve-skip.outputs.skip != 'true'
@@ -112,7 +122,7 @@ runs:
           value=$(printf '%s' "$CONTEXT_JSON" | jq -r --arg k "$key" '.[$k] // ""')
           # Escape the value for use as a sed replacement string
           escaped_value=$(printf '%s' "$value" | sed 's/[&/\]/\\&/g; s/$/\\n/; $s/\\n$//')
-          PROMPT=$(printf '%s' "$PROMPT" | sed "s/\\\${{${key}}}/${escaped_value}/g")
+          PROMPT=$(printf '%s' "$PROMPT" | sed "s/\\$\\{\\{${key}\\}\\}/${escaped_value}/g")
         done < <(printf '%s' "$CONTEXT_JSON" | jq -r 'keys[]')
         echo "ASSEMBLED_PROMPT<<__PROMPT_EOF__" >> $GITHUB_ENV
         printf '%s\n' "$PROMPT" >> $GITHUB_ENV
@@ -125,6 +135,8 @@ runs:
       env:
         # Per-invocation token budget — caps runaway agents on the monthly key.
         CLAUDE_CODE_MAX_OUTPUT_TOKENS: ${{ inputs.max_tokens }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        GH_TOKEN: ${{ inputs.gh_token }}
       run: |
         claude --dangerously-skip-permissions -p "$ASSEMBLED_PROMPT" \
           --output-format text \

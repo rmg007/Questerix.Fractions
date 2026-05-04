@@ -9,10 +9,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { deriveLevelGroup, type LevelGroup } from '@/curriculum/levelGroup';
 
 describe('deriveLevelGroup', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let warnSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}) as any;
   });
 
   afterEach(() => {

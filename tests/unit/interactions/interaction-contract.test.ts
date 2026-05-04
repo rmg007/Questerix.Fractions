@@ -10,7 +10,7 @@
  * which is tested via E2E suite. This test validates static contracts only.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock Phaser before importing interactions
 vi.mock('phaser', async () => {
@@ -236,7 +236,8 @@ describe('Interaction Contract', () => {
 
     it('all interactions have valid optional methods', () => {
       ALL_INTERACTIONS.forEach((InteractionClass) => {
-        const instance = new InteractionClass();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const instance: any = new InteractionClass();
 
         // These are optional, but if present, must be functions
         if (instance.showVisualOverlay !== undefined) {

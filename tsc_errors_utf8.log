@@ -1,0 +1,480 @@
+﻿tests/integration/mastery-transition.test.ts(142,11): error TS6133: 'student' is declared but its value is never read.
+tests/integration/mastery-transition.test.ts(172,11): error TS6133: 'attempt' is declared but its value is never read.
+tests/integration/mastery-transition.test.ts(195,12): error TS2532: Object is possibly 'undefined'.
+tests/integration/persistence.test.ts(18,15): error TS6196: 'Student' is declared but never used.
+tests/integration/persistence.test.ts(22,3): error TS6133: 'AttemptId' is declared but its value is never read.
+tests/integration/persistence.test.ts(26,3): error TS6133: 'MisconceptionId' is declared but its value is never read.
+tests/integration/persistence.test.ts(74,5): error TS2322: Type '"magnitude_scales"' is not assignable to type '"partition" | "identify" | "label" | "make" | "compare" | "benchmark" | "order" | "snap_match" | "equal_or_not" | "placement" | "explain_your_order"'.
+tests/integration/persistence.test.ts(126,12): error TS18048: 'created' is possibly 'undefined'.
+tests/integration/persistence.test.ts(127,12): error TS18048: 'created' is possibly 'undefined'.
+tests/integration/persistence.test.ts(128,12): error TS18048: 'created' is possibly 'undefined'.
+tests/integration/persistence.test.ts(139,12): error TS2532: Object is possibly 'undefined'.
+tests/integration/persistence.test.ts(139,54): error TS2532: Object is possibly 'undefined'.
+tests/integration/persistence.test.ts(143,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(160,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(168,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(176,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(199,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(215,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(219,19): error TS18048: 'result' is possibly 'undefined'.
+tests/integration/persistence.test.ts(227,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(237,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(250,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(287,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(297,44): error TS2345: Argument of type 'string' is not assignable to parameter of type 'BookmarkId'.
+  Type 'string' is not assignable to type '{ __brand: "BookmarkId"; }'.
+tests/integration/persistence.test.ts(302,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(450,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/integration/persistence.test.ts(486,11): error TS6133: 'studentId' is declared but its value is never read.
+tests/integration/persistence.test.ts(486,13): error TS2339: Property 'id' does not exist on type 'Student | undefined'.
+tests/synthetic/playtest.spec.ts(277,34): error TS2339: Property 'metrics' does not exist on type 'Page'.
+tests/unit/a11y/A11yLayer-lifecycle.test.ts(46,13): error TS6133: 'layer' is declared but its value is never read.
+tests/unit/audio.test.ts(6,36): error TS6133: 'beforeEach' is declared but its value is never read.
+tests/unit/audio.test.ts(126,5): error TS2322: Type 'Mock<[], never>' is not assignable to type 'Mock<any, any>'.
+  Types of property 'mockImplementation' are incompatible.
+    Types of parameters 'fn' and 'fn' are incompatible.
+      Type 'any' is not assignable to type 'never'.
+tests/unit/audio.test.ts(161,17): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'Window & typeof globalThis'.
+tests/unit/audio.test.ts(165,11): error TS2322: Type 'AudioContext | null' is not assignable to type '(Anonymous class)'.
+  Type 'null' is not assignable to type '(Anonymous class)'.
+tests/unit/audio.test.ts(165,11): error TS2409: Return type of constructor signature must be assignable to the instance type of the class.
+tests/unit/calibration.test.ts(15,53): error TS6133: 'LevelId' is declared but its value is never read.
+tests/unit/components/DragHandle.test.ts(30,21): error TS6133: 'makeGameObject' is declared but its value is never read.
+tests/unit/components/DragHandle.test.ts(35,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/DragHandle.test.ts(43,19): error TS2339: Property 'container' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(45,19): error TS2339: Property 'width' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(46,19): error TS2339: Property 'height' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(52,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/DragHandle.test.ts(61,12): error TS2339: Property 'setPosition' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(69,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/DragHandle.test.ts(80,12): error TS2339: Property 'setPosition' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(83,19): error TS2339: Property 'x' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(89,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/DragHandle.test.ts(99,27): error TS2339: Property 'x' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(100,12): error TS2339: Property 'handleKeyInput' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(103,19): error TS2339: Property 'x' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(109,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/DragHandle.test.ts(119,14): error TS2339: Property 'onPointerDown' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(120,14): error TS2339: Property 'onPointerDown' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(121,14): error TS2339: Property 'onPointerUp' does not exist on type 'DragHandle'.
+tests/unit/components/DragHandle.test.ts(127,42): error TS2554: Expected 1 arguments, but got 2.
+tests/unit/components/FeedbackAnimations.test.ts(13,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(14,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackAnimations.test.ts(23,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(24,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackAnimations.test.ts(33,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(34,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackAnimations.test.ts(44,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(45,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackAnimations.test.ts(56,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(57,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackAnimations.test.ts(63,19): error TS2304: Cannot find name 'makeScene'.
+tests/unit/components/FeedbackAnimations.test.ts(64,22): error TS2304: Cannot find name 'FeedbackAnimations'.
+tests/unit/components/FeedbackOverlay-lifecycle.test.ts(106,50): error TS6133: 'delay' is declared but its value is never read.
+tests/unit/components/FeedbackOverlay-lifecycle.test.ts(146,13): error TS6133: 'overlay' is declared but its value is never read.
+tests/unit/components/FractionDisplay.test.ts(25,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/FractionDisplay.test.ts(28,20): error TS2341: Property 'container' is private and only accessible within class 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(30,26): error TS2339: Property 'update' does not exist on type 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(35,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/FractionDisplay.test.ts(38,26): error TS2339: Property 'update' does not exist on type 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(39,20): error TS2341: Property 'container' is private and only accessible within class 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(44,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/FractionDisplay.test.ts(46,26): error TS2339: Property 'update' does not exist on type 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(47,20): error TS2341: Property 'container' is private and only accessible within class 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(52,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/FractionDisplay.test.ts(55,13): error TS2339: Property 'update' does not exist on type 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(58,26): error TS2339: Property 'update' does not exist on type 'FractionDisplay'.
+tests/unit/components/FractionDisplay.test.ts(63,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/helpers.ts(23,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(26,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(29,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(32,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(35,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(38,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(41,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(45,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(48,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(51,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(54,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(57,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(60,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(63,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(66,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(84,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(88,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(92,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(96,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(100,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(104,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(108,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(112,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(116,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(120,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(124,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(129,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(131,31): error TS6133: 'depth' is declared but its value is never read.
+tests/unit/components/helpers.ts(132,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(134,33): error TS6133: 'visible' is declared but its value is never read.
+tests/unit/components/helpers.ts(135,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(137,31): error TS6133: 'alpha' is declared but its value is never read.
+tests/unit/components/helpers.ts(138,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(158,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(159,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(162,19): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(163,21): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(164,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(167,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(168,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(171,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(174,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(177,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(180,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(183,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(186,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(189,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(193,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(196,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(199,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(271,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(272,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(275,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(278,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(281,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(284,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+tests/unit/components/helpers.ts(324,3): error TS2304: Cannot find name 'expect'.
+tests/unit/components/helpers.ts(325,3): error TS2304: Cannot find name 'expect'.
+tests/unit/components/HintLadderEdgeCases.test.ts(13,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(15,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(18,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(21,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(26,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(30,28): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(34,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(39,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(44,14): error TS2339: Property 'destroy' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(50,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(60,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(64,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(67,19): error TS2339: Property 'currentTier' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(72,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(83,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(85,19): error TS2339: Property 'visible' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(88,19): error TS2339: Property 'visible' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(91,19): error TS2339: Property 'visible' does not exist on type 'HintLadder'.
+tests/unit/components/HintLadderEdgeCases.test.ts(96,42): error TS2554: Expected 0-1 arguments, but got 2.
+tests/unit/components/HintLadderEdgeCases.test.ts(101,25): error TS2339: Property 'destroy' does not exist on type 'HintLadder'.
+tests/unit/components/LevelCard.test.ts(115,3): error TS2322: Type '"K–2"' is not assignable to type '"5" | "K" | "1" | "2" | "3" | "4" | "6" | "7"'.
+tests/unit/components/levelCardMasteryStar.test.ts(21,21): error TS2339: Property 'getCalls' does not exist on type 'Graphics'.
+tests/unit/components/levelCardMasteryStar.test.ts(22,32): error TS7006: Parameter 'c' implicitly has an 'any' type.
+tests/unit/components/levelCardMasteryStar.test.ts(33,20): error TS2339: Property 'getCalls' does not exist on type 'Graphics'.
+tests/unit/components/levelCardMasteryStar.test.ts(33,37): error TS7006: Parameter 'c' implicitly has an 'any' type.
+tests/unit/components/Mascot.test.ts(34,14): error TS6133: 'state' is declared but its value is never read.
+tests/unit/components/Mascot.test.ts(98,48): error TS6133: 'delay' is declared but its value is never read.
+tests/unit/components/Mascot.test.ts(106,59): error TS2554: Expected 1-2 arguments, but got 0.
+tests/unit/components/PreferenceToggle.test.ts(33,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/PreferenceToggle.test.ts(39,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(40,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(41,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(45,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/PreferenceToggle.test.ts(51,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(56,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/PreferenceToggle.test.ts(62,12): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(70,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/PreferenceToggle.test.ts(76,12): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(77,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(79,12): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(80,19): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(85,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/PreferenceToggle.test.ts(92,12): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(93,12): error TS2339: Property 'element' does not exist on type 'PreferenceToggle'.
+tests/unit/components/PreferenceToggle.test.ts(99,41): error TS2345: Argument of type 'HTMLDivElement' is not assignable to parameter of type 'ToggleOpts'.
+  Type 'HTMLDivElement' is missing the following properties from type 'ToggleOpts': key, label
+tests/unit/components/SkipLink.test.ts(32,22): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/dev/Questerix.Fractions/src/components/SkipLink")' has no construct signatures.
+tests/unit/components/SkipLink.test.ts(39,22): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/dev/Questerix.Fractions/src/components/SkipLink")' has no construct signatures.
+tests/unit/components/SkipLink.test.ts(51,22): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/dev/Questerix.Fractions/src/components/SkipLink")' has no construct signatures.
+tests/unit/components/SkipLink.test.ts(61,22): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/dev/Questerix.Fractions/src/components/SkipLink")' has no construct signatures.
+tests/unit/components/SkipLink.test.ts(67,22): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/dev/Questerix.Fractions/src/components/SkipLink")' has no construct signatures.
+tests/unit/components/SymbolicFractionDisplay.test.ts(18,21): error TS6133: 'makeText' is declared but its value is never read.
+tests/unit/components/SymbolicFractionDisplay.test.ts(23,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/SymbolicFractionDisplay.test.ts(31,26): error TS2339: Property 'update' does not exist on type 'SymbolicFractionDisplay'.
+tests/unit/components/SymbolicFractionDisplay.test.ts(36,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/SymbolicFractionDisplay.test.ts(48,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/SymbolicFractionDisplay.test.ts(55,26): error TS2339: Property 'update' does not exist on type 'SymbolicFractionDisplay'.
+tests/unit/components/SymbolicFractionDisplay.test.ts(60,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/components/SymbolicFractionDisplay.test.ts(67,13): error TS2339: Property 'update' does not exist on type 'SymbolicFractionDisplay'.
+tests/unit/components/SymbolicFractionDisplay.test.ts(74,21): error TS2554: Expected 5-6 arguments, but got 2.
+tests/unit/contrast.spec.ts(11,17): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/contrast.spec.ts(12,17): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/contrast.spec.ts(13,17): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/copyLinter.test.ts(169,12): error TS18048: 'm' is possibly 'undefined'.
+tests/unit/copyLinter.test.ts(170,12): error TS18048: 'm' is possibly 'undefined'.
+tests/unit/copyLinter.test.ts(171,12): error TS18048: 'm' is possibly 'undefined'.
+tests/unit/copyLinter.test.ts(172,12): error TS18048: 'm' is possibly 'undefined'.
+tests/unit/curriculum/levelGroup.test.ts(15,5): error TS2322: Type 'MockInstance<any[], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<any[], void> | Promise<MockInstance<any[], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<any[], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+tests/unit/curriculum/loader-coverage.test.ts(50,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/engine/misconceptionDetectors.test.ts(10,3): error TS6133: 'detectWHB01' is declared but its value is never read.
+tests/unit/engine/misconceptionDetectors.test.ts(11,3): error TS6133: 'detectWHB02' is declared but its value is never read.
+tests/unit/engine/misconceptionRules.test.ts(45,45): error TS2379: Argument of type '{ event: string; attrs: Record<string, unknown> | undefined; }' is not assignable to parameter of type '{ event: string; attrs?: Record<string, unknown>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'attrs' are incompatible.
+    Type 'Record<string, unknown> | undefined' is not assignable to type 'Record<string, unknown>'.
+      Type 'undefined' is not assignable to type 'Record<string, unknown>'.
+tests/unit/engine/misconceptionRules.test.ts(457,24): error TS2345: Argument of type 'string' is not assignable to parameter of type 'MisconceptionId'.
+  Type 'string' is not assignable to type '{ __brand: "MisconceptionId"; }'.
+tests/unit/engine/misconceptionRules.test.ts(457,63): error TS2345: Argument of type 'string' is not assignable to parameter of type 'MisconceptionId'.
+  Type 'string' is not assignable to type '{ __brand: "MisconceptionId"; }'.
+tests/unit/engine/selection.test.ts(15,63): error TS6133: 'ActivityId' is declared but its value is never read.
+tests/unit/interactions/interaction-contract.test.ts(13,36): error TS6133: 'beforeEach' is declared but its value is never read.
+tests/unit/interactions/interaction-contract.test.ts(242,22): error TS2339: Property 'showVisualOverlay' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showVisualOverlay' does not exist on type 'IdentifyInteraction'.
+tests/unit/interactions/interaction-contract.test.ts(243,34): error TS2339: Property 'showVisualOverlay' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showVisualOverlay' does not exist on type 'IdentifyInteraction'.
+tests/unit/interactions/interaction-contract.test.ts(245,22): error TS2339: Property 'showGhostGuide' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showGhostGuide' does not exist on type 'IdentifyInteraction'.
+tests/unit/interactions/interaction-contract.test.ts(246,34): error TS2339: Property 'showGhostGuide' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showGhostGuide' does not exist on type 'IdentifyInteraction'.
+tests/unit/interactions/interaction-contract.test.ts(248,22): error TS2339: Property 'showCorrectFeedback' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showCorrectFeedback' does not exist on type 'IdentifyInteraction'.
+tests/unit/interactions/interaction-contract.test.ts(249,34): error TS2339: Property 'showCorrectFeedback' does not exist on type 'PartitionInteraction | IdentifyInteraction | LabelInteraction | MakeInteraction | CompareInteraction | ... 5 more ... | PlacementInteraction'.
+  Property 'showCorrectFeedback' does not exist on type 'IdentifyInteraction'.
+tests/unit/observability/severity-contract.test.ts(24,5): error TS2322: Type 'MockInstance<[error: Error, context?: Record<string, unknown> | undefined], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'getMockImplementation()' are incompatible between these types.
+    Type '((error: Error, context?: Record<string, unknown> | undefined) => void) | undefined' is not assignable to type '((...args: unknown[]) => unknown) | undefined'.
+      Type '(error: Error, context?: Record<string, unknown> | undefined) => void' is not assignable to type '(...args: unknown[]) => unknown'.
+        Types of parameters 'error' and 'args' are incompatible.
+          Type 'unknown' is not assignable to type 'Error'.
+tests/unit/observability/severity-contract.test.ts(72,5): error TS2322: Type 'MockInstance<[error: Error, context?: Record<string, unknown> | undefined], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'getMockImplementation()' are incompatible between these types.
+    Type '((error: Error, context?: Record<string, unknown> | undefined) => void) | undefined' is not assignable to type '((...args: unknown[]) => unknown) | undefined'.
+      Type '(error: Error, context?: Record<string, unknown> | undefined) => void' is not assignable to type '(...args: unknown[]) => unknown'.
+        Types of parameters 'error' and 'args' are incompatible.
+          Type 'unknown' is not assignable to type 'Error'.
+tests/unit/persistence/attempt.test.ts(63,21): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(65,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(66,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(67,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(68,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(69,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(76,14): error TS18048: 'a1' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(76,30): error TS18048: 'a2' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(81,45): error TS18048: 'inserted' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(84,32): error TS18048: 'inserted' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(94,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(95,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(96,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(102,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/attempt.test.ts(182,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/persistence/backup-coverage.test.ts(35,31): error TS2345: Argument of type '{ id: string; studentId: string; startedAt: number; lastModifiedAt: number; status: string; accuracy: number; durationMs: number; questId: string; totalQuestions: number; }[]' is not assignable to parameter of type 'readonly Session[]'.
+  Type '{ id: string; studentId: string; startedAt: number; lastModifiedAt: number; status: string; accuracy: number; durationMs: number; questId: string; totalQuestions: number; }' is missing the following properties from type 'Session': activityId, levelNumber, scaffoldLevel, endedAt, and 8 more.
+tests/unit/persistence/backup-coverage.test.ts(72,27): error TS2345: Argument of type '{ id: string; displayName: string; avatarConfig: {}; gradeLevel: 1; localOnly: boolean; createdAt: number; lastActiveAt: number; syncState: "local"; }' is not assignable to parameter of type 'Student'.
+  Types of property 'id' are incompatible.
+    Type 'string' is not assignable to type 'StudentId'.
+      Type 'string' is not assignable to type '{ __brand: "StudentId"; }'.
+tests/unit/persistence/backup-coverage.test.ts(106,29): error TS2345: Argument of type '{ installId: string; lastBackupAt: number; syncState: "local"; schemaVersion: number; contentVersion: string; pendingSyncCount: number; onboardingComplete: false; preferences: { audio: true; ... 7 more ...; persistGranted: true; }; }' is not assignable to parameter of type 'DeviceMeta'.
+  Property 'lastRestoredAt' is missing in type '{ installId: string; lastBackupAt: number; syncState: "local"; schemaVersion: number; contentVersion: string; pendingSyncCount: number; onboardingComplete: false; preferences: { audio: true; ... 7 more ...; persistGranted: true; }; }' but required in type 'DeviceMeta'.
+tests/unit/persistence/backup-coverage.test.ts(166,29): error TS2345: Argument of type '{ installId: string; lastBackupAt: number; syncState: "local"; schemaVersion: number; contentVersion: string; pendingSyncCount: number; onboardingComplete: false; preferences: { audio: true; ... 7 more ...; persistGranted: true; }; }' is not assignable to parameter of type 'DeviceMeta'.
+  Property 'lastRestoredAt' is missing in type '{ installId: string; lastBackupAt: number; syncState: "local"; schemaVersion: number; contentVersion: string; pendingSyncCount: number; onboardingComplete: false; preferences: { audio: true; ... 7 more ...; persistGranted: true; }; }' but required in type 'DeviceMeta'.
+tests/unit/persistence/backup-validation.test.ts(65,3): error TS2578: Unused '@ts-expect-error' directive.
+tests/unit/persistence/backup-validation.test.ts(67,5): error TS2578: Unused '@ts-expect-error' directive.
+tests/unit/persistence/hintEvent.test.ts(25,5): error TS2322: Type 'number' is not assignable to type 'HintTier'.
+tests/unit/persistence/hintEvent.test.ts(46,21): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(47,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(51,66): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/hintEvent.test.ts(52,66): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/hintEvent.test.ts(54,14): error TS18048: 'r1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(54,30): error TS18048: 'r2' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(60,9): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/hintEvent.test.ts(65,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(66,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(67,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(68,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(69,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(76,14): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(84,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(84,31): error TS18048: 'result' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(93,42): error TS18048: 'h1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(93,42): error TS2322: Type 'string' is not assignable to type 'HintEventId'.
+  Type 'string' is not assignable to type '{ __brand: "HintEventId"; }'.
+tests/unit/persistence/hintEvent.test.ts(93,49): error TS18048: 'h2' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(93,49): error TS2322: Type 'string' is not assignable to type 'HintEventId'.
+  Type 'string' is not assignable to type '{ __brand: "HintEventId"; }'.
+tests/unit/persistence/hintEvent.test.ts(95,48): error TS18048: 'h1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(96,48): error TS18048: 'h2' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(107,42): error TS18048: 'h1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(107,42): error TS2322: Type 'string' is not assignable to type 'HintEventId'.
+  Type 'string' is not assignable to type '{ __brand: "HintEventId"; }'.
+tests/unit/persistence/hintEvent.test.ts(109,49): error TS18048: 'h2' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(116,42): error TS18048: 'h1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(116,42): error TS2322: Type 'string' is not assignable to type 'HintEventId'.
+  Type 'string' is not assignable to type '{ __brand: "HintEventId"; }'.
+tests/unit/persistence/hintEvent.test.ts(118,38): error TS18048: 'h1' is possibly 'undefined'.
+tests/unit/persistence/hintEvent.test.ts(118,38): error TS2322: Type 'string' is not assignable to type 'HintEventId'.
+  Type 'string' is not assignable to type '{ __brand: "HintEventId"; }'.
+tests/unit/persistence/hintEvent.test.ts(131,66): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/hintEvent.test.ts(132,66): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/hintEvent.test.ts(133,82): error TS2322: Type 'number' is not assignable to type 'HintTier | undefined'.
+tests/unit/persistence/session.test.ts(165,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/persistence/session.test.ts(165,59): error TS2532: Object is possibly 'undefined'.
+tests/unit/persistence/session.test.ts(178,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/persistence/skillMastery.test.ts(103,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(43,10): error TS6133: 'level01HintCopy' is declared but its value is never read.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(67,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(71,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(77,13): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(78,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(82,13): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(83,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(87,13): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(88,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(101,15): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(102,22): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(107,13): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(108,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(116,15): error TS2339: Property 'currentArchetype' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(117,22): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(126,20): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(132,28): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(133,28): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(134,28): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(141,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(142,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(143,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(147,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(148,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(149,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(157,13): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(159,38): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(165,13): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(167,38): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(173,13): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/Level01SceneQuestWiring.test.ts(175,38): error TS2339: Property 'studentDisplayName' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentArchetype' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(49,9): error TS2339: Property 'currentTemplate' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(56,62): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(59,45): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(65,40): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(80,37): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(87,62): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(90,62): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(93,62): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(101,53): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(104,46): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(107,57): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(113,41): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(114,41): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(121,64): error TS2339: Property 'questFeedbackText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(133,59): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(136,59): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(139,59): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(146,57): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(148,41): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(169,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(170,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(173,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(238,22): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(239,22): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(240,22): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(246,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(260,26): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/LevelSceneQuestWiring.test.ts(261,20): error TS2339: Property 'questHintText' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'currentTemplate' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(64,35): error TS2344: Type '(file: File) => Promise<{ added: number; skipped: number; }>' does not satisfy the constraint 'any[]'.
+tests/unit/scenes/SettingsSceneRestore.test.ts(172,9): error TS2339: Property 'add' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(179,9): error TS2339: Property 'time' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(184,9): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(185,9): error TS2339: Property 'resetHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(220,17): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(230,17): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(244,17): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(256,17): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(266,17): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(272,11): error TS6133: 'scene' is declared but its value is never read.
+tests/unit/scenes/SettingsSceneRestore.test.ts(283,25): error TS2339: Property 'backupHandler' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(291,11): error TS2339: Property 'shutdown' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/scenes/SettingsSceneRestore.test.ts(300,24): error TS2339: Property 'shutdown' does not exist on type 'never'.
+  The intersection 'AnyScene' was reduced to 'never' because property 'resetHandler' exists in multiple constituents and is private in some.
+tests/unit/settings.test.ts(75,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/validators/snap_match.property.test.ts(101,26): error TS2532: Object is possibly 'undefined'.

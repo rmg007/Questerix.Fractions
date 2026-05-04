@@ -274,7 +274,7 @@ async function runSession(
 
     // Capture performance metrics
     try {
-      const metrics = await page.metrics();
+      const metrics = await (page as any).metrics();
       sessionRecord.taskDurationMs = (metrics['TaskDuration'] as number) ?? null;
     } catch {
       /* metrics not available */

@@ -72,7 +72,7 @@ describe('backupToFile', () => {
     const text = await blob.text();
     const envelope = JSON.parse(text) as { tables: { students: Array<{ displayName: string }> } };
     expect(envelope.tables.students).toHaveLength(1);
-    expect(envelope.tables.students[0].displayName).toBe('Alice');
+    expect(envelope.tables.students[0]!.displayName).toBe('Alice');
   });
 });
 

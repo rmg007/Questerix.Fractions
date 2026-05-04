@@ -43,7 +43,7 @@ describe('A11yLayer Lifecycle', () => {
     });
 
     it('removes layer from DOM on popLayer', () => {
-      const layer = A11yLayer.pushLayer('test', 'Test');
+      A11yLayer.pushLayer('test', 'Test');
       expect(document.getElementById('qf-a11y-layer-test')).not.toBeNull();
 
       A11yLayer.popLayer();

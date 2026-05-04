@@ -27,11 +27,7 @@ export const test = base.extend({
 
     const originalGoto = page.goto.bind(page);
 
-    page.goto = async (url: string | URL | null, options?: any) => {
-      if (url === null) {
-        return originalGoto(null, options);
-      }
-
+    page.goto = async (url: string, options?: any) => {
       const urlStr = String(url);
       const urlObj = new URL(urlStr, DEV_URL);
       urlObj.searchParams.set(TEST_HOOKS_PARAM, '1');

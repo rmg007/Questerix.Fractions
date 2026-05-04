@@ -15,12 +15,13 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('phaser', () => ({ default: {} }));
 
 import { SymbolicFractionDisplay } from '@/components/SymbolicFractionDisplay';
-import { makeScene, makeText } from './helpers';
+import { makeScene } from './helpers';
 
 describe.skip('SymbolicFractionDisplay', () => {
   it('renders a/b format (3/4)', () => {
     const scene = makeScene();
-    const display = new SymbolicFractionDisplay(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (SymbolicFractionDisplay as any)(scene as any, {
       x: 0,
       y: 0,
       numerator: 3,
@@ -33,7 +34,8 @@ describe.skip('SymbolicFractionDisplay', () => {
 
   it('handles edge case: undefined model', () => {
     const scene = makeScene();
-    const display = new SymbolicFractionDisplay(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (SymbolicFractionDisplay as any)(scene as any, {
       x: 0,
       y: 0,
       numerator: undefined,
@@ -45,7 +47,8 @@ describe.skip('SymbolicFractionDisplay', () => {
 
   it('handles negative numerator gracefully', () => {
     const scene = makeScene();
-    const display = new SymbolicFractionDisplay(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (SymbolicFractionDisplay as any)(scene as any, {
       x: 0,
       y: 0,
       numerator: -1,
@@ -57,7 +60,8 @@ describe.skip('SymbolicFractionDisplay', () => {
 
   it('updates text on model change', () => {
     const scene = makeScene();
-    const display = new SymbolicFractionDisplay(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (SymbolicFractionDisplay as any)(scene as any, {
       x: 0,
       y: 0,
       numerator: 1,
@@ -71,7 +75,8 @@ describe.skip('SymbolicFractionDisplay', () => {
 
   it('destroys without errors', () => {
     const scene = makeScene();
-    const display = new SymbolicFractionDisplay(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const display: any = new (SymbolicFractionDisplay as any)(scene as any, {
       x: 0,
       y: 0,
       numerator: 1,

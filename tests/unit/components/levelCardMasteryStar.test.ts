@@ -10,16 +10,18 @@
 
 import { describe, it, expect } from 'vitest';
 import { drawMasteryStar } from '@/components/levelCardMasteryStar';
-import { makeScene } from './helpers';
+import { makeScene, makeGraphics } from './helpers';
+
+type MockGraphics = ReturnType<typeof makeGraphics>;
 
 describe('drawMasteryStar', () => {
   it('returns a Graphics object that has been filled and stroked', () => {
     const scene = makeScene();
-    const g = drawMasteryStar(scene, 200, 120, 1);
+    const g = drawMasteryStar(scene, 200, 120, 1) as MockGraphics;
 
     expect(g).toBeDefined();
     const calls = g.getCalls();
-    const methods = calls.map((c) => c.method);
+    const methods = calls.map((c: { method: string }) => c.method);
     expect(methods).toContain('fillStyle');
     expect(methods).toContain('lineStyle');
     expect(methods).toContain('fillPath');
@@ -28,9 +30,11 @@ describe('drawMasteryStar', () => {
 
   it('uses the gold fill color (#FFD700)', () => {
     const scene = makeScene();
-    const g = drawMasteryStar(scene, 200, 120, 1);
+    const g = drawMasteryStar(scene, 200, 120, 1) as MockGraphics;
 
-    const fill = g.getCalls().find((c) => c.method === 'fillStyle');
+    const fill = g
+      .getCalls()
+      .find((c: { method: string; args: any[] }) => c.method === 'fillStyle');
     expect(fill?.args[0]).toBe(0xffd700);
   });
 

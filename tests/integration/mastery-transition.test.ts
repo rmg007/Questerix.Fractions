@@ -139,7 +139,7 @@ describe('mastery transition: NOT_STARTED → LEARNING → APPROACHING → MASTE
     const { sessionRepo } = await import('../../src/persistence/repositories/session');
     const { SessionId, ActivityId, QuestionTemplateId } = await import('../../src/types');
 
-    const student = await studentRepo.create({
+    await studentRepo.create({
       id: STUDENT,
       displayName: 'Test',
       avatarConfig: {},
@@ -169,7 +169,7 @@ describe('mastery transition: NOT_STARTED → LEARNING → APPROACHING → MASTE
     });
 
     const hintIds = ['hint-evt-001', 'hint-evt-002'];
-    const attempt = await attemptRepo.record({
+    await attemptRepo.record({
       sessionId,
       studentId: STUDENT,
       questionTemplateId: QuestionTemplateId('q:ph:L1:0001'),
@@ -192,7 +192,7 @@ describe('mastery transition: NOT_STARTED → LEARNING → APPROACHING → MASTE
     });
 
     const fetched = await attemptRepo.listForSession(sessionId);
-    expect(fetched[0].hintsUsedIds).toEqual(hintIds);
+    expect(fetched[0]?.hintsUsedIds).toEqual(hintIds);
   });
 
   it('closeSession computes real accuracy and avgResponseMs', async () => {

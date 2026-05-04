@@ -62,10 +62,8 @@ function fileFromJson(payload: string | object): File {
   const blob = new Blob([text], { type: 'application/json' });
   // @ts-expect-error — blob → file coercion in jsdom test env
   blob.name = 'backup.json';
-  // @ts-expect-error — synthesise the .text() reader if missing
-  if (typeof blob.text !== 'function') {
-    // @ts-expect-error
-    blob.text = async () => text;
+  if (typeof (blob as any).text !== 'function') {
+    (blob as any).text = async () => text;
   }
   return blob as unknown as File;
 }

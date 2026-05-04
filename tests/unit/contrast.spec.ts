@@ -8,9 +8,9 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) throw new Error(`Invalid hex color: ${hex}`);
   return {
-    r: parseInt(result[1], 16) / 255,
-    g: parseInt(result[2], 16) / 255,
-    b: parseInt(result[3], 16) / 255,
+    r: parseInt(result[1]!, 16) / 255,
+    g: parseInt(result[2]!, 16) / 255,
+    b: parseInt(result[3]!, 16) / 255,
   };
 }
 
@@ -35,17 +35,17 @@ describe('Color contrast — WCAG 2.1 AA', () => {
   const AA_NORMAL_TEXT = 4.5;
 
   it('primary on white — ≥ 4.5:1 (WCAG AA normal text)', () => {
-    const ratio = contrastRatio(HEX.primary, WHITE);
+    const ratio = contrastRatio(HEX.primary!, WHITE);
     expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
   });
 
   it('primaryStrong on white — ≥ 4.5:1 (WCAG AA normal text)', () => {
-    const ratio = contrastRatio(HEX.primaryStrong, WHITE);
+    const ratio = contrastRatio(HEX.primaryStrong!, WHITE);
     expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
   });
 
   it('success on white — ≥ 4.5:1 (WCAG AA normal text)', () => {
-    const ratio = contrastRatio(HEX.success, WHITE);
+    const ratio = contrastRatio(HEX.success!, WHITE);
     expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
   });
 

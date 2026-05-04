@@ -110,19 +110,16 @@ describe('sessionRepo', () => {
     });
 
     it('returns false when closing a non-existent session id', async () => {
-      const result = await sessionRepo.close(
-        SessionId('does-not-exist'),
-        {
-          endedAt: Date.now(),
-          totalAttempts: 0,
-          correctAttempts: 0,
-          accuracy: null,
-          avgResponseMs: null,
-          xpEarned: 0,
-          scaffoldRecommendation: null,
-          endLevel: 1,
-        }
-      );
+      const result = await sessionRepo.close(SessionId('does-not-exist'), {
+        endedAt: Date.now(),
+        totalAttempts: 0,
+        correctAttempts: 0,
+        accuracy: null,
+        avgResponseMs: null,
+        xpEarned: 0,
+        scaffoldRecommendation: null,
+        endLevel: 1,
+      });
       expect(result).toBe(false);
     });
 
@@ -162,7 +159,7 @@ describe('sessionRepo', () => {
 
       expect(results).toHaveLength(3);
       // Dexie returns .reverse() — most recent first
-      expect(results[0].startedAt).toBeGreaterThanOrEqual(results[1].startedAt);
+      expect(results[0]!.startedAt).toBeGreaterThanOrEqual(results[1]!.startedAt);
     });
 
     it('excludes sessions belonging to other students', async () => {
@@ -175,7 +172,7 @@ describe('sessionRepo', () => {
       const results = await sessionRepo.listForStudent(studentId);
 
       expect(results).toHaveLength(1);
-      expect(results[0].studentId).toBe(studentId);
+      expect(results[0]!.studentId).toBe(studentId);
     });
 
     it('returns an empty array for a student with no sessions', async () => {

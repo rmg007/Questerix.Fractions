@@ -16,12 +16,13 @@ import { errorReporter } from '@/lib/observability';
 import { log } from '@/lib/log';
 
 describe('severity contract — fatal routes to errorReporter', () => {
-  let reportSpy: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let reportSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Spy on the singleton, leave the implementation as-is so the local
     // logger.error path inside report() still runs without throwing.
-    reportSpy = vi.spyOn(errorReporter, 'report').mockImplementation(() => {});
+    reportSpy = vi.spyOn(errorReporter, 'report').mockImplementation(() => {}) as any;
     // Silence console noise from the structured logger.
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -66,10 +67,11 @@ describe('severity contract — fatal routes to errorReporter', () => {
 });
 
 describe('severity contract — warn stays local', () => {
-  let reportSpy: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let reportSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    reportSpy = vi.spyOn(errorReporter, 'report').mockImplementation(() => {});
+    reportSpy = vi.spyOn(errorReporter, 'report').mockImplementation(() => {}) as any;
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'log').mockImplementation(() => {});

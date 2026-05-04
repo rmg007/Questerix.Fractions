@@ -165,7 +165,7 @@ describe('lintCatalog', () => {
 
   it('reports per-entry metrics including FK grade and longest sentence', () => {
     const report = lintCatalog([{ id: 'a', text: 'I see a cat.' }]);
-    const m = report.metrics[0];
+    const m = report.metrics[0]!;
     expect(m.id).toBe('a');
     expect(m.maxSentenceWords).toBeLessThanOrEqual(MAX_SENTENCE_WORDS);
     expect(m.properNoun).toBe(false);

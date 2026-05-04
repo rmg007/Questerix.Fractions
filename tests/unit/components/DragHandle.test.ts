@@ -27,12 +27,13 @@ vi.mock('phaser', () => {
 });
 
 import { DragHandle } from '@/components/DragHandle';
-import { makeScene, makeGameObject } from './helpers';
+import { makeScene } from './helpers';
 
 describe.skip('DragHandle', () => {
   it('creates a draggable handle with minimum touch target size (44×44)', () => {
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 44,
@@ -49,7 +50,8 @@ describe.skip('DragHandle', () => {
   it('calls onDrag callback when position changes', () => {
     const onDrag = vi.fn();
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 50,
@@ -66,7 +68,8 @@ describe.skip('DragHandle', () => {
   it('constrains drag beyond bounds', () => {
     const onDrag = vi.fn();
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 50,
@@ -86,7 +89,8 @@ describe.skip('DragHandle', () => {
   it('responds to keyboard arrow keys (left/right)', () => {
     const onDrag = vi.fn();
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 50,
@@ -106,7 +110,8 @@ describe.skip('DragHandle', () => {
   it('handles multi-touch collision gracefully', () => {
     const onDrag = vi.fn();
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 50,
@@ -124,7 +129,8 @@ describe.skip('DragHandle', () => {
 
   it('destroys without errors', () => {
     const scene = makeScene();
-    const handle = new DragHandle(scene, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handle: any = new (DragHandle as any)(scene, {
       x: 100,
       y: 100,
       width: 50,

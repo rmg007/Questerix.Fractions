@@ -40,16 +40,10 @@ import { resolveQuestName } from '@/lib/persona/quest';
 // eslint-disable-next-line import/order
 import { Level01Scene } from '@/scenes/Level01Scene';
 // eslint-disable-next-line import/order
-import { level01HintCopy, level01HintKeys } from '@/lib/mascotCopy';
+import { level01HintKeys } from '@/lib/mascotCopy';
 // eslint-disable-next-line import/order
-import type { HintTier } from '@/types/hint';
 
-type AnyScene = Level01Scene & {
-  questFeedbackText: (kind: 'correct' | 'incorrect' | 'close') => string | null;
-  questHintText: (tier: HintTier) => string;
-  studentDisplayName: string | null;
-  currentArchetype: string;
-};
+type AnyScene = any;
 
 function makeScene(): AnyScene {
   return Object.create(Level01Scene.prototype) as AnyScene;

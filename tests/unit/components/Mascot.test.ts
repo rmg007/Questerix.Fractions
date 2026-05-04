@@ -31,7 +31,7 @@ vi.mock('phaser', () => {
       this.y = y;
     });
     destroy = vi.fn();
-    setState(state: any) {
+    setState(_state: any) {
       return this;
     }
   }
@@ -95,7 +95,7 @@ describe('Mascot', () => {
         if (config.callback) config.callback.call(config.callbackScope);
         return { destroy: vi.fn() };
       }),
-      delayedCall: vi.fn().mockImplementation((delay, callback) => {
+      delayedCall: vi.fn().mockImplementation((_delay, callback) => {
         callback();
         return { remove: vi.fn() };
       }),
@@ -103,7 +103,9 @@ describe('Mascot', () => {
     // Mock scene.add.existing
     scene.add.existing = vi.fn();
     // Mock scene.add.graphics
-    scene.add.graphics = vi.fn().mockImplementation(() => new Phaser.GameObjects.Graphics());
+    scene.add.graphics = vi
+      .fn()
+      .mockImplementation(() => new (Phaser.GameObjects.Graphics as any)());
     // Mock scene.add.container
     scene.add.container = vi.fn().mockImplementation((x, y) => {
       const c = new Phaser.GameObjects.Container(scene, x, y);

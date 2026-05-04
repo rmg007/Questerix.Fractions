@@ -5,12 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  detectEOL01,
-  detectWHB01,
-  detectWHB02,
-  runAllDetectors,
-} from '../../../src/engine/misconceptionDetectors';
+import { detectEOL01, runAllDetectors } from '../../../src/engine/misconceptionDetectors';
 import type { DetectorContext } from '../../../src/engine/ports';
 import type { Attempt } from '@/types';
 

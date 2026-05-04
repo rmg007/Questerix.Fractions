@@ -47,7 +47,7 @@ describe('Curriculum Loader Coverage', () => {
 
     const result = await loadCurriculumBundle();
     expect(result.questionTemplates).toHaveLength(1);
-    expect(result.questionTemplates[0].id).toBe('q1');
+    expect(result.questionTemplates[0]!.id).toBe('q1');
   });
 
   it('handles network failure (TypeError) with bundled fallback', async () => {

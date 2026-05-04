@@ -103,7 +103,7 @@ describe('FeedbackOverlay Lifecycle', () => {
         },
       },
       time: {
-        delayedCall: vi.fn().mockImplementation((delay, callback) => {
+        delayedCall: vi.fn().mockImplementation((_delay, callback) => {
           const timer = { remove: vi.fn(), callback };
           timers.push(timer);
           return timer;
@@ -143,7 +143,7 @@ describe('FeedbackOverlay Lifecycle', () => {
 
   describe('camera-aware positioning', () => {
     it('uses scene.cameras.main.centerX for positioning', () => {
-      const overlay = new FeedbackOverlay({ scene: mockScene, width: 800, height: 1280 });
+      new FeedbackOverlay({ scene: mockScene, width: 800, height: 1280 });
 
       expect(mockScene.cameras.main.centerX).toBe(400);
       // The implementation uses getCx() which returns scene.cameras.main.centerX
@@ -153,13 +153,13 @@ describe('FeedbackOverlay Lifecycle', () => {
 
   describe('destroy safety', () => {
     it('destroy is safe to call multiple times', () => {
-      const overlay = new FeedbackOverlay({ scene: mockScene, width: 800, height: 1280 });
-      overlay.show('correct');
+      const _overlay = new FeedbackOverlay({ scene: mockScene, width: 800, height: 1280 });
+      _overlay.show('correct');
 
-      overlay.destroy();
+      _overlay.destroy();
 
       // Should not throw if called again
-      expect(() => overlay.destroy()).not.toThrow();
+      expect(() => _overlay.destroy()).not.toThrow();
     });
 
     it('GameObjects are destroyed', () => {
