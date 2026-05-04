@@ -5,7 +5,7 @@
 
 import { db } from '../db';
 import { log } from '../../lib/log';
-import type { Bookmark, StudentId } from '../../types';
+import type { Bookmark, StudentId, BookmarkId } from '../../types';
 
 export const bookmarkRepo = {
   async save(bookmark: Bookmark): Promise<Bookmark | undefined> {
@@ -21,7 +21,7 @@ export const bookmarkRepo = {
     }
   },
 
-  async get(id: string): Promise<Bookmark | undefined> {
+  async get(id: BookmarkId): Promise<Bookmark | undefined> {
     try {
       return await db.bookmarks.get(id);
     } catch (err) {
@@ -49,7 +49,7 @@ export const bookmarkRepo = {
     }
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: BookmarkId): Promise<void> {
     try {
       await db.bookmarks.delete(id);
     } catch (err) {

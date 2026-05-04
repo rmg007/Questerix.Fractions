@@ -4,10 +4,10 @@
  */
 
 import { db } from '../db';
-import type { CurriculumPack } from '../../types';
+import type { CurriculumPack, CurriculumPackId } from '../../types';
 
 export const curriculumPackRepo = {
-  async get(id: string): Promise<CurriculumPack | undefined> {
+  async get(id: CurriculumPackId): Promise<CurriculumPack | undefined> {
     try {
       return await db.curriculumPacks.get(id);
     } catch (err) {

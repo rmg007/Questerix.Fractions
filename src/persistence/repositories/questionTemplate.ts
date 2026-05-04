@@ -29,7 +29,7 @@ export const questionTemplateRepo = {
     // levelGroup is an indexed field in the questionTemplates store
     // (db.ts: 'id, archetype, [archetype+difficultyTier], levelGroup, validatorId') —
     // it MUST be persisted, not stripped. getByLevel() queries via this index.
-    await db.questionTemplates.bulkPut(stored as unknown as QuestionTemplate[]);
+    await db.questionTemplates.bulkPut(stored as QuestionTemplate[]);
   },
 
   /**

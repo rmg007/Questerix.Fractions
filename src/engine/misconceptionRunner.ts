@@ -102,6 +102,7 @@ export function evaluateRule(
     if (rule.predicate(a)) evidenceIds.push(a.id);
   }
   if (evidenceIds.length < rule.minObservations) return null;
+  if (candidates.length === 0) return null;
   const rate = evidenceIds.length / candidates.length;
   if ((rule.evidenceRate ?? 0) > 0 && rate < rule.evidenceRate!) return null;
 

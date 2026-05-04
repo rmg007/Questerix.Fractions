@@ -29,6 +29,18 @@ export type ValidatorId = Brand<string, 'ValidatorId'>;
 /** Topic slug from scope-and-sequence. */
 export type TopicId = Brand<string, 'TopicId'>;
 
+/** Hierarchical activity level id. per data-schema.md §2.5 */
+export type ActivityLevelId = Brand<string, 'ActivityLevelId'>;
+
+/** Curriculum pack ID. per data-schema.md §2.1 */
+export type CurriculumPackId = Brand<string, 'CurriculumPackId'>;
+
+/** Fraction bank item ID. */
+export type FractionBankId = Brand<string, 'FractionBankId'>;
+
+/** Hint template ID. per data-schema.md §2.6 */
+export type HintTemplateId = Brand<string, 'HintTemplateId'>;
+
 // ── Dynamic entity IDs ─────────────────────────────────────────────────────
 
 /** UUIDv4, client-generated. per data-schema.md §3.1 */
@@ -40,6 +52,15 @@ export type SessionId = Brand<string, 'SessionId'>;
 /** UUID. per data-schema.md §3.3 */
 export type AttemptId = Brand<string, 'AttemptId'>;
 
+/** UUID. per data-schema.md §3.4 */
+export type HintEventId = Brand<string, 'HintEventId'>;
+
+/** UUID. per data-schema.md §3.5 */
+export type MisconceptionFlagId = Brand<string, 'MisconceptionFlagId'>;
+
+/** UUID. per data-schema.md §3.7 (Bookmark) */
+export type BookmarkId = Brand<string, 'BookmarkId'>;
+
 // ── Smart constructors (runtime casts with no validation overhead) ─────────
 
 export const SkillId = (s: string): SkillId => s as SkillId;
@@ -49,6 +70,13 @@ export const ActivityId = (s: string): ActivityId => s as ActivityId;
 export const QuestionTemplateId = (s: string): QuestionTemplateId => s as QuestionTemplateId;
 export const ValidatorId = (s: string): ValidatorId => s as ValidatorId;
 export const TopicId = (s: string): TopicId => s as TopicId;
+export const ActivityLevelId = (s: string): ActivityLevelId => s as ActivityLevelId;
+export const CurriculumPackId = (s: string): CurriculumPackId => s as CurriculumPackId;
+export const FractionBankId = (s: string): FractionBankId => s as FractionBankId;
+export const HintTemplateId = (s: string): HintTemplateId => s as HintTemplateId;
 export const StudentId = (s: string): StudentId => s as StudentId;
 export const SessionId = (s: string): SessionId => s as SessionId;
 export const AttemptId = (s: string): AttemptId => s as AttemptId;
+export const HintEventId = (s: string): HintEventId => s as HintEventId;
+export const MisconceptionFlagId = (s: string): MisconceptionFlagId => s as MisconceptionFlagId;
+export const BookmarkId = (s: string): BookmarkId => s as BookmarkId;

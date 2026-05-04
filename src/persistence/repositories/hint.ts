@@ -5,10 +5,10 @@
  */
 
 import { db } from '../db';
-import type { HintTemplate } from '../../types';
+import type { HintTemplate, HintTemplateId, QuestionTemplateId } from '../../types';
 
 export const hintRepo = {
-  async get(id: string): Promise<HintTemplate | undefined> {
+  async get(id: HintTemplateId): Promise<HintTemplate | undefined> {
     try {
       return await db.hints.get(id);
     } catch (err) {
@@ -16,7 +16,7 @@ export const hintRepo = {
     }
   },
 
-  async getForQuestion(questionTemplateId: string): Promise<HintTemplate[]> {
+  async getForQuestion(questionTemplateId: QuestionTemplateId): Promise<HintTemplate[]> {
     try {
       return await db.hints
         .where('[questionTemplateId+order]')

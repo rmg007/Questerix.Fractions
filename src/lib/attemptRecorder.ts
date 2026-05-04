@@ -91,7 +91,11 @@ export async function recordAttemptAndMastery(
       });
 
       if (hintIds.length > 0) {
-        await hintEventRepo.linkToAttempt(hintIds, attemptId);
+        const { HintEventId: HintEventIdCtor } = await import('@/types/branded');
+        await hintEventRepo.linkToAttempt(
+          hintIds.map((id) => HintEventIdCtor(id)),
+          attemptId
+        );
       }
 
       const existing = await skillMasteryRepo.get(studentId, skillId);

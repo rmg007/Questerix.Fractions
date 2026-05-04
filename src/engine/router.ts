@@ -61,15 +61,15 @@ export function decideNextLevel(args: RouterArgs): LevelId {
 
   // Rule 2: Route DOWN if recent accuracy is below threshold
   if (shouldRegress(recentOutcomes)) {
-    const downLevel = (currentLevel - 1) as LevelId;
-    return downLevel >= MIN_LEVEL ? downLevel : MIN_LEVEL;
+    const downLevel = Math.max(MIN_LEVEL, currentLevel - 1) as LevelId;
+    return downLevel;
   }
 
   // Rule 3: Route UP when all prereqs are met (all gating skills mastered)
   // per runtime-architecture.md §11 — prereqs checked by caller
   if (prereqsMet && allCurrentSkillsMastered(args.masteries)) {
-    const upLevel = (currentLevel + 1) as LevelId;
-    return upLevel <= MAX_LEVEL ? upLevel : MAX_LEVEL;
+    const upLevel = Math.min(MAX_LEVEL, currentLevel + 1) as LevelId;
+    return upLevel;
   }
 
   // Rule 4: Stay

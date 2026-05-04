@@ -6,10 +6,15 @@
 import Dexie from 'dexie';
 import { db } from '../db';
 import { log } from '../../lib/log';
-import type { MisconceptionFlag, StudentId, MisconceptionId } from '../../types';
+import type {
+  MisconceptionFlag,
+  StudentId,
+  MisconceptionId,
+  MisconceptionFlagId,
+} from '../../types';
 
 export const misconceptionFlagRepo = {
-  async get(id: string): Promise<MisconceptionFlag | undefined> {
+  async get(id: MisconceptionFlagId): Promise<MisconceptionFlag | undefined> {
     try {
       return await db.misconceptionFlags.get(id);
     } catch (err) {
@@ -70,7 +75,7 @@ export const misconceptionFlagRepo = {
     }
   },
 
-  async resolve(id: string): Promise<boolean> {
+  async resolve(id: MisconceptionFlagId): Promise<boolean> {
     try {
       const updated = await db.misconceptionFlags.update(id, { resolvedAt: Date.now() });
       return updated > 0;

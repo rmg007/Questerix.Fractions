@@ -6,7 +6,7 @@
 
 import { db } from '../db';
 import { log } from '../../lib/log';
-import type { HintEvent, AttemptId } from '../../types';
+import type { HintEvent, AttemptId, HintEventId } from '../../types';
 
 export const hintEventRepo = {
   async record(event: Omit<HintEvent, 'id'>): Promise<HintEvent | undefined> {
@@ -25,7 +25,7 @@ export const hintEventRepo = {
   },
 
   /** Link a batch of hint events to an attempt after the attempt is persisted. */
-  async linkToAttempt(ids: string[], attemptId: AttemptId): Promise<void> {
+  async linkToAttempt(ids: HintEventId[], attemptId: AttemptId): Promise<void> {
     await db.transaction('rw', db.hintEvents, async () => {
       for (const id of ids) {
         await db.hintEvents.update(id, { attemptId });
@@ -41,7 +41,7 @@ export const hintEventRepo = {
     }
   },
 
-  async update(id: string, patch: Partial<HintEvent>): Promise<void> {
+  async update(id: HintEventId, patch: Partial<HintEvent>): Promise<void> {
     await db.hintEvents.update(id, patch);
   },
 };

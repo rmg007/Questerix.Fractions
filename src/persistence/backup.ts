@@ -154,7 +154,7 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
     log.warn('BACKUP', 'envelope.invalid', { issues: parsed.message });
     throw new Error(`backup.restore: schema validation failed — ${parsed.message}`);
   }
-  const envelope = parsed.value as unknown as BackupEnvelope;
+  const envelope = parsed.value;
 
   if (envelope.version !== BACKUP_SCHEMA_VERSION) {
     throw new Error(
@@ -203,28 +203,43 @@ export async function restoreFromFile(file: File): Promise<RestoreResult> {
       db.telemetryEvents,
     ],
     async () => {
-      await tryAddAll(db.students, t.students ?? []);
-      await tryAddAll(db.sessions, t.sessions ?? []);
-      await tryAddAll(db.attempts, t.attempts ?? []);
-      await tryAddAll(db.skillMastery, t.skillMastery ?? []);
-      await tryAddAll(db.bookmarks, t.bookmarks ?? []);
-      await tryAddAll(db.sessionTelemetry, t.sessionTelemetry ?? []);
-      await tryAddAll(db.hintEvents, t.hintEvents ?? []);
-      await tryAddAll(db.misconceptionFlags, t.misconceptionFlags ?? []);
-      await tryAddAll(db.progressionStat, t.progressionStat ?? []);
-      await tryAddAll(db.levelProgression, t.levelProgression ?? []);
-      await tryAddAll(db.streakRecord, t.streakRecord ?? []);
-      await tryAddAll(db.telemetryEvents, t.telemetryEvents ?? []);
+      // Cast Zod-parsed tables (plain strings) to entity types (branded IDs)
+      // Zod validates structure; TypeScript brands are zero-cost at runtime
+      await tryAddAll(db.students, (t.students ?? []) as unknown as Student[]);
+      await tryAddAll(db.sessions, (t.sessions ?? []) as unknown as Session[]);
+      await tryAddAll(db.attempts, (t.attempts ?? []) as unknown as Attempt[]);
+      await tryAddAll(db.skillMastery, (t.skillMastery ?? []) as unknown as SkillMastery[]);
+      await tryAddAll(db.bookmarks, (t.bookmarks ?? []) as unknown as Bookmark[]);
+      await tryAddAll(
+        db.sessionTelemetry,
+        (t.sessionTelemetry ?? []) as unknown as SessionTelemetry[]
+      );
+      await tryAddAll(db.hintEvents, (t.hintEvents ?? []) as unknown as HintEvent[]);
+      await tryAddAll(
+        db.misconceptionFlags,
+        (t.misconceptionFlags ?? []) as unknown as MisconceptionFlag[]
+      );
+      await tryAddAll(
+        db.progressionStat,
+        (t.progressionStat ?? []) as unknown as ProgressionStat[]
+      );
+      await tryAddAll(
+        db.levelProgression,
+        (t.levelProgression ?? []) as unknown as LevelProgression[]
+      );
+      await tryAddAll(db.streakRecord, (t.streakRecord ?? []) as unknown as StreakRecord[]);
+      await tryAddAll(db.telemetryEvents, (t.telemetryEvents ?? []) as unknown as TelemetryEvent[]);
       // Restore deviceMeta with merge strategy: keep newer lastBackupAt
       if (t.deviceMeta && t.deviceMeta.length > 0) {
         const live = await db.deviceMeta.toCollection().first();
         for (const backupMeta of t.deviceMeta) {
-          if (live && (live.lastBackupAt ?? 0) > (backupMeta.lastBackupAt ?? 0)) {
+          const backupMetaTyped = backupMeta as unknown as DeviceMeta;
+          if (live && (live.lastBackupAt ?? 0) > (backupMetaTyped.lastBackupAt ?? 0)) {
             // Keep live data if it's newer
             console.info('[backup.restore] Keeping newer live deviceMeta (lastBackupAt)');
           } else {
             // Update with backup data
-            await db.deviceMeta.update(backupMeta.installId, backupMeta);
+            await db.deviceMeta.update(backupMetaTyped.installId, backupMetaTyped);
             added++;
           }
         }

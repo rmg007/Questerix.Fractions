@@ -4,10 +4,10 @@
  */
 
 import { db } from '../db';
-import type { FractionBank } from '../../types';
+import type { FractionBank, FractionBankId } from '../../types';
 
 export const fractionBankRepo = {
-  async get(id: string): Promise<FractionBank | undefined> {
+  async get(id: FractionBankId): Promise<FractionBank | undefined> {
     try {
       return await db.fractionBank.get(id);
     } catch (err) {

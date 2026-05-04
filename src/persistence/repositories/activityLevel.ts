@@ -4,10 +4,10 @@
  */
 
 import { db } from '../db';
-import type { ActivityLevel, ActivityId } from '../../types';
+import type { ActivityLevel, ActivityId, ActivityLevelId } from '../../types';
 
 export const activityLevelRepo = {
-  async get(id: string): Promise<ActivityLevel | undefined> {
+  async get(id: ActivityLevelId): Promise<ActivityLevel | undefined> {
     try {
       return await db.activityLevels.get(id);
     } catch (err) {

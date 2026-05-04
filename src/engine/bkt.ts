@@ -21,9 +21,15 @@ export const DEFAULT_PRIORS: BktParams = {
 
 /**
  * Validate BKT parameters are in valid ranges.
- * @throws Error if pGuess or pSlip are degenerate (not in (0, 1))
+ * @throws Error if any parameter is invalid
  */
 export function validateBktParams(params: BktParams): void {
+  if (!Number.isFinite(params.pInit) || params.pInit < 0 || params.pInit > 1) {
+    throw new Error(`Invalid pInit ${params.pInit}: must be a finite number in [0, 1]`);
+  }
+  if (!Number.isFinite(params.pTransit) || params.pTransit < 0 || params.pTransit > 1) {
+    throw new Error(`Invalid pTransit ${params.pTransit}: must be a finite number in [0, 1]`);
+  }
   if (params.pGuess <= 0 || params.pGuess >= 1) {
     throw new Error(`Invalid pGuess ${params.pGuess}: must be in (0, 1)`);
   }
@@ -56,6 +62,9 @@ export const MASTERY_THRESHOLD = 0.85;
  * @returns       Updated P(L_t) clamped to [0, 1]
  */
 export function updatePKnown(pKnown: number, correct: boolean, params: BktParams): number {
+  if (!Number.isFinite(pKnown) || pKnown < 0 || pKnown > 1) {
+    throw new Error(`pKnown must be a finite number in [0, 1], got ${pKnown}`);
+  }
   validateBktParams(params);
   const { pSlip, pGuess, pTransit } = params;
 

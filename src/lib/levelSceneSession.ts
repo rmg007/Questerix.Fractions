@@ -163,7 +163,11 @@ export async function recordAttemptAndMasteryForLevel(
       try {
         const { hintEventRepo: hintEventRepo2 } =
           await import('@/persistence/repositories/hintEvent');
-        await hintEventRepo2.linkToAttempt(currentQuestionHintIds, attemptId);
+        const { HintEventId } = await import('@/types/branded');
+        await hintEventRepo2.linkToAttempt(
+          currentQuestionHintIds.map((id) => HintEventId(id)),
+          attemptId
+        );
       } catch (err) {
         console.warn('[levelSceneSession] Could not link hint events to attempt:', err);
       }
@@ -191,10 +195,7 @@ export async function recordAttemptAndMasteryForLevel(
         });
         log.misc('flags_detected', {
           count: flags.length,
-          ids: flags.map((f) => {
-            const flag = f as unknown as { misconceptionId: string };
-            return flag.misconceptionId;
-          }),
+          ids: flags.map((flag) => flag.misconceptionId),
         });
       }
     } catch (err) {

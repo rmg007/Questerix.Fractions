@@ -8,14 +8,16 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import * as fc from 'fast-check';
 import {
   DEFAULT_PRIORS,
   MASTERY_THRESHOLD,
   updatePKnown,
   updateMastery,
   deriveState,
+  validateBktParams,
 } from '@/engine/bkt';
-import type { SkillMastery } from '@/types';
+import type { SkillMastery, BktParams } from '@/types';
 import { StudentId, SkillId } from '@/types';
 
 // ── Helper ────────────────────────────────────────────────────────────────
@@ -192,5 +194,116 @@ describe('wrong answer guard against premature MASTERED', () => {
     // One wrong answer — must not jump to MASTERED
     const after = updateMastery(m, false);
     expect(after.state).not.toBe('MASTERED');
+  });
+});
+
+// ── 9. Property-based tests — BKT bounds and convergence ────────────────────
+
+describe('BKT property-based tests', () => {
+  it('pKnown always stays in [0, 1] after 50 correct answers', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.record({
+          pInit: fc.double({ min: 0, max: 1, noNaN: true }),
+          pTransit: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pSlip: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pGuess: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+        }),
+        (startP, params) => {
+          let p = startP;
+          for (let i = 0; i < 50; i++) {
+            p = updatePKnown(p, true, params as BktParams);
+          }
+          expect(p).toBeGreaterThanOrEqual(0);
+          expect(p).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('pKnown always stays in [0, 1] after 50 wrong answers', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.record({
+          pInit: fc.double({ min: 0, max: 1, noNaN: true }),
+          pTransit: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pSlip: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pGuess: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+        }),
+        (startP, params) => {
+          let p = startP;
+          for (let i = 0; i < 50; i++) {
+            p = updatePKnown(p, false, params as BktParams);
+          }
+          expect(p).toBeGreaterThanOrEqual(0);
+          expect(p).toBeLessThanOrEqual(1);
+        }
+      )
+    );
+  });
+
+  it('alternating correct/wrong converges to a stable range', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.record({
+          pInit: fc.double({ min: 0, max: 1, noNaN: true }),
+          pTransit: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pSlip: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+          pGuess: fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+        }),
+        (startP, params) => {
+          let p = startP;
+          const history: number[] = [];
+          for (let i = 0; i < 100; i++) {
+            p = updatePKnown(p, i % 2 === 0, params as BktParams);
+            if (i >= 80) history.push(p);
+          }
+          // All values in history should be in valid range
+          history.forEach((v) => {
+            expect(v).toBeGreaterThanOrEqual(0);
+            expect(v).toBeLessThanOrEqual(1);
+          });
+          // Last 20 values should cluster (variance should be small)
+          const mean = history.reduce((a, b) => a + b, 0) / history.length;
+          const variance =
+            history.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / history.length;
+          expect(variance).toBeLessThanOrEqual(0.15);
+        }
+      )
+    );
+  });
+
+  it('validateBktParams rejects invalid pInit', () => {
+    expect(() =>
+      validateBktParams({ pInit: -0.1, pTransit: 0.1, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+    expect(() =>
+      validateBktParams({ pInit: 1.1, pTransit: 0.1, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+    expect(() =>
+      validateBktParams({ pInit: NaN, pTransit: 0.1, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+  });
+
+  it('validateBktParams rejects invalid pTransit', () => {
+    expect(() =>
+      validateBktParams({ pInit: 0.1, pTransit: -0.1, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+    expect(() =>
+      validateBktParams({ pInit: 0.1, pTransit: 1.1, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+    expect(() =>
+      validateBktParams({ pInit: 0.1, pTransit: NaN, pSlip: 0.1, pGuess: 0.2 })
+    ).toThrow();
+  });
+
+  it('updatePKnown rejects invalid pKnown', () => {
+    expect(() => updatePKnown(-0.1, true, DEFAULT_PRIORS)).toThrow();
+    expect(() => updatePKnown(1.1, true, DEFAULT_PRIORS)).toThrow();
+    expect(() => updatePKnown(NaN, true, DEFAULT_PRIORS)).toThrow();
+    expect(() => updatePKnown(Infinity, true, DEFAULT_PRIORS)).toThrow();
   });
 });

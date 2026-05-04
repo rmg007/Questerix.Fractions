@@ -115,7 +115,6 @@ export class HintSystem {
       const { hintEventRepo } = await import('@/persistence/repositories/hintEvent');
       const pointCost = tier === 'verbal' ? 5 : tier === 'visual_overlay' ? 15 : 30;
       const event = await hintEventRepo.record({
-        attemptId: '' as unknown as import('@/types').AttemptId,
         hintId: `hint.partition.${tier}`,
         tier,
         shownAt: Date.now(),
