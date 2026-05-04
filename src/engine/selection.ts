@@ -2,7 +2,7 @@
  * Question selection algorithm — picks the best next question from candidates.
  * Pure function. No Dexie, no Phaser. No host-global side effects.
  *
- * Zone of Proximal Development (ZPD) window: 0.4 < P_known < 0.85
+ * Zone of Proximal Development (ZPD) window: 0.4 <= P_known < 0.85 (inclusive low, exclusive high)
  * Recency filter: exclude the last 5 template IDs seen.
  *
  * Determinism: callers MUST supply an `Rng` port (see src/engine/ports.ts).
@@ -48,8 +48,8 @@ export interface SelectionArgs {
  *
  * Selection priority (highest to lowest):
  *   1. Not in recentTemplateIds (last RECENCY_WINDOW items)
- *   2. At least one skill in ZPD window (0.4 < P_known < 0.85)
- *   3. If preferUnmastered=true, fallback to P_known <= 0.4 skills
+ *   2. At least one skill in ZPD window (0.4 <= P_known < 0.85)
+ *   3. If preferUnmastered=true, fallback to P_known < 0.4 skills
  *   4. Any remaining candidate (avoids stall on edge-case small pools)
  *
  * Tiebreak is random within each tier — seeded by the caller-supplied `rng`.
@@ -91,7 +91,7 @@ function hasSkillInZPD(q: QuestionTemplate, mastery: Map<SkillId, SkillMastery>)
 }
 
 function hasSkillBelowZPD(q: QuestionTemplate, mastery: Map<SkillId, SkillMastery>): boolean {
-  return q.skillIds.some((sid) => getMastery(sid, mastery) <= ZPD_LOW);
+  return q.skillIds.some((sid) => getMastery(sid, mastery) < ZPD_LOW);
 }
 
 function pickRandom<T>(arr: T[], rng: Rng): T {

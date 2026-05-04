@@ -17,10 +17,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  runRules,
-  evaluateRule,
-} from '../../../src/engine/misconceptionRunner';
+import { runRules, evaluateRule } from '../../../src/engine/misconceptionRunner';
 import {
   MISCONCEPTION_RULES,
   type MisconceptionRule,
@@ -106,6 +103,7 @@ describe('MISCONCEPTION_RULES — positive cases (rule fires)', () => {
       archetype: 'compare',
       outcome: 'WRONG',
       studentAnswerRaw: { relation: '>' },
+      correctAnswerRaw: { relation: '<' },
     });
     const attempts = [wrong, wrong, wrong, wrong, wrong];
     const result = evaluateRule(ruleById('MC-WHB-01' as MisconceptionId), attempts, 6);
@@ -253,11 +251,7 @@ describe('MISCONCEPTION_RULES — positive cases (rule fires)', () => {
       studentAnswerRaw: { actualPartitions: 2 },
     });
     const attempts = [wrong, wrong];
-    const result = evaluateRule(
-      ruleById('MC-L5-THIRDS-HALF-01' as MisconceptionId),
-      attempts,
-      5
-    );
+    const result = evaluateRule(ruleById('MC-L5-THIRDS-HALF-01' as MisconceptionId), attempts, 5);
     expect(result).not.toBeNull();
   });
 
@@ -267,11 +261,7 @@ describe('MISCONCEPTION_RULES — positive cases (rule fires)', () => {
       studentAnswerRaw: { cutCount: 3 },
     });
     const attempts = [wrong];
-    const result = evaluateRule(
-      ruleById('MC-L5-FOURTHS-3CUTS-01' as MisconceptionId),
-      attempts,
-      5
-    );
+    const result = evaluateRule(ruleById('MC-L5-FOURTHS-3CUTS-01' as MisconceptionId), attempts, 5);
     expect(result).not.toBeNull();
   });
 
@@ -281,11 +271,7 @@ describe('MISCONCEPTION_RULES — positive cases (rule fires)', () => {
       payload: { isMultiStep: true },
     });
     const attempts = [wrong, wrong, wrong];
-    const result = evaluateRule(
-      ruleById('MC-L5-DENSWITCH-01' as MisconceptionId),
-      attempts,
-      5
-    );
+    const result = evaluateRule(ruleById('MC-L5-DENSWITCH-01' as MisconceptionId), attempts, 5);
     expect(result).not.toBeNull();
   });
 
@@ -332,11 +318,7 @@ describe('MISCONCEPTION_RULES — negative cases', () => {
       studentAnswerRaw: { studentAnswer: true },
       correctAnswerRaw: { correctAnswer: false },
     });
-    const result = evaluateRule(
-      ruleById('MC-EOL-01' as MisconceptionId),
-      [trap, trap],
-      1
-    );
+    const result = evaluateRule(ruleById('MC-EOL-01' as MisconceptionId), [trap, trap], 1);
     expect(result).toBeNull();
   });
 
@@ -384,11 +366,7 @@ describe('MISCONCEPTION_RULES — negative cases', () => {
       payload: { shapeType: 'rectangle' },
       durationMS: 31000,
     });
-    const result = evaluateRule(
-      ruleById('MC-SHP-01' as MisconceptionId),
-      [slow, slow, slow],
-      3
-    );
+    const result = evaluateRule(ruleById('MC-SHP-01' as MisconceptionId), [slow, slow, slow], 3);
     expect(result).toBeNull();
   });
 
@@ -402,11 +380,7 @@ describe('MISCONCEPTION_RULES — negative cases', () => {
         { type: 'pickUp', targetId: 'c1', trayIndex: 0, timestamp: 1 },
       ],
     });
-    const result = evaluateRule(
-      ruleById('MC-ORD-01' as MisconceptionId),
-      [ok, ok, ok, ok, ok],
-      9
-    );
+    const result = evaluateRule(ruleById('MC-ORD-01' as MisconceptionId), [ok, ok, ok, ok, ok], 9);
     expect(result).toBeNull();
   });
 });

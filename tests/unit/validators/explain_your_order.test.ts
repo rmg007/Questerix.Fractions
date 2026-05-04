@@ -25,18 +25,18 @@ describe('validator.explain_your_order.sequence', () => {
   // ── Partial cases ──────────────────────────────────────────────────────────
 
   it('returns partial for one swap off (Kendall tau = 1)', () => {
-    // f2 and f3 swapped → 1 swap
+    // f2 and f3 swapped → 1 swap out of 6 max → score = 1 - 1/6 ≈ 0.833
     const result = fn({ studentSequence: ['f1', 'f3', 'f2', 'f4'] }, correct);
     expect(result.outcome).toBe('partial');
-    expect(result.score).toBe(0.5);
+    expect(result.score).toBeCloseTo(1 - 1 / 6, 2);
     expect(result.feedback).toBe('one_swap_off');
   });
 
   it('returns partial for two swaps off', () => {
-    // f1↔f2 and f3↔f4 → 2 independent swaps
+    // f1↔f2 and f3↔f4 → 2 swaps out of 6 max → score = 1 - 2/6 ≈ 0.667
     const result = fn({ studentSequence: ['f2', 'f1', 'f4', 'f3'] }, correct);
     expect(result.outcome).toBe('partial');
-    expect(result.score).toBe(0.25);
+    expect(result.score).toBeCloseTo(1 - 2 / 6, 2);
     expect(result.feedback).toBe('two_swaps');
   });
 
@@ -78,10 +78,7 @@ describe('validator.explain_your_order.sequence', () => {
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   it('returns correct for single-element sequence', () => {
-    const result = fn(
-      { studentSequence: ['f1'] },
-      { correctSequence: ['f1'] }
-    );
+    const result = fn({ studentSequence: ['f1'] }, { correctSequence: ['f1'] });
     expect(result.outcome).toBe('correct');
     expect(result.score).toBe(1);
   });

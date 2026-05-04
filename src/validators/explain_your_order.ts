@@ -60,30 +60,33 @@ export const explainYourOrderSequence: ValidatorRegistration<
       !justificationRequired ||
       (justification !== undefined && acceptedJustifications!.includes(justification));
 
+    // Score via normalized Kendall tau: 1 - (swaps / maxSwaps)
+    const maxSwaps = (correctSequence.length * (correctSequence.length - 1)) / 2;
+    const baseScore = maxSwaps > 0 ? Math.max(0, 1 - swaps / maxSwaps) : 0;
+
     if (swaps === 0) {
       if (justificationCorrect) {
         return { outcome: 'correct', score: 1 };
       }
-      // Sequence perfect but justification wrong → partial credit
+      // Sequence perfect but justification wrong → partial credit (reduced score)
       return {
         outcome: 'partial',
-        score: 0.7,
+        score: 0.8,
         feedback: 'wrong_justification',
         detectedMisconception: 'MC-ORD-01',
       };
     }
 
+    // Swaps 1-2 are "close" attempts; use Kendall formula for consistent scaling
     if (swaps === 1) {
-      return { outcome: 'partial', score: 0.5, feedback: 'one_swap_off' };
+      return { outcome: 'partial', score: baseScore, feedback: 'one_swap_off' };
     }
 
     if (swaps === 2) {
-      return { outcome: 'partial', score: 0.25, feedback: 'two_swaps' };
+      return { outcome: 'partial', score: baseScore, feedback: 'two_swaps' };
     }
 
-    const maxSwaps = (correctSequence.length * (correctSequence.length - 1)) / 2;
-    const score = maxSwaps > 0 ? Math.max(0, 1 - swaps / maxSwaps) : 0;
-    return { outcome: 'incorrect', score, feedback: `swaps:${swaps}` };
+    return { outcome: 'incorrect', score: baseScore, feedback: `swaps:${swaps}` };
   },
 };
 

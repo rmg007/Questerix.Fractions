@@ -72,3 +72,20 @@ export function kendallTauDistance(a: string[], b: string[]): number {
   }
   return swaps;
 }
+
+/** Type guard: check if value is a plain object (Record<string, unknown>), excluding Maps and other special types. */
+export function isRecord(x: unknown): x is Record<string, unknown> {
+  return (
+    x !== null &&
+    typeof x === 'object' &&
+    !Array.isArray(x) &&
+    !(x instanceof Map) &&
+    !(x instanceof Set) &&
+    Object.getPrototypeOf(x) === Object.prototype
+  );
+}
+
+/** Type guard: check if value is a finite number (not NaN, Infinity, or -Infinity). */
+export function isFiniteNumber(x: unknown): x is number {
+  return typeof x === 'number' && Number.isFinite(x);
+}

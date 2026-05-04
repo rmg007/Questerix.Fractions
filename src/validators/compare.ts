@@ -3,6 +3,7 @@
  * per activity-archetypes.md §5 and §11
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
+import { isFiniteNumber } from './utils';
 
 export type Relation = '<' | '=' | '>';
 
@@ -49,13 +50,17 @@ export const compareRelation: ValidatorRegistration<CompareInput, CompareExpecte
       return { outcome: 'correct', score: 1 };
     }
 
-    // Detect MC-WHB-02: student picks larger-denominator as bigger.
-    // Signal: true relation is < (left < right) but student said >
-    // AND left has larger decimal (student inverted), consistent with
-    // "bigger denominator = bigger fraction" pattern.
-    // per misconceptions.md §3.1 MC-WHB-02
+    // Detect MC-WHB-02: "bigger denominator = bigger fraction" misconception.
+    // Signal: true relation is < (left < right, smaller value on left)
+    // but student said >, AND left has smaller decimal value.
+    // Example: 1/4 (0.25) vs 1/2 (0.5). True: <. Student picks > (thinking 1/4 bigger
+    // because denominator 4 > 2). Per misconceptions.md MC-WHB-02.
     const denominatorBias =
-      trueRelation === '<' && studentRelation === '>' && leftDecimal < rightDecimal;
+      isFiniteNumber(leftDecimal) &&
+      isFiniteNumber(rightDecimal) &&
+      trueRelation === '<' &&
+      studentRelation === '>' &&
+      leftDecimal < rightDecimal;
 
     return {
       outcome: 'incorrect',

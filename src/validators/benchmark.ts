@@ -3,6 +3,7 @@
  * per activity-archetypes.md §6 and §11
  */
 import type { ValidatorRegistration, ValidatorResult } from '@/types';
+import { isRecord } from './utils';
 
 export type BenchmarkZone = 'zero' | 'half' | 'one';
 
@@ -42,20 +43,31 @@ export const benchmarkSortToZone: ValidatorRegistration<BenchmarkInput, Benchmar
   fn(input, expected): ValidatorResult {
     const { studentPlacements } = input;
     const { correctPlacements } = expected;
+
+    // Deserialize Map from Object if needed (defensive for malformed input)
+    let placements = studentPlacements;
+    if (isRecord(studentPlacements)) {
+      placements = new Map(Object.entries(studentPlacements) as Array<[string, BenchmarkZone]>);
+    }
+
     const total = correctPlacements.size;
     if (total === 0) return { outcome: 'correct', score: 1 };
 
     let errors = 0;
     for (const [fracId, correctZone] of correctPlacements) {
-      if (studentPlacements.get(fracId) !== correctZone) errors++;
+      if (placements.get(fracId) !== correctZone) errors++;
     }
 
     if (errors === 0) return { outcome: 'correct', score: 1 };
+
     const errorRate = errors / total;
+    const score = 1 - errorRate;
+
+    // Outcome determined by error threshold; score reflects % correct (proportional)
     if (errorRate <= 0.25) {
-      return { outcome: 'partial', score: 1 - errorRate, feedback: 'close' };
+      return { outcome: 'partial', score, feedback: 'close' };
     }
-    return { outcome: 'incorrect', score: 1 - errorRate, feedback: `errors:${errors}/${total}` };
+    return { outcome: 'incorrect', score, feedback: `errors:${errors}/${total}` };
   },
 };
 

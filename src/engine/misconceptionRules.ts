@@ -126,7 +126,8 @@ export interface MisconceptionRule {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /** Type-narrow a value to a record. */
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+export const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null;
 
 /** Read `relation` field from a comparison answer payload. */
 const readRelation = (raw: unknown): string | undefined =>
@@ -173,7 +174,10 @@ export const MISCONCEPTION_RULES: readonly MisconceptionRule[] = [
     minCandidates: 5,
     minObservations: 1,
     evidenceRate: 0.6,
-    predicate: (a) => a.outcome === 'WRONG' && readRelation(a.studentAnswerRaw) === '>',
+    predicate: (a) =>
+      a.outcome === 'WRONG' &&
+      readRelation(a.studentAnswerRaw) === '>' &&
+      readRelation(a.correctAnswerRaw) === '<',
   },
 
   // ── WHB-02 — Whole-Number Bias (Denominator) ─────────────────────────────
@@ -416,29 +420,26 @@ export const MISCONCEPTION_RULES: readonly MisconceptionRule[] = [
     evidenceLimit: 5,
     aggregator: (cands) => {
       const evidenceIds: AttemptId[] = [];
+      const evidenceSet = new Set<AttemptId>();
       for (const attempt of cands) {
         // Pattern A: sequential tray picking (indices 0, 1, 2 in order).
         if (attempt.roundEvents && attempt.roundEvents.length > 0) {
           const pickUpEvents = attempt.roundEvents.filter((e) => e.type === 'pickUp');
           if (pickUpEvents.length >= 3) {
             const picked = pickUpEvents.slice(0, 3).map((e) => e.trayIndex);
-            const isSequential =
-              picked.length === 3 && picked[0] === 0 && picked[1] === 1 && picked[2] === 2;
-            if (isSequential) {
+            if (picked.length === 3 && picked[0] === 0 && picked[1] === 1 && picked[2] === 2) {
               evidenceIds.push(attempt.id);
+              evidenceSet.add(attempt.id);
               continue;
             }
           }
         }
         // Pattern B: high swap count on wrong/close outcomes.
-        if (
-          attempt.roundEvents &&
-          attempt.roundEvents.length > 0 &&
-          !evidenceIds.includes(attempt.id)
-        ) {
+        if (attempt.roundEvents && attempt.roundEvents.length > 0 && !evidenceSet.has(attempt.id)) {
           const swapCount = attempt.roundEvents.filter((e) => e.type === 'swap').length;
           if ((attempt.outcome === 'WRONG' || attempt.outcome === 'CLOSE') && swapCount >= 2) {
             evidenceIds.push(attempt.id);
+            evidenceSet.add(attempt.id);
             continue;
           }
         }
@@ -448,9 +449,10 @@ export const MISCONCEPTION_RULES: readonly MisconceptionRule[] = [
           Array.isArray(attempt.studentAnswerRaw) &&
           (attempt.studentAnswerRaw as unknown[]).length >= 3 &&
           attempt.outcome === 'WRONG' &&
-          !evidenceIds.includes(attempt.id)
+          !evidenceSet.has(attempt.id)
         ) {
           evidenceIds.push(attempt.id);
+          evidenceSet.add(attempt.id);
         }
       }
       const rate = evidenceIds.length / cands.length;

@@ -302,17 +302,25 @@ benchmark_closest = ValidatorRegistration(
 
 def _benchmark_sort_to_zone(input_: dict, expected: dict) -> ValidatorResult:
     """
-    expected: { "correctPlacements": { fracId: zone } }
-    input:    { "studentPlacements": { fracId: zone } }
+    Returns correct if 0 errors; partial if ≤25% wrong; else incorrect.
+    Score reflects % correct (1 - errorRate).
+    per activity-archetypes.md §6 / benchmark.ts:benchmarkSortToZone (Phase 3.1 normalized)
     """
     correct: dict = expected.get("correctPlacements", {})
     student: dict = input_.get("studentPlacements", {})
     if not correct:
         return ValidatorResult("correct", 1.0)
+
     wrong = sum(1 for fid, zone in correct.items() if student.get(fid) != zone)
     if wrong == 0:
         return ValidatorResult("correct", 1.0)
-    return ValidatorResult("incorrect", 0.0)
+
+    error_rate = wrong / len(correct)
+    score = 1.0 - error_rate
+
+    if error_rate <= 0.25:
+        return ValidatorResult("partial", score, "close")
+    return ValidatorResult("incorrect", score, f"errors:{wrong}/{len(correct)}")
 
 
 benchmark_sort_to_zone = ValidatorRegistration(
@@ -329,8 +337,9 @@ benchmark_sort_to_zone = ValidatorRegistration(
 
 def _order_sequence(input_: dict, expected: dict) -> ValidatorResult:
     """
-    EXACT if Kendall tau distance == 0, CLOSE if == 1, else WRONG.
-    per activity-archetypes.md §7 / order.ts:orderSequence
+    Score via normalized Kendall tau: 1 - (swaps / maxSwaps).
+    Outcome: 0 swaps → correct, 1-2 swaps → partial, 3+ → incorrect.
+    per activity-archetypes.md §7 / order.ts:orderSequence (Phase 3.1 normalized)
     """
     # Field names must match TS: studentSequence, correctSequence
     student_sequence: list[str] = input_["studentSequence"]
@@ -342,12 +351,17 @@ def _order_sequence(input_: dict, expected: dict) -> ValidatorResult:
     dist = _kendall_tau_distance(student_sequence, correct_sequence)
     if dist == 0:
         return ValidatorResult("correct", 1.0)
+
+    # Score via normalized formula: 1 - (swaps / maxSwaps)
+    n = len(correct_sequence)
+    max_swaps = n * (n - 1) // 2
+    score = max(0.0, 1.0 - dist / max_swaps) if max_swaps > 0 else 0.0
+
     if dist == 1:
-        return ValidatorResult("partial", 0.5, "one_swap_off")
+        return ValidatorResult("partial", score, "one_swap_off")
     if dist == 2:
-        return ValidatorResult("partial", 0.5, "two_swaps")
-    # For dist >= 3, use normalized Kendall distance
-    return ValidatorResult("incorrect", 0.0, f"tau_distance:{dist}")
+        return ValidatorResult("partial", score, "two_swaps")
+    return ValidatorResult("incorrect", score, f"swaps:{dist}")
 
 
 order_sequence = ValidatorRegistration(
@@ -442,9 +456,9 @@ order_with_rule = ValidatorRegistration(
 
 def _explain_your_order_sequence(input_: dict, expected: dict) -> ValidatorResult:
     """
-    Returns correct when sequence matches exactly AND justification is accepted.
-    Partial when sequence is one swap off OR sequence correct but justification wrong.
-    per explain_your_order.ts:explainYourOrderSequence
+    Score via normalized Kendall tau: 1 - (swaps / maxSwaps).
+    Outcome: 0 swaps with correct justification → correct, 1-2 swaps → partial, 3+ → incorrect.
+    per explain_your_order.ts:explainYourOrderSequence (Phase 3.1 normalized)
     """
     student_sequence: list[str] = input_["studentSequence"]
     justification: str = input_.get("justification", "")
@@ -456,6 +470,11 @@ def _explain_your_order_sequence(input_: dict, expected: dict) -> ValidatorResul
 
     swaps = _kendall_tau_distance(student_sequence, correct_sequence)
 
+    # Compute base score via normalized formula
+    n = len(correct_sequence)
+    max_swaps = n * (n - 1) // 2
+    base_score = max(0.0, 1.0 - swaps / max_swaps) if max_swaps > 0 else 0.0
+
     # Check if justification is required and correct
     justification_required = len(accepted_justifications) > 0
     justification_correct = not justification_required or (
@@ -465,20 +484,18 @@ def _explain_your_order_sequence(input_: dict, expected: dict) -> ValidatorResul
     if swaps == 0:
         if justification_correct:
             return ValidatorResult("correct", 1.0)
-        # Sequence perfect but justification wrong → partial credit
+        # Sequence perfect but justification wrong → reduced partial credit
         return ValidatorResult(
-            "partial", 0.7, "wrong_justification", detectedMisconception="MC-ORD-01"
+            "partial", 0.8, "wrong_justification", detectedMisconception="MC-ORD-01"
         )
 
     if swaps == 1:
-        return ValidatorResult("partial", 0.5, "one_swap_off")
+        return ValidatorResult("partial", base_score, "one_swap_off")
 
     if swaps == 2:
-        return ValidatorResult("partial", 0.25, "two_swaps")
+        return ValidatorResult("partial", base_score, "two_swaps")
 
-    max_swaps = len(correct_sequence) * (len(correct_sequence) - 1) // 2
-    score = max(0, 1 - swaps / max_swaps) if max_swaps > 0 else 0
-    return ValidatorResult("incorrect", score, f"swaps:{swaps}")
+    return ValidatorResult("incorrect", base_score, f"swaps:{swaps}")
 
 
 explain_your_order_sequence = ValidatorRegistration(
