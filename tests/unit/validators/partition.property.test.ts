@@ -121,3 +121,75 @@ describe('partitionEqualAreas property tests', () => {
     expect(res2.score).toBeGreaterThanOrEqual(res3.score);
   });
 });
+
+describe('partitionEqualAreas boundary tests', () => {
+  it('handles single partition (no division needed)', () => {
+    const result = partitionEqualAreas.fn(
+      { regionAreas: [1.0] },
+      { targetPartitions: 1, areaTolerance: 0.05 }
+    );
+
+    expect(result.outcome).toBe('correct');
+    expect(result.score).toBe(1);
+  });
+
+  it('rejects empty input array', () => {
+    const result = partitionEqualAreas.fn(
+      { regionAreas: [] },
+      { targetPartitions: 0, areaTolerance: 0.05 }
+    );
+
+    expect(result.outcome).toBe('incorrect');
+  });
+
+  it('handles all-zero areas', () => {
+    const result = partitionEqualAreas.fn(
+      { regionAreas: [0, 0, 0] },
+      { targetPartitions: 3, areaTolerance: 0.05 }
+    );
+
+    // Degenerate case
+    expect(result.score).toBeLessThanOrEqual(1);
+    expect(isFinite(result.score)).toBe(true);
+  });
+
+  it('guards against NaN/Infinity in scoring', () => {
+    const areas = [1, 1, 1];
+    const result = partitionEqualAreas.fn(
+      { regionAreas: areas },
+      { targetPartitions: 3, areaTolerance: 0 } // tolerance = 0 (strictest)
+    );
+
+    expect(isFinite(result.score)).toBe(true);
+    expect(isNaN(result.score)).toBe(false);
+  });
+
+  it('handles tolerance = 0 (perfect equality required)', () => {
+    const perfectAreas = [1.0, 1.0, 1.0];
+    const almostPerfectAreas = [1.0, 1.0, 1.0001];
+
+    const res1 = partitionEqualAreas.fn(
+      { regionAreas: perfectAreas },
+      { targetPartitions: 3, areaTolerance: 0 }
+    );
+
+    const res2 = partitionEqualAreas.fn(
+      { regionAreas: almostPerfectAreas },
+      { targetPartitions: 3, areaTolerance: 0 }
+    );
+
+    // Perfect should be correct, almost should not
+    expect(res1.outcome).toBe('correct');
+    expect(res2.outcome).not.toBe('correct');
+  });
+
+  it('handles very large area values', () => {
+    const result = partitionEqualAreas.fn(
+      { regionAreas: [1e9, 1e9, 1e9] },
+      { targetPartitions: 3, areaTolerance: 0.05 }
+    );
+
+    expect(result.outcome).toBe('correct');
+    expect(isFinite(result.score)).toBe(true);
+  });
+});

@@ -102,3 +102,33 @@ describe('snapMatchAllPairs property tests', () => {
     expect(results.every((r) => r.outcome === firstOutcome)).toBe(true);
   });
 });
+
+describe('snapMatchAllPairs boundary tests', () => {
+  it('handles single pair correctly', () => {
+    const result = snapMatchAllPairs.fn(
+      { studentPairs: [['a', 'b']] },
+      { expectedPairs: [['a', 'b']] }
+    );
+
+    expect(result.outcome).toBe('correct');
+  });
+
+  it('handles empty pair list', () => {
+    const result = snapMatchAllPairs.fn(
+      { studentPairs: [] },
+      { expectedPairs: [] }
+    );
+
+    expect(result.outcome).toBe('correct');
+  });
+
+  it('handles extreme string values (very long)', () => {
+    const longString = 'a'.repeat(1000);
+    const result = snapMatchAllPairs.fn(
+      { studentPairs: [[longString, 'b']] },
+      { expectedPairs: [[longString, 'b']] }
+    );
+
+    expect(result.outcome).toBe('correct');
+  });
+});
