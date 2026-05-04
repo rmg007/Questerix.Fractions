@@ -606,6 +606,14 @@ export class Level01Scene extends Phaser.Scene {
     A11yLayer.announce(`Partition at ${pct} percent across.`);
   }
 
+  questFeedbackText(kind: 'correct' | 'incorrect' | 'close'): string | null {
+    return getQuestFeedback(kind, this.currentArchetype as string | undefined);
+  }
+
+  questHintText(tier: import('@/types').HintTier): string {
+    return getQuestHint(tier);
+  }
+
   preDestroy(): void {
     this.time.removeAllEvents();
     log.scene('destroy');
