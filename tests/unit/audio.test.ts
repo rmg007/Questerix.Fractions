@@ -228,13 +228,22 @@ describe('SFXService', () => {
     expect(() => svc.playCorrect()).not.toThrow();
   });
 
-  it('destroy() is idempotent', () => {
-    const mockCtx = makeMockAudioContext();
-    installAudioMocks(mockCtx);
-    const svc = new SFXService();
-    svc.destroy();
-    svc.destroy(); // second call should not throw
-    expect(mockCtx.close).toHaveBeenCalledOnce();
+  it('destroy() is idempotent', async () => {
+    vi.useFakeTimers();
+    try {
+      const mockCtx = makeMockAudioContext();
+      installAudioMocks(mockCtx);
+      const svc = new SFXService();
+      svc.setEnabled(true);
+      svc.preload(); // initialize context
+      await vi.runAllTimersAsync(); // let async operations settle
+      svc.destroy();
+      expect(mockCtx.close).toHaveBeenCalledOnce();
+      svc.destroy(); // second call should not throw
+      expect(mockCtx.close).toHaveBeenCalledOnce(); // still only once
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('resume() error does not propagate (graceful degradation)', async () => {

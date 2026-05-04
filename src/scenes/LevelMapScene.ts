@@ -39,6 +39,7 @@ import type { StudentId } from '../types';
 import { StudentId as StudentIdConstructor } from '../types/branded';
 import { getStreak } from '../lib/streak';
 import { evaluateUnlockGate } from '../lib/unlockGate';
+import { get } from '../lib/i18n/catalog';
 
 // ── Canvas constants ──────────────────────────────────────────────────────────
 const CW = 800;
@@ -302,7 +303,7 @@ export class LevelMapScene extends Phaser.Scene {
     const cx = CW / 2;
     const cy = CH - 200;
     const TOAST_DEPTH = 2000;
-    const message = 'Finish this one first!';
+    const message = get('map.locked_level_toast');
 
     const panel = this.add
       .rectangle(cx, cy, 360, 72, NAVY, 0.94)

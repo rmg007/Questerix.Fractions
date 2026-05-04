@@ -6,6 +6,7 @@ import { Mascot } from '@/components/Mascot';
 import { tts } from '@/audio/TTSService';
 import { withSpan } from '@/lib/observability/withSpan';
 import { SPAN_NAMES } from '@/lib/observability/span-names';
+import { get } from '@/lib/i18n/catalog';
 import type { QuestionTemplate, ValidatorResult, ProgressionEvent } from '@/types';
 import type { Interaction } from '@/scenes/interactions/types';
 import { getInteractionForArchetype } from '@/scenes/utils/levelRouter';
@@ -133,11 +134,11 @@ export async function loadQuestion(
 
   if (index === 0) {
     ctx.scene.time.delayedCall(600, () =>
-      ctx.mascot?.showSpeechBubble("Ready? Let's go! 🚀", 2000)
+      ctx.mascot?.showSpeechBubble(get('mascot.start.encourage.first'), 2000)
     );
   } else if (index === SESSION_GOAL - 1) {
     ctx.scene.time.delayedCall(400, () =>
-      ctx.mascot?.showSpeechBubble("Last one! You've got this!", 2000)
+      ctx.mascot?.showSpeechBubble(get('mascot.start.encourage.last'), 2000)
     );
   }
 }

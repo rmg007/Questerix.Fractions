@@ -4,6 +4,7 @@
  */
 
 import { AccessibilityAnnouncer } from '../components/AccessibilityAnnouncer';
+import { get } from './i18n/catalog';
 
 let banner: HTMLDivElement | null = null;
 let listening = false;
@@ -13,7 +14,7 @@ function createBanner(): HTMLDivElement {
   el.id = 'qf-offline-banner';
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
-  el.textContent = 'You are offline — progress is saved on this device.';
+  el.textContent = get('system.offline.banner');
   Object.assign(el.style, {
     position: 'fixed',
     top: '0',
@@ -36,12 +37,12 @@ function createBanner(): HTMLDivElement {
 function show(): void {
   if (!banner) banner = createBanner();
   banner.style.display = 'block';
-  AccessibilityAnnouncer.announce('You are offline.');
+  AccessibilityAnnouncer.announce(get('system.offline.announce'));
 }
 
 function hide(): void {
   if (banner) banner.style.display = 'none';
-  AccessibilityAnnouncer.announce('Back online.');
+  AccessibilityAnnouncer.announce(get('system.online.announce'));
 }
 
 export function initOfflineIndicator(): void {

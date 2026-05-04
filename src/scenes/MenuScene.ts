@@ -29,6 +29,7 @@ import { StudentId } from '../types/branded';
 import { BODY_FONT } from './utils/levelTheme';
 import { checkReduceMotion } from '../lib/preferences';
 import { getStreak } from '../lib/streak';
+import { get } from '../lib/i18n/catalog';
 
 // Tracks whether the greeting wave has already fired this browser session.
 // Module-level so it persists across _closeLevelGrid re-renders and scene returns.
@@ -165,9 +166,7 @@ export class MenuScene extends Phaser.Scene {
     A11yLayer.mountAction('a11y-choose-level', 'Choose a level to play', () => {
       void this._openChooseLevelOverlay();
     });
-    A11yLayer.announce(
-      'Welcome to Questerix Fractions. Press Tab to find game controls, or click Play to open the Adventure Map.'
-    );
+    A11yLayer.announce(get('menu.welcome.announce'));
 
     // ── Test hooks ─────────────────────────────────────────────────────────
     // level-card-L1 mirrors the Play! button which opens the Adventure Map.
@@ -394,7 +393,7 @@ export class MenuScene extends Phaser.Scene {
     g.strokeRoundedRect(bx - W / 2, by - H / 2, W, H, H / 2);
 
     this.add
-      .text(bx, by, '🗺 Choose Level', {
+      .text(bx, by, get('menu.choose_level'), {
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         fontSize: '22px',

@@ -27,6 +27,7 @@ import { Mascot } from '../components/Mascot';
 import { withSpan } from '../lib/observability/withSpan';
 import { SPAN_NAMES } from '../lib/observability/span-names';
 import { MathRandomRng } from '../lib/adapters';
+import { get } from '../lib/i18n/catalog';
 import {
   openSessionOrResume,
   closeSessionWithSummary,
@@ -334,10 +335,12 @@ export class Level01Scene extends Phaser.Scene {
     this.mascot?.startIdleTimer();
 
     if (index === 0) {
-      this.time.delayedCall(600, () => this.mascot?.showSpeechBubble("Ready? Let's go! 🚀", 2000));
+      this.time.delayedCall(600, () =>
+        this.mascot?.showSpeechBubble(get('mascot.start.encourage.first'), 2000)
+      );
     } else if (index === SESSION_GOAL - 1) {
       this.time.delayedCall(400, () =>
-        this.mascot?.showSpeechBubble("Last one! You've got this!", 2000)
+        this.mascot?.showSpeechBubble(get('mascot.start.encourage.last'), 2000)
       );
     }
   }
