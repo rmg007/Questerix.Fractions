@@ -15,8 +15,9 @@
 
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = new URL('..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let issues = 0;
 let checks = 0;
 
@@ -40,7 +41,8 @@ function check(label, fn) {
 }
 
 function readFrontmatter(content) {
-  const m = content.match(/^---\n([\s\S]*?)\n---/);
+  const normalized = content.replace(/\r\n/g, '\n');
+  const m = normalized.match(/^---\n([\s\S]*?)\n---/);
   if (!m) return {};
   const fm = {};
   for (const line of m[1].split('\n')) {
