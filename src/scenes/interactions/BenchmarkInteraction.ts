@@ -100,7 +100,7 @@ export class BenchmarkInteraction implements Interaction {
         .setOrigin(0.5)
         .setDepth(6);
       const hit = scene.add
-        .rectangle(bx, zoneY, zoneW, 64, 0, 0)
+        .rectangle(bx, zoneY, zoneW, 100, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(7);
       const submitZone = () => onCommit({ zone: key });

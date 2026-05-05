@@ -169,7 +169,7 @@ export class QuestCompleteOverlay {
       .setOrigin(0.5);
 
     const hit = scene.add
-      .rectangle(x, y, W, H + SHADOW, 0, 0)
+      .rectangle(x, y, W, 100, 0, 0) // 100 canvas px — WCAG 2.5.5 (≥44 CSS px at 360 vp)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
@@ -197,7 +197,7 @@ export class QuestCompleteOverlay {
       .setOrigin(0.5);
 
     const hit = scene.add
-      .rectangle(x, y, W, H, 0, 0)
+      .rectangle(x, y, W, 100, 0, 0) // 100 canvas px — WCAG 2.5.5 (≥44 CSS px at 360 vp)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 

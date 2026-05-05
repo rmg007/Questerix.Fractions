@@ -92,7 +92,7 @@ export class LabelInteraction implements Interaction {
       const tx = centerX - (labels.length - 1) * 70 + i * 140;
       const ty = centerY + 140;
       const tile = scene.add
-        .rectangle(tx, ty, 120, 48, SELECTED_BG)
+        .rectangle(tx, ty, 120, 110, SELECTED_BG) // 110 canvas px — WCAG 2.5.5 drag target
         .setDepth(7)
         .setInteractive({ draggable: true, useHandCursor: true });
       const ttext = scene.add
@@ -175,7 +175,7 @@ export class LabelInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const hit = scene.add
-      .rectangle(centerX, sy, 240, 52, 0, 0)
+      .rectangle(centerX, sy, 240, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 

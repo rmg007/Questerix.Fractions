@@ -17,10 +17,10 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 |---|---|---|---|---|---|---|---|
 | `src/scenes/utils/menuButtonHelpers.ts` | 77 | `createStationButton` | `Rect(-half.w,-half.h,w,h+shadow)` ≥100 h | ≥45 CSS px | compliant | — | unit |
 | `src/scenes/utils/levelTheme.ts` | 160 | `createActionButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` | ≥36 CSS px | compliant | — | unit |
-| `src/scenes/utils/levelTheme.ts` | 241 | `createHintPillButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` H=64 | 29 CSS px | **violation** | 3 | none |
+| `src/scenes/utils/levelTheme.ts` | 241 | `createHintPillButton` | `Rect(-W/2,-HIT_H/2,W,HIT_H)` HIT_H=100 | 45 CSS px | fixed | 3 | none |
 | `src/scenes/utils/levelTheme.ts` | 321 | circle nav button | `Rect(-R,-R,D,D)` D≥100 | ≥45 CSS px | compliant | — | none |
 | `src/lib/levelSceneChrome.ts` | 74 | back button | explicit `Rect(-W/2,-H/2,W,H)` | — | compliant | — | none |
-| `src/scenes/Level01SceneLayout.ts` | 50 | home emoji back btn | `Rect(-32,-28,64,56)` 64×56 | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/Level01SceneLayout.ts` | 50 | home emoji back btn | `Rect(-49,-49,98,98)` | 44 CSS px | fixed | 4 | none |
 | `src/scenes/OnboardingScene.ts` | 214 | "Skip tutorial" link | transparent `Rect 200×100` | 45 CSS px | compliant | — | none |
 | `src/scenes/OnboardingScene.ts` | 332 | demo tap-to-skip zone | full canvas `CW×CH` | n/a | not-a-button | — | — |
 | `src/scenes/SettingsScene.ts` | 332 | "Privacy Notice →" link | transparent `Rect 220×100` | 45 CSS px | compliant | — | none |
@@ -28,42 +28,42 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/FirstRunScene.ts` | 221 | "Let's go! ▶" start btn | `Rect 360×100` | 45 CSS px | compliant | — | none |
 | `src/scenes/FirstRunScene.ts` | 244 | "No thanks, just play" skip | `Rect 260×100` | 45 CSS px | fixed | 2 | none |
 | `src/scenes/LevelMapScene.ts` | 468 | "← Menu" back btn | `Rect 160×100` | 45 CSS px | compliant | — | none |
-| `src/scenes/RecoveryScene.ts` | 178 | recovery action btns | `container.setSize(340,72)` | 32 CSS px | **violation** | 4 | none |
-| `src/scenes/DBRecoveryScene.ts` | 169 | recovery action btns | `container.setSize(360,72)` | 32 CSS px | **violation** | 4 | none |
+| `src/scenes/RecoveryScene.ts` | 178 | recovery action btns | `container.setSize(340,100)` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/DBRecoveryScene.ts` | 169 | recovery action btns | `container.setSize(360,100)` | 45 CSS px | fixed | 4 | none |
 | `src/components/sessionComplete/buttons.ts` | 80 | session-complete primary btn | `Rect 300×(H+SHADOW=107)` | 48 CSS px | compliant | — | unit |
 | `src/components/sessionComplete/buttons.ts` | 80 | session-complete secondary btn | `Rect 300×(H+SHADOW=100)` | 45 CSS px | compliant | — | unit |
-| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | scaffold recommendation banner | `Rect 440×64` | 29 CSS px | **violation** | 3 | none |
-| `src/components/QuestCompleteOverlay.ts` | 173 | "Play Again from Level 1" btn | `Rect 320×71` (H+SHADOW) | 32 CSS px | **violation** | 3 | none |
-| `src/components/QuestCompleteOverlay.ts` | 201 | "Back to Menu" btn | `Rect 320×54` | 24 CSS px | **violation** | 3 | none |
-| `src/components/StudentSwitcher.ts` | 135 | student chip (collapsed) | `Rect CHIP_W×CHIP_H` = 200×80 | 36 CSS px | **violation** | 4 | none |
+| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | scaffold recommendation banner | `Rect 440×100` | 45 CSS px | fixed | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 173 | "Play Again from Level 1" btn | `Rect 320×100` | 45 CSS px | fixed | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 201 | "Back to Menu" btn | `Rect 320×100` | 45 CSS px | fixed | 3 | none |
+| `src/components/StudentSwitcher.ts` | 135 | student chip (collapsed) | `Rect CHIP_W×CHIP_H` = 200×100 | 45 CSS px | fixed | 4 | none |
 | `src/components/StudentSwitcher.ts` | 205 | panel backdrop (scrim) | full canvas | n/a | not-a-button | — | — |
 | `src/components/StudentSwitcher.ts` | 264 | student profile card | `Rect 324×CARD_H` = 324×100 | 45 CSS px | compliant | — | none |
-| `src/components/StudentSwitcher.ts` | 299 | "Add student" btn | `Rect 324×ADD_BTN_H` = 324×80 | 36 CSS px | **violation** | 4 | none |
-| `src/components/UpdateBanner.ts` | 82 | SW update banner | `Rect full-width×BANNER_HEIGHT` = ×80 | 36 CSS px | **violation** | 4 | none |
+| `src/components/StudentSwitcher.ts` | 299 | "Add student" btn | `Rect 324×ADD_BTN_H` = 324×100 | 45 CSS px | fixed | 4 | none |
+| `src/components/UpdateBanner.ts` | 82 | SW update banner | `Rect full-width×BANNER_HEIGHT` = ×100 | 45 CSS px | fixed | 4 | none |
 | `src/components/DragHandle.ts` | 102 | drag handle gripper | `Rect HIT_TARGET×HIT_TARGET` ≥44 | ≥44 CSS px | compliant | — | unit |
 | `src/components/PostSessionOverlay.ts` | 97 | modal scrim | full canvas | n/a | not-a-button | — | — |
 | `src/components/LevelCard.ts` | 262 | level card container | 220×160 container | 72 CSS px | compliant | — | e2e |
 | `src/scenes/utils/menuOverlayHelpers.ts` | 57 | overlay scrim | full canvas | n/a | not-a-button | — | — |
 | `src/scenes/utils/menuOverlayHelpers.ts` | 105 | overlay text btns | bare Text `.setInteractive` | ~10 CSS px | deferred | — | none |
 | `src/scenes/settings/versionTapToggle.ts` | 42 | version debug tap | bare Text `.setInteractive` | ~11 CSS px | deferred | — | none |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 180 | "Check ordering" btn | `Rect 220×56` | 25 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 252 | rule-option choice btns | `Rect (w-100)×60` | 27 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 294 | submit explain btn | `Rect 220×56` | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | card drag tokens | `Rect hitW×hitH` hitH=max(108,44)=108 | 49 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 180 | "Check ordering" btn | `Rect 220×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 252 | rule-option choice btns | `Rect (w-100)×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 294 | submit explain btn | `Rect 220×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/IdentifyInteraction.ts` | 130 | option card hit zones | `Rect cardW×cardH` = ≤180×160 | 72 CSS px | compliant | — | none |
-| `src/scenes/interactions/LabelInteraction.ts` | 97 | label tile draggable | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/LabelInteraction.ts` | 179 | submit "Check" btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/LabelInteraction.ts` | 97 | label tile draggable | `Rect 120×110` | 50 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/LabelInteraction.ts` | 179 | submit "Check" btn | `Rect 240×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/MakeInteraction.ts` | 82 | drag handle (via DragHandle) | via DragHandle HIT_TARGET | ≥44 CSS px | compliant | — | unit |
-| `src/scenes/interactions/MakeInteraction.ts` | 117 | "Divide" btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 117 | "Divide" btn | `Rect 240×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/MakeInteraction.ts` | 128 | left shade region | `Rect dynamic×SHAPE_H` = ×520 | 234 CSS px | compliant | — | none |
 | `src/scenes/interactions/MakeInteraction.ts` | 132 | right shade region | `Rect dynamic×SHAPE_H` = ×520 | 234 CSS px | compliant | — | none |
-| `src/scenes/interactions/MakeInteraction.ts` | 163 | "Check" submit btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/CompareInteraction.ts` | 159 | choice btns (</>/=) | `Rect 180×56` | 25 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | zone hit btns | `Rect zoneW×64` | 29 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | equal/not-equal btns | `Rect btnW×88` | 40 CSS px | **violation** | 4 | none |
-| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | draggable cards | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/OrderInteraction.ts` | 124 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/utils/NumberLine.ts` | 125 | number-line draggable marker | `Circle r=22` → diameter 44 canvas | 20 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 163 | "Check" submit btn | `Rect 240×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/CompareInteraction.ts` | 159 | choice btns (</>/=) | `Rect 180×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | zone hit btns | `Rect zoneW×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | equal/not-equal btns | `Rect btnW×100` | 45 CSS px | fixed | 4 | none |
+| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | draggable cards | `Rect 120×110` | 50 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/OrderInteraction.ts` | 124 | card drag tokens | `Rect hitW×hitH` hitH=max(108,44)=108 | 49 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/utils/NumberLine.ts` | 125 | number-line draggable marker | `Circle r=55` → diameter 110 canvas | 50 CSS px | fixed | 4b | none |
 
 ---
 
@@ -75,7 +75,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 |---|---|---|---|
 | ~~`src/scenes/FirstRunScene.ts`~~ | ~~244~~ | ~~80~~ | ✓ fixed — raised `h` to 100 (PR: Phase 2) |
 
-### Phase 3 — shadow-aware & overlay buttons (4)
+### Phase 3 — shadow-aware & overlay buttons (0 remaining)
 
 | file | line | current canvas h | fix |
 |---|---|---|---|
@@ -84,7 +84,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/components/QuestCompleteOverlay.ts` | 173 | 64 (71 w/shadow) | raise `H` to 100 |
 | `src/components/QuestCompleteOverlay.ts` | 201 | 54 | raise `H` to 100 |
 
-### Phase 4 — general button sweep (16)
+### Phase 4 — general button sweep (0 remaining)
 
 | file | line | current canvas h | fix |
 |---|---|---|---|
@@ -104,7 +104,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | 64 | raise `H` to 100 |
 | `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | 88 | raise `btnH` to 100 |
 
-### Phase 4b — drag targets (5)
+### Phase 4b — drag targets (0 remaining)
 
 | file | line | current geometry | fix |
 |---|---|---|---|

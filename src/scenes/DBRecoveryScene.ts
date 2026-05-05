@@ -26,7 +26,7 @@ import { TestHooks } from './utils/TestHooks';
 const CW = 800;
 const CH = 1280;
 const BTN_W = 360;
-const BTN_H = 72;
+const BTN_H = 100;
 const BTN_RADIUS = 12;
 
 const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId'; // C5

@@ -25,7 +25,7 @@ import type { RecoveryReport } from '../lib/recovery/recoveryBus';
 const CW = 800;
 const CH = 1280;
 const BTN_W = 340;
-const BTN_H = 72;
+const BTN_H = 100;
 const BTN_RADIUS = 12;
 
 interface RecoverySceneData extends RecoveryReport {

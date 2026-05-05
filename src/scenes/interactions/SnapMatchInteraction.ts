@@ -108,7 +108,7 @@ export class SnapMatchInteraction implements Interaction {
     left.forEach((item, i) => {
       const ly = startY + i * rowH;
       const card = scene.add
-        .rectangle(colLeft, ly, 120, 48, SELECTED_BG)
+        .rectangle(colLeft, ly, 120, 110, SELECTED_BG) // 110 canvas px — WCAG 2.5.5 drag target
         .setStrokeStyle(2, NAVY)
         .setDepth(7)
         .setInteractive({ draggable: true, useHandCursor: true });

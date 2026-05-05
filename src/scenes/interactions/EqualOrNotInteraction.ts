@@ -31,7 +31,7 @@ export class EqualOrNotInteraction implements Interaction {
     this._cx = centerX;
     this._cy = centerY;
     const btnW = Math.min(240, width / 3);
-    const btnH = 88;
+    const btnH = 100;
     const gap = 24;
     const y = centerY + 240;
 

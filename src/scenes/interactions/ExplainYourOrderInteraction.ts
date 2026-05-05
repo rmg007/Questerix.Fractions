@@ -68,7 +68,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     this.sequence = new Array<string | null>(n).fill(null);
 
     const cardW = Math.min(120, (width - 80) / n - 12);
-    const cardH = 44;
+    const cardH = 100; // WCAG 2.5.5: hitH = cardH+8 = 108 canvas px (≥44 CSS px at 360 vp)
     const gap = 12;
     const totalW = n * (cardW + gap) - gap;
     const startX = centerX - totalW / 2;
@@ -176,7 +176,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const hit = scene.add
-      .rectangle(centerX, sy, 220, 56, 0, 0)
+      .rectangle(centerX, sy, 220, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
@@ -229,7 +229,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     this.gameObjects.push(title);
 
     const options = postStep.options;
-    const optionH = 60;
+    const optionH = 100;
     const spacing = 15;
     const totalH = options.length * (optionH + spacing) - spacing;
     const startY = centerY - totalH / 2 + 40;
@@ -290,7 +290,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const submitHit = scene.add
-      .rectangle(centerX, sy, 220, 56, 0, 0)
+      .rectangle(centerX, sy, 220, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 

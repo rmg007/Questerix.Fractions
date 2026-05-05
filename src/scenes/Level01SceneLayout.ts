@@ -48,7 +48,7 @@ export function createHeaderUI(
     .setOrigin(0.5)
     .setDepth(5)
     .setInteractive({
-      hitArea: new Phaser.Geom.Rectangle(-32, -28, 64, 56),
+      hitArea: new Phaser.Geom.Rectangle(-49, -49, 98, 98),
       hitAreaCallback: Phaser.Geom.Rectangle.Contains,
       useHandCursor: true,
     });

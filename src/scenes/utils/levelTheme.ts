@@ -205,6 +205,9 @@ export function createHintPillButton(
     SHADOW = 5,
     R = 30;
 
+  // Hit area expanded to 100 canvas px (≥44 CSS px at 360 vp) — WCAG 2.5.5.
+  const HIT_H = 100;
+
   const shadow = scene.add.graphics();
   shadow.fillStyle(HINT_BORDER, 1);
   shadow.fillRoundedRect(-W / 2, -H / 2 + SHADOW, W, H, R);
@@ -237,9 +240,9 @@ export function createHintPillButton(
 
   const container = scene.add.container(x, y, [shadow, face, txt]).setDepth(depth);
 
-  container.setSize(W, H + SHADOW);
+  container.setSize(W, HIT_H);
   container.setInteractive(
-    new Phaser.Geom.Rectangle(-W / 2, -H / 2, W, H + SHADOW),
+    new Phaser.Geom.Rectangle(-W / 2, -HIT_H / 2, W, HIT_H),
     Phaser.Geom.Rectangle.Contains
   );
   container.input!.cursor = 'pointer';
