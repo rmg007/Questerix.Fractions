@@ -18,6 +18,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep a11y",
+    "test:perf": "playwright test tests/perf/",
     "typecheck": "tsc --noEmit",
     "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
     "lint": "eslint src --max-warnings 100 --cache --cache-location .eslintcache && prettier --check --cache src",
@@ -34,7 +35,8 @@
     "scaffold:scene": "node scripts/scaffold.mjs scene",
     "scaffold:validator": "node scripts/scaffold.mjs validator",
     "scaffold:component": "node scripts/scaffold.mjs component",
-    "prepare": "husky"
+    "prepare": "husky",
+    "audit:assets": "tsx scripts/audit-unused-assets.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
