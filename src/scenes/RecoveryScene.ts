@@ -135,8 +135,16 @@ export class RecoveryScene extends Phaser.Scene {
 
     // ── A11y layer ────────────────────────────────────────────────────────
     A11yLayer.pushLayer('recovery', 'Error recovery');
-    A11yLayer.mountAction('recovery-retry-btn', get(retryKey), () => this.handleRetry());
+    const primaryBtn = A11yLayer.mountAction('recovery-retry-btn', get(retryKey), () =>
+      this.handleRetry()
+    );
     A11yLayer.mountAction('recovery-menu-btn', get('recovery.cta.menu'), () => this.handleMenu());
+
+    // Auto-focus the primary CTA so keyboard users land on it immediately.
+    // Defer by one tick so the DOM node is fully attached before focus fires.
+    if (primaryBtn) {
+      this.time.delayedCall(50, () => primaryBtn.focus());
+    }
 
     this.events.once('shutdown', () => {
       A11yLayer.popLayer();
@@ -183,6 +191,12 @@ export class RecoveryScene extends Phaser.Scene {
   }
 
   private handleRetry(): void {
+    // curriculum-fail: the curriculum bundle must be re-fetched — a scene restart
+    // won't reload the network resource. Do a full page reload instead.
+    if (this.recoveryData.kind === 'curriculum-fail') {
+      location.reload();
+      return;
+    }
     const originScene = this.recoveryData.scene ?? 'BootScene';
     this.scene.start(originScene);
   }

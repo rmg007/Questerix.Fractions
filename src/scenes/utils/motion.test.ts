@@ -1,5 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Duration, Ease, Distance, tween } from './motion';
+
+// Mock the preferences module so tween() tests can control checkReduceMotion()
+// without needing a real IndexedDB or matchMedia in the test environment.
+vi.mock('../../lib/preferences', () => ({
+  checkReduceMotion: vi.fn(() => false),
+}));
+
+import { checkReduceMotion } from '../../lib/preferences';
 
 describe('motion.ts', () => {
   describe('Duration constants', () => {
@@ -81,13 +89,18 @@ describe('motion.ts', () => {
             return { stop: () => {} }; // minimal tween-like object
           },
         },
+        // registry is not used by tween() — checkReduceMotion() is called instead
         registry: {
-          get: (key: string) => {
-            if (key === 'prefersReducedMotion') return false;
-            return undefined;
-          },
+          get: (_key: string) => undefined,
         },
       } as any;
+
+      // Default: normal motion
+      vi.mocked(checkReduceMotion).mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      vi.mocked(checkReduceMotion).mockReturnValue(false);
     });
 
     it('creates a tween with default duration and easing', () => {
@@ -115,10 +128,7 @@ describe('motion.ts', () => {
     });
 
     it('uses instant duration when prefersReducedMotion is true', () => {
-      mockScene.registry.get = (key: string) => {
-        if (key === 'prefersReducedMotion') return true;
-        return undefined;
-      };
+      vi.mocked(checkReduceMotion).mockReturnValue(true);
 
       tween(mockScene, mockTarget, { alpha: 0.5 }, { duration: Duration.ceremony });
 
@@ -126,10 +136,7 @@ describe('motion.ts', () => {
     });
 
     it('still uses instant for custom durations in reduced-motion mode', () => {
-      mockScene.registry.get = (key: string) => {
-        if (key === 'prefersReducedMotion') return true;
-        return undefined;
-      };
+      vi.mocked(checkReduceMotion).mockReturnValue(true);
 
       tween(mockScene, mockTarget, { alpha: 0.5 }, { duration: 999 });
 
@@ -186,7 +193,9 @@ describe('motion.ts', () => {
       expect(addedTween.duration).toBe(0);
     });
 
-    it('handles null scene registry gracefully (defaults to normal motion)', () => {
+    it('works even when scene.registry is null (registry is not used by tween())', () => {
+      // tween() uses checkReduceMotion() from preferences, not scene.registry,
+      // so a null registry must not cause a throw.
       const sceneNoRegistry = {
         tweens: {
           add: (config: any) => {

@@ -13,6 +13,8 @@
  * Reference: @see docs/30-architecture/motion-tokens.md
  */
 
+import { checkReduceMotion } from '../../lib/preferences';
+
 export const Duration = {
   /** Instant (used in reduced-motion mode) */
   instant: 0,
@@ -89,13 +91,30 @@ export const Distance = {
  * - Default duration: Duration.base if not specified
  * - Default easing: Ease.out if not specified
  */
+/**
+ * Expose the effective reduced-motion flag on `window` for E2E tests that need
+ * to verify the preference is active without coupling to tween durations.
+ * Set lazily on first tween call so it reflects the initialised preference cache.
+ * Only meaningful when true — undefined means the module hasn't run yet.
+ */
+function exposeReducedMotionFlag(active: boolean): void {
+  if (typeof window !== 'undefined' && active) {
+    (window as unknown as Record<string, unknown>)['__questerixReducedMotion'] = true;
+  }
+}
+
 export function tween(
   scene: Phaser.Scene,
   target: any,
   props: Record<string, any>,
   opts: Partial<Phaser.Types.Tweens.TweenBuilderConfig> = {}
 ) {
-  const prefersReducedMotion = scene.registry?.get('prefersReducedMotion') === true;
+  // Use the canonical preference helper (OS media query + DB-backed cache) so
+  // this wrapper actually honours the reduced-motion preference. The Phaser
+  // registry is NOT used here — it is not populated by any boot code and would
+  // silently pass through animations at full speed.
+  const prefersReducedMotion = checkReduceMotion();
+  exposeReducedMotionFlag(prefersReducedMotion);
   const { duration, ease, ...remainingOpts } = opts;
 
   return scene.tweens.add({

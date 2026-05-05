@@ -117,8 +117,10 @@ export class DBRecoveryScene extends Phaser.Scene {
 
     // ── A11y layer ────────────────────────────────────────────────────────
     A11yLayer.pushLayer('db-recovery', 'Database recovery options');
-    A11yLayer.mountAction('db-recovery-backup-btn', get('db.recovery.cta.backup'), () =>
-      this.handleBackup()
+    const primaryBtn = A11yLayer.mountAction(
+      'db-recovery-backup-btn',
+      get('db.recovery.cta.backup'),
+      () => this.handleBackup()
     );
     A11yLayer.mountAction('db-recovery-fresh-btn', get('db.recovery.cta.fresh'), () =>
       this.handleFresh()
@@ -126,6 +128,11 @@ export class DBRecoveryScene extends Phaser.Scene {
     A11yLayer.mountAction('db-recovery-cancel-btn', get('db.recovery.cta.cancel'), () =>
       this.handleCancel()
     );
+
+    // Auto-focus the primary (least destructive) CTA so keyboard users land on it.
+    if (primaryBtn) {
+      this.time.delayedCall(50, () => primaryBtn.focus());
+    }
 
     this.events.once('shutdown', () => {
       A11yLayer.popLayer();
@@ -204,7 +211,7 @@ export class DBRecoveryScene extends Phaser.Scene {
         location.reload();
       })
       .catch((err) => {
-        console.error('[DBRecoveryScene] Failed to delete database:', err);
+        console.warn('[DBRecoveryScene] Failed to delete database — reloading anyway:', err);
         // Fall back to plain reload — Dexie will recreate the schema on next open
         location.reload();
       });

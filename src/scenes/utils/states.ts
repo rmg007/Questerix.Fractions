@@ -201,14 +201,13 @@ export function applyState(target: any, stateName: StateName, scene: Phaser.Scen
     target.setInteractive(def.interactive);
   }
 
-  // Apply tint shift (scale by ~2)
+  // Apply tint shift: darken each RGB channel by the shift amount.
+  // tintShift is normalised in [-0.1, 0.1]; negative = darker.
+  // We clamp each channel to [0, 255] independently to avoid overflow.
   if (def.tintShift !== undefined && def.tintShift !== 0 && target.setTint) {
-    // Scale tintShift by 2 to convert from normalized (-0.04) to color value (-0.08)
-    const scaledShift = def.tintShift * 2;
-    // Tint is a 24-bit color; we apply the shift to all channels
-    const baseTint = 0xffffff; // white as base
-    const shiftAmount = Math.round(scaledShift * 255);
-    const tintValue = baseTint + (shiftAmount << 16) + (shiftAmount << 8) + shiftAmount;
+    const shiftAmount = Math.round(def.tintShift * 255);
+    const ch = Math.max(0, Math.min(255, 255 + shiftAmount));
+    const tintValue = (ch << 16) | (ch << 8) | ch;
     target.setTint(tintValue);
   } else if (def.tintShift === 0 && target.clearTint) {
     // Reset to no tint
