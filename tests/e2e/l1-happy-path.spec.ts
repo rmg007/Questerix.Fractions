@@ -1,20 +1,18 @@
 import { test, expect } from './_fixture';
-import { navigateToLevel01, doAttempt } from './test-helpers';
+import { navigateToLevel01, doAttemptStable } from './test-helpers';
 
 test.describe('L1 happy-path E2E', () => {
-  // TODO(BUG-CI-91): duplicates happy-path.spec.ts which already handles the
-  // partition unmount/remount race via doAttemptStable. Re-enable after extracting
-  // doAttemptStable into test-helpers.ts and using it here too.
-  test.skip('navigate Menu → L1 → complete 5 questions → return to Menu', async ({ page }) => {
+  test('navigate Menu → L1 → complete 5 questions → return to Menu', async ({ page }) => {
+    test.setTimeout(120000);
     await navigateToLevel01(page);
 
     // Complete 5 attempts by clicking partition-target and dismissing feedback
     for (let i = 0; i < 5; i++) {
-      await doAttempt(page);
+      await doAttemptStable(page);
     }
 
     // Completion screen shows
-    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 15000 });
 
     // Return to menu
     const menuBtn = page.locator('[data-testid="completion-menu-btn"]');
@@ -24,16 +22,15 @@ test.describe('L1 happy-path E2E', () => {
     }
   });
 
-  // TODO(BUG-CI-91): same partition unmount/remount race as the skipped sibling
-  // above. Re-enable once doAttemptStable is promoted into test-helpers.ts.
-  test.skip('progress bar updates on each attempt', async ({ page }) => {
+  test('progress bar updates on each attempt', async ({ page }) => {
+    test.setTimeout(90000);
     await navigateToLevel01(page);
 
     for (let i = 1; i <= 3; i++) {
-      await doAttempt(page);
+      await doAttemptStable(page);
 
       const bar = page.locator('[data-testid="progress-bar"]');
-      await expect(bar).toHaveAttribute('aria-valuenow', String(i), { timeout: 3000 });
+      await expect(bar).toHaveAttribute('aria-valuenow', String(i), { timeout: 10000 });
     }
   });
 

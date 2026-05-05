@@ -34,11 +34,11 @@ async function navigateToLevel01(page: import('@playwright/test').Page): Promise
   await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 15000 });
   await page.locator('[data-testid="level-card-L1"]').click();
   await expect(page.locator('[data-testid="level-map-scene"]').first()).toBeVisible({
-    timeout: 8000,
+    timeout: 15000,
   });
   await page.locator('[data-testid="map-level-1"]').click();
   await expect(page.locator('[data-testid="level01-scene"]').first()).toBeVisible({
-    timeout: 8000,
+    timeout: 15000,
   });
 }
 
@@ -49,7 +49,7 @@ test.describe('Mascot on MenuScene', () => {
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'wave',
-      { timeout: 3000 }
+      { timeout: 10000 }
     );
   });
 
@@ -60,7 +60,7 @@ test.describe('Mascot on MenuScene', () => {
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'wave',
-      { timeout: 3000 }
+      { timeout: 10000 }
     );
 
     // After ~850ms of tweens the onComplete callback calls setState('idle');
@@ -68,7 +68,7 @@ test.describe('Mascot on MenuScene', () => {
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 4000 }
+      { timeout: 10000 }
     );
   });
 });
@@ -86,7 +86,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 3000 }
+      { timeout: 10000 }
     );
   });
 
@@ -111,13 +111,13 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await navigateToLevel01(page);
 
     const hintBtn = page.locator('[data-testid="hint-btn"]');
-    await expect(hintBtn).toBeVisible({ timeout: 5000 });
+    await expect(hintBtn).toBeVisible({ timeout: 10000 });
     await hintBtn.click({ force: true });
 
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'think',
-      { timeout: 2000 }
+      { timeout: 10000 }
     );
   });
 
@@ -196,7 +196,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
 
     // Wait for the feedback overlay to auto-dismiss (~720ms after appearing).
     await expect(page.locator('[data-testid="feedback-overlay"]')).not.toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
 
     // After the overlay clears the mascot's encourage animation completes and
@@ -205,7 +205,7 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 3000 }
+      { timeout: 10000 }
     );
   });
 
@@ -219,11 +219,11 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
 
     // Session complete overlay appears and the mascot animation settles cleanly.
     // The transient cheer-big state is covered by the animation-reset test below.
-    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
   });
 
@@ -231,20 +231,20 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await navigateToLevel01(page);
 
     const partitionTarget = page.locator('[data-testid="partition-target"]');
-    await expect(partitionTarget).toBeVisible({ timeout: 5000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 10000 });
     await partitionTarget.click();
 
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 10000 });
 
     // celebrate() runs quickly; wait for the feedback overlay to auto-dismiss
     // and then confirm the sentinel has been reset to idle by setState('idle').
     await expect(page.locator('[data-testid="feedback-overlay"]')).not.toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 3000 }
+      { timeout: 10000 }
     );
   });
 
@@ -255,11 +255,11 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
 
     // Confirm session complete displays and mascot state settles after the
     // completion animation has had a chance to run.
-    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="completion-screen"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 4000 }
+      { timeout: 10000 }
     );
   });
 });

@@ -84,6 +84,39 @@ export async function navigateToLevel01(page: Page): Promise<void> {
 }
 
 /**
+ * Perform one attempt with retry + stabilization. Use this in any spec that
+ * loops through multiple attempts (happy-path, l1-happy-path).
+ *
+ * CI Level01Scene FPS is as low as 11–25 fps, which means the partition-target
+ * sentinel can be DOM-visible before its Phaser click handler has re-bound
+ * after the previous question's unmount/mount cycle. The first click then
+ * no-ops. We (a) ensure no stale feedback-overlay is on screen, (b) wait for
+ * the next partition-target to settle, (c) settle 150ms for handler binding,
+ * (d) retry doAttempt once if it throws.
+ */
+export async function doAttemptStable(page: Page): Promise<number> {
+  const overlay = page.locator('[data-testid="feedback-overlay"]');
+  const target = page.locator('[data-testid="partition-target"]');
+
+  await overlay.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+  await target.waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForTimeout(150);
+
+  try {
+    return await doAttempt(page);
+  } catch (firstErr) {
+    await overlay.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+    await target.waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(300);
+    try {
+      return await doAttempt(page);
+    } catch {
+      throw firstErr;
+    }
+  }
+}
+
+/**
  * Perform one attempt: click partition-target, wait for feedback, dismiss via feedback-next-btn.
  * Returns elapsed ms from click to feedback visible.
  */
