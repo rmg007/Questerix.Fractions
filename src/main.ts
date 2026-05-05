@@ -8,6 +8,7 @@ import './lib/i18n/keys/system';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
 import { RecoveryBus, registerGame } from './lib/recovery/recoveryBus';
+import { initLiveRegions } from './lib/a11y/liveRegion';
 
 // R8 / crash-and-recovery §1: Catch synchronous errors (e.g., in scene callbacks)
 // that could freeze the canvas. Routes to RecoveryScene when the game is up;
@@ -123,6 +124,7 @@ async function boot(): Promise<void> {
       PreloadScene,
       MenuScene,
       OnboardingScene,
+      FirstRunScene,
       LevelMapScene,
       Level01Scene,
       LevelScene,
@@ -135,6 +137,7 @@ async function boot(): Promise<void> {
       PreloadScene,
       MenuScene,
       OnboardingScene,
+      FirstRunScene,
       LevelMapScene,
       Level01Scene,
       LevelScene,
@@ -166,6 +169,11 @@ async function boot(): Promise<void> {
     },
     scene: scenes,
   };
+
+  // Phase 2 (a11y-parity) — mount ARIA live regions BEFORE the game boots so
+  // screen readers have the DOM elements ready when the first announcement fires.
+  // idempotent: safe to call multiple times (e.g., HMR in dev mode).
+  initLiveRegions();
 
   const game = new Phaser.Game(config);
 
