@@ -57,8 +57,16 @@ for (const vp of VIEWPORTS) {
       expect(canvasMetrics).not.toBeNull();
       // Canvas right edge must not exceed viewport (1px tolerance for sub-pixel rounding)
       expect(canvasMetrics!.right).toBeLessThanOrEqual(vp.width + 1);
-      // Canvas must occupy at least 80% of viewport width (FIT mode doesn't shrink excessively)
-      expect(canvasMetrics!.width).toBeGreaterThanOrEqual(vp.width * 0.8);
+      // Canvas must fill the constraining dimension (Scale.FIT).
+      // Portrait canvas (800×1280, AR=0.625): constrained by width when vpAR < 0.625,
+      // constrained by height otherwise (canvas is pillarboxed in landscape viewports).
+      const canvasAR = 800 / 1280;
+      const vpAR = vp.width / vp.height;
+      const expectedMinWidth =
+        vpAR < canvasAR
+          ? vp.width * 0.95 // width-constrained: fills ~100% of viewport width
+          : vp.height * canvasAR * 0.95; // height-constrained: pillarboxed
+      expect(canvasMetrics!.width).toBeGreaterThanOrEqual(expectedMinWidth);
     });
 
     test('A11y layer interactive buttons are accessible at menu', async ({ page }) => {
@@ -68,7 +76,7 @@ for (const vp of VIEWPORTS) {
       await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
 
       // A11y layer buttons should be reachable in the DOM (keyboard/screen-reader path)
-      const a11yButtons = page.locator('#qf-a11y button');
+      const a11yButtons = page.locator('.qf-a11y-container button');
       const count = await a11yButtons.count();
       // At least the Play button should be present
       expect(count).toBeGreaterThanOrEqual(1);
