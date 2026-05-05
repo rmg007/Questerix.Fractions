@@ -17,6 +17,7 @@ import {
   TEXT_ON_FILL,
 } from '../utils/levelTheme';
 import { markInputEvent } from '../../lib/perf/traceInput';
+import { tween, Duration, Ease } from '../utils/motion';
 
 const SHAPE_W = 400;
 const SHAPE_H = 520;
@@ -200,20 +201,14 @@ export class MakeInteraction implements Interaction {
       this._cy + SHAPE_H / 2 + 20
     );
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => {
-        overlay.destroy();
-      });
-    } else {
-      this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({
-          targets: overlay,
-          alpha: 0,
-          duration: 400,
-          onComplete: () => overlay.destroy(),
-        });
-      });
-    }
+    this._scene.time.delayedCall(3000, () => {
+      tween(
+        this._scene,
+        overlay,
+        { alpha: 0 },
+        { duration: Duration.base, ease: Ease.out, onComplete: () => overlay.destroy() }
+      );
+    });
   }
 
   private drawShape(

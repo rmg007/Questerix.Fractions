@@ -1,68 +1,9 @@
 /**
- * Student repository — thin Dexie wrapper.
- * per persistence-spec.md §4 (dynamic stores)
+ * Student repository � re-exports the multi-student repo.
+ * Legacy callers that import from './student' continue to work.
+ * New callers should import from './studentRepo' directly.
+ * per multi-student-and-first-run plan �Phase 1
  */
 
-import { db } from '../db';
-import { log } from '../../lib/log';
-import type { Student, StudentId } from '../../types';
-
-export const studentRepo = {
-  async create(
-    input: Omit<Student, 'id' | 'createdAt' | 'syncState'> & { id: StudentId }
-  ): Promise<Student | undefined> {
-    const record: Student = {
-      ...input,
-      createdAt: Date.now(),
-      lastActiveAt: Date.now(),
-      syncState: 'local',
-    };
-    try {
-      await db.students.add(record);
-      return record;
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
-        log.warn('DB', 'quota_exceeded', { table: 'students' });
-        return undefined;
-      }
-      throw err;
-    }
-  },
-
-  async get(id: StudentId): Promise<Student | undefined> {
-    try {
-      return await db.students.get(id);
-    } catch (err) {
-      return undefined;
-    }
-  },
-
-  async list(options?: { limit?: number }): Promise<Student[]> {
-    try {
-      return await db.students
-        .orderBy('createdAt')
-        .reverse()
-        .limit(options?.limit ?? 1000)
-        .toArray();
-    } catch (err) {
-      return [];
-    }
-  },
-
-  async update(id: StudentId, patch: Partial<Omit<Student, 'id'>>): Promise<boolean> {
-    try {
-      const updated = await db.students.update(id, { ...patch, lastActiveAt: Date.now() });
-      return updated > 0;
-    } catch (err) {
-      return false;
-    }
-  },
-
-  async delete(id: StudentId): Promise<void> {
-    try {
-      await db.students.delete(id);
-    } catch (err) {
-      // swallow — idempotent delete
-    }
-  },
-};
+export { studentRepo, MAX_PROFILES } from './studentRepo';
+export type { StudentRepoError, StudentRepoResult } from './studentRepo';

@@ -159,7 +159,7 @@ export class BootScene extends Phaser.Scene {
       // ── First launch: no student yet — auto-create an anonymous one ──────
       if (!this.lastStudentId) {
         const newId = crypto.randomUUID() as import('@/types').StudentId;
-        await studentRepo.create({
+        await studentRepo.createRaw({
           id: newId,
           displayName: 'Player',
           avatarConfig: {},

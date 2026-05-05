@@ -26,11 +26,16 @@ export type SyncState = 'local' | 'queued' | 'synced';
 
 // ── §3.1 Student ───────────────────────────────────────────────────────────
 
+/** Pre-made avatar keys for student profiles. */
+export type AvatarKey = 'star' | 'rocket' | 'fox' | 'owl' | 'cat' | 'robot' | 'dragon' | 'bear';
+
 /** per data-schema.md §3.1 */
 export interface Student {
   id: StudentId;
   displayName: string;
   avatarConfig: Record<string, string>;
+  /** Optional avatar key - set on create, optional for backward compat. */
+  avatar?: AvatarKey;
   gradeLevel: 0 | 1 | 2;
   /** Epoch ms. */
   createdAt: number;
@@ -304,6 +309,12 @@ export interface DevicePreferences {
    * compatibility with rows persisted before Phase 2a.
    */
   unlockGateBypass?: boolean;
+  /**
+   * Slow mode: 1.5x motion multiplier + 50% long-press extension.
+   * For children who need more time to process visual motion.
+   * Optional for backward compatibility.
+   */
+  slowMode?: boolean;
 }
 
 /** Singleton per device. per data-schema.md §3.8 */

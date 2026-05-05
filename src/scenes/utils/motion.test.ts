@@ -5,6 +5,7 @@ import { Duration, Ease, Distance, tween } from './motion';
 // without needing a real IndexedDB or matchMedia in the test environment.
 vi.mock('../../lib/preferences', () => ({
   checkReduceMotion: vi.fn(() => false),
+  isSlowModeEnabled: vi.fn(() => false),
 }));
 
 import { checkReduceMotion } from '../../lib/preferences';

@@ -12,6 +12,7 @@ import { TestHooks } from './utils/TestHooks';
 import { fadeAndStart } from './utils/sceneTransition';
 import { PreferenceToggle } from '../components/PreferenceToggle';
 import { attachVersionTapToggle } from './settings/versionTapToggle';
+import { updatePreferences } from '../lib/preferences';
 
 import { ResetDeviceHandler } from './settings/ResetDeviceHandler';
 import { BackupRestoreHandler } from './settings/BackupRestoreHandler';
@@ -71,8 +72,8 @@ export class SettingsScene extends Phaser.Scene {
     // Layout uses 110 px row stride (100 px BTN_H + 10 px gap) so every
     // button is ≥ 44 CSS px tall at 360 px viewport (0.45 scale factor).
     this.sectionLabel(cx, 190, 'Preferences');
-    this.sectionLabel(cx, 570, 'Data');
-    this.sectionLabel(cx, 990, 'Privacy');
+    this.sectionLabel(cx, 660, 'Data');
+    this.sectionLabel(cx, 1080, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     const rect = this.sys.game.canvas.getBoundingClientRect?.();
@@ -101,20 +102,38 @@ export class SettingsScene extends Phaser.Scene {
       )
     );
 
+    // ── Slow Mode toggle (Phase 3 — a11y-parity) ──────────────────────────
+    // 1.5× motion multiplier + 50% long-press extension for children who need
+    // more time to process visual motion. per DevicePreferences.slowMode.
+    this.toggles.push(
+      new PreferenceToggle(
+        {
+          key: 'slowMode',
+          label: 'Slow Mode',
+          onChange: (value) => {
+            const enabled = value === true;
+            void updatePreferences({ slowMode: enabled });
+            this.sys.game.registry.set('slowMode', enabled);
+          },
+        },
+        { top: toViewport(610), left: halfCanvas }
+      )
+    );
+
     // ── Export button (row 1 of Data section) ─────────────────────────────
-    TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(680), {
-      top: toViewport(640),
+    TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(730), {
+      top: toViewport(730),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      640,
+      730,
       'Export My Backup',
       CLR.primary,
       HEX.neutral0,
-      () => void this.backupHandler.doExport(680)
+      () => void this.backupHandler.doExport(770)
     );
 
     // ── Restore button (row 2) ─────────────────────────────────────────────
@@ -122,13 +141,13 @@ export class SettingsScene extends Phaser.Scene {
       'settings-restore-btn',
       () => this.backupHandler.triggerFilePicker(),
       {
-        top: toViewport(760),
+        top: toViewport(850),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
       }
     );
-    this.createButton(cx, 760, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
+    this.createButton(cx, 850, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
       this.backupHandler.triggerFilePicker()
     );
 
@@ -137,25 +156,25 @@ export class SettingsScene extends Phaser.Scene {
       'settings-reset-btn',
       () => this.resetHandler.handleExternalReset(),
       {
-        top: toViewport(880),
+        top: toViewport(970),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
       }
     );
-    this.resetHandler.create(cx, 880);
+    this.resetHandler.create(cx, 970);
 
     // ── Check for App Update button (row 1 of Privacy section) ────────────
     // Allows users to explicitly check for and apply app updates.
     TestHooks.mountInteractive('settings-update-btn', () => void this.doCheckForAppUpdate(), {
-      top: toViewport(1060),
+      top: toViewport(1150),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      1060,
+      1150,
       'Check for App Update',
       CLR.primary,
       HEX.neutral0,
@@ -170,7 +189,7 @@ export class SettingsScene extends Phaser.Scene {
       'settings-refresh-curriculum-btn',
       () => void this.doRefreshCurriculum(),
       {
-        top: toViewport(1180),
+        top: toViewport(1270),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
@@ -178,7 +197,7 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.createButton(
       cx,
-      1180,
+      1270,
       'Refresh Curriculum',
       CLR.primary,
       HEX.neutral0,
@@ -186,20 +205,20 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 970);
+    this.createPrivacyLink(cx, 1060);
 
     // ── Back button — final row ─────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
-      top: toViewport(1240),
+      top: toViewport(1330),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(cx, 1240, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
+    this.createButton(cx, 1330, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
     // ── Version label (triple-tap = researcher unlock-gate bypass; D-1) ────
     // Moved below canvas boundary; kept for non-visible tap registration.
-    attachVersionTapToggle(this, cx, 1270);
+    attachVersionTapToggle(this, cx, 1360);
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -243,7 +262,7 @@ export class SettingsScene extends Phaser.Scene {
       console.warn('[SettingsScene] curriculum-cache delete failed:', err);
     }
 
-    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 1210, null);
+    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 1300, null);
     this.time.delayedCall(600, () => {
       if (typeof location !== 'undefined') location.reload();
     });
@@ -254,17 +273,17 @@ export class SettingsScene extends Phaser.Scene {
 
   private async doCheckForAppUpdate(): Promise<void> {
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
-      this.showStatus('Updates not available', 1090);
+      this.showStatus('Updates not available', 1180);
       return;
     }
 
-    this.showStatus('Checking for updates...', 1090, null);
+    this.showStatus('Checking for updates...', 1180, null);
     let updateFound = false;
 
     const handleControllerChange = (): void => {
       if (updateFound) return;
       updateFound = true;
-      this.showStatus('New version ready — reloading...', 1090, null);
+      this.showStatus('New version ready — reloading...', 1180, null);
       this.time.delayedCall(1000, () => {
         if (typeof location !== 'undefined') location.reload();
       });
@@ -284,7 +303,7 @@ export class SettingsScene extends Phaser.Scene {
       if (!updateFound && this.updateCheckListener) {
         navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
         this.updateCheckListener = null;
-        this.showStatus('Up to date', 1090);
+        this.showStatus('Up to date', 1180);
       }
     });
   }

@@ -8,6 +8,7 @@ import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { markInputEvent } from '../../lib/perf/traceInput';
+import { tween, Duration, Ease } from '../utils/motion';
 import {
   NAVY,
   OPTION_BORDER,
@@ -216,19 +217,13 @@ export class OrderInteraction implements Interaction {
       );
     }
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => {
-        overlay.destroy();
-      });
-    } else {
-      this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({
-          targets: overlay,
-          alpha: 0,
-          duration: 400,
-          onComplete: () => overlay.destroy(),
-        });
-      });
-    }
+    this._scene.time.delayedCall(3000, () => {
+      tween(
+        this._scene,
+        overlay,
+        { alpha: 0 },
+        { duration: Duration.base, ease: Ease.out, onComplete: () => overlay.destroy() }
+      );
+    });
   }
 }

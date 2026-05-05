@@ -15,6 +15,11 @@ interface PreferenceCache {
    * the SettingsScene version label.
    */
   unlockGateBypass: boolean;
+  /**
+   * Slow mode: 1.5x motion multiplier + 50% long-press extension.
+   * For children who need more time to process visual motion.
+   */
+  slowMode: boolean;
 }
 
 let cache: PreferenceCache | null = null;
@@ -30,6 +35,7 @@ export async function initPreferences(): Promise<void> {
       reduceMotion: meta.preferences.reduceMotion ?? false,
       highContrast: meta.preferences.highContrast ?? false,
       unlockGateBypass: meta.preferences.unlockGateBypass ?? false,
+      slowMode: meta.preferences.slowMode ?? false,
     };
     applyContrastMode(cache.highContrast);
   } catch (err) {
@@ -38,6 +44,7 @@ export async function initPreferences(): Promise<void> {
       reduceMotion: false,
       highContrast: false,
       unlockGateBypass: false,
+      slowMode: false,
     };
   }
 }
@@ -68,6 +75,17 @@ export async function updatePreferences(updates: Partial<PreferenceCache>): Prom
   if (updates.unlockGateBypass !== undefined) {
     cache!.unlockGateBypass = updates.unlockGateBypass;
   }
+  if (updates.slowMode !== undefined) {
+    cache!.slowMode = updates.slowMode;
+  }
+}
+
+/**
+ * Returns true if slow-mode is enabled in the cached preferences.
+ * Used by the motion system to apply a 1.5x duration multiplier.
+ */
+export function isSlowModeEnabled(): boolean {
+  return cache?.slowMode ?? false;
 }
 
 /**

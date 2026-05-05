@@ -103,7 +103,10 @@ export class HintController {
       });
       return;
     }
-    this.hintLadder ??= new HintLadder(this.currentTemplate.difficultyTier);
+    this.hintLadder ??= new HintLadder(
+      this.currentTemplate.difficultyTier,
+      this.currentTemplate.hints
+    );
     const tier = this.hintLadder.next();
     const span = tracerService.startSpan(SPAN_NAMES.HINT.REQUEST, {
       'hint.tier': tier,
