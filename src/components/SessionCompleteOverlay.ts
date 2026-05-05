@@ -11,6 +11,7 @@ import { A11yLayer } from './A11yLayer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
+import { announce as liveAnnounce } from '../lib/a11y/liveRegion';
 import {
   animateTrophyWave,
   startGlowSync,
@@ -260,6 +261,10 @@ export class SessionCompleteOverlay {
     this.announced = true;
     const word = stars === 1 ? 'star' : 'stars';
     AccessibilityAnnouncer.announce(`Level ${levelNumber} complete! You earned ${stars} ${word}.`);
+    // Phase 2 (a11y-parity): also push to ARIA live region so screen readers
+    // outside the canvas hear the level-complete event. Assertive urgency
+    // interrupts any in-progress reading — appropriate for a major milestone.
+    liveAnnounce('Level complete!', 'assertive');
   }
 
   destroy(): void {

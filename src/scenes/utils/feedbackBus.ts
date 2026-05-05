@@ -20,6 +20,7 @@
 
 import { StateName, applyState } from './states';
 import { Ease, tween } from './motion';
+import { announce } from '../../lib/a11y/liveRegion';
 
 /**
  * Feedback kinds that the app emits.
@@ -95,6 +96,16 @@ export function emitFeedback(
       const cue = kindToAudioCue[kind];
       scene.events.emit('audio:play', { cue, loud });
     }
+  }
+
+  // Screen-reader feedback via ARIA live region (Phase 2 — a11y-parity).
+  // 'correct' / 'snap' / 'milestone' → polite (non-disruptive mid-task)
+  // 'incorrect' / 'tap' → assertive (needs immediate attention)
+  // Text is kept short — children hear this; K–2 copy must be ≤ 8 words.
+  if (kind === 'correct' || kind === 'snap' || kind === 'milestone') {
+    announce('Correct! Great job.', 'polite');
+  } else if (kind === 'incorrect') {
+    announce('Not quite — try again!', 'assertive');
   }
 
   // Haptic feedback (visual substitute on devices without real vibration)
