@@ -15,8 +15,8 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 - `/decision` — Append a new architectural decision entry to docs/00-foundation/decision-log.md
 - `/economy` — Summarize this session's token cost — file reads vs tool output vs assistant prose
 - `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
-- `/recreate-pr` — Re-open a PR that the dependabot-auto-merge title-substring guard auto-closed (legacy stragglers only).
-- `/retro-weekly` — Weekly activity rollup — group _session-log.md by day, flag heavy-activity days
+- `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
+- `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
 - `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
 - `/sprint-status` — Print active sprint blockers and their current status in compact form
 <!-- AUTO:slash-commands-list:end -->
