@@ -178,7 +178,7 @@ export class Level01Scene extends Phaser.Scene {
       );
       this.add
         .text(CW / 2, CH / 2, 'Could not start session.\nPlease reload the page.', {
-          fontSize: '24px',
+          fontSize: '36px',
           fontFamily: BODY_FONT,
           fontStyle: 'bold',
           color: '#b91c1c',

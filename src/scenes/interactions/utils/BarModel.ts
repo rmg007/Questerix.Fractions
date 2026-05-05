@@ -79,7 +79,7 @@ export class BarModel {
     if (label) {
       this.labelText = scene.add
         .text(x, top - 10, label, {
-          fontSize: '20px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
           color: HEX.neutral900,

@@ -114,7 +114,7 @@ export class IdentifyInteraction implements Interaction {
         // Fallback to text label if no shape data
         const label = scene.add
           .text(x, cardY, opt.alt ?? `Option ${i + 1}`, {
-            fontSize: '14px',
+            fontSize: '32px',
             fontFamily: BODY_FONT,
             color: TEXT_HEADING,
             align: 'center',

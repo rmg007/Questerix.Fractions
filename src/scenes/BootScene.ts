@@ -46,7 +46,7 @@ export class BootScene extends Phaser.Scene {
     // ── Progress indicator ─────────────────────────────────────────────────
     this.progressText = this.add
       .text(400, 640, 'Starting…', {
-        fontSize: '20px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         color: '#FFFFFF',
       })

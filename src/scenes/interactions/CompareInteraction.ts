@@ -113,7 +113,7 @@ export class CompareInteraction implements Interaction {
       aFrac.n,
       aFrac.d,
       {
-        fontSize: '20px',
+        fontSize: '36px',
         color: TEXT_HEADING,
       }
     );
@@ -125,7 +125,7 @@ export class CompareInteraction implements Interaction {
       centerY - 80 + barH + gap + barH + 30,
       bFrac.n,
       bFrac.d,
-      { fontSize: '20px', color: TEXT_HEADING }
+      { fontSize: '36px', color: TEXT_HEADING }
     );
     this.fractionDisplays.push(bDisplay);
 
@@ -145,7 +145,7 @@ export class CompareInteraction implements Interaction {
         .setDepth(6);
       scene.add
         .text(bx, btnY, label, {
-          fontSize: '14px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
           color: NAVY_HEX,

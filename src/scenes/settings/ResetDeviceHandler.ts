@@ -30,7 +30,7 @@ export class ResetDeviceHandler {
 
     const resetText = this.scene.add
       .text(cx, y, 'Reset Device', {
-        fontSize: '22px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#DC2626',
@@ -68,7 +68,7 @@ export class ResetDeviceHandler {
     // Confirmation label
     const label = this.scene.add
       .text(cx, baseY - 20, 'Reset Device — are you sure?\nThis deletes everything.', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         color: '#DC2626',
         align: 'center',
@@ -84,7 +84,7 @@ export class ResetDeviceHandler {
 
     const yesText = this.scene.add
       .text(cx - 95, baseY + 74, 'Yes, reset', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#FFFFFF',
@@ -107,7 +107,7 @@ export class ResetDeviceHandler {
 
     const cancelText = this.scene.add
       .text(cx + 95, baseY + 74, 'Cancel', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: '#374151',

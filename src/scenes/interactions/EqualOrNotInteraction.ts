@@ -59,7 +59,7 @@ export class EqualOrNotInteraction implements Interaction {
       const bg = scene.add.rectangle(x, y, btnW, btnH, color).setDepth(5);
       const lbl = scene.add
         .text(x, y, label, {
-          fontSize: '22px',
+          fontSize: '32px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
           color: TEXT_ON_FILL,

@@ -148,7 +148,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     // Level number chip — top-left
     this.add(
       s.add.text(-CARD_W / 2 + 14, -CARD_H / 2 + 12, `L${this.meta.number}`, {
-        fontSize: '20px',
+        fontSize: '28px',
         fontFamily: TITLE_FONT,
         fontStyle: 'bold',
         color: this.unlocked ? NAVY_HEX : TEXT_MUTED,
@@ -159,7 +159,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.add(
       s.add
         .text(0, -12, this.meta.name, {
-          fontSize: '18px',
+          fontSize: '36px',
           fontFamily: TITLE_FONT,
           fontStyle: 'bold',
           color: this.unlocked ? NAVY_HEX : TEXT_MUTED,
@@ -173,7 +173,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
     this.add(
       s.add
         .text(0, 26, this.meta.concept, {
-          fontSize: '13px',
+          fontSize: '28px',
           fontFamily: BODY_FONT,
           color: this.unlocked ? TEXT_BODY : TEXT_DIM,
           align: 'center',
@@ -187,7 +187,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
       this.add(
         s.add
           .text(CARD_W / 2 - 10, -CARD_H / 2 + 12, `Gr ${this.meta.gradeBand}`, {
-            fontSize: '11px',
+            fontSize: '24px',
             fontFamily: BODY_FONT,
             color: this.unlocked ? TEXT_BODY : TEXT_DIM,
           })
@@ -221,7 +221,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
       g.fillCircle(bx, by, r);
       g.strokeCircle(bx, by, r);
       this.add(g);
-      this.add(s.add.text(bx, by, '★', { fontSize: '20px', color: '#78350f' }).setOrigin(0.5));
+      this.add(s.add.text(bx, by, '★', { fontSize: '28px', color: '#78350f' }).setOrigin(0.5));
     }
 
     // "Suggested next" amber badge — bottom centre
@@ -235,7 +235,7 @@ export class LevelCard extends Phaser.GameObjects.Container {
       this.add(
         s.add
           .text(0, CARD_H / 2 - 18, 'Suggested next', {
-            fontSize: '11px',
+            fontSize: '24px',
             fontFamily: BODY_FONT,
             fontStyle: 'bold',
             color: ACTION_TEXT,

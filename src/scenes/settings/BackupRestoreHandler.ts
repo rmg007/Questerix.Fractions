@@ -74,7 +74,7 @@ export class BackupRestoreHandler {
     this.statusText?.destroy();
     const color = isError ? '#DC2626' : '#059669';
     this.statusText = this.scene.add
-      .text(CW / 2, y, msg, { fontSize: '16px', fontFamily: BODY_FONT, color })
+      .text(CW / 2, y, msg, { fontSize: '28px', fontFamily: BODY_FONT, color })
       .setOrigin(0.5)
       .setDepth(5);
     if (duration) {

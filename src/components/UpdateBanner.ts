@@ -66,7 +66,7 @@ export class UpdateBanner {
 
     this.label = scene.add
       .text(width / 2, startY, message, {
-        fontSize: '22px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.neutral0,

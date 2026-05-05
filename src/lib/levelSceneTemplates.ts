@@ -146,7 +146,7 @@ export function showOfflineCurriculumToast(
 
   const text = scene.add
     .text(cx, cy, message, {
-      fontSize: '24px',
+      fontSize: '36px',
       fontFamily: BODY_FONT,
       color: '#FFFFFF',
       align: 'center',

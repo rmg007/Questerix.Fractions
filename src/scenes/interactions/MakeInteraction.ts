@@ -106,7 +106,7 @@ export class MakeInteraction implements Interaction {
     const bbg = scene.add.rectangle(centerX, btnY, 240, 52, NAVY).setDepth(7);
     const blbl = scene.add
       .text(centerX, btnY, 'Confirm Fold', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,
@@ -152,7 +152,7 @@ export class MakeInteraction implements Interaction {
     const sbg = scene.add.rectangle(centerX, sy, 240, 52, ACCENT_C).setDepth(7);
     scene.add
       .text(centerX, sy, 'Check', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,

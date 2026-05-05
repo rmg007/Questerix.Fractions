@@ -84,7 +84,7 @@ export class DragHandle {
     this.chevrons = scene.add
       .text(x, y, axis === 'horizontal' ? '‹ ›' : '⌃ ⌄', {
         fontFamily: 'Arial, sans-serif',
-        fontSize: '18px',
+        fontSize: '32px',
         color: '#ffffff',
         fontStyle: 'bold',
       })

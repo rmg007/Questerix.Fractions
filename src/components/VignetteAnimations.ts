@@ -380,7 +380,7 @@ function drawL5(ctx: SceneCtx): void {
   const labels = [
     scene.add
       .text(artCX - 140, artCY + 38, '1/2', {
-        fontSize: '22px',
+        fontSize: '28px',
         fontFamily: TITLE_FONT,
         color: NAVY_HEX,
       })
@@ -389,7 +389,7 @@ function drawL5(ctx: SceneCtx): void {
       .setAlpha(0),
     scene.add
       .text(artCX + 120, artCY + 38, '2/4', {
-        fontSize: '22px',
+        fontSize: '28px',
         fontFamily: TITLE_FONT,
         color: NAVY_HEX,
       })
@@ -510,7 +510,7 @@ function drawL7(ctx: SceneCtx): void {
     const fracs = ['1/5', '2/5', '3/5', '4/5', '1'];
     const lbl = scene.add
       .text(sx + stepW / 2 - 1, sy + stepH / 2, fracs[i]!, {
-        fontSize: '15px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         color: NAVY_HEX,
         fontStyle: 'bold',

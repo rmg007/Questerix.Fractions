@@ -313,7 +313,7 @@ export class LevelMapScene extends Phaser.Scene {
     const text = this.add
       .text(cx, cy, message, {
         fontFamily: BODY_FONT,
-        fontSize: '20px',
+        fontSize: '32px',
         fontStyle: 'bold',
         color: '#FFFFFF',
         align: 'center',
@@ -346,7 +346,7 @@ export class LevelMapScene extends Phaser.Scene {
 
     // Measure text width
     const probe = this.add
-      .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
+      .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '28px' })
       .setAlpha(0);
     const tw = probe.width + PILL_PAD * 2;
     probe.destroy();
@@ -361,7 +361,7 @@ export class LevelMapScene extends Phaser.Scene {
     this.add
       .text(px, py, label, {
         fontFamily: BODY_FONT,
-        fontSize: '18px',
+        fontSize: '28px',
         color: '#FFFFFF',
         fontStyle: 'bold',
       })
@@ -457,7 +457,7 @@ export class LevelMapScene extends Phaser.Scene {
       .text(bx, by, '← Menu', {
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
-        fontSize: '22px',
+        fontSize: '32px',
         color: NAVY_HEX,
       })
       .setOrigin(0.5)

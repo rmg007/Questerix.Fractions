@@ -212,7 +212,7 @@ export class ProgressBar extends Phaser.GameObjects.Container {
         this.overflowText = this.scene.add
           .text(ox, CHIP_Y_OFFSET + CHIP_SIZE / 2, '', {
             fontFamily: TITLE_FONT,
-            fontSize: '14px',
+            fontSize: '24px',
             color: '#9ca3af',
           })
           .setOrigin(0, 0.5);

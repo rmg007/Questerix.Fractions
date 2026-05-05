@@ -74,7 +74,7 @@ export class QuestCompleteOverlay {
     // Sub-heading line 2
     const subHeadingT = scene.add
       .text(cx, 500, 'You mastered all 9 levels!', {
-        fontSize: '24px',
+        fontSize: '36px',
         fontFamily: BODY_FONT,
         color: NAVY_HEX,
         align: 'center',
@@ -162,7 +162,7 @@ export class QuestCompleteOverlay {
     const txt = scene.add
       .text(x, y, 'Play Again from Level 1', {
         fontFamily: TITLE_FONT,
-        fontSize: '22px',
+        fontSize: '32px',
         color: ACTION_TEXT,
         fontStyle: 'bold',
       })
@@ -190,7 +190,7 @@ export class QuestCompleteOverlay {
     const txt = scene.add
       .text(x, y, 'Back to Menu', {
         fontFamily: BODY_FONT,
-        fontSize: '20px',
+        fontSize: '32px',
         fontStyle: 'bold',
         color: NAVY_HEX,
       })

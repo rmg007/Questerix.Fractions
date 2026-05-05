@@ -145,7 +145,7 @@ export async function openChooseLevelOverlay(
     .text(panelX, mapY, '🗺 Full Adventure Map →', {
       fontFamily: BODY_FONT,
       fontStyle: 'bold',
-      fontSize: '20px',
+      fontSize: '32px',
       color: '#1E3A8A',
     })
     .setOrigin(0.5)

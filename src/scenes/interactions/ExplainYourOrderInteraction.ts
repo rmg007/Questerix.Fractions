@@ -84,7 +84,7 @@ export class ExplainYourOrderInteraction implements Interaction {
         .setDepth(4);
       scene.add
         .text(sx, slotY + cardH / 2 + 14, `${si + 1}`, {
-          fontSize: '13px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_BODY,
         })
@@ -168,7 +168,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     const sbg = scene.add.rectangle(centerX, sy, 220, 56, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check Order', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,
@@ -217,7 +217,7 @@ export class ExplainYourOrderInteraction implements Interaction {
 
     const title = scene.add
       .text(centerX, centerY - 200, postStep.prompt, {
-        fontSize: '24px',
+        fontSize: '36px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_HEADING,
@@ -241,7 +241,7 @@ export class ExplainYourOrderInteraction implements Interaction {
 
       const label = scene.add
         .text(centerX, y, RULE_LABELS[optKey] || optKey, {
-          fontSize: '16px',
+          fontSize: '32px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_HEADING,
         })
@@ -282,7 +282,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     const submitBtn = scene.add.rectangle(centerX, sy, 220, 56, SKY_BG).setDepth(7);
     const submitTxt = scene.add
       .text(centerX, sy, 'Submit', {
-        fontSize: '20px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_BODY,

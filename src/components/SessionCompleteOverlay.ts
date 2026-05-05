@@ -295,7 +295,7 @@ export class SessionCompleteOverlay {
     const heading = scene.add
       .text(cx, 730, 'Skills Practiced', {
         fontFamily: TITLE_F,
-        fontSize: '20px',
+        fontSize: '32px',
         fontStyle: 'bold',
         color: textColor,
       })
@@ -337,7 +337,7 @@ export class SessionCompleteOverlay {
         const badge = scene.add
           .text(chipX + CHIP_W / 2, CHIP_Y - 2, '✓', {
             fontFamily: TITLE_F,
-            fontSize: '10px',
+            fontSize: '24px',
             color: '#22c55e',
             fontStyle: 'bold',
           })
@@ -349,7 +349,7 @@ export class SessionCompleteOverlay {
       const label = scene.add
         .text(chipX + CHIP_W / 2, CHIP_Y + CHIP_H + 3, entry.label, {
           fontFamily: BODY_F,
-          fontSize: '11px',
+          fontSize: '28px',
           color: textColor,
           align: 'center',
           wordWrap: { width: CHIP_W + CHIP_GAP * 2 },
@@ -374,7 +374,7 @@ export class SessionCompleteOverlay {
       const overflowT = scene.add
         .text(chipX + CHIP_W / 2, CHIP_Y + CHIP_H / 2, `+${overflow}`, {
           fontFamily: TITLE_F,
-          fontSize: '14px',
+          fontSize: '24px',
           color: textColor,
         })
         .setOrigin(0.5)

@@ -112,7 +112,7 @@ export class StudentSwitcher {
     const nameText = this.scene.add
       .text(10, 0, name, {
         fontFamily: BODY_FONT,
-        fontSize: '26px',
+        fontSize: '36px',
         fontStyle: 'bold',
         color: '#ffffff',
       })
@@ -122,7 +122,7 @@ export class StudentSwitcher {
     const chevron = this.scene.add
       .text(CHIP_W / 2 - 24, 0, '▾', {
         fontFamily: BODY_FONT,
-        fontSize: '22px',
+        fontSize: '28px',
         color: '#93c5fd',
       })
       .setOrigin(0.5);
@@ -238,7 +238,7 @@ export class StudentSwitcher {
       this.scene.add
         .text(-PANEL_W / 2 + 90, y, name, {
           fontFamily: BODY_FONT,
-          fontSize: '26px',
+          fontSize: '36px',
           fontStyle: isActive ? 'bold' : 'normal',
           color: '#ffffff',
         })
@@ -287,7 +287,7 @@ export class StudentSwitcher {
       this.scene.add
         .text(0, y, '+ Add Player', {
           fontFamily: BODY_FONT,
-          fontSize: '26px',
+          fontSize: '36px',
           fontStyle: 'bold',
           color: '#ffffff',
         })
