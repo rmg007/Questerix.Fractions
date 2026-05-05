@@ -37,6 +37,7 @@ function generateCiWorkflow() {
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
