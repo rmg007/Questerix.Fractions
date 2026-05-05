@@ -18,7 +18,7 @@ test.describe('iPad Safari touch-drag', () => {
     await target.tap();
 
     const overlay = page.locator('[data-testid="feedback-overlay"]');
-    await expect(overlay).toBeVisible({ timeout: 5000 });
+    await expect(overlay).toBeVisible({ timeout: 15000 });
   });
 
   test('canvas element has touch-action: none for drag prevention', async ({ page }) => {

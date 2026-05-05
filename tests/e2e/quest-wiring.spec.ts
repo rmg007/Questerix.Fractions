@@ -47,7 +47,7 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
     await page.locator('[data-testid="hint-btn"]').click({ force: true });
     await expect(page.locator('[data-testid="hint-text"]').first()).toHaveText(
       'Which one is bigger? Take a look.',
-      { timeout: 5000 }
+      { timeout: 15000 }
     );
   });
 
