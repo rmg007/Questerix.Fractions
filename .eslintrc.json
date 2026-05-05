@@ -16,6 +16,10 @@
       {
         "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
         "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+      },
+      {
+        "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='add'][callee.object.property.name='tweens']",
+        "message": "Use tween() from src/scenes/utils/motion.ts instead of tweens.add() directly to ensure reduced-motion compliance and consistent motion tokens."
       }
     ]
   },
@@ -24,6 +28,18 @@
       "files": ["src/components/Mascot.ts"],
       "rules": {
         "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["src/scenes/utils/motion.ts", "src/scenes/utils/motion.test.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
+            "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+          }
+        ]
       }
     },
     {

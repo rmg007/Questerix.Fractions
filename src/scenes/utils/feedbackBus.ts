@@ -97,23 +97,28 @@ export function emitFeedback(
     }
   }
 
-  // Haptic feedback (visual substitute on devices without haptics)
-  // Only apply if vibration API is not available
-  if (target && scene && !navigator.vibrate) {
-    // Visual haptic substitute: quick brightness pulse on target
-    // Use alpha to create a haptic-like sensation without interfering with state scales
-    const originalAlpha = target.alpha ?? 1;
+  // Haptic feedback (visual substitute on devices without real vibration)
+  // Check if Vibration API is available and supported
+  if (target && scene) {
+    const hasVibrationAPI = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+    const shouldUseVisualSubstitute = !hasVibrationAPI;
 
-    // Quick pulse: brighten slightly, then return (alpha yoyo)
-    tween(scene, target, {
-      alpha: Math.min(originalAlpha + 0.15, 1.0),
-    }, {
-      duration: 50,
-      ease: Ease.out,
-      yoyo: true,
-      hold: 0,
-      repeat: 0,
-    });
+    if (shouldUseVisualSubstitute) {
+      // Visual haptic substitute: quick brightness pulse on target
+      // Use alpha to create a haptic-like sensation without interfering with state scales
+      const originalAlpha = target.alpha ?? 1;
+
+      // Quick pulse: brighten slightly, then return (alpha yoyo)
+      tween(scene, target, {
+        alpha: Math.min(originalAlpha + 0.15, 1.0),
+      }, {
+        duration: 50,
+        ease: Ease.out,
+        yoyo: true,
+        hold: 0,
+        repeat: 0,
+      });
+    }
   }
 }
 
