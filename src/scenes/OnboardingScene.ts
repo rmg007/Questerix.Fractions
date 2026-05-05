@@ -33,6 +33,7 @@ import { Mascot } from '../components/Mascot';
 import { tts } from '../audio/TTSService';
 import { fadeAndStart } from './utils/sceneTransition';
 import { applyState } from './utils/states';
+import { tween, Duration, Ease } from './utils/motion';
 import { Gesture } from './utils/interaction';
 
 // ── Onboarding completion gate ────────────────────────────────────────────────
@@ -361,23 +362,26 @@ export class OnboardingScene extends Phaser.Scene {
     }
 
     const tweenProxy = { x: startX };
-    this.demoTween = this.tweens.add({
-      targets: tweenProxy,
-      x: endX,
-      duration: 1600,
-      ease: 'Sine.easeInOut',
-      onUpdate: () => {
-        this.handlePos = tweenProxy.x;
-        this.updatePartitionLine(tweenProxy.x);
-        this.handPointer.setPosition(tweenProxy.x, handY);
-      },
-      onComplete: () => {
-        this.demoTween = null;
-        this.mascot.setState('cheer');
-        // Pause on the correct position so the student sees success
-        this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
-      },
-    });
+    this.demoTween = tween(
+      this,
+      tweenProxy,
+      { x: endX },
+      {
+        duration: Duration.ceremony + 1000, // 1600 ms — slow enough for K–2 to follow
+        ease: Ease.bounce,
+        onUpdate: () => {
+          this.handlePos = tweenProxy.x;
+          this.updatePartitionLine(tweenProxy.x);
+          this.handPointer.setPosition(tweenProxy.x, handY);
+        },
+        onComplete: () => {
+          this.demoTween = null;
+          this.mascot.setState('cheer');
+          // Pause on the correct position so the student sees success
+          this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
+        },
+      }
+    );
   }
 
   private afterDemoComplete(): void {
@@ -416,7 +420,7 @@ export class OnboardingScene extends Phaser.Scene {
     this.createDragHandle();
 
     // Show action button
-    this.tweens.add({ targets: this.actionBtn, alpha: 1, duration: 300 });
+    tween(this, this.actionBtn, { alpha: 1 }, { duration: Duration.base });
   }
 
   private createDragHandle(): void {

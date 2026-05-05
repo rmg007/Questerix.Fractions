@@ -344,12 +344,10 @@ export class SettingsScene extends Phaser.Scene {
     onTap: () => void
   ): void {
     const g = this.add.graphics();
-    const draw = (alpha = 1) => {
-      g.clear();
-      g.fillStyle(bgColor, alpha);
-      g.fillRoundedRect(x - BTN_W / 2, y - BTN_H / 2, BTN_W, BTN_H, BTN_RADIUS);
-    };
-    draw();
+    g.fillStyle(bgColor, 1);
+    g.fillRoundedRect(x - BTN_W / 2, y - BTN_H / 2, BTN_W, BTN_H, BTN_RADIUS);
+    g.setDepth(1);
+
     this.add
       .text(x, y, label, {
         fontSize: '22px',
@@ -359,17 +357,26 @@ export class SettingsScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(2);
+
+    // Transparent hit zone — BTN_W × BTN_H is well above the 44×44 px minimum
     const hitZone = this.add
       .rectangle(x, y, BTN_W, BTN_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
-    hitZone.on('pointerdown', () => draw(0.75));
+
+    // Double-tap debounce per Gesture.doubleTapWindowMs (K–2 requirement)
+    let lastTapAt = 0;
+    hitZone.on('pointerdown', () => {
+      const now = Date.now();
+      if (now - lastTapAt < Gesture.doubleTapWindowMs) return;
+      lastTapAt = now;
+      applyState(hitZone, 'pressed', this);
+    });
     hitZone.on('pointerup', () => {
-      draw();
+      this.time.delayedCall(100, () => applyState(hitZone, 'idle', this));
       onTap();
     });
-    hitZone.on('pointerout', () => draw());
-    g.setDepth(1);
+    hitZone.on('pointerout', () => applyState(hitZone, 'idle', this));
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
