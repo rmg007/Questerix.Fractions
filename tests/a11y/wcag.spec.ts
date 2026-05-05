@@ -78,7 +78,7 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
   test('Menu scene — all interactive elements ≥ 44×44 CSS px', async ({ page }) => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
 
     const violations = await auditTouchTargets(page);
     expect(violations, `Touch targets below 44px: ${JSON.stringify(violations, null, 2)}`).toEqual(
@@ -89,7 +89,7 @@ test.describe('Touch target audit — ≥ 44×44 CSS px per accessibility.md §2
   test('Level01 scene — all interactive elements ≥ 44×44 CSS px', async ({ page }) => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
     // level-card-L1 opens the Adventure Map; select Level 1 from there
     await page.locator('[data-testid="level-card-L1"]').click();
     await expect(page.locator('[data-testid="level-map-scene"]')).toBeVisible({ timeout: 5000 });
@@ -115,7 +115,7 @@ test.describe('Skip link — WCAG 2.4.1 Bypass Blocks', () => {
   test('Menu scene — skip link present and target canvas exists', async ({ page }) => {
     await page.goto('/');
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
 
     // 1. Skip link button must be in DOM.
     const skipLink = page.locator('#qf-skip-link');

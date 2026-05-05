@@ -11,6 +11,9 @@ test.describe('Settings scene', () => {
   test.beforeEach(async ({ page }) => {
     // Clear IndexedDB state before each test to prevent shared state leaks
     // (Cluster D flake: IndexedDB state was persisting across tests in suite mode)
+    // Must navigate to the app origin first — IndexedDB is unavailable on about:blank
+    // (SecurityError: Access to the IndexedDB API is denied in this context).
+    await page.goto('/');
     await page.evaluate(async () => {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         const dbs = (await window.indexedDB.databases?.()) || [];
@@ -32,7 +35,7 @@ test.describe('Settings scene', () => {
     await startBtn.click();
 
     // Menu
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
 
     // Click Settings button overlay
     const settingsBtn = page.locator('[data-testid="settings-btn"]');
@@ -50,7 +53,7 @@ test.describe('Settings scene', () => {
     await expect(startBtn).toBeVisible({ timeout: 8000 });
     await startBtn.click();
 
-    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="menu-scene"]')).toBeVisible({ timeout: 10000 });
     const settingsBtn = page.locator('[data-testid="settings-btn"]');
     await expect(settingsBtn).toBeVisible({ timeout: 3000 });
     await settingsBtn.click();

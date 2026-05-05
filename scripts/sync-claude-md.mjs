@@ -21,8 +21,9 @@
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = new URL('..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CLAUDE_MD = join(ROOT, 'CLAUDE.md');
 const AGENTS_DIR = join(ROOT, '.claude/agents');
 const COMMANDS_DIR = join(ROOT, '.claude/commands');
@@ -33,7 +34,8 @@ const COMMANDS_DIR = join(ROOT, '.claude/commands');
  * Strips surrounding single/double quotes if present.
  */
 function readFrontmatter(content) {
-  const m = content.match(/^---\n([\s\S]*?)\n---/);
+  const normalized = content.replace(/\r\n/g, '\n');
+  const m = normalized.match(/^---\n([\s\S]*?)\n---/);
   if (!m) return {};
   const fm = {};
   for (const line of m[1].split('\n')) {

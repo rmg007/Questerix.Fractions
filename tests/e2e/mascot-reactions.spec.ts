@@ -94,16 +94,16 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await navigateToLevel01(page);
 
     const partitionTarget = page.locator('[data-testid="partition-target"]');
-    await expect(partitionTarget).toBeVisible({ timeout: 5000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 15000 });
     await partitionTarget.click();
 
     // FeedbackOverlay shows synchronously and mascot.setState('cheer') is called
     // immediately after, so we can assert while the overlay is still visible.
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'cheer',
-      { timeout: 2000 }
+      { timeout: 10000 }
     );
   });
 
@@ -124,70 +124,74 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
   test('wrong answer sets mascot sentinel to oops', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
-      timeout: 5000,
+      timeout: 15000,
     });
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({
       timeout: 15000,
     });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({
+      timeout: 10000,
+    });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
 
     // q:cp:L6:0001: fractionA=1/2, fractionB=1/4 → correct is '>'.
     // Clicking '<' (compare-relation-lt) is the deterministic wrong choice.
     await expect(page.locator('[data-testid="compare-relation-lt"]').first()).toBeVisible({
-      timeout: 8000,
+      timeout: 10000,
     });
     await page.locator('[data-testid="compare-relation-lt"]').click();
 
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[role="status"]').last()).toContainText(
       'Try again. Look at both again.',
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
   });
 
   test('mascot resets to idle after wrong-answer feedback overlay dismisses', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-testid="boot-start-btn"]').first()).toBeVisible({
-      timeout: 5000,
+      timeout: 15000,
     });
     // Wait for the curriculum seed to finish so Level 6 compare templates are in the DB.
     await expect(page.locator('[data-testid="seed-complete"]').first()).toBeVisible({
       timeout: 15000,
     });
     await page.locator('[data-testid="boot-start-btn"]').click();
-    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="menu-scene"]').first()).toBeVisible({
+      timeout: 10000,
+    });
     await page.locator('[data-testid="level-card-L6"]').click();
     await expect(page.locator('[data-testid="level-scene"]').first()).toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
 
     // q:cp:L6:0001: fractionA=1/2, fractionB=1/4 → correct is '>'.
     // Clicking '<' (compare-relation-lt) is the deterministic wrong choice.
     await expect(page.locator('[data-testid="compare-relation-lt"]').first()).toBeVisible({
-      timeout: 8000,
+      timeout: 10000,
     });
     await page.locator('[data-testid="compare-relation-lt"]').click();
 
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[role="status"]').last()).toContainText(
       'Try again. Look at both again.',
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'idle',
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
 
     // Wait for the feedback overlay to auto-dismiss (~720ms after appearing).

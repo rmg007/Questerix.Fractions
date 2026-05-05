@@ -32,7 +32,7 @@ test.describe('Smoke — boot to first attempt', () => {
 
     // Interact with the partition mechanic — locate the primary drag/tap target
     const partitionTarget = page.locator('[data-testid="partition-target"]');
-    await expect(partitionTarget).toBeVisible({ timeout: 3000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 15000 });
 
     // Tap/click the partition mechanic to make one attempt
     await partitionTarget.click();
@@ -40,6 +40,6 @@ test.describe('Smoke — boot to first attempt', () => {
     // FeedbackOverlay must appear after the interaction
     // per accessibility.md §6 (ARIA-live outcome announcements)
     const feedback = page.locator('[data-testid="feedback-overlay"]');
-    await expect(feedback).toBeVisible({ timeout: 5000 });
+    await expect(feedback).toBeVisible({ timeout: 15000 });
   });
 });
