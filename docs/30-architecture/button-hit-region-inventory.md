@@ -17,7 +17,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 |---|---|---|---|---|---|---|---|
 | `src/scenes/utils/menuButtonHelpers.ts` | 77 | `createStationButton` | `Rect(-half.w,-half.h,w,h+shadow)` ≥100 h | ≥45 CSS px | compliant | — | unit |
 | `src/scenes/utils/levelTheme.ts` | 160 | `createActionButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` | ≥36 CSS px | compliant | — | unit |
-| `src/scenes/utils/levelTheme.ts` | 241 | `createHintPillButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` H=64 | 29 CSS px | **violation** | 3 | none |
+| `src/scenes/utils/levelTheme.ts` | 241 | `createHintPillButton` | `Rect(-W/2,-HIT_H/2,W,HIT_H)` HIT_H=100 | 45 CSS px | fixed | 3 | none |
 | `src/scenes/utils/levelTheme.ts` | 321 | circle nav button | `Rect(-R,-R,D,D)` D≥100 | ≥45 CSS px | compliant | — | none |
 | `src/lib/levelSceneChrome.ts` | 74 | back button | explicit `Rect(-W/2,-H/2,W,H)` | — | compliant | — | none |
 | `src/scenes/Level01SceneLayout.ts` | 50 | home emoji back btn | `Rect(-32,-28,64,56)` 64×56 | 25 CSS px | **violation** | 4 | none |
@@ -32,9 +32,9 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/DBRecoveryScene.ts` | 169 | recovery action btns | `container.setSize(360,72)` | 32 CSS px | **violation** | 4 | none |
 | `src/components/sessionComplete/buttons.ts` | 80 | session-complete primary btn | `Rect 300×(H+SHADOW=107)` | 48 CSS px | compliant | — | unit |
 | `src/components/sessionComplete/buttons.ts` | 80 | session-complete secondary btn | `Rect 300×(H+SHADOW=100)` | 45 CSS px | compliant | — | unit |
-| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | scaffold recommendation banner | `Rect 440×64` | 29 CSS px | **violation** | 3 | none |
-| `src/components/QuestCompleteOverlay.ts` | 173 | "Play Again from Level 1" btn | `Rect 320×71` (H+SHADOW) | 32 CSS px | **violation** | 3 | none |
-| `src/components/QuestCompleteOverlay.ts` | 201 | "Back to Menu" btn | `Rect 320×54` | 24 CSS px | **violation** | 3 | none |
+| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | scaffold recommendation banner | `Rect 440×100` | 45 CSS px | fixed | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 173 | "Play Again from Level 1" btn | `Rect 320×100` | 45 CSS px | fixed | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 201 | "Back to Menu" btn | `Rect 320×100` | 45 CSS px | fixed | 3 | none |
 | `src/components/StudentSwitcher.ts` | 135 | student chip (collapsed) | `Rect CHIP_W×CHIP_H` = 200×80 | 36 CSS px | **violation** | 4 | none |
 | `src/components/StudentSwitcher.ts` | 205 | panel backdrop (scrim) | full canvas | n/a | not-a-button | — | — |
 | `src/components/StudentSwitcher.ts` | 264 | student profile card | `Rect 324×CARD_H` = 324×100 | 45 CSS px | compliant | — | none |
@@ -75,7 +75,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 |---|---|---|---|
 | ~~`src/scenes/FirstRunScene.ts`~~ | ~~244~~ | ~~80~~ | ✓ fixed — raised `h` to 100 (PR: Phase 2) |
 
-### Phase 3 — shadow-aware & overlay buttons (4)
+### Phase 3 — shadow-aware & overlay buttons (0 remaining)
 
 | file | line | current canvas h | fix |
 |---|---|---|---|
