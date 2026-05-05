@@ -68,7 +68,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     this.sequence = new Array<string | null>(n).fill(null);
 
     const cardW = Math.min(120, (width - 80) / n - 12);
-    const cardH = 44;
+    const cardH = 100; // WCAG 2.5.5: hitH = cardH+8 = 108 canvas px (≥44 CSS px at 360 vp)
     const gap = 12;
     const totalW = n * (cardW + gap) - gap;
     const startX = centerX - totalW / 2;

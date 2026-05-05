@@ -46,12 +46,12 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/utils/menuOverlayHelpers.ts` | 57 | overlay scrim | full canvas | n/a | not-a-button | — | — |
 | `src/scenes/utils/menuOverlayHelpers.ts` | 105 | overlay text btns | bare Text `.setInteractive` | ~10 CSS px | deferred | — | none |
 | `src/scenes/settings/versionTapToggle.ts` | 42 | version debug tap | bare Text `.setInteractive` | ~11 CSS px | deferred | — | none |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | card drag tokens | `Rect hitW×hitH` hitH=max(108,44)=108 | 49 CSS px | fixed | 4b | none |
 | `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 180 | "Check ordering" btn | `Rect 220×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 252 | rule-option choice btns | `Rect (w-100)×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 294 | submit explain btn | `Rect 220×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/IdentifyInteraction.ts` | 130 | option card hit zones | `Rect cardW×cardH` = ≤180×160 | 72 CSS px | compliant | — | none |
-| `src/scenes/interactions/LabelInteraction.ts` | 97 | label tile draggable | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/LabelInteraction.ts` | 97 | label tile draggable | `Rect 120×110` | 50 CSS px | fixed | 4b | none |
 | `src/scenes/interactions/LabelInteraction.ts` | 179 | submit "Check" btn | `Rect 240×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/MakeInteraction.ts` | 82 | drag handle (via DragHandle) | via DragHandle HIT_TARGET | ≥44 CSS px | compliant | — | unit |
 | `src/scenes/interactions/MakeInteraction.ts` | 117 | "Divide" btn | `Rect 240×100` | 45 CSS px | fixed | 4 | none |
@@ -61,9 +61,9 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/interactions/CompareInteraction.ts` | 159 | choice btns (</>/=) | `Rect 180×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | zone hit btns | `Rect zoneW×100` | 45 CSS px | fixed | 4 | none |
 | `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | equal/not-equal btns | `Rect btnW×100` | 45 CSS px | fixed | 4 | none |
-| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | draggable cards | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/OrderInteraction.ts` | 124 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
-| `src/scenes/interactions/utils/NumberLine.ts` | 125 | number-line draggable marker | `Circle r=22` → diameter 44 canvas | 20 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | draggable cards | `Rect 120×110` | 50 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/OrderInteraction.ts` | 124 | card drag tokens | `Rect hitW×hitH` hitH=max(108,44)=108 | 49 CSS px | fixed | 4b | none |
+| `src/scenes/interactions/utils/NumberLine.ts` | 125 | number-line draggable marker | `Circle r=55` → diameter 110 canvas | 50 CSS px | fixed | 4b | none |
 
 ---
 
@@ -104,7 +104,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | 64 | raise `H` to 100 |
 | `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | 88 | raise `btnH` to 100 |
 
-### Phase 4b — drag targets (5)
+### Phase 4b — drag targets (0 remaining)
 
 | file | line | current geometry | fix |
 |---|---|---|---|
