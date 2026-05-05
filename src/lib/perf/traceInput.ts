@@ -22,7 +22,7 @@ interface InputLatencyStats {
 }
 
 let latencySamples: InputLatencySample[] = [];
-let pendingEvents: Map<number, { eventTime: number; archetype: string | undefined }> = new Map();
+const pendingEvents: Map<number, { eventTime: number; archetype: string | undefined }> = new Map();
 let eventId = 0;
 
 /**
