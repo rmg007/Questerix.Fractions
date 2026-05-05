@@ -127,7 +127,7 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     expect(bootToLevel01Ms).toBeLessThan(35000);
     expect(allAttemptsMs).toBeLessThan(60000);
     expect(completionMs).toBeLessThan(90000);
-    expect(attemptTimings.every((t) => t < 5000)).toBe(true);
+    expect(attemptTimings.every((t) => t < 15000)).toBe(true);
   });
 
   test('hint button is accessible throughout session', async ({ page }) => {

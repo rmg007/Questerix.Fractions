@@ -18,6 +18,7 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 - `/recreate-pr` — Re-open a PR that the dependabot-auto-merge title-substring guard auto-closed (legacy stragglers only).
 - `/retro-weekly` — Weekly activity rollup — group _session-log.md by day, flag heavy-activity days
 - `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+- `/sprint-status` — Print active sprint blockers and their current status in compact form
 <!-- AUTO:slash-commands-list:end -->
 
 > The list above is auto-generated from `.claude/commands/*.md` frontmatter by `npm run sync:claude-md`. Edit the source files, not this section.
