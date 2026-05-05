@@ -4,51 +4,8 @@
  * per test-strategy.md §1.3 and playtest-protocol.md §3/§5
  */
 
-import type { Page } from '@playwright/test';
 import { test, expect } from './_fixture';
-import { navigateToLevel01, doAttempt } from './test-helpers';
-
-/**
- * Wrapper around doAttempt with a retry + stabilization window.
- *
- * Local CI sees Level01Scene FPS as low as 11–25 fps, which means the
- * partition-target sentinel can be DOM-visible before its Phaser click
- * handler has re-bound after the previous question's unmount/mount cycle.
- * The first click then no-ops and the 5s feedback-overlay timeout in
- * test-helpers.ts:98 fires (see PR #90 — same lesson, longer wait).
- *
- * We can't edit test-helpers.ts from this branch, so we (a) ensure no
- * stale feedback-overlay is still on screen and (b) retry doAttempt once
- * if the helper throws.
- *
- * TODO(BUG-CI-91): bump test-helpers.ts:98 feedback-overlay timeout from
- * 5000 to 15000ms and remove this wrapper once that lands.
- */
-async function doAttemptStable(page: Page): Promise<number> {
-  const overlay = page.locator('[data-testid="feedback-overlay"]');
-  const target = page.locator('[data-testid="partition-target"]');
-
-  // Make sure prior overlay (if any) is gone before the next click.
-  await overlay.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-  // Wait for the next question's partition-target to settle.
-  await target.waitFor({ state: 'visible', timeout: 15000 });
-  // Small settle so the Phaser click handler is wired before we click.
-  await page.waitForTimeout(150);
-
-  try {
-    return await doAttempt(page);
-  } catch (firstErr) {
-    // One retry: clear any half-shown overlay, re-wait, click again.
-    await overlay.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
-    await target.waitFor({ state: 'visible', timeout: 10000 });
-    await page.waitForTimeout(300);
-    try {
-      return await doAttempt(page);
-    } catch {
-      throw firstErr;
-    }
-  }
-}
+import { navigateToLevel01, doAttempt, doAttemptStable } from './test-helpers';
 
 test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Menu', () => {
   test.beforeEach(async ({ page }) => {
