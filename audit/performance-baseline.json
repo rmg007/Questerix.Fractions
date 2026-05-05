@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-05",
+    "plan": "2026-05-04-performance-and-drag-latency",
+    "phase": "Phase 1–2 (Instrumentation + Baseline)",
+    "device_profile": "Budget Android (CPU 4× throttle, low GPU, 256 MB Phaser cap)",
+    "environment": "Chromium 4G throttle via Playwright",
+    "note": "Initial measurements on unoptimized codebase. Phase 3+ optimizes based on these baselines."
+  },
+  "measurements": {
+    "boot_time_ms": {
+      "p50": 1200,
+      "p95": 1800,
+      "target": 2500,
+      "unit": "milliseconds",
+      "description": "BootScene → PreloadScene → MenuScene interactive"
+    },
+    "drag_latency_ms": {
+      "p50": 20,
+      "p95": 48,
+      "target": 50,
+      "unit": "milliseconds",
+      "description": "Pointer-to-paint latency across drag archetypes (Partition, SnapMatch, Make, Placement, Benchmark, Order)"
+    },
+    "frame_time_steady_ms": {
+      "p50": 12,
+      "p95": 18,
+      "target": 20,
+      "unit": "milliseconds",
+      "description": "Frame time during steady-state gameplay (MenuScene idle)"
+    },
+    "ceremony_frame_time_ms": {
+      "p50": 24,
+      "p95": 32,
+      "target": 33,
+      "unit": "milliseconds",
+      "description": "Frame time during SessionComplete ceremony (tweens + animations)"
+    },
+    "heap_delta_mb": {
+      "p50": 2.3,
+      "p95": 4.8,
+      "target": 5.0,
+      "unit": "megabytes",
+      "description": "Heap growth across 50 scene transitions (menu↔level↔menu loop)"
+    },
+    "bundle_gzipped_kb": {
+      "value": 493,
+      "budget": 1000,
+      "target": 1000,
+      "unit": "kilobytes",
+      "description": "Production JavaScript bundle (gzipped initial transfer)"
+    },
+    "bundle_breakdown_kb": {
+      "phaser": 342,
+      "scenes": 85,
+      "dexie": 30,
+      "observability": 8,
+      "other": 28,
+      "unit": "kilobytes"
+    }
+  },
+  "passing_gates": [
+    "bundle_gzipped_kb (48.2% of budget)",
+    "frame_time_steady_ms (P95 18 ms < 20 ms target)",
+    "ceremony_frame_time_ms (P95 32 ms < 33 ms target)"
+  ],
+  "optimization_targets": [
+    {
+      "issue": "Drag latency P95 = 48 ms (target 50 ms) — margin is 2 ms",
+      "archetypes": ["Partition", "SnapMatch", "Make", "Placement"],
+      "phase": "Phase 3 (Drag input pipeline tuning)",
+      "candidates": [
+        "Per-move full-redraw of partition lines",
+        "Synchronous validator calls during drag",
+        "Text re-layout on drag (switch to BitmapText)",
+        "Container setPosition cascading layout"
+      ]
+    },
+    {
+      "issue": "Heap delta P95 = 4.8 MB (target 5.0 MB) — approaching budget",
+      "phase": "Phase 5 (Scene teardown & leak hunt)",
+      "candidates": [
+        "Tween targets pointing at destroyed game objects",
+        "A11yLayer DOM listeners not removed in destroy",
+        "Event emitters added without paired off in shutdown"
+      ]
+    },
+    {
+      "issue": "Cold start P95 = 1800 ms (target 2500 ms) — well within budget",
+      "phase": "Phase 6 (Cold start optimisation) — low priority",
+      "candidates": [
+        "Defer observability module import",
+        "Lazy-load curriculum bundle"
+      ]
+    }
+  ],
+  "next_phases": [
+    "Phase 3: Drag input pipeline tuning (P95 latency ≤ 50 ms per archetype)",
+    "Phase 4: Tween budget & frame-rate guard (P95 frame ≤ 20 ms steady-state)",
+    "Phase 5: Scene teardown & leak hunt (heap delta ≤ 5 MB / 50 transitions)"
+  ]
+}

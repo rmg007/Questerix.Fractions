@@ -1,0 +1,162 @@
+{
+  "total_misconceptions": 19,
+  "triggered_l1_l9": 2,
+  "coverage_percent": 10.5,
+  "untriggered": [
+    "MC-WHB-01",
+    "MC-MAG-01",
+    "MC-PRX-01",
+    "MC-NOM-01",
+    "MC-EOL-02",
+    "MC-EOL-03",
+    "MC-EOL-04",
+    "MC-MAG-02",
+    "MC-PRX-02",
+    "MC-SHP-01",
+    "MC-SHP-02",
+    "MC-VOC-01",
+    "MC-L5-THIRDS-HALF-01",
+    "MC-L5-FOURTHS-3CUTS-01",
+    "MC-L5-DENSWITCH-01",
+    "MC-ORD-01",
+    "MC-STRAT-01"
+  ],
+  "triggered_list": [
+    "MC-EOL-01",
+    "MC-WHB-02"
+  ],
+  "by_archetype": {
+    "Partition": {
+      "count": 0,
+      "misconceptions": [],
+      "note": "No misconception traps defined for any partition questions"
+    },
+    "Identify": {
+      "count": 1,
+      "misconceptions": [
+        "MC-EOL-01"
+      ],
+      "note": "EOL-01 appears in L2-Q3 (3/4) identify question"
+    },
+    "Equal or Not": {
+      "count": 1,
+      "misconceptions": [
+        "MC-EOL-01"
+      ],
+      "note": "EOL-01 in L3 (2 equal_or_not questions)"
+    },
+    "Label": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "Make": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "Snap Match": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "Compare": {
+      "count": 1,
+      "misconceptions": [
+        "MC-WHB-02"
+      ],
+      "note": "WHB-02 in L6–L7 (5 compare questions)"
+    },
+    "Benchmark": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "Order": {
+      "count": 1,
+      "misconceptions": [
+        "MC-WHB-02"
+      ],
+      "note": "WHB-02 in L9 order question (same-numerator ordering)"
+    }
+  },
+  "by_level": {
+    "1": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "2": {
+      "count": 1,
+      "misconceptions": [
+        "MC-EOL-01"
+      ]
+    },
+    "3": {
+      "count": 1,
+      "misconceptions": [
+        "MC-EOL-01"
+      ]
+    },
+    "4": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "5": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "6": {
+      "count": 1,
+      "misconceptions": [
+        "MC-WHB-02"
+      ]
+    },
+    "7": {
+      "count": 1,
+      "misconceptions": [
+        "MC-WHB-02"
+      ]
+    },
+    "8": {
+      "count": 0,
+      "misconceptions": []
+    },
+    "9": {
+      "count": 1,
+      "misconceptions": [
+        "MC-WHB-02"
+      ]
+    }
+  },
+  "gaps_and_observations": {
+    "major_gaps": [
+      "Whole-number bias (WHB-01: numerator) never appears in curriculum traps — only WHB-02 (denominator) is triggered",
+      "All magnitude-blindness misconceptions (MAG-01, MAG-02) have detector rules but no curriculum traps",
+      "Proximity misconceptions (PRX-01, PRX-02) have detectors but zero curriculum coverage",
+      "Shape-based misconceptions (SHP-01, SHP-02) defined but not used",
+      "Vocabulary misconception (VOC-01: Fourth ≠ Quarter) untested",
+      "Denominator-switch and thirds-vs-half misconceptions (L5 specific) untapped"
+    ],
+    "level_coverage": {
+      "L1–L5": "Only EOL-01 (2 questions total); levels 4–5 completely dark",
+      "L6–L9": "Only WHB-02; deliberate gap for compare/order curriculum focus"
+    },
+    "detector_vs_curriculum_mismatch": [
+      {
+        "detector": "MC-WHB-01",
+        "appliesTo": "levels >= 6, compare archetype",
+        "curriculum": "No misconceptionTraps field sets this detector",
+        "reason": "Pipeline did not generate WHB-01 traps (expected: numerator bias on same-numerator comparisons)"
+      },
+      {
+        "detector": "MC-ORD-01",
+        "appliesTo": "levels >= 9, order/ordering archetypes",
+        "curriculum": "No questions set ORD-01 trap",
+        "reason": "Pipeline output for L9 does not include ORD-01 in misconceptionTraps"
+      },
+      {
+        "detector": "MC-STRAT-01",
+        "appliesTo": "levels >= 9, ordering archetype",
+        "curriculum": "No questions set STRAT-01 trap",
+        "reason": "Similar: pipeline did not flag strategy/trial-and-error questions"
+      }
+    ],
+    "recommendation": "Phase 7.2 will regenerate curriculum and re-run this audit; gap may close or confirm intentional triage for MVP scope"
+  }
+}
