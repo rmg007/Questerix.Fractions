@@ -104,6 +104,71 @@ const SYSTEM_COPY: Catalog = {
     notes: 'Accessibility announcement when student completes all levels.',
     tone: 'system',
   },
+
+  // ── Recovery screens ───────────────────────────────────────────────────
+  'recovery.title': {
+    text: 'Something went wrong.',
+    notes: 'Heading shown on the RecoveryScene error recovery screen.',
+    tone: 'system',
+  },
+  'recovery.body': {
+    text: 'Want to try again?',
+    notes: 'Body text shown on the RecoveryScene error recovery screen.',
+    tone: 'system',
+  },
+  'recovery.cta.retry': {
+    text: 'Try again',
+    notes: 'CTA button on RecoveryScene — reloads the originating scene.',
+    tone: 'system',
+  },
+  'recovery.cta.menu': {
+    text: 'Back to menu',
+    notes: 'CTA button on RecoveryScene — returns to MenuScene.',
+    tone: 'system',
+  },
+  'recovery.cta.reload': {
+    text: 'Reload content',
+    notes:
+      'CTA on RecoveryScene curriculum-fail variant — triggers a full page reload to refresh the curriculum bundle.',
+    tone: 'system',
+  },
+  'recovery.curriculum.title': {
+    text: 'Content needs to be reloaded.',
+    notes: 'Heading shown when curriculum schema validation fails at runtime.',
+    tone: 'system',
+  },
+  'recovery.curriculum.body': {
+    text: 'The game content could not load. Tap below to reload.',
+    notes: 'Body text shown when curriculum schema validation fails at runtime.',
+    tone: 'system',
+  },
+
+  // ── DB recovery screen ────────────────────────────────────────────────
+  'db.recovery.title': {
+    text: 'Your progress data looks broken.',
+    notes: 'Heading on the DBRecoveryScene screen when DB integrity probe fails.',
+    tone: 'system',
+  },
+  'db.recovery.body': {
+    text: 'What would you like to do?',
+    notes: 'Body text on the DBRecoveryScene screen.',
+    tone: 'system',
+  },
+  'db.recovery.cta.backup': {
+    text: 'Continue with last backup',
+    notes: 'DBRecoveryScene CTA — routes to the backup restore flow.',
+    tone: 'system',
+  },
+  'db.recovery.cta.fresh': {
+    text: 'Start fresh',
+    notes: 'DBRecoveryScene CTA — deletes the Dexie DB and restarts.',
+    tone: 'system',
+  },
+  'db.recovery.cta.cancel': {
+    text: 'Cancel',
+    notes: 'DBRecoveryScene CTA — returns to BootScene without any change.',
+    tone: 'system',
+  },
 };
 
 registerCatalog(SYSTEM_COPY);

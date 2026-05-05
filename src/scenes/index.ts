@@ -11,3 +11,5 @@ export { Level01Scene } from './Level01Scene';
 export { LevelScene } from './LevelScene';
 export { SettingsScene } from './SettingsScene';
 export { OnboardingScene } from './OnboardingScene';
+export { RecoveryScene } from './RecoveryScene';
+export { DBRecoveryScene } from './DBRecoveryScene';
