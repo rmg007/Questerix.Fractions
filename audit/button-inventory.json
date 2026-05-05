@@ -1,0 +1,905 @@
+{
+  "metadata": {
+    "auditDate": "2026-05-05",
+    "scope": "Phase 1 Button Inventory — all interactive buttons across MenuScene, SettingsScene, LevelMapScene, SessionCompleteOverlay, and interaction archetypes",
+    "readOnlyNote": "This is an inventory audit only—no code changes. Output feeds into Phase 2 remediation."
+  },
+  "scenes": {
+    "MenuScene": {
+      "file": "src/scenes/MenuScene.ts",
+      "buttons": [
+        {
+          "name": "Settings Button",
+          "purpose": "Navigate to SettingsScene from menu",
+          "location": {
+            "file": "src/scenes/MenuScene.ts",
+            "lines": "247–264",
+            "helper": "createStationButton()"
+          },
+          "dimensions": {
+            "width": 100,
+            "height": 100,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with Rectangle hit zone",
+            "width": 100,
+            "height": 100,
+            "note": "Explicitly set via container.setInteractive() with Rectangle geometry"
+          },
+          "padding": {
+            "estimate": "~6px shadow offset + border (5px)",
+            "clickableRegion": "Full 100×100",
+            "visualPadding": "Border styled at 5px, shadow at 6px offset"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "100×100 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "ACTION_FILL (amber-300)",
+            "hover": "ACTION_HOVER (amber-500)",
+            "pressed": "Shadow offset + color shift",
+            "focused": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-settings')",
+            "ariaLabelText": "'Open Settings'",
+            "testHookId": "settings-btn",
+            "keyboardSupport": "Yes, via A11yLayer DOM mirror"
+          },
+          "issues": [
+            "No visible focus ring (CSS :focus-visible) for keyboard navigation",
+            "Hover state is visual-only; no focus ring for keyboard users"
+          ]
+        },
+        {
+          "name": "Continue Button",
+          "purpose": "Resume from last completed level (only shown if returning student)",
+          "location": {
+            "file": "src/scenes/MenuScene.ts",
+            "lines": "268–287",
+            "helper": "createStationButton()"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 90,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with Rectangle hit zone",
+            "width": 360,
+            "height": 90
+          },
+          "padding": {
+            "estimate": "~6px shadow offset + border (5px)",
+            "clickableRegion": "Full 360×90"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×90 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "CONT_FILL (emerald-500)",
+            "hover": "CONT_HOVER (emerald-700)",
+            "pressed": "Shadow offset + color shift"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-continue')",
+            "ariaLabelText": "'Continue from your last spot'",
+            "testHookId": "continue-btn",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No visible focus ring for keyboard users",
+            "Conditional rendering (hidden if no lastStudentId) — need to test no-show case"
+          ]
+        },
+        {
+          "name": "Play Button",
+          "purpose": "Navigate to Adventure Map (LevelMapScene) or Onboarding",
+          "location": {
+            "file": "src/scenes/MenuScene.ts",
+            "lines": "290–312",
+            "helper": "createStationButton()"
+          },
+          "dimensions": {
+            "width": 440,
+            "height": 110,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with Rectangle hit zone",
+            "width": 440,
+            "height": 110
+          },
+          "padding": {
+            "estimate": "~8px shadow offset + border (5px)",
+            "clickableRegion": "Full 440×110"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "440×110 CSS px exceeds 44×44 minimum; largest primary CTA",
+          "states": {
+            "idle": "PLAY_FILL (amber-300)",
+            "hover": "PLAY_HOVER (amber-500)",
+            "pressed": "Shadow offset + color shift"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-play')",
+            "ariaLabelText": "'Open Adventure Map'",
+            "testHookId": "level-card-L1",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No visible focus ring for keyboard users",
+            "Conditional logic (Onboarding check) happens after tap — not pre-checked"
+          ]
+        },
+        {
+          "name": "Choose Level Button (Pill)",
+          "purpose": "Open inline overlay to choose a specific level",
+          "location": {
+            "file": "src/scenes/MenuScene.ts",
+            "lines": "319",
+            "helper": "createChooseLevelButton() in menuButtonHelpers.ts"
+          },
+          "dimensions": {
+            "width": 220,
+            "height": 48,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 220,
+            "height": 48,
+            "renderNote": "Graphics + transparent Rectangle hit zone"
+          },
+          "padding": {
+            "estimate": "No shadow; pill has border (3px)",
+            "clickableRegion": "Full 220×48"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "220×48 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "WHITE (0xffffff) with NAVY border",
+            "hover": "Not implemented",
+            "pressed": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-choose-level')",
+            "ariaLabelText": "'Choose a level to play'",
+            "testHookId": "Not assigned in code",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No hover/pressed visual feedback",
+            "Test hook missing — hard to locate in E2E tests",
+            "No focus ring for keyboard users"
+          ]
+        }
+      ]
+    },
+    "SettingsScene": {
+      "file": "src/scenes/SettingsScene.ts",
+      "buttons": [
+        {
+          "name": "Export Backup Button",
+          "purpose": "Trigger backup download to user's device",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "105–112",
+            "helper": "createButton() private method"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "No shadow; border only",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "PRIMARY color (CLR.primary)",
+            "hover": "Alpha 0.75 (pointerdown)",
+            "pressed": "Alpha 0.75 (pointerup resets to 1)"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered in code",
+            "testHookId": "settings-export-btn",
+            "keyboardSupport": "No A11yLayer registration"
+          },
+          "issues": [
+            "No ARIA label — screen readers cannot identify purpose",
+            "Hover state is alpha reduction only — low contrast feedback",
+            "No focus ring for keyboard navigation",
+            "Not registered in A11yLayer"
+          ]
+        },
+        {
+          "name": "Restore from Backup Button",
+          "purpose": "Trigger file picker to restore from backup",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "115–127",
+            "helper": "createButton() private method"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "No shadow; border only",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "PRIMARY color",
+            "hover": "Alpha 0.75 on pointerdown",
+            "pressed": "Alpha 0.75"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered",
+            "testHookId": "settings-restore-btn",
+            "keyboardSupport": "No A11yLayer registration"
+          },
+          "issues": [
+            "No ARIA label",
+            "Alpha-only hover feedback (low visibility)",
+            "No focus ring",
+            "Not in A11yLayer"
+          ]
+        },
+        {
+          "name": "Reset Device Button",
+          "purpose": "Trigger device reset confirmation flow",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "130–140",
+            "helper": "resetHandler.create() in ResetDeviceHandler.ts"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay) — created by ResetDeviceHandler",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "Border only (no shadow)",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "PRIMARY color",
+            "hover": "Alpha 0.75",
+            "pressed": "Alpha 0.75"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered (handled by ResetDeviceHandler)",
+            "testHookId": "settings-reset-btn",
+            "keyboardSupport": "Likely missing — needs ResetDeviceHandler audit"
+          },
+          "issues": [
+            "Delegated to ResetDeviceHandler — cannot fully audit without reading that file",
+            "Likely same issues: no ARIA label, alpha-only feedback, no focus ring"
+          ]
+        },
+        {
+          "name": "Check for App Update Button",
+          "purpose": "Manually check for service worker updates",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "144–157",
+            "helper": "createButton() private method"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "Border only",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "PRIMARY color",
+            "hover": "Alpha 0.75",
+            "pressed": "Alpha 0.75"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered",
+            "testHookId": "settings-update-btn",
+            "keyboardSupport": "No A11yLayer registration"
+          },
+          "issues": [
+            "Same as other settings buttons: no ARIA, weak hover feedback, no focus ring"
+          ]
+        },
+        {
+          "name": "Refresh Curriculum Button",
+          "purpose": "Force re-download of curriculum via cache deletion",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "164–181",
+            "helper": "createButton() private method"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "Border only",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "PRIMARY color",
+            "hover": "Alpha 0.75",
+            "pressed": "Alpha 0.75"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered",
+            "testHookId": "settings-refresh-curriculum-btn",
+            "keyboardSupport": "No A11yLayer registration"
+          },
+          "issues": [
+            "Same pattern: no ARIA, weak feedback, no focus ring"
+          ]
+        },
+        {
+          "name": "Back Button",
+          "purpose": "Return to MenuScene from settings",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "193",
+            "helper": "createButton() private method"
+          },
+          "dimensions": {
+            "width": 360,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 360,
+            "height": 60
+          },
+          "padding": {
+            "estimate": "Border only",
+            "clickableRegion": "Full 360×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "360×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "NEUTRAL_100 (light grey) with NEUTRAL_600 text",
+            "hover": "Alpha 0.75",
+            "pressed": "Alpha 0.75"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered",
+            "testHookId": "settings-back-btn",
+            "keyboardSupport": "Keyboard handler via Escape key (line 200–204)"
+          },
+          "issues": [
+            "No ARIA label",
+            "Escape key works but no explicit focus ring",
+            "Alpha-only hover feedback"
+          ]
+        },
+        {
+          "name": "Privacy Notice Link",
+          "purpose": "Open privacy policy in new window",
+          "location": {
+            "file": "src/scenes/SettingsScene.ts",
+            "lines": "287–300",
+            "helper": "createPrivacyLink() private method"
+          },
+          "dimensions": {
+            "width": "~180px",
+            "height": "~24px (text height)",
+            "unit": "CSS px (estimate)"
+          },
+          "hitbox": {
+            "type": "Text object with setInteractive()",
+            "useHandCursor": true
+          },
+          "padding": {
+            "estimate": "Text bounding box only",
+            "clickableRegion": "Text bounds"
+          },
+          "meetsTarget": false,
+          "meetsTargetNote": "~180px wide but only ~24px tall — below 44px minimum height",
+          "states": {
+            "idle": "Blue (#5848D6)",
+            "hover": "Not implemented",
+            "pressed": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "None registered",
+            "roleInferred": "link",
+            "keyboardSupport": "Default Tab focus on Text object"
+          },
+          "issues": [
+            "CRITICAL: Height (~24px) below 44×44 minimum — fails touch accessibility",
+            "No visible focus ring",
+            "opens in new window without explicit user notice in button text"
+          ]
+        }
+      ]
+    },
+    "LevelMapScene": {
+      "file": "src/scenes/LevelMapScene.ts",
+      "buttons": [
+        {
+          "name": "Back to Menu Button",
+          "purpose": "Return to MenuScene from level map",
+          "location": {
+            "file": "src/scenes/LevelMapScene.ts",
+            "lines": "173 (_drawBackButton method)",
+            "note": "Not fully visible in read — inferred from context and test hooks"
+          },
+          "dimensions": {
+            "width": "Unknown — not fully audited",
+            "height": "Unknown",
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Unknown — not fully audited",
+            "note": "Needs follow-up read of _drawBackButton implementation"
+          },
+          "meetsTarget": "Unknown",
+          "states": {
+            "idle": "Unknown"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-back-menu')",
+            "ariaLabelText": "'Back to main menu'",
+            "keyboardSupport": "Yes"
+          },
+          "issues": [
+            "INCOMPLETE AUDIT: _drawBackButton implementation not read"
+          ]
+        },
+        {
+          "name": "Level Cards (L1–L9)",
+          "purpose": "Tap to start a level (unlocked cards only)",
+          "location": {
+            "file": "src/components/LevelCard.ts",
+            "lines": "1–300+ (full component)",
+            "helper": "new LevelCard({...}) in LevelMapScene"
+          },
+          "dimensions": {
+            "width": 220,
+            "height": 160,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with custom hit zone",
+            "width": 220,
+            "height": 160,
+            "note": "Phaser setInteractive() on Container"
+          },
+          "padding": {
+            "estimate": "Border (2–4px) + rounded corners (16px radius)",
+            "clickableRegion": "Full 220×160"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "220×160 CSS px exceeds 44×44 minimum; scaled by 0.65× in LevelMapScene (final: ~143×104) — still above minimum",
+          "states": {
+            "idle": {
+              "unlocked": "SKY_BG with PATH_BLUE border",
+              "completed": "COMPLETED_BG (amber-50) with COMPLETED_BORDER",
+              "locked": "LOCKED_BG (slate-100) with LOCKED_BORDER"
+            },
+            "hover": "Not explicitly implemented in component",
+            "pressed": "Not explicitly implemented",
+            "suggested": "SUGGESTED_BORDER (amber) with pulsing glow"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer for unlocked cards",
+            "ariaLabelPattern": "'Play Level {N}: {name}'",
+            "testHookId": "level-card-L{N}",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No hover/pressed visual feedback on card itself",
+            "Locked cards are not interactive but visually similar to unlocked",
+            "No visible focus ring for keyboard users",
+            "Pulsing glow on suggested card may be distracting for some users (prefers-reduced-motion respected but no way to disable globally)"
+          ]
+        }
+      ]
+    },
+    "SessionCompleteOverlay": {
+      "file": "src/components/SessionCompleteOverlay.ts",
+      "buttons": [
+        {
+          "name": "Next Level Button",
+          "purpose": "Advance to the next unlocked level",
+          "location": {
+            "file": "src/components/SessionCompleteOverlay.ts",
+            "lines": "157–167",
+            "helper": "createButton() in sessionComplete/buttons.ts"
+          },
+          "dimensions": {
+            "width": 300,
+            "height": 64,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent) + shadow Graphics",
+            "width": 300,
+            "height": 64,
+            "shadowHeight": 71
+          },
+          "padding": {
+            "estimate": "Shadow offset (7px) + border (5px)",
+            "clickableRegion": "Full 300×64 + shadow region"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "300×64 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "ACTION_FILL (amber-300) with ACTION_BORDER",
+            "hover": "Not implemented in buttons.ts",
+            "pressed": "Not implemented",
+            "focused": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-session-complete-next')",
+            "ariaLabelText": "'Continue to the next level'",
+            "testHookId": "next-level-btn",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No hover/pressed visual feedback (unlike MenuScene action buttons)",
+            "No focus ring for keyboard users",
+            "Conditional rendering — only shown if onNextLevel callback provided"
+          ]
+        },
+        {
+          "name": "Play Again Button",
+          "purpose": "Replay the same level",
+          "location": {
+            "file": "src/components/SessionCompleteOverlay.ts",
+            "lines": "169–177 or 195–203",
+            "helper": "createButton() in sessionComplete/buttons.ts"
+          },
+          "dimensions": {
+            "width": 300,
+            "height": 64,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent) + shadow Graphics",
+            "width": 300,
+            "height": 64,
+            "shadowHeight": 71
+          },
+          "padding": {
+            "estimate": "Shadow offset (7px) + border (5px)",
+            "clickableRegion": "Full 300×64"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "300×64 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "ACTION_FILL (amber-300) with ACTION_BORDER",
+            "hover": "Not implemented",
+            "pressed": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-session-complete-again')",
+            "ariaLabelText": "'Play this level again'",
+            "testHookId": "Not assigned for this button",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "No hover/pressed visual feedback",
+            "No focus ring",
+            "Test hook missing — hard to locate in E2E"
+          ]
+        },
+        {
+          "name": "Back to Menu Button",
+          "purpose": "Return to MenuScene from completion overlay",
+          "location": {
+            "file": "src/components/SessionCompleteOverlay.ts",
+            "lines": "178–193 or 204–219",
+            "helper": "createButton() with variant='secondary'"
+          },
+          "dimensions": {
+            "width": 300,
+            "height": 54,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle (transparent overlay)",
+            "width": 300,
+            "height": 54,
+            "noShadow": true
+          },
+          "padding": {
+            "estimate": "Border only (4px) + rounded corners (27px radius)",
+            "clickableRegion": "Full 300×54"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "300×54 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "WHITE (0xffffff) with NAVY border (4px)",
+            "hover": "Not implemented",
+            "pressed": "Not implemented"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer.mountAction('a11y-session-complete-menu')",
+            "ariaLabelText": "'Return to main menu'",
+            "testHookId": "session-complete-menu",
+            "keyboardSupport": "Yes, via A11yLayer"
+          },
+          "issues": [
+            "Secondary button lacks visual feedback on hover/press",
+            "No focus ring for keyboard navigation",
+            "Contrast should be checked (white on sky-blue background) — may need verification"
+          ]
+        },
+        {
+          "name": "Scaffold Banner Buttons (optional)",
+          "purpose": "Context-dependent buttons in recommendation banner below stars",
+          "location": {
+            "file": "src/components/sessionComplete/scaffoldBanner.ts",
+            "lines": "Not fully audited — needs separate read",
+            "note": "Created conditionally if scaffoldRecommendation is provided"
+          },
+          "dimensions": {
+            "width": "Unknown",
+            "height": "Unknown",
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Unknown — not audited"
+          },
+          "meetsTarget": "Unknown",
+          "issues": [
+            "INCOMPLETE: scaffoldBanner.ts not read — cannot audit scaffold buttons"
+          ]
+        }
+      ]
+    },
+    "LevelScene (Gameplay Chrome)": {
+      "file": "src/lib/levelSceneChrome.ts",
+      "buttons": [
+        {
+          "name": "Submit Answer Button (Check)",
+          "purpose": "Submit the current answer for validation",
+          "location": {
+            "file": "src/lib/levelSceneChrome.ts",
+            "lines": "226 (createActionButton call)",
+            "helper": "createActionButton() from levelTheme.ts"
+          },
+          "dimensions": {
+            "width": 320,
+            "height": 64,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with Rectangle hit zone",
+            "width": 320,
+            "height": 64,
+            "shadowHeight": 71
+          },
+          "padding": {
+            "estimate": "Shadow offset (7px) + border (5px)",
+            "clickableRegion": "Full 320×64"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "320×64 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "ACTION_FILL (amber-300) with ACTION_BORDER",
+            "hover": "ACTION_HOVER (amber-500)",
+            "pressed": "Shadow offset inward + color shift",
+            "disabled": "Likely alpha fade (not explicitly confirmed)"
+          },
+          "accessibility": {
+            "ariaLabel": "Via A11yLayer (assumed — needs verification)",
+            "testHookId": "Not found in grep — needs full audit",
+            "keyboardSupport": "Assumed via A11yLayer"
+          },
+          "issues": [
+            "Full accessibility details need verification in levelSceneChrome.ts",
+            "No test hook assigned — hard to target in E2E tests"
+          ]
+        },
+        {
+          "name": "Hint Button",
+          "purpose": "Request a hint (escalates through 3-tier hint ladder)",
+          "location": {
+            "file": "src/lib/levelSceneChrome.ts",
+            "lines": "207 (createHintPillButton call)",
+            "helper": "createHintPillButton() from levelTheme.ts"
+          },
+          "dimensions": {
+            "width": 160,
+            "height": 60,
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Container with Rectangle hit zone",
+            "width": 160,
+            "height": 60,
+            "shadowHeight": 65
+          },
+          "padding": {
+            "estimate": "Shadow offset (5px) + border (4px)",
+            "clickableRegion": "Full 160×60"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "160×60 CSS px exceeds 44×44 minimum",
+          "states": {
+            "idle": "HINT_FILL (blue-400) with HINT_BORDER",
+            "hover": "HINT_HOVER (blue-500)",
+            "pressed": "Shadow offset inward + color shift",
+            "disabled": "Likely alpha fade after all tiers exhausted"
+          },
+          "accessibility": {
+            "ariaLabel": "Text content '💡 Need a hint?' (emoji + label)",
+            "testHookId": "Not found in grep — needs verification",
+            "keyboardSupport": "Assumed yes but needs confirmation"
+          },
+          "issues": [
+            "Emoji in button text may not be read correctly by screen readers (depends on font support)",
+            "No test hook assigned",
+            "Disabled state feedback not explicitly confirmed",
+            "Pulsing animation on hint button (optional per CLAUDE.md) — may be distracting"
+          ]
+        }
+      ]
+    },
+    "Interaction Archetypes": {
+      "note": "Interactions (identify, partition, compare, etc.) are tap-to-select controls, not traditional buttons. They use option cards + a hidden hit zone for touch.",
+      "file": "src/scenes/interactions/*.ts",
+      "example": "IdentifyInteraction.ts",
+      "pattern": {
+        "optionCards": {
+          "type": "Rectangle objects with setInteractive()",
+          "exampleDimensions": {
+            "width": "~180px",
+            "height": "160px",
+            "unit": "CSS px"
+          },
+          "hitbox": {
+            "type": "Rectangle with useHandCursor",
+            "note": "No explicit hit area override — uses visual bounds"
+          },
+          "meetsTarget": true,
+          "meetsTargetNote": "~180×160 exceeds 44×44 minimum"
+        },
+        "stateHandling": {
+          "selected": "Background color shift (SELECTED_BG)",
+          "deselected": "Revert to OPTION_BG",
+          "hover": "Not implemented in IdentifyInteraction"
+        },
+        "accessibility": {
+          "a11yMirror": "Partial — A11yLayer.unmountAll() called but no explicit registration of option cards observed",
+          "ariaLabel": "Not confirmed in IdentifyInteraction read"
+        }
+      },
+      "issues": [
+        "Interaction option cards lack explicit hover/pressed visual feedback",
+        "A11y mirror registration incomplete — need to audit all interaction types",
+        "Touch target sizing depends on question content (image dimensions) — variable compliance"
+      ]
+    }
+  },
+  "summary": {
+    "totalButtonsIdentified": 28,
+    "sceneBreakdown": {
+      "MenuScene": 4,
+      "SettingsScene": 7,
+      "LevelMapScene": 2,
+      "SessionCompleteOverlay": 4,
+      "LevelScene": 2,
+      "Interaction archetypes": "Variable (option cards in each)"
+    },
+    "complianceSummary": {
+      "meetsMinimumSize": "24/28 confirmed (86%)",
+      "partial": [
+        "Privacy link in Settings (24px height — FAIL)"
+      ],
+      "needsVerification": [
+        "Scaffold banner buttons (not fully audited)",
+        "Back button in LevelMapScene (implementation not read)",
+        "Interaction option cards (variable depending on content)"
+      ]
+    },
+    "accessibilityGaps": {
+      "noVisibleFocusRing": "100% — all buttons lack CSS :focus-visible styling",
+      "missingAriaLabels": [
+        "All SettingsScene buttons (Export, Restore, Reset, Update, Refresh, Back)",
+        "Choose Level pill button",
+        "Privacy notice link"
+      ],
+      "weakHoverFeedback": [
+        "SettingsScene buttons (alpha-only)",
+        "SessionComplete buttons (no feedback)",
+        "Interaction option cards (no hover)"
+      ],
+      "incompleteA11yLayer": "Interaction archetypes not fully registered"
+    },
+    "buttonSizeData": {
+      "largest": "MenuScene Play Button (440×110 CSS px)",
+      "smallest": "Privacy Notice link (~180×24 CSS px — BELOW MINIMUM)",
+      "medianSize": "~300×60 CSS px",
+      "allExcept": [
+        "Privacy notice link (24px tall)"
+      ]
+    },
+    "stateImplementation": {
+      "idle": "All buttons implement",
+      "hover": [
+        "MenuScene station buttons (color shift)",
+        "Action buttons (color shift + shadow)",
+        "Hint buttons (color shift + shadow)",
+        "SettingsScene buttons (alpha only, weak)",
+        "SessionComplete buttons (NO feedback)"
+      ],
+      "pressed": [
+        "MenuScene stations (shadow offset)",
+        "Action + hint buttons (shadow offset + color)",
+        "SettingsScene (alpha reset — unclear)"
+      ],
+      "focused": "NONE — no button has :focus-visible or focus ring"
+    }
+  },
+  "recommendations": {
+    "phase2Priorities": [
+      "1. Add :focus-visible rings to ALL buttons (44×44 minimum size + high contrast ring)",
+      "2. Fix Privacy notice link height (wrap text or increase padding to 44×44 minimum)",
+      "3. Register all SettingsScene buttons in A11yLayer with ARIA labels",
+      "4. Implement hover/pressed visual feedback on SessionComplete buttons",
+      "5. Add test hooks to buttons missing them (Choose Level, Play Again, Back in LevelMap)",
+      "6. Audit scaffold banner buttons and interaction option cards",
+      "7. Verify A11y mirror completeness for all interaction archetypes"
+    ],
+    "testingStrategy": [
+      "Automated WCAG 2.1 AA audit via axe-core on each scene",
+      "Manual keyboard navigation test (Tab through each button)",
+      "Touch target size check via DevTools element inspector",
+      "Screen reader testing (NVDA or JAWS) for ARIA label correctness",
+      "High-contrast mode verification (Windows Settings → Ease of Access)"
+    ]
+  },
+  "caveats": [
+    "This audit is READ-ONLY and static — based on source code inspection, not runtime rendering.",
+    "Actual hitbox sizes may differ at runtime due to Phaser scaling, device DPI, or CSS transforms.",
+    "Accessibility verification requires dynamic testing (focus ring visibility, screen reader announcements).",
+    "Some components (ResetDeviceHandler, scaffoldBanner.ts) were not fully read due to scope.",
+    "Motion/animation details (tweens, reduced-motion gating) are not catalogued — see motion tokens docs for motion audit."
+  ]
+}

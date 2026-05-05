@@ -186,9 +186,11 @@ export async function renderStreakDisplay(
  */
 export function createChooseLevelButton(scene: Phaser.Scene, onTap: () => void): void {
   const bx = STATION_X;
-  const by = PLAY_Y + 90;
-  const W = 220,
-    H = 48;
+  const by = PLAY_Y + 100;
+  // H raised from 48 → 100 canvas px so that at 360 px viewport (scale ≈ 0.45)
+  // the CSS touch target is ≥ 44 px (WCAG 2.5.5).
+  const W = 240,
+    H = 100;
 
   const g = scene.add.graphics().setDepth(16);
   g.fillStyle(WHITE, 0.9);

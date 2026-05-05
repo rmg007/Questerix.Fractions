@@ -16,6 +16,8 @@ import {
   SELECTED_BG,
   TEXT_ON_FILL,
 } from '../utils/levelTheme';
+import { markInputEvent } from '../../lib/perf/traceInput';
+import { tween, Duration, Ease } from '../utils/motion';
 
 const SHAPE_W = 400;
 const SHAPE_H = 520;
@@ -42,6 +44,9 @@ export class MakeInteraction implements Interaction {
   private _cx = 0;
   private _cy = 0;
   private _overlayGfx: Phaser.GameObjects.Graphics[] = [];
+  // PERF: Cache line endpoints so updateLine avoids recomputing each pointermove.
+  private _lineTop = 0;
+  private _lineBottom = 0;
 
   mount(ctx: InteractionContext): void {
     A11yLayer.unmountAll();
@@ -58,6 +63,9 @@ export class MakeInteraction implements Interaction {
     this.handlePos = centerX;
     this.phase = 'partition';
     this.shadedRegions = new Set();
+    // PERF: Cache line endpoints once on mount — avoids re-computing each pointermove.
+    this._lineTop = centerY - SHAPE_H / 2 - 20;
+    this._lineBottom = centerY + SHAPE_H / 2 + 20;
 
     const shapeG = scene.add.graphics().setDepth(5);
     this.drawShape(shapeG, shapeType, centerX, centerY);
@@ -82,6 +90,8 @@ export class MakeInteraction implements Interaction {
       snapThreshold: SHAPE_W * SNAP_PCT,
       snapTargets,
       onMove: (pos) => {
+        // PERF: markInputEvent at start of each drag move for P95 latency tracking.
+        if (import.meta.env.DEV) markInputEvent('make');
         this.handlePos = pos;
         this.updateLine(pos, centerY);
       },
@@ -191,20 +201,14 @@ export class MakeInteraction implements Interaction {
       this._cy + SHAPE_H / 2 + 20
     );
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => {
-        overlay.destroy();
-      });
-    } else {
-      this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({
-          targets: overlay,
-          alpha: 0,
-          duration: 400,
-          onComplete: () => overlay.destroy(),
-        });
-      });
-    }
+    this._scene.time.delayedCall(3000, () => {
+      tween(
+        this._scene,
+        overlay,
+        { alpha: 0 },
+        { duration: Duration.base, ease: Ease.out, onComplete: () => overlay.destroy() }
+      );
+    });
   }
 
   private drawShape(
@@ -225,9 +229,11 @@ export class MakeInteraction implements Interaction {
     }
   }
 
-  private updateLine(x: number, cy: number): void {
+  private updateLine(x: number, _cy: number): void {
+    // PERF: Use cached _lineTop/_lineBottom (set once in mount) to eliminate
+    // per-move arithmetic. Shape layer (shapeG) is never touched during drag.
     this.partitionLine.clear();
     this.partitionLine.lineStyle(4, NAVY, 1);
-    this.partitionLine.lineBetween(x, cy - SHAPE_H / 2 - 20, x, cy + SHAPE_H / 2 + 20);
+    this.partitionLine.lineBetween(x, this._lineTop, x, this._lineBottom);
   }
 }

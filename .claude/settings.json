@@ -136,6 +136,30 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-consolidate memory at session end\nmkdir -p ~/.claude/projects/C--dev-Questerix-Fractions/memory && echo 'Session ended — memory consolidation available via /consolidate-memory skill' >&2; exit 0",
+            "statusMessage": "Session wrap-up..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "if": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run sync:claude-md 2>&1 | grep -E '(synced|regenerated|updated|ERROR)' || echo 'sync:claude-md ran'",
+            "statusMessage": "Syncing CLAUDE.md tables..."
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash",

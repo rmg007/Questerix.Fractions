@@ -139,7 +139,7 @@ describe('mastery transition: NOT_STARTED → LEARNING → APPROACHING → MASTE
     const { sessionRepo } = await import('../../src/persistence/repositories/session');
     const { SessionId, ActivityId, QuestionTemplateId } = await import('../../src/types');
 
-    await studentRepo.create({
+    await studentRepo.createRaw({
       id: STUDENT,
       displayName: 'Test',
       avatarConfig: {},
@@ -200,7 +200,7 @@ describe('mastery transition: NOT_STARTED → LEARNING → APPROACHING → MASTE
     const { studentRepo } = await import('../../src/persistence/repositories/student');
     const { SessionId, ActivityId } = await import('../../src/types');
 
-    await studentRepo.create({
+    await studentRepo.createRaw({
       id: STUDENT,
       displayName: 'Test',
       avatarConfig: {},

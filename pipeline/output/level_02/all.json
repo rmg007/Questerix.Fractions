@@ -90,9 +90,9 @@
     "prompt": { "text": "Which picture shows 1/2 (one half)?", "ttsKey": "q_id_l2_0003" },
     "payload": {
       "options": [
-        { "alt": "Circle split into 2 equal parts, 1 shaded" },
-        { "alt": "Circle split into 4 equal parts, 1 shaded" },
-        { "alt": "Circle fully shaded (whole)" }
+        { "alt": "Circle split into 2 equal parts, 1 shaded", "partitionLines": [[[0.5, 0], [0.5, 1]]], "highlightedRegions": [0] },
+        { "alt": "Circle split into 4 equal parts, 1 shaded", "partitionLines": [[[0.5, 0], [0.5, 1]], [[0, 0.5], [1, 0.5]]], "highlightedRegions": [0] },
+        { "alt": "Circle fully shaded (whole)", "partitionLines": [], "highlightedRegions": [0] }
       ],
       "targetIndex": 0
     },

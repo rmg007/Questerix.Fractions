@@ -32,6 +32,9 @@ import { DragHandle } from '../components/DragHandle';
 import { Mascot } from '../components/Mascot';
 import { tts } from '../audio/TTSService';
 import { fadeAndStart } from './utils/sceneTransition';
+import { applyState } from './utils/states';
+import { tween, Duration, Ease } from './utils/motion';
+import { Gesture } from './utils/interaction';
 
 // ── Onboarding completion gate ────────────────────────────────────────────────
 // Backed by `DeviceMeta.onboardingComplete` in IndexedDB (per C5; v7 schema).
@@ -77,6 +80,7 @@ export class OnboardingScene extends Phaser.Scene {
   private actionBtn!: Phaser.GameObjects.Container;
   private handPointer!: Phaser.GameObjects.Text;
   private skipText!: Phaser.GameObjects.Text;
+  private skipHitZone!: Phaser.GameObjects.Rectangle;
   // T9: timers and tweens for Step 1 demo — stored so tap-to-skip can cancel them
   private watchTimers: Phaser.Time.TimerEvent[] = [];
   private demoTween: Phaser.Tweens.Tween | null = null;
@@ -177,6 +181,9 @@ export class OnboardingScene extends Phaser.Scene {
     this.actionBtn.setAlpha(0); // hidden until step 2
 
     // ── Skip link ─────────────────────────────────────────────────────────────
+    // Fix (Phase 2): bare Text.setInteractive() had ~20px hit height — below 44×44
+    // minimum. Now uses a transparent Zone (≥200×44) with press feedback and
+    // double-tap debounce per Gesture.doubleTapWindowMs.
     this.skipText = this.add
       .text(CW / 2, CH - 90, 'Skip tutorial', {
         fontSize: '20px',
@@ -185,8 +192,8 @@ export class OnboardingScene extends Phaser.Scene {
         padding: { x: 12, y: 12 },
       })
       .setOrigin(0.5)
-      .setDepth(35)
-      .setInteractive({ useHandCursor: true });
+      .setDepth(35);
+    // Text is now visual-only; interaction is on the hitZone below.
 
     // Subtle navy underline/border
     const skipUnderline = this.add.graphics().setDepth(5);
@@ -198,7 +205,27 @@ export class OnboardingScene extends Phaser.Scene {
       CH - 90 + this.skipText.height / 2 - 8
     );
 
-    this.skipText.on('pointerup', () => this.completeOnboarding());
+    // Padded transparent hit zone — 200×100 canvas px → 90×45 CSS px at 360 vp
+    // (≥ 44 CSS px per WCAG 2.5.5; previous 44 canvas → 20 CSS px was non-compliant).
+    const SKIP_HIT_W = 200;
+    const SKIP_HIT_H = 100;
+    this.skipHitZone = this.add
+      .rectangle(CW / 2, CH - 90, SKIP_HIT_W, SKIP_HIT_H, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(36);
+
+    let skipLastTapAt = 0;
+    this.skipHitZone.on('pointerdown', () => {
+      const now = Date.now();
+      if (now - skipLastTapAt < Gesture.doubleTapWindowMs) return;
+      skipLastTapAt = now;
+      applyState(this.skipHitZone, 'pressed', this);
+    });
+    this.skipHitZone.on('pointerup', () => {
+      this.time.delayedCall(100, () => applyState(this.skipHitZone, 'idle', this));
+      this.completeOnboarding();
+    });
+    this.skipHitZone.on('pointerout', () => applyState(this.skipHitZone, 'idle', this));
 
     // ── Accessibility ─────────────────────────────────────────────────────────
     A11yLayer.unmountAll();
@@ -336,23 +363,26 @@ export class OnboardingScene extends Phaser.Scene {
     }
 
     const tweenProxy = { x: startX };
-    this.demoTween = this.tweens.add({
-      targets: tweenProxy,
-      x: endX,
-      duration: 1600,
-      ease: 'Sine.easeInOut',
-      onUpdate: () => {
-        this.handlePos = tweenProxy.x;
-        this.updatePartitionLine(tweenProxy.x);
-        this.handPointer.setPosition(tweenProxy.x, handY);
-      },
-      onComplete: () => {
-        this.demoTween = null;
-        this.mascot.setState('cheer');
-        // Pause on the correct position so the student sees success
-        this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
-      },
-    });
+    this.demoTween = tween(
+      this,
+      tweenProxy,
+      { x: endX },
+      {
+        duration: Duration.ceremony + 1000, // 1600 ms — slow enough for K–2 to follow
+        ease: Ease.bounce,
+        onUpdate: () => {
+          this.handlePos = tweenProxy.x;
+          this.updatePartitionLine(tweenProxy.x);
+          this.handPointer.setPosition(tweenProxy.x, handY);
+        },
+        onComplete: () => {
+          this.demoTween = null;
+          this.mascot.setState('cheer');
+          // Pause on the correct position so the student sees success
+          this.watchTimers.push(this.time.delayedCall(1400, () => this.afterDemoComplete()));
+        },
+      }
+    );
   }
 
   private afterDemoComplete(): void {
@@ -391,7 +421,7 @@ export class OnboardingScene extends Phaser.Scene {
     this.createDragHandle();
 
     // Show action button
-    this.tweens.add({ targets: this.actionBtn, alpha: 1, duration: 300 });
+    tween(this, this.actionBtn, { alpha: 1 }, { duration: Duration.base });
   }
 
   private createDragHandle(): void {
@@ -478,6 +508,7 @@ export class OnboardingScene extends Phaser.Scene {
 
     // Hide skip — no longer needed once tutorial is complete
     this.skipText.setVisible(false);
+    this.skipHitZone.setVisible(false).disableInteractive();
   }
 
   // ── Step dots ─────────────────────────────────────────────────────────────

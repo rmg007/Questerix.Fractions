@@ -87,7 +87,7 @@ export async function loadQuestion(
   }
   callbacks.setCurrentTemplate(template);
   ctx.currentTemplate = template;
-  const hintLadder = new HintLadder(template.difficultyTier);
+  const hintLadder = new HintLadder(template.difficultyTier, template.hints);
   callbacks.setHintLadder(hintLadder);
   ctx.hintLadder = hintLadder;
 

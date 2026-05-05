@@ -16,6 +16,10 @@
       {
         "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
         "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+      },
+      {
+        "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='add'][callee.object.property.name='tweens']",
+        "message": "Use tween() from src/scenes/utils/motion.ts instead of tweens.add() directly to ensure reduced-motion compliance and consistent motion tokens."
       }
     ]
   },
@@ -24,6 +28,36 @@
       "files": ["src/components/Mascot.ts"],
       "rules": {
         "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["src/**/*.ts"],
+      "excludedFiles": ["src/scenes/utils/motion.ts", "src/scenes/utils/motion.test.ts", "src/components/Mascot.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
+            "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+          },
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='add'][callee.object.property.name='tweens']",
+            "message": "Use tween() from src/scenes/utils/motion.ts instead of tweens.add() directly to ensure reduced-motion compliance and consistent motion tokens. (Phase 5 migration work)"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/scenes/utils/motion.ts", "src/scenes/utils/motion.test.ts", "src/scenes/utils/states.ts", "src/scenes/utils/states.test.ts", "src/scenes/utils/feedbackBus.ts", "src/scenes/utils/feedbackBus.test.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.type='MemberExpression'][callee.property.name='idle']",
+            "message": "Call mascot.setState('idle') instead of mascot.idle() directly so the DOM sentinel is always updated."
+          }
+        ],
+        "@typescript-eslint/no-explicit-any": "off"
       }
     },
     {

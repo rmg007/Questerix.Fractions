@@ -20,10 +20,22 @@ import { fadeAndStart } from './utils/sceneTransition';
 import { Mascot } from '../components/Mascot';
 import { checkReduceMotion } from '../lib/preferences';
 import { sfx } from '../audio';
+import { RecoveryBus } from '../lib/recovery/recoveryBus';
+import {
+  loaderEvents,
+  getLastCurriculumLoadFailure,
+  clearLastCurriculumLoadFailure,
+} from '../curriculum/loader';
 
 interface PreloadData {
   lastStudentId: string | null;
 }
+
+/** Maximum asset-load retry attempts before routing to RecoveryScene. */
+const MAX_LOAD_RETRIES = 3;
+
+/** Exponential backoff delays in ms: 1s, 2s, 4s */
+const RETRY_DELAYS = [1000, 2000, 4000];
 
 // Logical canvas dimensions — per design-language.md §8.2
 const CW = 800;
@@ -34,6 +46,10 @@ export class PreloadScene extends Phaser.Scene {
   private loadingText!: Phaser.GameObjects.Text;
   private loadingDotsEvent?: Phaser.Time.TimerEvent;
   private lastStudentId: string | null = null;
+  /** Count of asset-load errors encountered in the current load batch. */
+  private loadErrorCount = 0;
+  /** Retry attempt index (0-based). */
+  private retryCount = 0;
 
   constructor() {
     super({ key: 'PreloadScene' });
@@ -45,6 +61,48 @@ export class PreloadScene extends Phaser.Scene {
 
   preload(): void {
     this.createProgressUI();
+
+    // ── Load error handler with exponential-backoff retry ─────────────────
+    // Distinguishes critical assets (those with 'curriculum' or 'v1.json' in
+    // their URL) from cosmetic assets. After MAX_LOAD_RETRIES failures, routes
+    // to RecoveryScene. Non-critical failures warn and continue.
+    this.load.on('loaderror', (file: Phaser.Loader.File) => {
+      const fileUrl = typeof file.url === 'string' ? file.url : '';
+      const isCurriculumFile = fileUrl.includes('curriculum') || fileUrl.includes('v1.json');
+
+      if (isCurriculumFile) {
+        this.loadErrorCount++;
+        console.warn(
+          `[PreloadScene] Curriculum load error (attempt ${this.retryCount + 1}): ${fileUrl}`
+        );
+        if (this.retryCount < MAX_LOAD_RETRIES) {
+          const delay = RETRY_DELAYS[this.retryCount] ?? 4000;
+          this.retryCount++;
+          console.info(`[PreloadScene] Retrying curriculum load in ${delay}ms…`);
+          // Re-queue the same file by key + url via Phaser's typed loader methods.
+          // We use 'json' since curriculum bundle is a JSON file.
+          const fileKey = file.key as string;
+          this.time.delayedCall(delay, () => {
+            this.load.json(fileKey, fileUrl);
+            this.load.start();
+          });
+        } else {
+          const error = new Error(
+            `Curriculum load failed after ${MAX_LOAD_RETRIES} retries: ${fileUrl}`
+          );
+          RecoveryBus.report({ kind: 'curriculum-fail', error, scene: 'PreloadScene' });
+          this.scene.start('RecoveryScene', {
+            kind: 'curriculum-fail',
+            error,
+            scene: 'PreloadScene',
+            curriculumFail: true,
+          });
+        }
+      } else {
+        // Cosmetic asset failure — warn and continue, do not block game start
+        console.warn(`[PreloadScene] Non-critical asset load error (ignoring): ${fileUrl}`);
+      }
+    });
 
     // Wire Phaser load progress events
     this.load.on('progress', (value: number) => {
@@ -185,6 +243,42 @@ export class PreloadScene extends Phaser.Scene {
   create(): void {
     const preloadCreateStart = performance.now();
     sfx.preload();
+
+    // ── Phase 4: Check for boot-time curriculum failure ───────────────────
+    // The curriculum loader fires before this scene exists. Poll the cached
+    // failure slot and react if the boot-time load (via BootScene.seedIfEmpty)
+    // failed and the bundled fallback was also unusable.
+    const bootFailure = getLastCurriculumLoadFailure();
+    if (bootFailure) {
+      clearLastCurriculumLoadFailure();
+      const error = new Error(`Curriculum load failed at boot: ${bootFailure.message}`);
+      RecoveryBus.report({ kind: 'curriculum-fail', error, scene: 'PreloadScene' });
+      this.scene.start('RecoveryScene', {
+        kind: 'curriculum-fail',
+        error,
+        scene: 'PreloadScene',
+        curriculumFail: true,
+      });
+      return;
+    }
+
+    // Subscribe to future curriculum failures surfaced by the loader during this scene's lifetime
+    const onCurriculumFail = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { message: string };
+      const error = new Error(`Curriculum schema failure: ${detail?.message ?? 'unknown'}`);
+      RecoveryBus.report({ kind: 'curriculum-fail', error, scene: 'PreloadScene' });
+      this.scene.start('RecoveryScene', {
+        kind: 'curriculum-fail',
+        error,
+        scene: 'PreloadScene',
+        curriculumFail: true,
+      });
+    };
+    loaderEvents.addEventListener('curriculumLoadFailed', onCurriculumFail);
+    this.events.once('shutdown', () => {
+      loaderEvents.removeEventListener('curriculumLoadFailed', onCurriculumFail);
+    });
+
     // Fade in from black as the scene becomes ready
     this.cameras.main.fadeIn(300, 0, 0, 0);
 

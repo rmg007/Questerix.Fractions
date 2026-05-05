@@ -8,6 +8,8 @@ import * as Phaser from 'phaser';
 import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { markInputEvent } from '../../lib/perf/traceInput';
+import { tween, Duration, Ease } from '../utils/motion';
 import {
   ACCENT_C,
   CHOICE_YES,
@@ -124,6 +126,9 @@ export class SnapMatchInteraction implements Interaction {
       card.setData('originY', ly);
 
       card.on('drag', (_p: unknown, dx: number, dy: number) => {
+        // PERF: markInputEvent for P95 latency tracking; no validation during drag —
+        // snap evaluation is deferred entirely to dragend.
+        if (import.meta.env.DEV) markInputEvent('snap_match');
         card.setPosition(dx, dy);
         txt.setPosition(dx, dy);
       });
@@ -208,19 +213,13 @@ export class SnapMatchInteraction implements Interaction {
     overlay.lineBetween(arrowEnd, midY, arrowEnd - 10, midY + 7);
 
     this._overlayGfx.push(overlay);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this._scene.time.delayedCall(3000, () => {
-        overlay.destroy();
-      });
-    } else {
-      this._scene.time.delayedCall(3000, () => {
-        this._scene.tweens.add({
-          targets: overlay,
-          alpha: 0,
-          duration: 400,
-          onComplete: () => overlay.destroy(),
-        });
-      });
-    }
+    this._scene.time.delayedCall(3000, () => {
+      tween(
+        this._scene,
+        overlay,
+        { alpha: 0 },
+        { duration: Duration.base, ease: Ease.out, onComplete: () => overlay.destroy() }
+      );
+    });
   }
 }

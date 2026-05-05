@@ -1,9 +1,11 @@
 /**
- * ProgressBar — session progress indicator shown as 5 collectible stars.
+ * ProgressBar — session progress indicator shown as 5 collectible stars,
+ * plus per-skill mastery chips displayed below the stars.
  * per interaction-model.md §6.2 (per-session success), C9 (5+ problems per session)
  * per design-language.md §6.4 (reduced motion), task-25 (star redesign)
  *
  * Stars display ☆ (empty) → ★ (filled) as the student answers correctly.
+ * Skill chips show UNSEEN (grey) / LEARNING (yellow) / MASTERED (green) state.
  * The "N / 5" numeric label is removed in favour of an accessible aria-label
  * on the sentinel element so the display stays clean for K-2 learners.
  */
@@ -12,6 +14,20 @@ import * as Phaser from 'phaser';
 import { TITLE_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { checkReduceMotion } from '../lib/preferences';
+import type { ChipState, SkillSummaryEntry } from '../persistence/repositories/skillMastery';
+
+// ── Chip appearance ─────────────────────────────────────────────────────────
+const CHIP_SIZE = 24; // canvas px — display-only, not interactive
+const CHIP_GAP = 6;
+const CHIP_Y_OFFSET = 48; // below the star row
+const CHIP_MAX_VISIBLE = 5;
+const CHIP_COLOR: Record<ChipState, number> = {
+  UNSEEN: 0x9ca3af, // grey-400
+  LEARNING: 0xfbbf24, // amber-400
+  MASTERED: 0x22c55e, // green-500
+};
+const CHIP_ALPHA_UNSEEN = 0.55;
+const CHIP_ANIMATE_MS = 180;
 
 export interface ProgressBarConfig {
   scene: Phaser.Scene;
@@ -38,6 +54,14 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private readonly goal: number;
   private sentinel: HTMLElement | null = null;
   private activeTweens: Phaser.Tweens.Tween[] = [];
+
+  // ── Skill chips ──────────────────────────────────────────────────────────
+  /** Chip graphics objects, one per visible skill (max CHIP_MAX_VISIBLE). */
+  private chipGraphics: Phaser.GameObjects.Graphics[] = [];
+  /** Current chip states, cached to detect transitions. */
+  private chipStates: ChipState[] = [];
+  /** Overflow "+N" text when there are more skills than chips. */
+  private overflowText: Phaser.GameObjects.Text | null = null;
 
   constructor(config: ProgressBarConfig) {
     const { scene, x, y, width, goal = DEFAULT_GOAL, depth = 10 } = config;
@@ -118,6 +142,90 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     }
   }
 
+  /**
+   * Update skill chips from a LevelMasterySummary.
+   * Renders up to CHIP_MAX_VISIBLE chips; shows "+N" for overflow.
+   * LEARNING→MASTERED transition gets a brief success scale flash.
+   * Display-only — chips are not interactive (24×24 px is below touch-target minimum).
+   */
+  updateSkillChips(skills: SkillSummaryEntry[], totalSkillCount?: number): void {
+    const visible = skills.slice(0, CHIP_MAX_VISIBLE);
+    const overflow = (totalSkillCount ?? skills.length) - visible.length;
+    const reduceMotion = checkReduceMotion();
+
+    // Width available for chips: evenly spaced across the bar width.
+    const barWidth = this.width > 0 ? this.width : 400;
+    const chipAreaWidth = Math.min(
+      barWidth,
+      visible.length * (CHIP_SIZE + CHIP_GAP) + (overflow > 0 ? CHIP_SIZE + CHIP_GAP : 0)
+    );
+    const startX = (barWidth - chipAreaWidth) / 2;
+
+    // Lazily create or reuse chip graphics.
+    while (this.chipGraphics.length < visible.length) {
+      const g = this.scene.add.graphics();
+      this.add(g);
+      this.chipGraphics.push(g);
+    }
+
+    // Update each chip.
+    visible.forEach((entry, i) => {
+      const prevState = this.chipStates[i];
+      const g = this.chipGraphics[i]!;
+      const cx = startX + i * (CHIP_SIZE + CHIP_GAP);
+      const cy = CHIP_Y_OFFSET;
+
+      g.clear();
+      g.fillStyle(CHIP_COLOR[entry.state], entry.state === 'UNSEEN' ? CHIP_ALPHA_UNSEEN : 1);
+      g.fillRoundedRect(cx, cy, CHIP_SIZE, CHIP_SIZE, 6);
+
+      // Flash animation on LEARNING→MASTERED transition.
+      if (!reduceMotion && prevState === 'LEARNING' && entry.state === 'MASTERED') {
+        g.setScale(0.7);
+        const tween = this.scene.tweens.add({
+          targets: g,
+          scale: 1,
+          duration: CHIP_ANIMATE_MS,
+          ease: 'Back.easeOut',
+          onComplete: () => {
+            this.activeTweens = this.activeTweens.filter((t) => t !== tween);
+          },
+        });
+        this.activeTweens.push(tween);
+      } else {
+        g.setScale(1);
+      }
+
+      this.chipStates[i] = entry.state;
+    });
+
+    // Hide any excess chip graphics.
+    for (let i = visible.length; i < this.chipGraphics.length; i++) {
+      this.chipGraphics[i]!.clear();
+      this.chipGraphics[i]!.setScale(1);
+    }
+
+    // Overflow "+N" chip.
+    if (overflow > 0) {
+      const ox = startX + visible.length * (CHIP_SIZE + CHIP_GAP);
+      if (!this.overflowText) {
+        this.overflowText = this.scene.add
+          .text(ox, CHIP_Y_OFFSET + CHIP_SIZE / 2, '', {
+            fontFamily: TITLE_FONT,
+            fontSize: '14px',
+            color: '#9ca3af',
+          })
+          .setOrigin(0, 0.5);
+        this.add(this.overflowText);
+      }
+      this.overflowText.setText(`+${overflow}`);
+      this.overflowText.setX(ox);
+      this.overflowText.setVisible(true);
+    } else if (this.overflowText) {
+      this.overflowText.setVisible(false);
+    }
+  }
+
   get value(): number {
     return this.currentValue;
   }
@@ -130,6 +238,8 @@ export class ProgressBar extends Phaser.GameObjects.Container {
       tween.remove();
     }
     this.activeTweens = [];
+    // Chip graphics and overflowText are children of the container and will be
+    // destroyed by super.destroy(true) below — no need to call destroy() manually.
     super.destroy();
   }
 }

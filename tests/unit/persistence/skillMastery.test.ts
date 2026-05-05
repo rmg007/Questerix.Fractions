@@ -1,13 +1,25 @@
 /**
- * Unit tests for skillMasteryRepo.
+ * Unit tests for skillMasteryRepo and selectLevelMasterySummary.
  * Uses fake-indexeddb (imported in tests/setup.ts) for a real Dexie instance in Node.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../../../src/persistence/db';
-import { skillMasteryRepo } from '../../../src/persistence/repositories/skillMastery';
-import { StudentId, SkillId } from '../../../src/types/branded';
-import type { SkillMastery } from '../../../src/types';
+import {
+  skillMasteryRepo,
+  selectLevelMasterySummary,
+  toChipState,
+} from '../../../src/persistence/repositories/skillMastery';
+import {
+  StudentId,
+  SkillId,
+  LevelId,
+  AttemptId,
+  SessionId,
+  MisconceptionFlagId,
+  MisconceptionId,
+} from '../../../src/types/branded';
+import type { SkillMastery, Attempt, MisconceptionFlag } from '../../../src/types';
 
 // ── Test fixtures ─────────────────────────────────────────────────────────
 
@@ -169,5 +181,211 @@ describe('skillMasteryRepo', () => {
         skillMasteryRepo.delete(StudentId('nobody'), SkillId('SK-99'))
       ).resolves.toBeUndefined();
     });
+  });
+});
+
+// ── toChipState ───────────────────────────────────────────────────────────────
+
+describe('toChipState', () => {
+  it('maps NOT_STARTED to UNSEEN', () => {
+    expect(toChipState('NOT_STARTED')).toBe('UNSEEN');
+  });
+  it('maps DECAYED to UNSEEN', () => {
+    expect(toChipState('DECAYED')).toBe('UNSEEN');
+  });
+  it('maps LEARNING to LEARNING', () => {
+    expect(toChipState('LEARNING')).toBe('LEARNING');
+  });
+  it('maps APPROACHING to LEARNING', () => {
+    expect(toChipState('APPROACHING')).toBe('LEARNING');
+  });
+  it('maps MASTERED to MASTERED', () => {
+    expect(toChipState('MASTERED')).toBe('MASTERED');
+  });
+});
+
+// ── selectLevelMasterySummary ─────────────────────────────────────────────────
+
+const LEVEL_STUDENT = StudentId('summary-student-001');
+const LEVEL_1 = 1 as unknown as LevelId;
+const SKILL_A = SkillId('SK-01');
+const SKILL_B = SkillId('SK-02');
+
+function makeLevelAttempt(overrides: Partial<Attempt> = {}): Attempt {
+  return {
+    id: AttemptId(crypto.randomUUID()),
+    sessionId: SessionId('sess-summary-001'),
+    studentId: LEVEL_STUDENT,
+    questionTemplateId: 'q:part:L1:0001' as import('../../../src/types').QuestionTemplateId,
+    archetype: 'partition' as import('../../../src/types').ArchetypeId,
+    roundNumber: 1,
+    attemptNumber: 1,
+    startedAt: Date.now() - 5000,
+    submittedAt: Date.now(),
+    responseMs: 5000,
+    studentAnswerRaw: null,
+    correctAnswerRaw: null,
+    outcome: 'EXACT',
+    errorMagnitude: null,
+    pointsEarned: 10,
+    hintsUsedIds: [],
+    hintsUsed: [],
+    flaggedMisconceptionIds: [],
+    validatorPayload: null,
+    syncState: 'local',
+    skillIds: [SKILL_A as unknown as string],
+    ...overrides,
+  };
+}
+
+function makeLevelMastery(
+  skillId: SkillId,
+  state: SkillMastery['state'],
+  estimate: number
+): SkillMastery {
+  return {
+    studentId: LEVEL_STUDENT,
+    skillId,
+    compositeKey: [LEVEL_STUDENT, skillId],
+    masteryEstimate: estimate,
+    state,
+    consecutiveCorrectUnassisted: state === 'MASTERED' ? 3 : 0,
+    totalAttempts: 3,
+    correctAttempts: state === 'MASTERED' ? 3 : 1,
+    lastAttemptAt: Date.now(),
+    masteredAt: state === 'MASTERED' ? Date.now() : null,
+    decayedAt: null,
+    syncState: 'local',
+  };
+}
+
+describe('selectLevelMasterySummary', () => {
+  beforeEach(async () => {
+    await db.attempts.where('studentId').equals(LEVEL_STUDENT).delete();
+    await db.skillMastery.where('studentId').equals(LEVEL_STUDENT).delete();
+    await db.misconceptionFlags
+      .where('[studentId+misconceptionId]')
+      .between([LEVEL_STUDENT, '\x00'], [LEVEL_STUDENT, '\xFF'])
+      .delete();
+  });
+
+  it('returns empty summary when no attempts exist', async () => {
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.questionsAnswered).toBe(0);
+    expect(summary.questionsCorrect).toBe(0);
+    expect(summary.skills).toHaveLength(0);
+  });
+
+  it('counts answered and correct questions from level attempts', async () => {
+    await db.attempts.bulkAdd([
+      makeLevelAttempt({ outcome: 'EXACT' }),
+      makeLevelAttempt({ outcome: 'EXACT' }),
+      makeLevelAttempt({ outcome: 'WRONG' }),
+    ]);
+    await db.skillMastery.put(makeLevelMastery(SKILL_A, 'LEARNING', 0.5));
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.questionsAnswered).toBe(3);
+    expect(summary.questionsCorrect).toBe(2);
+  });
+
+  it('shows LEARNING chip for partial mastery', async () => {
+    await db.attempts.add(makeLevelAttempt({ outcome: 'EXACT' }));
+    await db.skillMastery.put(makeLevelMastery(SKILL_A, 'LEARNING', 0.5));
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.state).toBe('LEARNING');
+  });
+
+  it('shows MASTERED chip when mastery row has MASTERED state', async () => {
+    await db.attempts.add(makeLevelAttempt({ outcome: 'EXACT' }));
+    await db.skillMastery.put(makeLevelMastery(SKILL_A, 'MASTERED', 0.92));
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.state).toBe('MASTERED');
+  });
+
+  it('shows UNSEEN when no mastery row exists for a skill', async () => {
+    await db.attempts.add(makeLevelAttempt({ outcome: 'EXACT' }));
+    // No mastery row inserted
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.state).toBe('UNSEEN');
+  });
+
+  it('includes corrected misconception in the skill entry', async () => {
+    const attemptId = AttemptId(crypto.randomUUID());
+    await db.attempts.add(makeLevelAttempt({ id: attemptId, outcome: 'WRONG' }));
+
+    const flag: MisconceptionFlag = {
+      id: MisconceptionFlagId(crypto.randomUUID()),
+      studentId: LEVEL_STUDENT,
+      misconceptionId: MisconceptionId('MC-WHB-01'),
+      firstObservedAt: Date.now() - 10000,
+      lastObservedAt: Date.now(),
+      observationCount: 1,
+      resolvedAt: Date.now(), // corrected
+      evidenceAttemptIds: [attemptId],
+      syncState: 'local',
+    };
+    await db.misconceptionFlags.add(flag);
+    await db.skillMastery.put(makeLevelMastery(SKILL_A, 'LEARNING', 0.4));
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.misconceptions).toHaveLength(1);
+    expect(summary.skills[0]!.misconceptions[0]!.corrected).toBe(true);
+    expect(summary.skills[0]!.misconceptions[0]!.code).toBe('MC-WHB-01');
+  });
+
+  it('marks uncorrected misconception as corrected=false', async () => {
+    const attemptId = AttemptId(crypto.randomUUID());
+    await db.attempts.add(makeLevelAttempt({ id: attemptId, outcome: 'WRONG' }));
+
+    const flag: MisconceptionFlag = {
+      id: MisconceptionFlagId(crypto.randomUUID()),
+      studentId: LEVEL_STUDENT,
+      misconceptionId: MisconceptionId('MC-WHB-01'),
+      firstObservedAt: Date.now() - 10000,
+      lastObservedAt: Date.now(),
+      observationCount: 1,
+      resolvedAt: null,
+      evidenceAttemptIds: [attemptId],
+      syncState: 'local',
+    };
+    await db.misconceptionFlags.add(flag);
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.misconceptions[0]!.corrected).toBe(false);
+  });
+
+  it('handles full mastery: two skills both MASTERED', async () => {
+    await db.attempts.bulkAdd([
+      makeLevelAttempt({ outcome: 'EXACT', skillIds: [SKILL_A as unknown as string] }),
+      makeLevelAttempt({
+        questionTemplateId: 'q:part:L1:0002' as import('../../../src/types').QuestionTemplateId,
+        outcome: 'EXACT',
+        skillIds: [SKILL_B as unknown as string],
+      }),
+    ]);
+    await db.skillMastery.bulkPut([
+      makeLevelMastery(SKILL_A, 'MASTERED', 0.92),
+      makeLevelMastery(SKILL_B, 'MASTERED', 0.88),
+    ]);
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills).toHaveLength(2);
+    expect(summary.skills.every((s) => s.state === 'MASTERED')).toBe(true);
+    expect(summary.questionsCorrect).toBe(2);
+  });
+
+  it('computes assistedCount from attempts with hintsUsed', async () => {
+    await db.attempts.bulkAdd([
+      makeLevelAttempt({ outcome: 'EXACT', hintsUsed: ['verbal'] }),
+      makeLevelAttempt({ outcome: 'EXACT', hintsUsed: [] }),
+    ]);
+    await db.skillMastery.put(makeLevelMastery(SKILL_A, 'LEARNING', 0.6));
+
+    const summary = await selectLevelMasterySummary(LEVEL_STUDENT, LEVEL_1);
+    expect(summary.skills[0]!.assistedCount).toBe(1);
   });
 });

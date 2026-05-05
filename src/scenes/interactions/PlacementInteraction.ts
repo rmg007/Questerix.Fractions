@@ -8,6 +8,7 @@ import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel, NumberLine } from './utils';
 import type { Interaction, InteractionContext } from './types';
 import { NAVY, TEXT_BODY } from '../utils/levelTheme';
+import { markInputEvent } from '../../lib/perf/traceInput';
 
 interface PlacementPayload {
   targetFracId?: string;
@@ -87,19 +88,22 @@ export class PlacementInteraction implements Interaction {
     const correctValue = frac.n / frac.d;
     const initialMarker = correctValue < 0.5 ? 1 : 0;
     this.line.setMarker(initialMarker);
+    // PERF: Call enableDrag exactly once. The previous code called it twice, causing
+    // two dragend handlers to fire and double-committing on every drop. Merged into a
+    // single callback that tracks lastPlacedValue and marks the input event.
+    let lastPlacedValue = initialMarker;
     const submitPlacement = (value: number) => {
+      if (import.meta.env.DEV) markInputEvent('placement');
+      lastPlacedValue = value;
       onCommit({ placedDecimal: value, exactTolerance: exactTol, closeTolerance: closeTol });
     };
     this.line.enableDrag(submitPlacement);
-    let lastPlacedValue = initialMarker;
-    const wrappedDrag = (value: number) => {
-      lastPlacedValue = value;
-      submitPlacement(value);
-    };
-    // Re-wrap the drag with our tracking wrapper
-    this.line.enableDrag(wrappedDrag);
     A11yLayer.mountAction('a11y-placement-submit', 'Place marker on number line', () => {
-      submitPlacement(lastPlacedValue);
+      onCommit({
+        placedDecimal: lastPlacedValue,
+        exactTolerance: exactTol,
+        closeTolerance: closeTol,
+      });
     });
 
     // Instruction label

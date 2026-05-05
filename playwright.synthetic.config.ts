@@ -2,14 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'tests/synthetic',
-  testMatch: 'playtest.spec.ts',
+  testMatch: /(playtest|glitch-playtest)\.spec\.ts/,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5000',
   },
   webServer: {
     command: 'npm run dev:app',
-    port: 5173,
+    port: 5000,
     reuseExistingServer: !process.env['CI'],
     timeout: 30_000,
   },

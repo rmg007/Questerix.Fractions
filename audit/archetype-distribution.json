@@ -1,0 +1,89 @@
+{
+  "audit_date": "2026-05-05",
+  "target_criteria": {
+    "archetypes_per_level": 3,
+    "questions_per_archetype": 5
+  },
+  "summary": "ALL 9 LEVELS REQUIRE EXPANSION: 7 levels have only 1 archetype; 2 levels have 2; 0 levels meet the 3-archetype target. Question depth also thin in L1–L3 (3–4 per archetype). This is foundational Phase 1 data for Plan 13 expansion roadmap.",
+  "level_1": {
+    "name": "Halves",
+    "partition": 3,
+    "total_archetypes": 1,
+    "total_questions": 3,
+    "gaps": ["Only 1 archetype (need 3+)", "Only 3 questions for partition (need 5+)"]
+  },
+  "level_2": {
+    "name": "Halves Depth",
+    "identify": 3,
+    "partition": 3,
+    "total_archetypes": 2,
+    "total_questions": 6,
+    "gaps": ["Only 2 archetypes (need 3+)", "Identify has only 3 questions (need 5+)", "Partition has only 3 questions (need 5+)"]
+  },
+  "level_3": {
+    "name": "Thirds & Fourths",
+    "equal_or_not": 4,
+    "label": 2,
+    "total_archetypes": 2,
+    "total_questions": 6,
+    "gaps": ["Only 2 archetypes (need 3+)", "Label has only 2 questions (need 5+)"]
+  },
+  "level_4": {
+    "name": "Make Halves",
+    "make": 6,
+    "total_archetypes": 1,
+    "total_questions": 6,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "level_5": {
+    "name": "Make Thirds & Fourths",
+    "snap_match": 5,
+    "total_archetypes": 1,
+    "total_questions": 5,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "level_6": {
+    "name": "Compare Same Denom.",
+    "compare": 6,
+    "total_archetypes": 1,
+    "total_questions": 6,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "level_7": {
+    "name": "Compare Same Num.",
+    "compare": 6,
+    "total_archetypes": 1,
+    "total_questions": 6,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "level_8": {
+    "name": "Benchmarks",
+    "benchmark": 6,
+    "total_archetypes": 1,
+    "total_questions": 6,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "level_9": {
+    "name": "Order Fractions",
+    "order": 6,
+    "total_archetypes": 1,
+    "total_questions": 6,
+    "gaps": ["Only 1 archetype (need 3+)"]
+  },
+  "expansion_priorities": {
+    "phase_1_critical": [
+      "L1 (Halves): monolithic partition → needs identify + label + comparison variants",
+      "L2 (Halves Depth): needs third archetype to reach minimum; both existing archetypes below 5-q threshold",
+      "L3 (Thirds & Fourths): label archetype severely thin (2 q); needs 3+ more questions + third archetype"
+    ],
+    "phase_2_bottleneck": [
+      "L4–L5 (Make): currently solo make archetype per level; injecting snap_match and compare variants would deepen mastery before L6 transition",
+      "L6–L7 (Compare): single-archetype levels; adding benchmark + ordering variants could scaffold same-denom → same-numerator transition"
+    ],
+    "phase_3_capstone": [
+      "L8 (Benchmarks): thin on comparison and ordering prep",
+      "L9 (Order): only order questions; should include benchmark + mixed compare to solidify capstone skills"
+    ]
+  },
+  "notes": "Current curriculum is archetype-narrow (each level teaches one main interaction) but question-thin within each archetype (3–6 questions vs target 5+). Phase 1 of Plan 13 should: (1) expand L1–L3 question counts within existing archetypes, (2) add 1–2 new archetypes per level, (3) reorder archetypes pedagogically so prerequisites appear before dependents."
+}

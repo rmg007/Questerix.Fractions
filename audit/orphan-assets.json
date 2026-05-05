@@ -1,0 +1,122 @@
+{
+  "audit_date": "2026-05-05",
+  "audit_scope": "public/ and src/assets/ against src/** imports",
+  "summary": {
+    "total_assets_on_disk": 75,
+    "actively_used": 11,
+    "orphan_assets": 64,
+    "asset_breakdown": {
+      "audio_ogg": 64,
+      "fonts_woff2": 5,
+      "icons_png": 8
+    },
+    "used_breakdown": {
+      "audio_ogg": 6,
+      "fonts_woff2": 5,
+      "icons_png": 2
+    }
+  },
+  "used_assets": {
+    "audio": [
+      "public/audio/sfx/phaserUp1.ogg",
+      "public/audio/sfx/phaserDown1.ogg",
+      "public/audio/sfx/powerUp11.ogg",
+      "public/audio/sfx/powerUp12.ogg",
+      "public/audio/sfx/threeTone1.ogg",
+      "public/audio/sfx/pepSound1.ogg"
+    ],
+    "fonts": [
+      "public/fonts/nunito-400.woff2",
+      "public/fonts/nunito-700.woff2",
+      "public/fonts/fredoka-one-400.woff2",
+      "public/fonts/lexend-400.woff2",
+      "public/fonts/lexend-600.woff2"
+    ],
+    "icons": [
+      "public/icons/favicon-32.png",
+      "public/icons/apple-touch-icon.png"
+    ]
+  },
+  "orphan_assets": {
+    "audio_ogg": [
+      "public/audio/sfx/highDown.ogg",
+      "public/audio/sfx/highUp.ogg",
+      "public/audio/sfx/laser1.ogg",
+      "public/audio/sfx/laser2.ogg",
+      "public/audio/sfx/laser3.ogg",
+      "public/audio/sfx/laser4.ogg",
+      "public/audio/sfx/laser5.ogg",
+      "public/audio/sfx/laser6.ogg",
+      "public/audio/sfx/laser7.ogg",
+      "public/audio/sfx/laser8.ogg",
+      "public/audio/sfx/laser9.ogg",
+      "public/audio/sfx/lowDown.ogg",
+      "public/audio/sfx/lowRandom.ogg",
+      "public/audio/sfx/lowThreeTone.ogg",
+      "public/audio/sfx/pepSound2.ogg",
+      "public/audio/sfx/pepSound3.ogg",
+      "public/audio/sfx/pepSound4.ogg",
+      "public/audio/sfx/pepSound5.ogg",
+      "public/audio/sfx/phaseJump1.ogg",
+      "public/audio/sfx/phaseJump2.ogg",
+      "public/audio/sfx/phaseJump3.ogg",
+      "public/audio/sfx/phaseJump4.ogg",
+      "public/audio/sfx/phaseJump5.ogg",
+      "public/audio/sfx/phaserDown2.ogg",
+      "public/audio/sfx/phaserDown3.ogg",
+      "public/audio/sfx/phaserUp2.ogg",
+      "public/audio/sfx/phaserUp3.ogg",
+      "public/audio/sfx/phaserUp4.ogg",
+      "public/audio/sfx/phaserUp5.ogg",
+      "public/audio/sfx/phaserUp6.ogg",
+      "public/audio/sfx/phaserUp7.ogg",
+      "public/audio/sfx/powerUp1.ogg",
+      "public/audio/sfx/powerUp10.ogg",
+      "public/audio/sfx/powerUp2.ogg",
+      "public/audio/sfx/powerUp3.ogg",
+      "public/audio/sfx/powerUp4.ogg",
+      "public/audio/sfx/powerUp5.ogg",
+      "public/audio/sfx/powerUp6.ogg",
+      "public/audio/sfx/powerUp7.ogg",
+      "public/audio/sfx/powerUp8.ogg",
+      "public/audio/sfx/powerUp9.ogg",
+      "public/audio/sfx/spaceTrash1.ogg",
+      "public/audio/sfx/spaceTrash2.ogg",
+      "public/audio/sfx/spaceTrash3.ogg",
+      "public/audio/sfx/spaceTrash4.ogg",
+      "public/audio/sfx/spaceTrash5.ogg",
+      "public/audio/sfx/threeTone2.ogg",
+      "public/audio/sfx/tone1.ogg",
+      "public/audio/sfx/twoTone1.ogg",
+      "public/audio/sfx/twoTone2.ogg",
+      "public/audio/sfx/zap1.ogg",
+      "public/audio/sfx/zap2.ogg",
+      "public/audio/sfx/zapThreeToneDown.ogg",
+      "public/audio/sfx/zapThreeToneUp.ogg",
+      "public/audio/sfx/zapTwoTone.ogg",
+      "public/audio/sfx/zapTwoTone2.ogg"
+    ],
+    "icons_png_and_pwa_assets": [
+      "public/icons/icon-192-maskable.png",
+      "public/icons/icon-192.png",
+      "public/icons/icon-512-maskable.png",
+      "public/icons/icon-512.png",
+      "public/screenshots/mobile-540x720.png",
+      "public/screenshots/tablet-1024x768.png"
+    ]
+  },
+  "notes": {
+    "audio_ogg": "SFXService (src/audio/SFXService.ts) lists SFX_FILES constant with only 6 keys (correct, incorrect, complete, perfectFanfare, streak, snap). All other .ogg files appear to be legacy assets from earlier prototypes or sound design iterations. Safe to remove in Phase 3.",
+    "icons_png": "favicon-32.png and apple-touch-icon.png are referenced in index.html (lines 14-15) as manifest icons. The remaining 6 icons (icon-192*, icon-512*, and screenshots) are PWA manifest placeholders and documentation assets — not referenced in HTML but are standard PWA bundle files. Retention recommended for PWA robustness.",
+    "fonts_woff2": "All fonts declared in src/styles/index.css @font-face rules (lines 8-42). All 5 fonts are used; none are orphans."
+  },
+  "recommendations": {
+    "phase_3_action": [
+      "Audio orphans (58 .ogg files): most are likely intentional legacy assets retained for future feature work (e.g., tone.ogg, zap*.ogg may be for future interaction types or UI sounds). Do NOT auto-delete without curriculum/design review.",
+      "PWA icons (icon-192*, icon-512* + screenshots): are standard PWA manifest assets and are not 'orphaned' — retain for PWA robustness and documentation. No deletion recommended.",
+      "Once decision is made to delete audio orphans, batch-delete via git or manual deletion. Verify no curriculum specs or hidden comments reference the deleted files."
+    ],
+    "bundle_impact": "58 orphan .ogg files × ~30–50 KB each = ~1.7–2.9 MB of wasted disk space. Runtime impact: 0 KB (SFXService only preloads SFX_FILES list, not all *.ogg in folder). Safe to defer deletion to Phase 3 cleanup pass.",
+    "false_positives": "PWA icons (6 files) and screenshots (2 files) are correctly retained despite not being explicitly imported in TypeScript — they are referenced in manifest.json and are essential PWA bundle files."
+  }
+}

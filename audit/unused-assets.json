@@ -1,0 +1,828 @@
+{
+  "auditDate": "2026-05-05",
+  "summary": {
+    "totalAssets": 82,
+    "confirmedUsed": 78,
+    "dynamicallyConstructed": 0,
+    "definitelyUnreferenced": 4
+  },
+  "confirmedUsed": [
+    {
+      "relativePath": "public/audio/sfx/highDown.ogg",
+      "filename": "highDown.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/highUp.ogg",
+      "filename": "highUp.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser1.ogg",
+      "filename": "laser1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser2.ogg",
+      "filename": "laser2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser3.ogg",
+      "filename": "laser3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser4.ogg",
+      "filename": "laser4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser5.ogg",
+      "filename": "laser5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser6.ogg",
+      "filename": "laser6.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser7.ogg",
+      "filename": "laser7.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser8.ogg",
+      "filename": "laser8.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/laser9.ogg",
+      "filename": "laser9.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/lowDown.ogg",
+      "filename": "lowDown.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/lowRandom.ogg",
+      "filename": "lowRandom.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/lowThreeTone.ogg",
+      "filename": "lowThreeTone.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/pepSound1.ogg",
+      "filename": "pepSound1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/pepSound2.ogg",
+      "filename": "pepSound2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/pepSound3.ogg",
+      "filename": "pepSound3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/pepSound4.ogg",
+      "filename": "pepSound4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/pepSound5.ogg",
+      "filename": "pepSound5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaseJump1.ogg",
+      "filename": "phaseJump1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaseJump2.ogg",
+      "filename": "phaseJump2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaseJump3.ogg",
+      "filename": "phaseJump3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaseJump4.ogg",
+      "filename": "phaseJump4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaseJump5.ogg",
+      "filename": "phaseJump5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserDown1.ogg",
+      "filename": "phaserDown1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserDown2.ogg",
+      "filename": "phaserDown2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserDown3.ogg",
+      "filename": "phaserDown3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp1.ogg",
+      "filename": "phaserUp1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp2.ogg",
+      "filename": "phaserUp2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp3.ogg",
+      "filename": "phaserUp3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp4.ogg",
+      "filename": "phaserUp4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp5.ogg",
+      "filename": "phaserUp5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp6.ogg",
+      "filename": "phaserUp6.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/phaserUp7.ogg",
+      "filename": "phaserUp7.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp1.ogg",
+      "filename": "powerUp1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp10.ogg",
+      "filename": "powerUp10.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp11.ogg",
+      "filename": "powerUp11.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp12.ogg",
+      "filename": "powerUp12.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp2.ogg",
+      "filename": "powerUp2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp3.ogg",
+      "filename": "powerUp3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp4.ogg",
+      "filename": "powerUp4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp5.ogg",
+      "filename": "powerUp5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp6.ogg",
+      "filename": "powerUp6.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp7.ogg",
+      "filename": "powerUp7.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp8.ogg",
+      "filename": "powerUp8.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/powerUp9.ogg",
+      "filename": "powerUp9.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/spaceTrash1.ogg",
+      "filename": "spaceTrash1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/spaceTrash2.ogg",
+      "filename": "spaceTrash2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/spaceTrash3.ogg",
+      "filename": "spaceTrash3.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/spaceTrash4.ogg",
+      "filename": "spaceTrash4.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/spaceTrash5.ogg",
+      "filename": "spaceTrash5.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/threeTone1.ogg",
+      "filename": "threeTone1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/threeTone2.ogg",
+      "filename": "threeTone2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/tone1.ogg",
+      "filename": "tone1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/twoTone1.ogg",
+      "filename": "twoTone1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/twoTone2.ogg",
+      "filename": "twoTone2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zap1.ogg",
+      "filename": "zap1.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zap2.ogg",
+      "filename": "zap2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zapThreeToneDown.ogg",
+      "filename": "zapThreeToneDown.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zapThreeToneUp.ogg",
+      "filename": "zapThreeToneUp.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zapTwoTone.ogg",
+      "filename": "zapTwoTone.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/audio/sfx/zapTwoTone2.ogg",
+      "filename": "zapTwoTone2.ogg",
+      "type": "audio",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/audio/SFXService.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/fonts/fredoka-one-400.woff2",
+      "filename": "fredoka-one-400.woff2",
+      "type": "font",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/styles/index.css"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/fonts/lexend-400.woff2",
+      "filename": "lexend-400.woff2",
+      "type": "font",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/styles/index.css"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/fonts/lexend-600.woff2",
+      "filename": "lexend-600.woff2",
+      "type": "font",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/styles/index.css"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/fonts/LICENSE-Lexend.txt",
+      "filename": "LICENSE-Lexend.txt",
+      "type": "other",
+      "status": "confirmed-used",
+      "usedBy": [
+        "(license/documentation)"
+      ],
+      "notes": "Informational/license file kept alongside assets"
+    },
+    {
+      "relativePath": "public/fonts/LICENSE-Nunito.txt",
+      "filename": "LICENSE-Nunito.txt",
+      "type": "other",
+      "status": "confirmed-used",
+      "usedBy": [
+        "(license/documentation)"
+      ],
+      "notes": "Informational/license file kept alongside assets"
+    },
+    {
+      "relativePath": "public/fonts/nunito-400.woff2",
+      "filename": "nunito-400.woff2",
+      "type": "font",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/styles/fonts.css",
+        "src/styles/index.css"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/fonts/nunito-700.woff2",
+      "filename": "nunito-700.woff2",
+      "type": "font",
+      "status": "confirmed-used",
+      "usedBy": [
+        "src/styles/fonts.css",
+        "src/styles/index.css"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/icons/apple-touch-icon.png",
+      "filename": "apple-touch-icon.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "index.html"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/icons/favicon-32.png",
+      "filename": "favicon-32.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "index.html"
+      ],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/icons/icon-192-maskable.png",
+      "filename": "icon-192-maskable.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    },
+    {
+      "relativePath": "public/icons/icon-192.png",
+      "filename": "icon-192.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    },
+    {
+      "relativePath": "public/icons/icon-512-maskable.png",
+      "filename": "icon-512-maskable.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    },
+    {
+      "relativePath": "public/icons/icon-512.png",
+      "filename": "icon-512.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    },
+    {
+      "relativePath": "public/robots.txt",
+      "filename": "robots.txt",
+      "type": "other",
+      "status": "confirmed-used",
+      "usedBy": [
+        "(license/documentation)"
+      ],
+      "notes": "Informational/license file kept alongside assets"
+    },
+    {
+      "relativePath": "public/screenshots/mobile-540x720.png",
+      "filename": "mobile-540x720.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    },
+    {
+      "relativePath": "public/screenshots/tablet-1024x768.png",
+      "filename": "tablet-1024x768.png",
+      "type": "image",
+      "status": "confirmed-used",
+      "usedBy": [
+        "vite.config.ts"
+      ],
+      "notes": "Referenced via vite.config.ts glob pattern (PWA includeAssets)"
+    }
+  ],
+  "dynamicallyConstructed": [],
+  "definitelyUnreferenced": [
+    {
+      "relativePath": "public/about.html",
+      "filename": "about.html",
+      "type": "other",
+      "status": "definitely-unreferenced",
+      "usedBy": [],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/privacy.html",
+      "filename": "privacy.html",
+      "type": "other",
+      "status": "definitely-unreferenced",
+      "usedBy": [],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/_headers",
+      "filename": "_headers",
+      "type": "other",
+      "status": "definitely-unreferenced",
+      "usedBy": [],
+      "notes": ""
+    },
+    {
+      "relativePath": "public/_redirects",
+      "filename": "_redirects",
+      "type": "other",
+      "status": "definitely-unreferenced",
+      "usedBy": [],
+      "notes": ""
+    }
+  ]
+}

@@ -28,6 +28,11 @@ export interface OutcomeFlowContext {
   hintLadder: HintLadder | null;
   mascot: Mascot | null;
   activeInteraction: Interaction | null;
+  /**
+   * Optional student ID — when present, chip state is refreshed from the DB
+   * after each answer (non-blocking fire-and-forget).
+   */
+  studentId?: string | null;
 }
 
 export interface OutcomeFlowCallbacks {
@@ -43,6 +48,28 @@ export interface OutcomeFlowCallbacks {
   onHintRequest: () => Promise<void>;
   pulseHintButton: () => void;
   showHintForTier: (tier: HintTier) => void;
+}
+
+/**
+ * Fire-and-forget chip refresh — reads mastery summary from DB and pushes it
+ * to the ProgressBar. Non-blocking: never awaited in the hot render path.
+ * Silently swallows errors so a DB hiccup never breaks gameplay.
+ */
+function refreshProgressBarChips(
+  progressBar: ProgressBar,
+  studentId: string,
+  levelNumber: number
+): void {
+  Promise.all([import('@/persistence/repositories/skillMastery'), import('@/types/branded')])
+    .then(([{ selectLevelMasterySummary }, { StudentId, LevelId }]) =>
+      selectLevelMasterySummary(StudentId(studentId), LevelId(levelNumber))
+    )
+    .then((summary) => {
+      progressBar.updateSkillChips(summary.skills);
+    })
+    .catch(() => {
+      // Non-critical — silently ignore DB errors in chip refresh
+    });
 }
 
 function payloadDenominator(template: QuestionTemplate): number | null {
@@ -122,6 +149,11 @@ export async function showOutcome(
         ? 'Almost! Try a tiny adjustment.'
         : 'Not quite — try again.');
   AccessibilityAnnouncer.announce(announcement);
+
+  // Refresh skill chips non-blocking after each answer (Phase 4).
+  if (ctx.studentId) {
+    refreshProgressBarChips(ctx.progressBar, ctx.studentId, ctx.levelNumber);
+  }
 }
 
 export async function onCorrectAnswer(

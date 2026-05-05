@@ -36,7 +36,9 @@ export function createButton(config: ButtonConfig): Phaser.GameObjects.GameObjec
     config;
   const isPrimary = variant === 'primary';
   const W = 300;
-  const H = isPrimary ? 64 : 54;
+  // H raised from 64/54 → 100 canvas px so that at 360 px viewport (scale ≈ 0.45)
+  // the CSS touch target is ≥ 44 px (WCAG 2.5.5; previous 64 → 29 CSS, 54 → 24 CSS).
+  const H = 100;
   const R = isPrimary ? 32 : 27;
   const SHADOW = isPrimary ? 7 : 0;
 

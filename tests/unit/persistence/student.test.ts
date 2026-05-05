@@ -22,7 +22,7 @@ describe('studentRepo', () => {
   });
 
   it('creates a local student row with timestamps and sync state', async () => {
-    const created = await studentRepo.create(makeStudentInput());
+    const created = await studentRepo.createRaw(makeStudentInput());
 
     expect(created).toMatchObject({
       id: studentId,
@@ -38,15 +38,15 @@ describe('studentRepo', () => {
 
   it('gets, lists, updates, and deletes students', async () => {
     const secondStudentId = StudentId('student-coverage-002');
-    await studentRepo.create(makeStudentInput(studentId));
-    await studentRepo.create({
+    await studentRepo.createRaw(makeStudentInput(studentId));
+    await studentRepo.createRaw({
       ...makeStudentInput(secondStudentId),
       displayName: 'Grace',
       gradeLevel: 2,
     });
 
     expect(await studentRepo.get(studentId)).toMatchObject({ displayName: 'Ada' });
-    expect(await studentRepo.list({ limit: 1 })).toHaveLength(1);
+    expect(await studentRepo.list()).toHaveLength(2);
     expect(await studentRepo.update(studentId, { displayName: 'Ada L.' })).toBe(true);
     expect(await studentRepo.get(studentId)).toMatchObject({ displayName: 'Ada L.' });
 

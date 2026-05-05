@@ -104,6 +104,32 @@ export function detectWHB02(
 }
 
 /**
+ * EQ-01 — Perceptual Equality Bias.
+ * Back-compat wrapper around the corresponding row in
+ * `MISCONCEPTION_RULES`. Prefer `runAllDetectors` for new code.
+ */
+export function detectEQ01(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
+  return runOneRule('MC-EQ-01' as MisconceptionId, attempts, level, ctx);
+}
+
+/**
+ * EQ-02 — Equivalent Benchmark Unrecognised.
+ * Back-compat wrapper around the corresponding row in
+ * `MISCONCEPTION_RULES`. Prefer `runAllDetectors` for new code.
+ */
+export function detectEQ02(
+  attempts: Attempt[],
+  level: number,
+  ctx: DetectorContext
+): MisconceptionFlag | null {
+  return runOneRule('MC-EQ-02' as MisconceptionId, attempts, level, ctx);
+}
+
+/**
  * Run every rule in `MISCONCEPTION_RULES` and return the resulting flags.
  * Called from `LevelScene.onCommit()` (and `Level01Scene.onCommit()`)
  * after each question submission per C7.2.

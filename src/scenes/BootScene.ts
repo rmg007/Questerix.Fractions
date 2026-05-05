@@ -14,6 +14,7 @@ import { deviceMetaRepo } from '../persistence/repositories/deviceMeta';
 import { initPreferences } from '../lib/preferences';
 import { seedIfEmpty } from '../curriculum/seed';
 import { studentRepo } from '../persistence/repositories/student';
+import { probe } from '../persistence/integrity';
 
 const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId'; // per lastUsedStudent.ts + C5
 
@@ -59,6 +60,26 @@ export class BootScene extends Phaser.Scene {
 
   private async _bootAsync(): Promise<void> {
     const bootStart = performance.now();
+
+    // ── Step 0: DB integrity probe ────────────────────────────────────────
+    // Detect DB corruption early (before any other reads) so we can route to
+    // DBRecoveryScene instead of crashing mid-boot. per crash-and-recovery §2.
+    this.updateProgress('Checking data…');
+    try {
+      const integrityResult = await probe();
+      if (integrityResult !== 'ok') {
+        console.warn('[BootScene] DB integrity probe failed:', integrityResult.reason);
+        fadeAndStart(this, 'DBRecoveryScene', {
+          kind: 'db-corrupt',
+          reason: integrityResult.reason,
+        });
+        return;
+      }
+    } catch (err) {
+      // probe() itself is guarded, but if something truly unexpected happens,
+      // continue in volatile mode rather than blocking boot.
+      console.warn('[BootScene] DB integrity probe threw (continuing in volatile mode):', err);
+    }
 
     // ── Step 1: Request durable IndexedDB storage ──────────────────────────
     // per runtime-architecture.md §5.3e — called after first engagement signal
@@ -138,7 +159,7 @@ export class BootScene extends Phaser.Scene {
       // ── First launch: no student yet — auto-create an anonymous one ──────
       if (!this.lastStudentId) {
         const newId = crypto.randomUUID() as import('@/types').StudentId;
-        await studentRepo.create({
+        await studentRepo.createRaw({
           id: newId,
           displayName: 'Player',
           avatarConfig: {},

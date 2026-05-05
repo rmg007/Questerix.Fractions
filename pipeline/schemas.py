@@ -130,6 +130,26 @@ class QuestionPrompt(BaseModel, frozen=True, extra="forbid"):
     localeStrings: Optional[dict[str, str]] = None
 
 
+# ── §2.7a QuestionHints (optional per-question hint block) ───────────────────
+#
+# Phase 3 (misconception-and-hint-system plan): these models mirror the
+# TypeScript interfaces QuestionHintTier and QuestionHints in
+# src/types/entities.ts. The field is optional on QuestionTemplate so that
+# existing pipeline output validates without change.
+
+class QuestionHintTier(BaseModel, extra="forbid"):
+    """Per-tier hint text with optional misconception overrides."""
+    default: str = Field(min_length=1)
+    byMisconception: dict[str, str] = Field(default_factory=dict)
+
+
+class QuestionHints(BaseModel, extra="forbid"):
+    """Optional per-question hints block. Tier 3 is worked-example only."""
+    tier1: QuestionHintTier
+    tier2: QuestionHintTier
+    tier3: Optional[dict] = None  # {"workedExampleRef": str | None}
+
+
 class QuestionTemplate(BaseModel, extra="forbid"):
     """
     per data-schema.md §2.7
@@ -146,6 +166,7 @@ class QuestionTemplate(BaseModel, extra="forbid"):
     skillIds: list[str] = Field(min_length=1)
     misconceptionTraps: list[str]
     difficultyTier: Literal["easy", "medium", "hard"]
+    hints: Optional[QuestionHints] = None  # Phase 3: optional misconception-aware hint text
 
     @field_validator("skillIds")
     @classmethod

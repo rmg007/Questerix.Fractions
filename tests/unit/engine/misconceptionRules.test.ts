@@ -293,6 +293,35 @@ describe('MISCONCEPTION_RULES — positive cases (rule fires)', () => {
     expect(result!.evidenceAttemptIds.length).toBeLessThanOrEqual(5);
   });
 
+  it('MC-EQ-01 fires at L6-7 when ≥50% of same-denom (numerator diff=1) compare attempts answer "=" wrongly', () => {
+    const wrong = makeAttempt({
+      archetype: 'compare',
+      outcome: 'WRONG',
+      payload: {
+        fractionA: { numerator: 3, denominator: 8, label: '3/8' },
+        fractionB: { numerator: 4, denominator: 8, label: '4/8' },
+      },
+      studentAnswerRaw: { relation: '=' },
+      correctAnswerRaw: { relation: '<' },
+    });
+    const attempts = [wrong, wrong, wrong, wrong];
+    const result = evaluateRule(ruleById('MC-EQ-01' as MisconceptionId), attempts, 6);
+    expect(result).not.toBeNull();
+    expect(result!.observationCount).toBe(4);
+  });
+
+  it('MC-EQ-02 fires at L8+ when ≥50% of ½-equivalent benchmark attempts misplace the fraction', () => {
+    const wrong = makeAttempt({
+      archetype: 'benchmark',
+      outcome: 'WRONG',
+      payload: { numerator: 2, denominator: 4 },
+      studentAnswerRaw: { zoneIndex: 1 }, // placed in "almost_half" instead of "half" (zone 2)
+    });
+    const attempts = [wrong, wrong, wrong];
+    const result = evaluateRule(ruleById('MC-EQ-02' as MisconceptionId), attempts, 8);
+    expect(result).not.toBeNull();
+  });
+
   it('MC-STRAT-01 fires at L9+ when ≥70% ordering attempts show sequential pickup', () => {
     const seq = makeAttempt({
       archetype: 'ordering' as unknown as Attempt['archetype'],
@@ -367,6 +396,90 @@ describe('MISCONCEPTION_RULES — negative cases', () => {
       durationMS: 31000,
     });
     const result = evaluateRule(ruleById('MC-SHP-01' as MisconceptionId), [slow, slow, slow], 3);
+    expect(result).toBeNull();
+  });
+
+  it('MC-EQ-01 does NOT fire when student picks correct ">" instead of "="', () => {
+    const correct = makeAttempt({
+      archetype: 'compare',
+      outcome: 'EXACT',
+      payload: {
+        fractionA: { numerator: 4, denominator: 8, label: '4/8' },
+        fractionB: { numerator: 3, denominator: 8, label: '3/8' },
+      },
+      studentAnswerRaw: { relation: '>' },
+      correctAnswerRaw: { relation: '>' },
+    });
+    const result = evaluateRule(
+      ruleById('MC-EQ-01' as MisconceptionId),
+      [correct, correct, correct, correct],
+      6
+    );
+    expect(result).toBeNull();
+  });
+
+  it('MC-EQ-01 does NOT fire when denominator differs (mixed-denom comparison)', () => {
+    const wrong = makeAttempt({
+      archetype: 'compare',
+      outcome: 'WRONG',
+      payload: {
+        fractionA: { numerator: 1, denominator: 2, label: '1/2' },
+        fractionB: { numerator: 1, denominator: 4, label: '1/4' },
+      },
+      studentAnswerRaw: { relation: '=' },
+      correctAnswerRaw: { relation: '>' },
+    });
+    // Different denominators — candidateFilter should exclude these.
+    const result = evaluateRule(
+      ruleById('MC-EQ-01' as MisconceptionId),
+      [wrong, wrong, wrong, wrong],
+      6
+    );
+    expect(result).toBeNull();
+  });
+
+  it('MC-EQ-01 does NOT fire when level is outside L6-7', () => {
+    const wrong = makeAttempt({
+      archetype: 'compare',
+      outcome: 'WRONG',
+      payload: {
+        fractionA: { numerator: 3, denominator: 8, label: '3/8' },
+        fractionB: { numerator: 4, denominator: 8, label: '4/8' },
+      },
+      studentAnswerRaw: { relation: '=' },
+      correctAnswerRaw: { relation: '<' },
+    });
+    const result = evaluateRule(
+      ruleById('MC-EQ-01' as MisconceptionId),
+      [wrong, wrong, wrong, wrong],
+      8 // L8 is outside L6-7 range
+    );
+    expect(result).toBeNull();
+  });
+
+  it('MC-EQ-02 does NOT fire when the target fraction is NOT a ½-equivalent', () => {
+    const wrong = makeAttempt({
+      archetype: 'benchmark',
+      outcome: 'WRONG',
+      payload: { numerator: 3, denominator: 4 }, // 0.75, not 0.5
+      studentAnswerRaw: { zoneIndex: 1 },
+    });
+    const result = evaluateRule(ruleById('MC-EQ-02' as MisconceptionId), [wrong, wrong, wrong], 8);
+    expect(result).toBeNull();
+  });
+
+  it('MC-EQ-02 does NOT fire when student correctly places ½-equivalent in half zone', () => {
+    const correct = makeAttempt({
+      archetype: 'benchmark',
+      outcome: 'EXACT',
+      payload: { numerator: 2, denominator: 4 },
+      studentAnswerRaw: { zoneIndex: 2 }, // zone 2 = "half" — correct
+    });
+    const result = evaluateRule(
+      ruleById('MC-EQ-02' as MisconceptionId),
+      [correct, correct, correct],
+      8
+    );
     expect(result).toBeNull();
   });
 
@@ -534,5 +647,47 @@ describe('rule table integrity', () => {
     const ids = MISCONCEPTION_RULES.map((r) => r.id);
     const set = new Set(ids);
     expect(set.size).toBe(ids.length);
+  });
+
+  it('MC-EQ-01 and MC-EQ-02 are present in the rule table', () => {
+    const ids = MISCONCEPTION_RULES.map((r) => r.id as string);
+    expect(ids).toContain('MC-EQ-01');
+    expect(ids).toContain('MC-EQ-02');
+  });
+});
+
+// ── Determinism tests ──────────────────────────────────────────────────────
+
+describe('determinism — same input produces same output', () => {
+  it('MC-EQ-01 is deterministic (same input → same output)', () => {
+    const wrong = makeAttempt({
+      archetype: 'compare',
+      outcome: 'WRONG',
+      payload: {
+        fractionA: { numerator: 3, denominator: 8, label: '3/8' },
+        fractionB: { numerator: 4, denominator: 8, label: '4/8' },
+      },
+      studentAnswerRaw: { relation: '=' },
+      correctAnswerRaw: { relation: '<' },
+    });
+    const rule = MISCONCEPTION_RULES.find((r) => r.id === ('MC-EQ-01' as MisconceptionId))!;
+    const attempts = [wrong, wrong, wrong, wrong];
+    const r1 = evaluateRule(rule, attempts, 6);
+    const r2 = evaluateRule(rule, attempts, 6);
+    expect(r1).toEqual(r2);
+  });
+
+  it('MC-EQ-02 is deterministic (same input → same output)', () => {
+    const wrong = makeAttempt({
+      archetype: 'benchmark',
+      outcome: 'WRONG',
+      payload: { numerator: 2, denominator: 4 },
+      studentAnswerRaw: { zoneIndex: 1 },
+    });
+    const rule = MISCONCEPTION_RULES.find((r) => r.id === ('MC-EQ-02' as MisconceptionId))!;
+    const attempts = [wrong, wrong, wrong];
+    const r1 = evaluateRule(rule, attempts, 8);
+    const r2 = evaluateRule(rule, attempts, 8);
+    expect(r1).toEqual(r2);
   });
 });

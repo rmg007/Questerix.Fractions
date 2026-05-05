@@ -3,12 +3,31 @@
 **Date:** 2026-05-04
 **Branch (when started):** `audit/2026-05-04-touchscreen-a11y`
 **Status:** Draft — not yet implemented
+**Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Touch + perf + reliability). Phase 3 hard-gates on plan 1 Phase 4 merge; Phases 1–2, 5 are audit-only and may run anytime. Reduced-motion compliance (Phase 1 §7) is enforced architecturally via the `motion.ts:tween()` wrapper from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md) — this plan's audit becomes a regression check, not a vigilance task.
+
+## Dependencies & blockers
+
+| Plan | Relationship | Why |
+|---|---|---|
+| [interaction-and-motion-system](2026-05-04-interaction-and-motion-system.md) | Hard prerequisite | Reduced-motion compliance is enforced via the `tween()` wrapper there; this plan checks the result, doesn't re-implement. |
+| [button-hit-regions](2026-05-04-button-hit-regions.md) | Hard prerequisite for Phase 3 | Phase 3 hard-gates on its Phase 4 merge; conflict surface in `interactions/` is too large to rebase otherwise. |
+| [visual-audit-and-cleanup](2026-05-04-visual-audit-and-cleanup.md) | Coordinates baselines | Use that plan's Playwright visual baselines as evidence; do not duplicate golden images. |
+| [worked-example-flow](2026-05-04-worked-example-flow.md) | Coordinates | Demo CTA included in checks. |
+| [performance-and-drag-latency](2026-05-04-performance-and-drag-latency.md) | Coordinates | The pointer-to-paint metric is owned there; this plan's audit references that data rather than re-measuring. |
 
 ## Sequencing dependency
 
 This plan **must run after `2026-05-04-button-hit-regions.md`** completes. That plan fixes the *mechanism* (padded hit rectangles in the right pattern); this plan validates *compliance* (every interactive element ≥44×44 across the app, fonts/spacing readable). Running in parallel will produce merge conflicts in `MenuScene.ts`, `SettingsScene.ts`, `OnboardingScene.ts`, and the `interactions/` archetypes — all of which both plans touch. If button-hit-regions is in-flight, this plan's Phase 3 (critical fixes) is blocked; Phases 1–2 (audit only) may proceed.
 
 **Hard gate:** Phase 3 of this plan is **blocked by**: `button-hit-regions.md` Phase 4 (interaction sweep) **merged to main**. Do not open a Phase-3 PR while button-hit-regions Phase 4 is still in review — the conflict surface in `src/scenes/interactions/*` is too large to rebase cleanly. Phases 1, 2, 5 (audit and responsive) of this plan have no such block and may run anytime.
+
+## Execution order
+
+1. Phase 1 and Phase 2 may run immediately as audit-only work.
+2. Phase 5 may run as a read-only responsive audit, but any source fixes it identifies should wait for Phase 3/4.
+3. Phase 3 begins only after `2026-05-04-button-hit-regions.md` Phase 4 is merged.
+4. Phase 4 follows Phase 3 so critical usability blockers do not get mixed with lower-risk typography cleanup.
+5. Phase 6 closes the phase with docs and learnings.
 
 ## Problem
 
@@ -31,64 +50,67 @@ Without this audit, we risk shipping a game that frustrates young learners due t
 
 ## Non-goals
 
-- Implementing fixes (Phase 2+).
 - Redesigning layouts (defer unless critical).
 - Changing visual style (only size/spacing).
+- Re-auditing the full visual regression baseline; screenshot baselines belong in `2026-05-04-visual-audit-and-cleanup.md`.
+
+## Severity model
+
+- **CRITICAL:** blocks touch use or comprehension on the C7 minimum viewport: targets <44×44, drag handles <48 px on smaller axis, body/question text <16 px, button labels <14 px, horizontal overflow at 360 px, missing reduced-motion guard on user-triggered animation.
+- **WARNING:** usable but below preferred K–2 ergonomics: adjacent controls <8 px apart, small helper text 12–13 px, cramped line height, inconsistent responsive spacing.
+- **INFO:** visual polish or future affordance: icon consistency, optional tap alternative to drag, real-device impressions that CI cannot reproduce.
+
+## Definition of done
+
+- Audit report includes every scene/component reviewed, measurement source, severity, owner plan, and fix/defer decision.
+- Critical remediation has direct test coverage at the 360 px viewport.
+- Reduced-motion audit has zero unguarded user-triggered tweens or a documented exception with rationale.
+- `npm run typecheck`, targeted Vitest, and targeted Playwright specs pass.
+
+## Measurement strategy
+
+Use CSS pixels as the compliance unit, not raw Phaser world units. When measuring Phaser objects in Playwright, convert through the canvas bounding box:
+
+```
+cssWidth = worldWidth * (canvasBoundingClientRect.width / game.scale.gameSize.width)
+cssHeight = worldHeight * (canvasBoundingClientRect.height / game.scale.gameSize.height)
+```
+
+For DOM mirrors in `A11yLayer` / `TestHooks`, measure the actual DOM `getBoundingClientRect()`. If the DOM mirror is larger than the Phaser visual, record both values; compliance is based on the interactive surface the child can actually tap.
 
 ## Phases
 
 ### Phase 1 — Audit scope definition + checklist (gate: checklist committed)
 
-Define the audit checklist:
+Reduced-motion rule (self-contained, do not bury in CLAUDE.md): **if `window.matchMedia('(prefers-reduced-motion: reduce)').matches` is true, every tween must take its `Duration.instant` path (jump to final state with `duration: 0`). The architectural enforcement lives in `motion.ts:tween()` from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md); this audit verifies no direct `tweens.add` bypasses it.**
 
-1. **Touch target sizes (WCAG 2.5.5):**
-   - All buttons: ≥44×44 CSS px
-   - Form inputs (toggle switches, checkboxes): ≥44×44 px
-   - Drag handles: ≥44×44 px
-   - Choice/option buttons in interactions: ≥44×44 px
-   - Icon-only buttons: entire clickable area must be 44×44 (or use a larger invisible hit rectangle per plan-button-hit-regions.md)
+| # | Category | Requirement | Measurement method | Gate | Owner plan |
+|---|---|---|---|---|---|
+| 1 | Touch targets | ≥ 44×44 CSS px (all buttons, toggles, drag handles, choice buttons, icon buttons) | `getBoundingClientRect()` on DOM mirror; canvas → CSS conversion for Phaser hit areas | CI | this + button-hit-regions |
+| 2 | Drag handles | ≥ 48 px on smaller axis | Same | CI | button-hit-regions |
+| 3 | Press feedback | Visual `State.pressed` within 1 frame of `pointerdown`, held ≥ 100 ms | Frame timing trace from `traceInput.ts` (perf plan) | CI | button-hit-regions |
+| 4 | Pointer-to-paint | P95 ≤ 50 ms on budget profile | Same trace | CI | performance-and-drag-latency |
+| 5 | Drag tracking | 1:1 visual follow under finger (no perceptible lag) | Spec drives drag and asserts position delta < 4 px/frame | CI | performance-and-drag-latency |
+| 6 | Drag inertia (optional) | Released objects > 48 px coast briefly via `Ease.out` rather than stopping rigidly | Visual baseline of release frame | Manual | this |
+| 7 | Body font | ≥ 16 px | Read `style.fontSize` from DOM mirror or Phaser TextStyle | CI | this |
+| 8 | Button labels | ≥ 14 px | Same | CI | this |
+| 9 | Headings | ≥ 20 px | Same | CI | this |
+| 10 | Hint / feedback text | ≥ 12 px (≥ 14 preferred) | Same | CI | this |
+| 11 | Line height | ≥ 1.5 body / ≥ 1.2 heading / ≥ 1.0 single-line button | Computed from style | CI | this |
+| 12 | Contrast (text) | 4.5:1 normal / 3:1 large | axe-core | CI | visual-audit |
+| 13 | Touch spacing | ≥ 8 px between adjacent controls; ≥ 8 px inside-button text-to-edge | Bounding box deltas | CI | this |
+| 14 | Drag fallback | Every drag archetype offers a tap alternative where reasonably possible (WCAG 2.5.7) | Spec asserts each archetype's keyboard / tap path completes | CI | screen-reader-keyboard-parity |
+| 15 | Reduced-motion | 0 unguarded `tweens.add` outside `motion.ts`; `prefers-reduced-motion: reduce` makes ceremony scenes take instant path | Source-grep test + Playwright reduced-motion screenshot | CI | interaction-and-motion-system + this |
+| 16 | Responsive 360 | No horizontal overflow; specific elements satisfy width predicates (see Phase 5) | Playwright at 360 px viewport | CI | this |
+| 17 | Responsive 768 | Content width within 60–85 % of viewport | Playwright at 768 px | CI | this |
+| 18 | Responsive 1024 | No CTA wider than 240 px; line length ≤ 80 ch in body text blocks | Playwright at 1024 px | CI | this |
 
-2. **Font sizes:**
-   - Body text (question prompts, instructions): ≥16 px
-   - Button labels: ≥14 px minimum
-   - Headings (level titles, scene titles): ≥20 px
-   - Small text (hints, feedback): ≥12 px (stretch goal; ≥14 px preferred)
+Inventory by category (filled out as part of Phase 2):
 
-3. **Line heights:**
-   - Body: ≥1.5 line-height
-   - Headings: ≥1.2 line-height
-   - Single-line buttons: ≥1.0 (acceptable)
-
-4. **Color contrast (WCAG AA):**
-   - Normal text: 4.5:1 (already audited in prior phase, skip unless regressed)
-   - Button text: 3:1 minimum (buttons are typically "large" in WCAG terms)
-
-5. **Touch spacing:**
-   - Gap between adjacent buttons: ≥8 px (prevents accidental mis-taps)
-   - Padding inside buttons (text to edge): ≥8 px minimum
-
-6. **Drag mechanics on touch (WCAG 2.5.7 — Dragging Movements):**
-   - Drag handles in `MakeInteraction`, `LabelInteraction`, `SnapMatchInteraction`, `OrderInteraction` ≥48 px on the smaller axis (Fitts' Law applies more aggressively to children with developing fine-motor control).
-   - Drag-distance thresholds documented per archetype and audited for child-appropriate values (not so small a tremor cancels, not so large a deliberate short drag is ignored).
-   - Dragging is not the *only* path to success where reasonably possible (per WCAG 2.5.7) — flag any archetype that requires drag with no tap-equivalent alternative.
-
-7. **Reduced-motion compliance (WCAG 2.3.3 — Animation from Interactions):**
-   CLAUDE.md mandates that every tween respect `prefers-reduced-motion`. Audit:
-   - Each scene under `src/scenes/`: list all `this.tweens.add(...)` and `scene.cameras.main.fade*` calls and confirm a reduced-motion guard around each.
-   - Each component under `src/components/` (Mascot, FeedbackOverlay, ProgressBar, HintLadder): same.
-   - The "Show me how" worked-example animations (worked-example-flow plan, Phase 3): same — duration set to 0 / final-state-only when reduced-motion is on.
-   - Output a violation list (file:line) of any tween missing the guard. Block release on >0 violations.
-
-8. **Responsive scaling:**
-   - At 360 px (iPhone SE, tight): text doesn't overflow, buttons don't stack unintended
-   - At 768 px (tablet portrait): layout uses screen space efficiently
-   - At 1024 px (tablet landscape / desktop): no unnecessary whitespace
-
-9. **Inventory by category:**
-   - **Buttons:** MenuScene stations, LevelMapScene level cards, SessionComplete CTAs, SettingsScene toggles, OnboardingScene "Skip tutorial", back buttons, "Show me how" (new)
-   - **Form inputs:** PreferenceToggle, any future text/number fields
-   - **Game interactions:** DragHandle, hint buttons, choice options (all 10 archetypes)
-   - **Text:** Question text, level titles, feedback messages, progress labels, mascot speech
+- **Buttons:** MenuScene stations, LevelMapScene level cards, SessionComplete CTAs, SettingsScene toggles, OnboardingScene "Skip tutorial", back buttons, "Show me how" (new in plan 8).
+- **Form inputs:** PreferenceToggle, any future text/number fields.
+- **Game interactions:** DragHandle, hint buttons, choice options (all 10 archetypes).
+- **Text:** Question text, level titles, feedback messages, progress labels, mascot speech.
 
 ### Phase 2 — Component audit (gate: detailed findings report)
 
@@ -107,11 +129,12 @@ Walk every component in `src/components/` and every scene in `src/scenes/` with 
    - Playwright at 360 / 768 / 1024 px viewports (this is the same matrix as Phase 5; do not duplicate the spec — share fixtures).
    - Click each interactive element at its bounding-box edge ±4 px to verify hit area coverage.
    - Assert no horizontal overflow at 360 px.
+
 3. **Real-device spot-check (one-time, manual, NOT a gate):**
    - Optional one-time pass on a physical iPhone SE and a low-end Android (per C7) to sanity-check tap accuracy and font readability with a real finger.
    - Findings feed back into the report as `INFO` items only — they do not block the phase gate, since CI cannot reproduce them.
 
-3. **Report format:**
+4. **Report format:**
    ```
    ## Summary
    - Overall status: PASS / FAIL
@@ -135,17 +158,17 @@ Walk every component in `src/components/` and every scene in `src/scenes/` with 
    - INFO (nice-to-have): 2 items
    ```
 
-4. **Playwright spec:** Snapshot at 360, 768, 1024 px widths. No assertions yet—just visual documentation.
+5. **Playwright spec:** Capture evidence at 360, 768, 1024 px widths. Assertions should cover overflow and interactability; visual snapshot baselines should be coordinated with `2026-05-04-visual-audit-and-cleanup.md` to avoid duplicate golden images.
 
 ### Phase 3 — Remediation: Critical violations (gate: touch target + font size compliance)
 
 Fix only **CRITICAL** violations:
-- Any interactive element <44×44 px → increase size or add larger hit rectangle (per plan-button-hit-regions.md)
+- Any interactive element <44×44 px → increase size or add larger hit rectangle (per `2026-05-04-button-hit-regions.md`)
 - Any button label <14 px → increase font size
 - Any question text <16 px → increase font size
 - Any gap between buttons <8 px → add spacing
 
-Pattern (consistent with plan-button-hit-regions.md):
+Pattern (consistent with `2026-05-04-button-hit-regions.md`):
 ```ts
 // Before: 30×18 button
 const btn = scene.add.text(..., label, { fontSize: 12 });
@@ -157,7 +180,7 @@ const label = scene.add.text(..., labelText, { fontSize: 14 });
 container.add([hit, label]);
 ```
 
-Playwrght spec: Tap each fixed element at 360 px viewport. Verify successful tap without mis-tap.
+Playwright spec: Tap each fixed element at 360 px viewport. Verify successful tap without mis-tap.
 
 ### Phase 4 — Remediation: Warnings (gate: readability compliance)
 
@@ -170,22 +193,37 @@ No hit-area changes needed; purely typographic.
 
 ### Phase 5 — Responsive layout audit (gate: Playwright at 3 breakpoints green)
 
-Verify layout remains usable at C7 device range:
+Concrete assertions, not "looks fine":
 
 1. **360 px (narrow mobile):**
-   - Question text wraps gracefully (no overflow)
-   - Buttons are vertically stacked if needed (not side-by-side if cramped)
-   - No horizontal scrollbar
+   ```ts
+   await page.setViewportSize({ width: 360, height: 812 });
+   const scrollW = await page.evaluate(() => document.documentElement.scrollWidth);
+   expect(scrollW).toBeLessThanOrEqual(360);                         // no horizontal overflow
+   for (const sel of QUESTION_TEXT_SELECTORS) {
+     const box = await page.locator(sel).boundingBox();
+     expect(box.width).toBeLessThanOrEqual(360 - 16);                // 8 px gutter each side
+   }
+   ```
 
 2. **768 px (tablet portrait):**
-   - Layout uses ~80% of screen width
-   - Two-column layouts (if any) readable without pinch-zoom
+   ```ts
+   const contentWidth = await mainContentBoundingBox();
+   expect(contentWidth).toBeGreaterThanOrEqual(768 * 0.6);           // not overly cramped
+   expect(contentWidth).toBeLessThanOrEqual(768 * 0.85);             // not edge-to-edge
+   ```
 
 3. **1024 px (desktop / landscape):**
-   - Generous margins; no text lines exceed ~80 characters
-   - Buttons don't sprawl too wide (≤200 px recommended for CTA buttons)
+   ```ts
+   for (const cta of CTA_SELECTORS) {
+     const box = await page.locator(cta).boundingBox();
+     expect(box.width).toBeLessThanOrEqual(240);                     // no sprawling buttons
+   }
+   const longestLine = await measureLongestTextLineCh();
+   expect(longestLine).toBeLessThanOrEqual(80);                      // typographic comfort
+   ```
 
-Playwright spec: Screenshot at each breakpoint, visual inspection for regressions.
+Playwright spec: assertions above + a screenshot at each breakpoint that feeds [2026-05-04-visual-audit-and-cleanup.md](2026-05-04-visual-audit-and-cleanup.md) baselines.
 
 ### Phase 6 — Phase-close docs (gate: PR merged)
 
@@ -200,6 +238,13 @@ Playwright spec: Screenshot at each breakpoint, visual inspection for regression
 - **Risk:** Font size increases may cause text overflow on mobile. Mitigate by testing with real strings (question text can be long) at 360 px and allowing wrapping.
 - **Rollback:** Each phase is one PR; revert if E2E shows visual regressions on 360 px devices.
 
+## Risk / rollback
+
+- **Risk:** Increasing button sizes causes layout crowding / unexpected shifts at 360 px. Mitigate by testing at each breakpoint and adjusting spacing/margins in the same PR; the responsive assertions in Phase 5 are the regression net.
+- **Risk:** Font-size bumps cause text overflow at 360 px. Mitigate by testing with the longest realistic strings (full question prompts, feedback messages) at 360 px and allowing wrapping; the 360 px overflow assertion is the gate.
+- **Risk:** Audit findings cascade into [2026-05-04-button-hit-regions.md](2026-05-04-button-hit-regions.md) re-work after that plan was already merged. Mitigate by running this plan's Phases 1–2 (audit) **before** that plan's Phase 4, so its inventory absorbs anything we discover.
+- **Rollback:** each phase is one PR. Phase 3 (size/spacing) is the most invasive — revert if E2E shows visual regression at 360 px or any responsive assertion in Phase 5 fails. Phase 4 (typography) is purely text-style; revert is mechanical.
+
 ## Out-of-scope follow-ups
 
 - Haptic feedback on tap (future enhancement, not core a11y).
@@ -211,5 +256,6 @@ Playwright spec: Screenshot at each breakpoint, visual inspection for regression
 
 ## Integration with related plans
 
-- **plan-button-hit-regions.md:** Phase 3 of this plan (critical fixes) will coordinate with button-hit-region changes. If a button is <44×44, we'll increase the hit rectangle AND the visual size together.
-- **plan-worked-example-flow.md:** The "Show me how" button (new in Phase 4 of worked-example plan) must be ≥44×44 from day 1. Add it to this audit's scope before Phase 3.
+- **`2026-05-04-button-hit-regions.md`:** Phase 3 of this plan waits for its interaction sweep. If a button is visually small but has compliant invisible geometry, this plan should report it as `PASS-hit-area / WARNING-visual-size` instead of reworking the same code.
+- **`2026-05-04-worked-example-flow.md`:** The "Show me how" button must be ≥44×44, have an A11yLayer label, and respect reduced-motion from the first UI PR.
+- **`2026-05-04-visual-audit-and-cleanup.md`:** Use its Playwright visual baselines as evidence for layout regressions; keep this plan focused on measurable touch/readability compliance.

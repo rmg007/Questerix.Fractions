@@ -68,6 +68,23 @@ export async function showSessionCompleteForLevel(
   else if (gate.passed && acc < 0.4) scaffoldRec = 'regress';
   const isPerfect = gate.passed && acc === 1 && totalAttempts === SESSION_GOAL;
 
+  // Load mastery summary for the overlay (non-blocking best-effort).
+  let masterySummary:
+    | import('@/persistence/repositories/skillMastery').LevelMasterySummary
+    | undefined;
+  if (ctx.studentId) {
+    try {
+      const { selectLevelMasterySummary } = await import('@/persistence/repositories/skillMastery');
+      const { StudentId, LevelId } = await import('@/types/branded');
+      masterySummary = await selectLevelMasterySummary(
+        StudentId(ctx.studentId),
+        LevelId(ctx.levelNumber)
+      );
+    } catch {
+      // Best-effort — overlay renders without summary on DB error
+    }
+  }
+
   new SessionCompleteOverlay({
     scene: ctx.scene,
     levelNumber: ctx.levelNumber,
@@ -78,6 +95,7 @@ export async function showSessionCompleteForLevel(
     scaffoldRecommendation: scaffoldRec,
     nextLevelNumber: scaffoldRec === 'advance' && nextLevel !== null ? nextLevel : null,
     isPerfect,
+    ...(masterySummary ? { masterySummary } : {}),
     ...(gate.passed && nextLevel !== null
       ? { onNextLevel: () => callbacks.navigateNextLevel(nextLevel) }
       : {}),

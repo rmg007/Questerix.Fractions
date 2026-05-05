@@ -47,7 +47,7 @@ export class BackupRestoreHandler {
   }
 
   async doRestore(file: File): Promise<void> {
-    const y = 770; // Hardcoded or passed in? SettingsScene used 770 for restore status.
+    const y = 850; // Matches restore button y-position in SettingsScene (Phase 3 layout shift +90)
     try {
       const result = await restoreFromFile(file);
       this.showStatus(`Restored ${result.added} records — reloading…`, y);

@@ -380,6 +380,7 @@ export class LevelScene extends Phaser.Scene {
       hintLadder: this.hintController.getHintLadder(),
       mascot: this.mascot,
       activeInteraction: this.activeInteraction,
+      studentId: this.studentId,
     });
     const callbacks = buildOutcomeFlowCallbacks({
       setWrongCount: (c) => {

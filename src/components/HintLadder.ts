@@ -3,9 +3,15 @@
  * Emits which tier to show based on how many wrong attempts have occurred.
  * per interaction-model.md §4 (Hint Escalation Ladder)
  * per data-schema.md §2.9 — HintTier values: verbal | visual_overlay | worked_example
+ *
+ * Phase 3 (misconception-and-hint-system plan): accepts optional per-question
+ * `hints` data from the curriculum bundle so that tier 1/2 text can be
+ * misconception-aware. When no hint data is supplied (or the tier has no
+ * entry), callers fall back to the existing i18n catalog strings.
  */
 
 import type { HintTier } from '@/types';
+import type { QuestionHints } from '@/types';
 
 /** Which tiers are available for a given difficulty tier. per interaction-model.md §4.2 */
 const TIER_BUDGETS: Record<'easy' | 'medium' | 'hard', HintTier[]> = {
@@ -31,13 +37,27 @@ export interface HintLadderState {
  *   const ladder = new HintLadder('easy');
  *   const tier = ladder.next(); // 'verbal'
  *   const tier2 = ladder.next(); // 'visual_overlay'
+ *
+ * With misconception-aware hints (Phase 3):
+ *   const ladder = new HintLadder('easy', questionTemplate.hints);
+ *   // After advancing:
+ *   const text = ladder.hintText('MC-WHB-01'); // returns overridden text or default
  */
 export class HintLadder {
   private readonly tiers: HintTier[];
   private index: number = -1;
+  private readonly hintData: QuestionHints | undefined;
 
-  constructor(difficulty: 'easy' | 'medium' | 'hard' = 'easy') {
+  /**
+   * @param difficulty  Difficulty tier that controls which hint tiers are available.
+   * @param hintData    Optional per-question hint data from the curriculum bundle.
+   *                    When provided, `hintText()` returns misconception-aware text.
+   *                    When omitted, `hintText()` returns null (caller falls back
+   *                    to i18n catalog).
+   */
+  constructor(difficulty: 'easy' | 'medium' | 'hard' = 'easy', hintData?: QuestionHints) {
     this.tiers = TIER_BUDGETS[difficulty];
+    this.hintData = hintData;
   }
 
   /**
@@ -86,5 +106,40 @@ export class HintLadder {
     if (wrongCount <= 0) return null;
     const idx = Math.min(wrongCount - 1, this.tiers.length - 1);
     return this.tiers[idx] ?? null;
+  }
+
+  /**
+   * Returns the hint text for the currently active tier, optionally using
+   * a misconception-specific override when `activeMisconceptionId` is provided.
+   *
+   * Resolution order:
+   *   1. `hintData[currentTier].byMisconception[activeMisconceptionId]` (if both present)
+   *   2. `hintData[currentTier].default` (fallback within the question's hint block)
+   *   3. `null` — caller should fall back to the i18n catalog string
+   *
+   * Returns `null` when no hint data was supplied at construction time, or
+   * when no hint is active yet (index < 0), or when the current tier is
+   * `worked_example` (which is always asset-based, not a text string).
+   *
+   * @param activeMisconceptionId  Optional MC-* code for the currently detected
+   *                               misconception (e.g. `'MC-WHB-01'`). Pass
+   *                               `undefined` to get the default text only.
+   */
+  hintText(activeMisconceptionId?: string): string | null {
+    if (!this.hintData || this.index < 0) return null;
+    const tier = this.tiers[this.index];
+    if (!tier || tier === 'worked_example') return null;
+
+    const tierKey = tier === 'verbal' ? 'tier1' : 'tier2';
+    const tierBlock = this.hintData[tierKey];
+    if (!tierBlock) return null;
+
+    // Try misconception-specific override first.
+    if (activeMisconceptionId) {
+      const override = tierBlock.byMisconception[activeMisconceptionId];
+      if (typeof override === 'string' && override.length > 0) return override;
+    }
+
+    return tierBlock.default.length > 0 ? tierBlock.default : null;
   }
 }

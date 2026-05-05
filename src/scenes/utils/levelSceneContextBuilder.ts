@@ -79,6 +79,8 @@ export function buildOutcomeFlowContext(args: {
   hintLadder: HintLadder | null;
   mascot: Mascot | null;
   activeInteraction: Interaction | null;
+  /** Optional: when present, progress chips are refreshed from DB after each answer. */
+  studentId?: string | null;
 }): OutcomeFlowContext {
   return { ...args };
 }
