@@ -78,10 +78,29 @@ Add a unit test that constructs each button variant and asserts `input.hitArea.h
 **System-wide targets:**
 Every file under `src/scenes/interactions/` (all 10 archetypes) that calls `setInteractive()` on a `Text` or `Graphics` object without an explicit `Rectangle` hit area.
 
-For each option/choice button in all archetypes:
+> **Verify before listing.** The original draft listed `ExplainYourOrderInteraction.ts` as a target; that file already passes `hitArea: new Phaser.Geom.Rectangle(...)` in its options object and is **compliant**. Phase 1's audit must re-walk each call site and **only carry forward the actual violations** — do not "fix" code that already follows the pattern. Maintain a verified-targets list in the audit inventory committed at Phase 1.
+
+For each option/choice button found to be a real violation:
 - Wrap the visual in a Container with a transparent padded Rectangle as the interactive surface
 - Apply consistent `HIT_PAD = 8 px` (or scene-specific padding token)
 - Re-run all existing archetype Playwright suites to verify no regressions
+
+### Phase 4b — Drag interaction hit-area audit (gate: drag E2E green on touch)
+
+Tap targets are not the whole story. [src/scenes/interactions/SnapMatchInteraction.ts](src/scenes/interactions/SnapMatchInteraction.ts), [LabelInteraction.ts](src/scenes/interactions/LabelInteraction.ts), and [MakeInteraction.ts](src/scenes/interactions/MakeInteraction.ts) all call `.setInteractive({ draggable: true })` **without explicit geometry**. For drag targets on touch the hit region matters more than for tap targets — a child's finger obscures the object during the drag, so they cannot self-correct visually.
+
+- Audit every `draggable: true` call across `src/scenes/interactions/` and `src/components/`.
+- Replace bare-bounds drag targets with a Container + padded transparent `Rectangle` hit area (≥48 px on the smaller axis to give finger-rest tolerance).
+- Add a Playwright touch-emulation spec that initiates `pointerdown` at the visual edge ±6 px and confirms the drag begins.
+- Verify drag-distance thresholds (if any) are not so small that a child's tremor cancels the gesture, and not so large that a deliberate short drag is ignored. Record the chosen threshold per archetype in the inventory file.
+
+### Phase 4c — Multi-touch input config (gate: typecheck + manual touch test)
+
+Phaser's input manager defaults to `input.activePointers = 1`. K–2 students on tablets routinely rest a non-dominant hand on the screen while dragging — that resting finger consumes the single active pointer slot, killing every subsequent pointer event including the drag the student is trying to complete.
+
+- Inspect [src/main.ts](src/main.ts) Phaser config; if `input.activePointers` is not set to ≥2, raise it (3 is a safe default) and verify multi-touch is enabled.
+- Add a regression unit test that asserts the runtime Phaser game config has `input.activePointers >= 2`.
+- Manually verify on a touch device that resting one finger does not block another finger's drag. (Cannot be automated in CI; document as a one-time manual gate.)
 
 ### Phase 5 — Extract shared helper (gate: typecheck + lint + all tests green)
 

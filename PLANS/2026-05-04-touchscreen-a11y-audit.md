@@ -8,6 +8,8 @@
 
 This plan **must run after `2026-05-04-button-hit-regions.md`** completes. That plan fixes the *mechanism* (padded hit rectangles in the right pattern); this plan validates *compliance* (every interactive element ≥44×44 across the app, fonts/spacing readable). Running in parallel will produce merge conflicts in `MenuScene.ts`, `SettingsScene.ts`, `OnboardingScene.ts`, and the `interactions/` archetypes — all of which both plans touch. If button-hit-regions is in-flight, this plan's Phase 3 (critical fixes) is blocked; Phases 1–2 (audit only) may proceed.
 
+**Hard gate:** Phase 3 of this plan is **blocked by**: `button-hit-regions.md` Phase 4 (interaction sweep) **merged to main**. Do not open a Phase-3 PR while button-hit-regions Phase 4 is still in review — the conflict surface in `src/scenes/interactions/*` is too large to rebase cleanly. Phases 1, 2, 5 (audit and responsive) of this plan have no such block and may run anytime.
+
 ## Problem
 
 Questerix Fractions targets K–2 students on touchscreen devices (iOS Safari, Android Chrome, per C7). Current codebase has not been systematically audited for touchscreen usability:
@@ -65,12 +67,24 @@ Define the audit checklist:
    - Gap between adjacent buttons: ≥8 px (prevents accidental mis-taps)
    - Padding inside buttons (text to edge): ≥8 px minimum
 
-6. **Responsive scaling:**
+6. **Drag mechanics on touch (WCAG 2.5.7 — Dragging Movements):**
+   - Drag handles in `MakeInteraction`, `LabelInteraction`, `SnapMatchInteraction`, `OrderInteraction` ≥48 px on the smaller axis (Fitts' Law applies more aggressively to children with developing fine-motor control).
+   - Drag-distance thresholds documented per archetype and audited for child-appropriate values (not so small a tremor cancels, not so large a deliberate short drag is ignored).
+   - Dragging is not the *only* path to success where reasonably possible (per WCAG 2.5.7) — flag any archetype that requires drag with no tap-equivalent alternative.
+
+7. **Reduced-motion compliance (WCAG 2.3.3 — Animation from Interactions):**
+   CLAUDE.md mandates that every tween respect `prefers-reduced-motion`. Audit:
+   - Each scene under `src/scenes/`: list all `this.tweens.add(...)` and `scene.cameras.main.fade*` calls and confirm a reduced-motion guard around each.
+   - Each component under `src/components/` (Mascot, FeedbackOverlay, ProgressBar, HintLadder): same.
+   - The "Show me how" worked-example animations (worked-example-flow plan, Phase 3): same — duration set to 0 / final-state-only when reduced-motion is on.
+   - Output a violation list (file:line) of any tween missing the guard. Block release on >0 violations.
+
+8. **Responsive scaling:**
    - At 360 px (iPhone SE, tight): text doesn't overflow, buttons don't stack unintended
    - At 768 px (tablet portrait): layout uses screen space efficiently
    - At 1024 px (tablet landscape / desktop): no unnecessary whitespace
 
-7. **Inventory by category:**
+9. **Inventory by category:**
    - **Buttons:** MenuScene stations, LevelMapScene level cards, SessionComplete CTAs, SettingsScene toggles, OnboardingScene "Skip tutorial", back buttons, "Show me how" (new)
    - **Form inputs:** PreferenceToggle, any future text/number fields
    - **Game interactions:** DragHandle, hint buttons, choice options (all 10 archetypes)
