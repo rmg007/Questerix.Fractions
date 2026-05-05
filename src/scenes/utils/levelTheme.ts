@@ -117,8 +117,10 @@ export function createActionButton(
   onTap: () => void,
   depth = 10
 ): Phaser.GameObjects.Container {
+  // H raised from 64 → 100 canvas px so that at 360 px viewport (scale ≈ 0.45)
+  // the CSS touch target is ≥ 44 px (WCAG 2.5.5; 64 px → 29 CSS was non-compliant).
   const W = 320,
-    H = 64,
+    H = 100,
     SHADOW = 7,
     R = 32;
 

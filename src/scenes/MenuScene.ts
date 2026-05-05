@@ -265,12 +265,14 @@ export class MenuScene extends Phaser.Scene {
     drawTaglinePill(this, STATION_X, SET_Y + 95, 'Settings', 28, 0.85);
 
     // Continue — middle of the line (only if returning student).
+    // h raised from 90 → 100 canvas px so that at 360 px viewport (scale ≈ 0.45)
+    // the CSS touch target is ≥ 44 px (WCAG 2.5.5; 90 → 41 CSS was 3 px short).
     if (hasContinue) {
       createStationButton(this, {
         x: STATION_X,
         y: CONT_Y,
         w: 360,
-        h: 90,
+        h: 100,
         label: 'Continue',
         iconChar: '📍',
         fillColor: CONT_FILL,

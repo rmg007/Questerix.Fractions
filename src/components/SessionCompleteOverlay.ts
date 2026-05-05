@@ -154,6 +154,9 @@ export class SessionCompleteOverlay {
       });
       this.container.add(objs);
     };
+    // BTN_STRIDE: 110 px = 100 px button height + 10 px gap.
+    // Buttons are now 100 canvas px tall (≥ 44 CSS px at 360 vp, WCAG 2.5.5).
+    const BTN_STRIDE = 110;
     if (onNextLevel && !scaffoldRecommendation) {
       addBtn(
         cx,
@@ -164,11 +167,11 @@ export class SessionCompleteOverlay {
         'a11y-session-complete-next',
         'Continue to the next level',
         'next-level-btn',
-        { width: '200px', height: '60px', top: '62%', left: '50%' }
+        { width: '200px', height: '100px', top: '62%', left: '50%' }
       );
       addBtn(
         cx,
-        btnBaseY + 80,
+        btnBaseY + BTN_STRIDE,
         'Play Again',
         onPlayAgain,
         'primary',
@@ -177,7 +180,7 @@ export class SessionCompleteOverlay {
       );
       addBtn(
         cx,
-        btnBaseY + 160,
+        btnBaseY + BTN_STRIDE * 2,
         'Back to Menu',
         onMenu,
         'secondary',
@@ -186,8 +189,8 @@ export class SessionCompleteOverlay {
         'session-complete-menu',
         {
           width: '300px',
-          height: '54px',
-          top: `${(((btnBaseY + 160) / 1280) * 100).toFixed(1)}%`,
+          height: '100px',
+          top: `${(((btnBaseY + BTN_STRIDE * 2) / 1280) * 100).toFixed(1)}%`,
           left: `${((cx / 800) * 100).toFixed(1)}%`,
         }
       );
@@ -203,7 +206,7 @@ export class SessionCompleteOverlay {
       );
       addBtn(
         cx,
-        btnBaseY + 80,
+        btnBaseY + BTN_STRIDE,
         'Back to Menu',
         onMenu,
         'secondary',
@@ -212,8 +215,8 @@ export class SessionCompleteOverlay {
         'session-complete-menu',
         {
           width: '300px',
-          height: '54px',
-          top: `${(((btnBaseY + 80) / 1280) * 100).toFixed(1)}%`,
+          height: '100px',
+          top: `${(((btnBaseY + BTN_STRIDE) / 1280) * 100).toFixed(1)}%`,
           left: `${((cx / 800) * 100).toFixed(1)}%`,
         }
       );

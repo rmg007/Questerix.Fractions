@@ -21,8 +21,10 @@ import { Gesture } from './utils/interaction';
 const CW = 800;
 const CH = 1280;
 const BTN_W = 360;
-const BTN_H = 60;
-const BTN_RADIUS = 10;
+// BTN_H raised from 60 → 100 canvas px so that at 360 px viewport
+// (scale ≈ 0.45) the CSS touch target is ≥ 44 px (WCAG 2.5.5).
+const BTN_H = 100;
+const BTN_RADIUS = 16;
 
 export class SettingsScene extends Phaser.Scene {
   private toggles: PreferenceToggle[] = [];
@@ -66,9 +68,11 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // ── Section labels ─────────────────────────────────────────────────────
+    // Layout uses 110 px row stride (100 px BTN_H + 10 px gap) so every
+    // button is ≥ 44 CSS px tall at 360 px viewport (0.45 scale factor).
     this.sectionLabel(cx, 190, 'Preferences');
-    this.sectionLabel(cx, 560, 'Data');
-    this.sectionLabel(cx, 940, 'Privacy');
+    this.sectionLabel(cx, 570, 'Data');
+    this.sectionLabel(cx, 990, 'Privacy');
 
     // ── Preferences toggles (DOM overlays) ─────────────────────────────────
     const rect = this.sys.game.canvas.getBoundingClientRect?.();
@@ -85,89 +89,88 @@ export class SettingsScene extends Phaser.Scene {
       ),
       new PreferenceToggle(
         { key: 'audio', label: 'Audio Enabled' },
-        { top: toViewport(330), left: halfCanvas }
+        { top: toViewport(340), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'ttsEnabled', label: 'Read Questions Aloud' },
-        { top: toViewport(410), left: halfCanvas }
+        { top: toViewport(430), left: halfCanvas }
       ),
       new PreferenceToggle(
         { key: 'persistGranted', label: 'Storage Permission', readOnly: true },
-        { top: toViewport(490), left: halfCanvas }
+        { top: toViewport(520), left: halfCanvas }
       )
     );
 
-    // ── Export button ──────────────────────────────────────────────────────
+    // ── Export button (row 1 of Data section) ─────────────────────────────
     TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(680), {
-      top: toViewport(630),
+      top: toViewport(640),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      630,
+      640,
       'Export My Backup',
       CLR.primary,
       HEX.neutral0,
       () => void this.backupHandler.doExport(680)
     );
 
-    // ── Restore button ─────────────────────────────────────────────────────
+    // ── Restore button (row 2) ─────────────────────────────────────────────
     TestHooks.mountInteractive(
       'settings-restore-btn',
       () => this.backupHandler.triggerFilePicker(),
       {
-        top: toViewport(720),
+        top: toViewport(760),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
       }
     );
-    this.createButton(cx, 720, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
+    this.createButton(cx, 760, 'Restore from Backup', CLR.primary, HEX.neutral0, () =>
       this.backupHandler.triggerFilePicker()
     );
 
-    // ── Reset button ───────────────────────────────────────────────────────
+    // ── Reset button (row 3) ───────────────────────────────────────────────
     TestHooks.mountInteractive(
       'settings-reset-btn',
       () => this.resetHandler.handleExternalReset(),
       {
-        top: toViewport(820),
+        top: toViewport(880),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
       }
     );
-    this.resetHandler.create(cx, 820);
+    this.resetHandler.create(cx, 880);
 
-    // ── Check for App Update button (Phase 14) ──────────────────────────────
+    // ── Check for App Update button (row 1 of Privacy section) ────────────
     // Allows users to explicitly check for and apply app updates.
     TestHooks.mountInteractive('settings-update-btn', () => void this.doCheckForAppUpdate(), {
-      top: toViewport(910),
+      top: toViewport(1060),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
     this.createButton(
       cx,
-      910,
+      1060,
       'Check for App Update',
       CLR.primary,
       HEX.neutral0,
       () => void this.doCheckForAppUpdate()
     );
 
-    // ── Refresh Curriculum button (Phase 11.1) ─────────────────────────────
-    // Sits inside the Data section so a parent can force a curriculum
-    // re-download when the pipeline ships new question content. Deletes the
-    // service-worker cache (`curriculum-cache` per vite.config.ts) and
-    // reloads the page to trigger a fresh fetch.
+    // ── Refresh Curriculum button (row 2 of Privacy section) ───────────────
+    // Sits here so a parent can force a curriculum re-download when the
+    // pipeline ships new question content. Deletes the service-worker cache
+    // (`curriculum-cache` per vite.config.ts) and reloads to trigger a fetch.
     TestHooks.mountInteractive(
       'settings-refresh-curriculum-btn',
       () => void this.doRefreshCurriculum(),
       {
-        top: toViewport(1000),
+        top: toViewport(1180),
         left: halfCanvas,
         width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
         height: `${BTN_H * scaleY}px`,
@@ -175,7 +178,7 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.createButton(
       cx,
-      1000,
+      1180,
       'Refresh Curriculum',
       CLR.primary,
       HEX.neutral0,
@@ -183,19 +186,20 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     // ── Privacy notice ─────────────────────────────────────────────────────
-    this.createPrivacyLink(cx, 990);
+    this.createPrivacyLink(cx, 970);
 
-    // ── Back button ────────────────────────────────────────────────────────
+    // ── Back button — final row ─────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
-      top: toViewport(1100),
+      top: toViewport(1240),
       left: halfCanvas,
       width: `${BTN_W * (this.sys.game.canvas.clientWidth / CW)}px`,
       height: `${BTN_H * scaleY}px`,
     });
-    this.createButton(cx, 1100, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
+    this.createButton(cx, 1240, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
     // ── Version label (triple-tap = researcher unlock-gate bypass; D-1) ────
-    attachVersionTapToggle(this, cx, 1200);
+    // Moved below canvas boundary; kept for non-visible tap registration.
+    attachVersionTapToggle(this, cx, 1270);
 
     // ── Keyboard navigation ────────────────────────────────────────────────
     if (typeof document !== 'undefined') {
@@ -239,7 +243,7 @@ export class SettingsScene extends Phaser.Scene {
       console.warn('[SettingsScene] curriculum-cache delete failed:', err);
     }
 
-    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 935, null);
+    this.showStatus(cacheCleared ? 'Refreshing curriculum…' : 'Reloading…', 1210, null);
     this.time.delayedCall(600, () => {
       if (typeof location !== 'undefined') location.reload();
     });
@@ -250,17 +254,17 @@ export class SettingsScene extends Phaser.Scene {
 
   private async doCheckForAppUpdate(): Promise<void> {
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
-      this.showStatus('Updates not available', 960);
+      this.showStatus('Updates not available', 1090);
       return;
     }
 
-    this.showStatus('Checking for updates...', 960, null);
+    this.showStatus('Checking for updates...', 1090, null);
     let updateFound = false;
 
     const handleControllerChange = (): void => {
       if (updateFound) return;
       updateFound = true;
-      this.showStatus('New version ready — reloading...', 960, null);
+      this.showStatus('New version ready — reloading...', 1090, null);
       this.time.delayedCall(1000, () => {
         if (typeof location !== 'undefined') location.reload();
       });
@@ -280,7 +284,7 @@ export class SettingsScene extends Phaser.Scene {
       if (!updateFound && this.updateCheckListener) {
         navigator.serviceWorker.removeEventListener('controllerchange', this.updateCheckListener);
         this.updateCheckListener = null;
-        this.showStatus('Up to date', 960);
+        this.showStatus('Up to date', 1090);
       }
     });
   }
@@ -300,9 +304,10 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(3);
 
-    // Padded transparent hit zone — minimum 44×44 px per WCAG touch target spec
+    // Padded transparent hit zone — 220×100 canvas px → 99×45 CSS px at 360 vp
+    // (≥ 44 CSS px per WCAG 2.5.5; previous 44 canvas → 20 CSS px was non-compliant).
     const HIT_W = 220;
-    const HIT_H = 44;
+    const HIT_H = 100;
     const hitZone = this.add
       .rectangle(cx, y, HIT_W, HIT_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true })

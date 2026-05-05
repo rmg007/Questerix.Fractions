@@ -441,9 +441,11 @@ export class LevelMapScene extends Phaser.Scene {
 
   private _drawBackButton(): void {
     const bx = 76,
-      by = CH - 54;
-    const W = 136,
-      H = 52;
+      by = CH - 60;
+    // H raised from 52 → 100 canvas px so that at 360 px viewport
+    // (scale ≈ 0.45) the CSS touch target is ≥ 44 px (WCAG 2.5.5).
+    const W = 160,
+      H = 100;
 
     const g = this.add.graphics().setDepth(20);
     g.fillStyle(WHITE, 0.95);

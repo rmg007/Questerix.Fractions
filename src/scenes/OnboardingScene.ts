@@ -205,9 +205,10 @@ export class OnboardingScene extends Phaser.Scene {
       CH - 90 + this.skipText.height / 2 - 8
     );
 
-    // Padded transparent hit zone — minimum 44×44 px per WCAG touch target spec
+    // Padded transparent hit zone — 200×100 canvas px → 90×45 CSS px at 360 vp
+    // (≥ 44 CSS px per WCAG 2.5.5; previous 44 canvas → 20 CSS px was non-compliant).
     const SKIP_HIT_W = 200;
-    const SKIP_HIT_H = 44;
+    const SKIP_HIT_H = 100;
     this.skipHitZone = this.add
       .rectangle(CW / 2, CH - 90, SKIP_HIT_W, SKIP_HIT_H, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
