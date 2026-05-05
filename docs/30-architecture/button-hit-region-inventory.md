@@ -1,63 +1,139 @@
 # Button Hit-Region Inventory
 
-Generated from Phase 1 audit (2026-05-05). Updated by Phase 2 remediation.
+**Plan:** `PLANS/2026-05-04-button-hit-regions.md` — Phase 1 output  
+**Audited:** 2026-05-05 (re-audited with canvas-to-CSS scaling; prior version incorrectly marked violations as "ok")
 
-`visualBounds` = rendered size of the visual element.  
-`currentHitArea` = actual pointer-event target after any fix.  
-`minTarget` = WCAG 2.5.5 success criterion (44×44 CSS px).  
-`status` = `ok` (never violated), `fixed` (repaired in Phase 2), `deferred` (out of scope), `partial` (size ok, other issues remain).
+`visualBounds` = rendered visual size in canvas pixels.  
+`currentHitArea` = actual interactive hit rectangle in canvas pixels.  
+`cssH@360vp` = hit height in CSS px at minimum supported viewport (scale 360/800 = 0.45).  
+`status` = `compliant` · `violation` · `fixed` · `deferred` · `not-a-button`
 
-| file | line | symbol | visualBounds | currentHitArea | minTarget | status | testCoverage |
-|------|------|--------|--------------|----------------|-----------|--------|--------------|
-| `src/scenes/MenuScene.ts` | 247–264 | Settings Button | 100×100 | 100×100 Rectangle | 44×44 | ok | `settings-btn` |
-| `src/scenes/MenuScene.ts` | 268–287 | Continue Button | 360×90 | 360×90 Rectangle | 44×44 | ok | `continue-btn` |
-| `src/scenes/MenuScene.ts` | 290–312 | Play Button | 440×110 | 440×110 Rectangle | 44×44 | ok | `level-card-L1` |
-| `src/scenes/MenuScene.ts` | 319 | Choose Level Button (Pill) | 220×48 | 220×48 Rectangle | 44×44 | partial | — (test hook missing) |
-| `src/scenes/SettingsScene.ts` | 105–112 | Export Backup Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-export-btn` |
-| `src/scenes/SettingsScene.ts` | 115–127 | Restore from Backup Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-restore-btn` |
-| `src/scenes/SettingsScene.ts` | 130–140 | Reset Device Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-reset-btn` |
-| `src/scenes/SettingsScene.ts` | 144–157 | Check for App Update Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-update-btn` |
-| `src/scenes/SettingsScene.ts` | 164–181 | Refresh Curriculum Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-refresh-curriculum-btn` |
-| `src/scenes/SettingsScene.ts` | 193 | Back Button | 360×60 | 360×60 Rectangle | 44×44 | ok | `settings-back-btn` |
-| `src/scenes/SettingsScene.ts` | 287–318 | Privacy Notice Link | ~180×16 (text) | 220×44 Zone (Phase 2 fix) | 44×44 | fixed | — |
-| `src/scenes/LevelMapScene.ts` | 173 | Back to Menu Button | unknown | unknown | 44×44 | deferred | `a11y-back-menu` (A11yLayer) |
-| `src/components/LevelCard.ts` | 1–300+ | Level Cards L1–L9 | 220×160 (scaled 0.65×→143×104) | 220×160 Container | 44×44 | ok | `level-card-L{N}` |
-| `src/components/SessionCompleteOverlay.ts` | 157–167 | Next Level Button | 300×64 | 300×64 Rectangle | 44×44 | partial | `next-level-btn` |
-| `src/components/SessionCompleteOverlay.ts` | 169–177 | Play Again Button | 300×64 | 300×64 Rectangle | 44×44 | partial | — (test hook missing) |
-| `src/components/SessionCompleteOverlay.ts` | 178–219 | Back to Menu Button | 300×54 | 300×54 Rectangle | 44×44 | partial | `session-complete-menu` |
-| `src/components/sessionComplete/scaffoldBanner.ts` | — | Scaffold Banner Buttons | unknown | unknown | 44×44 | deferred | — |
-| `src/lib/levelSceneChrome.ts` | 226 | Submit Answer Button (Check) | 320×64 | 320×64 Rectangle | 44×44 | ok | — |
-| `src/lib/levelSceneChrome.ts` | 207 | Hint Button | 160×60 | 160×60 Rectangle | 44×44 | ok | — |
-| `src/scenes/OnboardingScene.ts` | 182–229 | Skip Tutorial Link | ~180×20 (text) | 200×44 Zone (Phase 2 fix) | 44×44 | fixed | `onboarding-skip-btn` |
-| `src/scenes/interactions/BenchmarkInteraction.ts` | 102–105 | Benchmark Zone Buttons | varies | ×64 Rectangle per zone | 44×44 | ok | — |
-| `src/scenes/interactions/CompareInteraction.ts` | 157–160 | Relation Buttons (<, =, >) | 180×56 | 180×56 Rectangle | 44×44 | ok | `compare-lt-btn`, `compare-eq-btn`, `compare-gt-btn` |
-| `src/scenes/interactions/EqualOrNotInteraction.ts` | 69–72 | Equal/Not-Equal Buttons | btnW×88 | btnW×88 Rectangle | 44×44 | ok | `equal-btn`, `not-equal-btn` |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 116–123 | Drag Handles (ordering) | cardW×(cardH+8) | Math.max(cardW,44)×Math.max(cardH+8,44) | 44×44 | ok | — |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 178–181 | Check Order Button | 220×56 | 220×56 Rectangle | 44×44 | ok | `order-check` |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 251–254 | Rule Option Buttons | (width-100)×60 | (width-100)×60 Rectangle | 44×44 | ok | `rule-option-{key}` |
-| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 292–295 | Submit Reasoning Button | 220×56 | 220×56 Rectangle | 44×44 | ok | `explain-submit` |
-| `src/scenes/interactions/IdentifyInteraction.ts` | 128–131 | Option Card Hit Zones | cardW×160 | cardW×160 Rectangle | 44×44 | ok | — |
-| `src/scenes/interactions/LabelInteraction.ts` | 94–97 | Label Drag Tiles | 120×48 | 120×48 Rectangle | 44×44 | ok | `label-tile-{i}` |
-| `src/scenes/interactions/LabelInteraction.ts` | 177–180 | Submit Button | 240×52 | 240×52 Rectangle | 44×44 | ok | `label-submit` |
-| `src/scenes/interactions/MakeInteraction.ts` | 108 | Left/Right Region Hit Zones | dynamic | SHAPE_H (≥44 in practice) | 44×44 | ok | — |
-| `src/scenes/interactions/MakeInteraction.ts` | 153–154 | Submit Button | 240×52 | 240×52 Rectangle | 44×44 | ok | — |
-| `src/scenes/interactions/OrderInteraction.ts` | 120–127 | Drag Handle (order cards) | cardW×(cardH+8) | Math.max(cardW,44)×Math.max(cardH+8,44) | 44×44 | ok | — |
-| `src/scenes/interactions/OrderInteraction.ts` | 180–183 | Submit Button | 200×52 | 200×52 Rectangle | 44×44 | ok | — |
-| `src/scenes/interactions/SnapMatchInteraction.ts` | 111–112 | Drag Tiles | varies | draggable Rectangle | 44×44 | ok | — |
-| `src/scenes/interactions/SnapMatchInteraction.ts` | 175–176 | Submit Button | 200×52 | 200×52 Rectangle | 44×44 | ok | — |
+### Conversion note
 
-## Notes
+Canvas is 800 × 1280 px. Phaser Scale.FIT. At 360 CSS px viewport: scale = 0.45.  
+WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this viewport.
 
-### Fixed in Phase 2
+| file | line | symbol | hitArea (canvas px) | cssH@360vp | status | phase | testCoverage |
+|---|---|---|---|---|---|---|---|
+| `src/scenes/utils/menuButtonHelpers.ts` | 77 | `createStationButton` | `Rect(-half.w,-half.h,w,h+shadow)` ≥100 h | ≥45 CSS px | compliant | — | unit |
+| `src/scenes/utils/levelTheme.ts` | 160 | `createActionButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` | ≥36 CSS px | compliant | — | unit |
+| `src/scenes/utils/levelTheme.ts` | 241 | `createHintPillButton` | `Rect(-W/2,-H/2,W,H+SHADOW)` H=64 | 29 CSS px | **violation** | 3 | none |
+| `src/scenes/utils/levelTheme.ts` | 321 | circle nav button | `Rect(-R,-R,D,D)` D≥100 | ≥45 CSS px | compliant | — | none |
+| `src/lib/levelSceneChrome.ts` | 74 | back button | explicit `Rect(-W/2,-H/2,W,H)` | — | compliant | — | none |
+| `src/scenes/Level01SceneLayout.ts` | 50 | home emoji back btn | `Rect(-32,-28,64,56)` 64×56 | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/OnboardingScene.ts` | 214 | "Skip tutorial" link | transparent `Rect 200×100` | 45 CSS px | compliant | — | none |
+| `src/scenes/OnboardingScene.ts` | 332 | demo tap-to-skip zone | full canvas `CW×CH` | n/a | not-a-button | — | — |
+| `src/scenes/SettingsScene.ts` | 332 | "Privacy Notice →" link | transparent `Rect 220×100` | 45 CSS px | compliant | — | none |
+| `src/scenes/SettingsScene.ts` | 388 | toggle buttons (HC/RM/sound) | `Rect BTN_W×BTN_H` = 360×100 | 45 CSS px | compliant | — | none |
+| `src/scenes/FirstRunScene.ts` | 221 | "Let's go! ▶" start btn | `Rect 360×100` | 45 CSS px | compliant | — | none |
+| `src/scenes/FirstRunScene.ts` | 244 | "No thanks, just play" skip | `Rect 260×80` | 36 CSS px | **violation** | 2 | none |
+| `src/scenes/LevelMapScene.ts` | 468 | "← Menu" back btn | `Rect 160×100` | 45 CSS px | compliant | — | none |
+| `src/scenes/RecoveryScene.ts` | 178 | recovery action btns | `container.setSize(340,72)` | 32 CSS px | **violation** | 4 | none |
+| `src/scenes/DBRecoveryScene.ts` | 169 | recovery action btns | `container.setSize(360,72)` | 32 CSS px | **violation** | 4 | none |
+| `src/components/sessionComplete/buttons.ts` | 80 | session-complete primary btn | `Rect 300×(H+SHADOW=107)` | 48 CSS px | compliant | — | unit |
+| `src/components/sessionComplete/buttons.ts` | 80 | session-complete secondary btn | `Rect 300×(H+SHADOW=100)` | 45 CSS px | compliant | — | unit |
+| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | scaffold recommendation banner | `Rect 440×64` | 29 CSS px | **violation** | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 173 | "Play Again from Level 1" btn | `Rect 320×71` (H+SHADOW) | 32 CSS px | **violation** | 3 | none |
+| `src/components/QuestCompleteOverlay.ts` | 201 | "Back to Menu" btn | `Rect 320×54` | 24 CSS px | **violation** | 3 | none |
+| `src/components/StudentSwitcher.ts` | 135 | student chip (collapsed) | `Rect CHIP_W×CHIP_H` = 200×80 | 36 CSS px | **violation** | 4 | none |
+| `src/components/StudentSwitcher.ts` | 205 | panel backdrop (scrim) | full canvas | n/a | not-a-button | — | — |
+| `src/components/StudentSwitcher.ts` | 264 | student profile card | `Rect 324×CARD_H` = 324×100 | 45 CSS px | compliant | — | none |
+| `src/components/StudentSwitcher.ts` | 299 | "Add student" btn | `Rect 324×ADD_BTN_H` = 324×80 | 36 CSS px | **violation** | 4 | none |
+| `src/components/UpdateBanner.ts` | 82 | SW update banner | `Rect full-width×BANNER_HEIGHT` = ×80 | 36 CSS px | **violation** | 4 | none |
+| `src/components/DragHandle.ts` | 102 | drag handle gripper | `Rect HIT_TARGET×HIT_TARGET` ≥44 | ≥44 CSS px | compliant | — | unit |
+| `src/components/PostSessionOverlay.ts` | 97 | modal scrim | full canvas | n/a | not-a-button | — | — |
+| `src/components/LevelCard.ts` | 262 | level card container | 220×160 container | 72 CSS px | compliant | — | e2e |
+| `src/scenes/utils/menuOverlayHelpers.ts` | 57 | overlay scrim | full canvas | n/a | not-a-button | — | — |
+| `src/scenes/utils/menuOverlayHelpers.ts` | 105 | overlay text btns | bare Text `.setInteractive` | ~10 CSS px | deferred | — | none |
+| `src/scenes/settings/versionTapToggle.ts` | 42 | version debug tap | bare Text `.setInteractive` | ~11 CSS px | deferred | — | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 180 | "Check ordering" btn | `Rect 220×56` | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 252 | rule-option choice btns | `Rect (w-100)×60` | 27 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 294 | submit explain btn | `Rect 220×56` | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/IdentifyInteraction.ts` | 130 | option card hit zones | `Rect cardW×cardH` = ≤180×160 | 72 CSS px | compliant | — | none |
+| `src/scenes/interactions/LabelInteraction.ts` | 97 | label tile draggable | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/LabelInteraction.ts` | 179 | submit "Check" btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 82 | drag handle (via DragHandle) | via DragHandle HIT_TARGET | ≥44 CSS px | compliant | — | unit |
+| `src/scenes/interactions/MakeInteraction.ts` | 117 | "Divide" btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 128 | left shade region | `Rect dynamic×SHAPE_H` = ×520 | 234 CSS px | compliant | — | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 132 | right shade region | `Rect dynamic×SHAPE_H` = ×520 | 234 CSS px | compliant | — | none |
+| `src/scenes/interactions/MakeInteraction.ts` | 163 | "Check" submit btn | `Rect 240×52` | 23 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/CompareInteraction.ts` | 159 | choice btns (</>/=) | `Rect 180×56` | 25 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | zone hit btns | `Rect zoneW×64` | 29 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | equal/not-equal btns | `Rect btnW×88` | 40 CSS px | **violation** | 4 | none |
+| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | draggable cards | `Rect 120×48` (no padding) | 22 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/OrderInteraction.ts` | 124 | card drag tokens | `Rect hitW×hitH` hitH=max(52,44)=52 | 23 CSS px | **violation** | 4b | none |
+| `src/scenes/interactions/utils/NumberLine.ts` | 125 | number-line draggable marker | `Circle r=22` → diameter 44 canvas | 20 CSS px | **violation** | 4b | none |
 
-- **Privacy Notice Link** (`SettingsScene.ts`): Text had ~16px line-height → only ~24px hit height. Replaced with a transparent 220×44 Zone as the interactive target. Press feedback via `applyState('pressed')` + double-tap debounce via `Gesture.doubleTapWindowMs`.
-- **Skip Tutorial Link** (`OnboardingScene.ts`): Text had ~20px line-height; even with `padding: {x:12, y:12}` the Phaser Text hit-area does not expand to the padding rect in all devices. Replaced with a transparent 200×44 Zone. Press feedback and debounce applied.
+---
 
-### Deferred
+## Violations by fix phase (26 total)
 
-- **Back to Menu Button** (`LevelMapScene.ts` line 173): `_drawBackButton` implementation was not read during Phase 1 audit; size unknown. Requires a follow-up read + potential fix.
-- **Scaffold Banner Buttons** (`sessionComplete/scaffoldBanner.ts`): Not audited during Phase 1; unknown hit-area size. Requires separate audit pass.
+### Phase 2 — text-only & link buttons (1)
 
-### Partial (size OK, other issues)
+| file | line | current canvas h | fix |
+|---|---|---|---|
+| `src/scenes/FirstRunScene.ts` | 244 | 80 | raise `h` to 100 |
 
-- **Choose Level Pill**, **SessionComplete buttons**: All meet the 44×44 minimum but lack hover/pressed visual feedback and focus rings — these are Phase 5 concerns (visual state migration).
+### Phase 3 — shadow-aware & overlay buttons (4)
+
+| file | line | current canvas h | fix |
+|---|---|---|---|
+| `src/scenes/utils/levelTheme.ts` | 241 | 64 | raise `H` to 100 |
+| `src/components/sessionComplete/scaffoldBanner.ts` | 74 | 64 | raise `H` to 100 |
+| `src/components/QuestCompleteOverlay.ts` | 173 | 64 (71 w/shadow) | raise `H` to 100 |
+| `src/components/QuestCompleteOverlay.ts` | 201 | 54 | raise `H` to 100 |
+
+### Phase 4 — general button sweep (16)
+
+| file | line | current canvas h | fix |
+|---|---|---|---|
+| `src/scenes/Level01SceneLayout.ts` | 50 | 56 | `Rect(-49,-49,98,98)` |
+| `src/scenes/RecoveryScene.ts` | 178 | 72 | raise `BTN_H` to 100 |
+| `src/scenes/DBRecoveryScene.ts` | 169 | 72 | raise `BTN_H` to 100 |
+| `src/components/StudentSwitcher.ts` | 135 | 80 | raise `CHIP_H` to 100 |
+| `src/components/StudentSwitcher.ts` | 299 | 80 | raise `ADD_BTN_H` to 100 |
+| `src/components/UpdateBanner.ts` | 82 | 80 | raise `BANNER_HEIGHT` to 100 |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 180 | 56 | raise `H` to 100 |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 252 | 60 | raise `optionH` to 100 |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 294 | 56 | raise `H` to 100 |
+| `src/scenes/interactions/LabelInteraction.ts` | 179 | 52 | raise `H` to 100 |
+| `src/scenes/interactions/MakeInteraction.ts` | 117 | 52 | raise `H` to 100 |
+| `src/scenes/interactions/MakeInteraction.ts` | 163 | 52 | raise `H` to 100 |
+| `src/scenes/interactions/CompareInteraction.ts` | 159 | 56 | raise `H` to 100 |
+| `src/scenes/interactions/BenchmarkInteraction.ts` | 104 | 64 | raise `H` to 100 |
+| `src/scenes/interactions/EqualOrNotInteraction.ts` | 71 | 88 | raise `btnH` to 100 |
+
+### Phase 4b — drag targets (5)
+
+| file | line | current geometry | fix |
+|---|---|---|---|
+| `src/scenes/interactions/LabelInteraction.ts` | 97 | `Rect 120×48` | raise tile h to 110 canvas px |
+| `src/scenes/interactions/SnapMatchInteraction.ts` | 114 | `Rect 120×48` | raise card h to 110 canvas px |
+| `src/scenes/interactions/ExplainYourOrderInteraction.ts` | 118 | `hitH=max(52,44)` | raise `cardH` from 44 → 100; hitH follows |
+| `src/scenes/interactions/OrderInteraction.ts` | 124 | `hitH=max(52,44)` | raise `cardH` from 44 → 100; hitH follows |
+| `src/scenes/interactions/utils/NumberLine.ts` | 125 | `Circle r=22` | raise radius to 55 (d=110 canvas) |
+
+---
+
+## Drag thresholds
+
+| archetype | engageThresholdPx | cancelRevertMs | notes |
+|---|---|---|---|
+| `label` | Phaser default (~6) | none | snap on `dragend`, no cancel animation |
+| `snap_match` | Phaser default (~6) | none | snap on `dragend` |
+| `explain_your_order` | Phaser default (~6) | none | snap on `dragend` |
+| `order` | Phaser default (~6) | none | snap on `dragend` |
+| `make` | via `DragHandle.ts` | `Gesture.dragCancelRevertMs` | DragHandle owns threshold |
+| `benchmark` (NumberLine) | Phaser default (~6) | none | snap on `dragend` |
+
+All archetypes use Phaser's default engage threshold. Phase 4b should wire bounce-back cancel-revert to all drag archetypes per the gesture grammar.
+
+---
+
+## Deferred
+
+| file | line | symbol | reason |
+|---|---|---|---|
+| `src/scenes/utils/menuOverlayHelpers.ts` | 105/157 | overlay text btns | Low-frequency dialog path; audit in Phase 4 if confirmed to be reachable in gameplay |
+| `src/scenes/settings/versionTapToggle.ts` | 42 | version debug tap | Dev/debug path, not shown in production flows |
