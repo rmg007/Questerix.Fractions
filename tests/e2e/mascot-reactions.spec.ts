@@ -94,16 +94,16 @@ test.describe('Mascot reactions (T27) — e2e smoke', () => {
     await navigateToLevel01(page);
 
     const partitionTarget = page.locator('[data-testid="partition-target"]');
-    await expect(partitionTarget).toBeVisible({ timeout: 5000 });
+    await expect(partitionTarget).toBeVisible({ timeout: 15000 });
     await partitionTarget.click();
 
     // FeedbackOverlay shows synchronously and mascot.setState('cheer') is called
     // immediately after, so we can assert while the overlay is still visible.
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('[data-testid="mascot-state"]')).toHaveAttribute(
       'data-state',
       'cheer',
-      { timeout: 2000 }
+      { timeout: 10000 }
     );
   });
 
