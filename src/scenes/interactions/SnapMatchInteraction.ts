@@ -8,6 +8,7 @@ import * as Phaser from 'phaser';
 import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { markInputEvent } from '../../lib/perf/traceInput';
 import {
   ACCENT_C,
   CHOICE_YES,
@@ -124,6 +125,9 @@ export class SnapMatchInteraction implements Interaction {
       card.setData('originY', ly);
 
       card.on('drag', (_p: unknown, dx: number, dy: number) => {
+        // PERF: markInputEvent for P95 latency tracking; no validation during drag —
+        // snap evaluation is deferred entirely to dragend.
+        if (import.meta.env.DEV) markInputEvent('snap_match');
         card.setPosition(dx, dy);
         txt.setPosition(dx, dy);
       });

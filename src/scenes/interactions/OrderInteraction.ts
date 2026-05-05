@@ -7,6 +7,7 @@ import * as Phaser from 'phaser';
 import { A11yLayer } from '../../components/A11yLayer';
 import { BarModel } from './utils';
 import type { Interaction, InteractionContext } from './types';
+import { markInputEvent } from '../../lib/perf/traceInput';
 import {
   NAVY,
   OPTION_BORDER,
@@ -136,6 +137,8 @@ export class OrderInteraction implements Interaction {
         });
       });
       handle.on('drag', (_p: unknown, dx: number, dy: number) => {
+        // PERF: markInputEvent for P95 latency tracking; snap evaluation deferred to dragend.
+        if (import.meta.env.DEV) markInputEvent('order');
         handle.setPosition(dx, dy);
       });
 

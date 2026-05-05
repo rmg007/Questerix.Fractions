@@ -16,6 +16,7 @@ import { log } from '../../lib/log';
 import { NAVY, SKY_BG, ACTION_FILL, BODY_FONT, TITLE_FONT } from '../utils/levelTheme';
 import { sfx } from '../../audio/SFXService';
 import { ChocolateBarModel } from './utils/ChocolateBarModel';
+import { markInputEvent } from '../../lib/perf/traceInput';
 
 const OPTION_BORDER = NAVY;
 
@@ -51,6 +52,9 @@ export class PartitionInteraction implements Interaction {
   private shapeType!: 'rectangle' | 'circle' | 'chocolate_bar';
   private targetPartitions = 2;
   private chocolateBar: ChocolateBarModel | null = null;
+  // PERF: Cache line endpoints so updatePartitionLine avoids recomputing them each move.
+  private _lineTop = 0;
+  private _lineBottom = 0;
 
   mount(ctx: InteractionContext): void {
     A11yLayer.unmountAll();
@@ -114,6 +118,8 @@ export class PartitionInteraction implements Interaction {
       snapThreshold: SHAPE_W * SNAP_PCT,
       snapTargets,
       onMove: (pos) => {
+        // PERF: markInputEvent at start of each drag move for P95 latency tracking.
+        if (import.meta.env.DEV) markInputEvent('partition');
         if (this.handlePos === dragStartPos) {
           log.drag('start', {
             fromX: Math.round(dragStartPos),
@@ -415,11 +421,17 @@ export class PartitionInteraction implements Interaction {
       g.fillRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeRect(cx - SHAPE_W / 2, cy - SHAPE_H / 2, SHAPE_W, SHAPE_H);
+      // PERF: Cache line endpoints once on mount — avoids re-computing each pointermove.
+      this._lineTop = cy - SHAPE_H / 2 - 20;
+      this._lineBottom = cy + SHAPE_H / 2 + 20;
     } else if (shapeType === 'circle') {
       g.fillStyle(SKY_BG, 0.55);
       g.fillCircle(cx, cy, SHAPE_W / 2);
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
+      // PERF: Cache line endpoints once on mount — avoids re-computing each pointermove.
+      this._lineTop = cy - SHAPE_H / 2 - 20;
+      this._lineBottom = cy + SHAPE_H / 2 + 20;
     } else {
       // chocolate_bar: delegate to ChocolateBarModel
       this.chocolateBar = new ChocolateBarModel({
@@ -431,23 +443,20 @@ export class PartitionInteraction implements Interaction {
         denominator: this.targetPartitions,
         depth: 5,
       });
+      // PERF: Cache line endpoints once on mount — avoids re-computing each pointermove.
+      this._lineTop = cy - CHOC_H / 2 - 10;
+      this._lineBottom = cy + CHOC_H / 2 + 10;
       // shapeGraphics not needed for chocolate (ChocolateBarModel owns its own Graphics)
     }
   }
 
-  private updatePartitionLine(handleX: number, cy: number): void {
+  private updatePartitionLine(handleX: number, _cy: number): void {
+    // PERF: Use cached _lineTop/_lineBottom (set once in drawShape) to eliminate
+    // per-move arithmetic. Only re-clears and redraws the active drag line, not
+    // the static shape layer (shapeGraphics is never touched during drag).
     this.partitionLine.clear();
     this.partitionLine.lineStyle(10, NAVY, 1);
-
-    if (this.shapeType === 'chocolate_bar') {
-      const top = cy - CHOC_H / 2;
-      const bottom = cy + CHOC_H / 2;
-      this.partitionLine.lineBetween(handleX, top - 10, handleX, bottom + 10);
-    } else {
-      const top = cy - SHAPE_H / 2;
-      const bottom = cy + SHAPE_H / 2;
-      this.partitionLine.lineBetween(handleX, top - 20, handleX, bottom + 20);
-    }
+    this.partitionLine.lineBetween(handleX, this._lineTop, handleX, this._lineBottom);
   }
 
   private drawDashedLine(
