@@ -23,6 +23,8 @@ import { fadeAndStart } from './utils/sceneTransition';
 import { studentRepo } from '../persistence/repositories/studentRepo';
 import { checkReduceMotion } from '../lib/preferences';
 import { tween, Duration, Ease } from './utils/motion';
+import { Gesture } from './utils/interaction';
+import { applyState } from './utils/states';
 import { BODY_FONT } from './utils/levelTheme';
 
 const LAST_STUDENT_KEY = 'questerix.lastUsedStudentId';
@@ -227,7 +229,8 @@ export class FirstRunScene extends Phaser.Scene {
     const cx = CW / 2;
     const y = 1060;
     const w = 260;
-    const h = 80;
+    // Raised from 80 → 100 canvas px so CSS touch target ≥ 44 px at 360 vp (WCAG 2.5.5).
+    const h = 100;
 
     this.add
       .text(cx, y, 'No thanks, just play', {
@@ -243,7 +246,19 @@ export class FirstRunScene extends Phaser.Scene {
       .rectangle(cx, y, w, h, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
-    hit.on('pointerup', () => void this._handleSkip());
+
+    let lastTapAt = 0;
+    hit.on('pointerdown', () => {
+      const now = Date.now();
+      if (now - lastTapAt < Gesture.doubleTapWindowMs) return;
+      lastTapAt = now;
+      applyState(hit, 'pressed', this);
+    });
+    hit.on('pointerup', () => {
+      this.time.delayedCall(100, () => applyState(hit, 'idle', this));
+      void this._handleSkip();
+    });
+    hit.on('pointerout', () => applyState(hit, 'idle', this));
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────

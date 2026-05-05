@@ -26,7 +26,7 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 | `src/scenes/SettingsScene.ts` | 332 | "Privacy Notice →" link | transparent `Rect 220×100` | 45 CSS px | compliant | — | none |
 | `src/scenes/SettingsScene.ts` | 388 | toggle buttons (HC/RM/sound) | `Rect BTN_W×BTN_H` = 360×100 | 45 CSS px | compliant | — | none |
 | `src/scenes/FirstRunScene.ts` | 221 | "Let's go! ▶" start btn | `Rect 360×100` | 45 CSS px | compliant | — | none |
-| `src/scenes/FirstRunScene.ts` | 244 | "No thanks, just play" skip | `Rect 260×80` | 36 CSS px | **violation** | 2 | none |
+| `src/scenes/FirstRunScene.ts` | 244 | "No thanks, just play" skip | `Rect 260×100` | 45 CSS px | fixed | 2 | none |
 | `src/scenes/LevelMapScene.ts` | 468 | "← Menu" back btn | `Rect 160×100` | 45 CSS px | compliant | — | none |
 | `src/scenes/RecoveryScene.ts` | 178 | recovery action btns | `container.setSize(340,72)` | 32 CSS px | **violation** | 4 | none |
 | `src/scenes/DBRecoveryScene.ts` | 169 | recovery action btns | `container.setSize(360,72)` | 32 CSS px | **violation** | 4 | none |
@@ -69,11 +69,11 @@ WCAG 2.5.5 requires 44 CSS px → **98 canvas px minimum** on each axis at this 
 
 ## Violations by fix phase (26 total)
 
-### Phase 2 — text-only & link buttons (1)
+### Phase 2 — text-only & link buttons (0 remaining)
 
 | file | line | current canvas h | fix |
 |---|---|---|---|
-| `src/scenes/FirstRunScene.ts` | 244 | 80 | raise `h` to 100 |
+| ~~`src/scenes/FirstRunScene.ts`~~ | ~~244~~ | ~~80~~ | ✓ fixed — raised `h` to 100 (PR: Phase 2) |
 
 ### Phase 3 — shadow-aware & overlay buttons (4)
 
