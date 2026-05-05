@@ -96,9 +96,7 @@
       "public/audio/sfx/zapTwoTone.ogg",
       "public/audio/sfx/zapTwoTone2.ogg"
     ],
-    "icons_png": [
-      "public/icons/apple-touch-icon.png",
-      "public/icons/favicon-32.png",
+    "icons_png_and_pwa_assets": [
       "public/icons/icon-192-maskable.png",
       "public/icons/icon-192.png",
       "public/icons/icon-512-maskable.png",
@@ -114,10 +112,11 @@
   },
   "recommendations": {
     "phase_3_action": [
-      "Review audio/sfx/*.ogg orphans: most are likely intentional legacy assets retained for future feature work (e.g., tone.ogg, zap*.ogg may be for future interaction types or UI sounds). Do NOT auto-delete without curriculum/design review.",
-      "Icons and screenshots are correctly not orphans — they are manifest/PWA assets and docs references. No action needed.",
-      "Once decision is made to delete audio orphans, batch-delete via 'npm run clean:orphan-audio' (if script added) or manual deletion. Confirm no curriculum specs reference the deleted files."
+      "Audio orphans (58 .ogg files): most are likely intentional legacy assets retained for future feature work (e.g., tone.ogg, zap*.ogg may be for future interaction types or UI sounds). Do NOT auto-delete without curriculum/design review.",
+      "PWA icons (icon-192*, icon-512* + screenshots): are standard PWA manifest assets and are not 'orphaned' — retain for PWA robustness and documentation. No deletion recommended.",
+      "Once decision is made to delete audio orphans, batch-delete via git or manual deletion. Verify no curriculum specs or hidden comments reference the deleted files."
     ],
-    "bundle_impact": "58 orphan .ogg files × ~30–50 KB each = ~1.7–2.9 MB of wasted disk space. Runtime impact: 0 KB (preload only loads SFX_FILES list, not all *.ogg in folder). Safe to defer deletion to Phase 3 cleanup pass."
+    "bundle_impact": "58 orphan .ogg files × ~30–50 KB each = ~1.7–2.9 MB of wasted disk space. Runtime impact: 0 KB (SFXService only preloads SFX_FILES list, not all *.ogg in folder). Safe to defer deletion to Phase 3 cleanup pass.",
+    "false_positives": "PWA icons (6 files) and screenshots (2 files) are correctly retained despite not being explicitly imported in TypeScript — they are referenced in manifest.json and are essential PWA bundle files."
   }
 }
