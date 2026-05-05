@@ -32,6 +32,8 @@ import { DragHandle } from '../components/DragHandle';
 import { Mascot } from '../components/Mascot';
 import { tts } from '../audio/TTSService';
 import { fadeAndStart } from './utils/sceneTransition';
+import { applyState } from './utils/states';
+import { Gesture } from './utils/interaction';
 
 // ── Onboarding completion gate ────────────────────────────────────────────────
 // Backed by `DeviceMeta.onboardingComplete` in IndexedDB (per C5; v7 schema).
@@ -77,6 +79,7 @@ export class OnboardingScene extends Phaser.Scene {
   private actionBtn!: Phaser.GameObjects.Container;
   private handPointer!: Phaser.GameObjects.Text;
   private skipText!: Phaser.GameObjects.Text;
+  private skipHitZone!: Phaser.GameObjects.Rectangle;
   // T9: timers and tweens for Step 1 demo — stored so tap-to-skip can cancel them
   private watchTimers: Phaser.Time.TimerEvent[] = [];
   private demoTween: Phaser.Tweens.Tween | null = null;
@@ -177,6 +180,9 @@ export class OnboardingScene extends Phaser.Scene {
     this.actionBtn.setAlpha(0); // hidden until step 2
 
     // ── Skip link ─────────────────────────────────────────────────────────────
+    // Fix (Phase 2): bare Text.setInteractive() had ~20px hit height — below 44×44
+    // minimum. Now uses a transparent Zone (≥200×44) with press feedback and
+    // double-tap debounce per Gesture.doubleTapWindowMs.
     this.skipText = this.add
       .text(CW / 2, CH - 90, 'Skip tutorial', {
         fontSize: '20px',
@@ -185,8 +191,8 @@ export class OnboardingScene extends Phaser.Scene {
         padding: { x: 12, y: 12 },
       })
       .setOrigin(0.5)
-      .setDepth(35)
-      .setInteractive({ useHandCursor: true });
+      .setDepth(35);
+    // Text is now visual-only; interaction is on the hitZone below.
 
     // Subtle navy underline/border
     const skipUnderline = this.add.graphics().setDepth(5);
@@ -198,7 +204,26 @@ export class OnboardingScene extends Phaser.Scene {
       CH - 90 + this.skipText.height / 2 - 8
     );
 
-    this.skipText.on('pointerup', () => this.completeOnboarding());
+    // Padded transparent hit zone — minimum 44×44 px per WCAG touch target spec
+    const SKIP_HIT_W = 200;
+    const SKIP_HIT_H = 44;
+    this.skipHitZone = this.add
+      .rectangle(CW / 2, CH - 90, SKIP_HIT_W, SKIP_HIT_H, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(36);
+
+    let skipLastTapAt = 0;
+    this.skipHitZone.on('pointerdown', () => {
+      const now = Date.now();
+      if (now - skipLastTapAt < Gesture.doubleTapWindowMs) return;
+      skipLastTapAt = now;
+      applyState(this.skipHitZone, 'pressed', this);
+    });
+    this.skipHitZone.on('pointerup', () => {
+      this.time.delayedCall(100, () => applyState(this.skipHitZone, 'idle', this));
+      this.completeOnboarding();
+    });
+    this.skipHitZone.on('pointerout', () => applyState(this.skipHitZone, 'idle', this));
 
     // ── Accessibility ─────────────────────────────────────────────────────────
     A11yLayer.unmountAll();
@@ -478,6 +503,7 @@ export class OnboardingScene extends Phaser.Scene {
 
     // Hide skip — no longer needed once tutorial is complete
     this.skipText.setVisible(false);
+    this.skipHitZone.setVisible(false).disableInteractive();
   }
 
   // ── Step dots ─────────────────────────────────────────────────────────────
