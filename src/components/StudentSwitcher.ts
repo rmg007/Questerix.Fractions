@@ -36,7 +36,7 @@ const DEFAULT_AVATAR: AvatarKey = 'star';
 
 /** Chip dimensions (canvas pixels) */
 const CHIP_W = 200;
-const CHIP_H = 80;
+const CHIP_H = 100;
 const CHIP_X = 110; // left-aligned
 const CHIP_Y = 60;
 
@@ -44,7 +44,7 @@ const CHIP_Y = 60;
 const PANEL_W = 340;
 const CARD_H = 100;
 const CARD_GAP = 12;
-const ADD_BTN_H = 80;
+const ADD_BTN_H = 100;
 
 export interface StudentSwitcherOptions {
   scene: Phaser.Scene;

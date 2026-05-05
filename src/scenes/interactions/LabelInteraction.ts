@@ -175,7 +175,7 @@ export class LabelInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const hit = scene.add
-      .rectangle(centerX, sy, 240, 52, 0, 0)
+      .rectangle(centerX, sy, 240, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 

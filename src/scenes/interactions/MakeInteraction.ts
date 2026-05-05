@@ -114,7 +114,7 @@ export class MakeInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const bhit = scene.add
-      .rectangle(centerX, btnY, 240, 52, 0, 0)
+      .rectangle(centerX, btnY, 240, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
@@ -160,7 +160,7 @@ export class MakeInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const submitHit = scene.add
-      .rectangle(centerX, sy, 240, 52, 0, 0)
+      .rectangle(centerX, sy, 240, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
     const submitMake = () => {

@@ -176,7 +176,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const hit = scene.add
-      .rectangle(centerX, sy, 220, 56, 0, 0)
+      .rectangle(centerX, sy, 220, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
@@ -229,7 +229,7 @@ export class ExplainYourOrderInteraction implements Interaction {
     this.gameObjects.push(title);
 
     const options = postStep.options;
-    const optionH = 60;
+    const optionH = 100;
     const spacing = 15;
     const totalH = options.length * (optionH + spacing) - spacing;
     const startY = centerY - totalH / 2 + 40;
@@ -290,7 +290,7 @@ export class ExplainYourOrderInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const submitHit = scene.add
-      .rectangle(centerX, sy, 220, 56, 0, 0)
+      .rectangle(centerX, sy, 220, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
 
