@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `fix/2026-05-04-button-hit-regions`
-**Status:** Draft — not yet implemented
+**Status:** Completed: 2026-05-05 — all 26 violations fixed across Phases 1–4b; Phase 5 helper skipped (threshold not meaningfully reached for the actual fix patterns); Phase 6 docs done.
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Touch + perf + reliability). Lands first in Phase 2; gates plan 2 Phase 3 and plan 3 Phases 1–2. Inherits hit-area constants and pressed/focused/disabled visuals from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md) (`Gesture.tapCancelRadiusPx`, `State.pressed`, `State.focused`); the helper added in this plan's Phase 5 calls `applyState` rather than rolling its own visual states.
 
 ## Dependencies & blockers
