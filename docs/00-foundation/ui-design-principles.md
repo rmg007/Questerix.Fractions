@@ -130,6 +130,23 @@ The `checkReduceMotion()` flag gates all non-essential tweens. This protects chi
 
 ---
 
+## Touchscreen sizing minimums (WCAG 1.4.4 + 2.5.5 — Phaser canvas)
+
+Phaser renders to an 800×1280 canvas with `Scale.FIT`. At the C7 minimum viewport (360 px wide), the scale factor is **360/800 = 0.45**, so `canvas px × 0.45 = CSS px`. All font sizes in Phaser `TextStyle.fontSize` are **canvas pixels**, not CSS pixels — they must be larger than they look in source.
+
+| Role | Minimum canvas px | Resulting CSS px @ 360vp | WCAG rule |
+|---|---|---|---|
+| Body / question text | ≥ 36 px | ≥ 16.2 px | 1.4.4 |
+| Button labels | ≥ 32 px | ≥ 14.4 px | 1.4.4 |
+| Hint / feedback text | ≥ 28 px | ≥ 12.6 px | 1.4.4 |
+| Micro badges / chips | ≥ 24 px | ≥ 10.8 px | 1.4.4 |
+| Touch targets (all interactive elements) | ≥ 100 px (H) | ≥ 44 px CSS | 2.5.5 |
+
+**Verification:** run `grep -rn "fontSize: '[0-9]\{1,2\}px'" src/` — any match is a WCAG violation.  
+**DOM elements** (e.g. `PreferenceToggle`, `SkipLink`) use real CSS px — apply normal 16 px / 14 px minimums, not the canvas conversions above.
+
+---
+
 ## When to amend this document
 
 These principles are not laws of nature; they are the explicit philosophy of this app. They can change — but only via a deliberate `/decision` entry that names the principle being amended and the evidence for the change. Do not revise this file silently in a polish PR.
