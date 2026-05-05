@@ -17,6 +17,7 @@ import { NAVY, SKY_BG, ACTION_FILL, BODY_FONT, TITLE_FONT } from '../utils/level
 import { sfx } from '../../audio/SFXService';
 import { ChocolateBarModel } from './utils/ChocolateBarModel';
 import { markInputEvent } from '../../lib/perf/traceInput';
+import { tween, Duration, Ease } from '../utils/motion';
 
 const OPTION_BORDER = NAVY;
 
@@ -287,13 +288,12 @@ export class PartitionInteraction implements Interaction {
             .setDepth(9)
             .setScale(0.5);
           this.fractionLabels.push(label);
-          this.scene.tweens.add({
-            targets: label,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 300,
-            ease: 'Back.easeOut',
-          });
+          tween(
+            this.scene,
+            label,
+            { scaleX: 1, scaleY: 1 },
+            { duration: Duration.long, ease: Ease.spring }
+          );
         }
       });
     } else {
@@ -339,23 +339,17 @@ export class PartitionInteraction implements Interaction {
             .setDepth(9)
             .setScale(0.5);
           this.fractionLabels.push(label);
-          this.scene.tweens.add({
-            targets: label,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 300,
-            ease: 'Back.easeOut',
-          });
+          tween(
+            this.scene,
+            label,
+            { scaleX: 1, scaleY: 1 },
+            { duration: Duration.long, ease: Ease.spring }
+          );
         }
       });
     }
 
-    this.scene.tweens.add({
-      targets: fillG,
-      alpha: 1,
-      duration: 350,
-      ease: 'Sine.easeOut',
-    });
+    tween(this.scene, fillG, { alpha: 1 }, { duration: Duration.long, ease: Ease.bounce });
   }
 
   /**
@@ -430,8 +424,9 @@ export class PartitionInteraction implements Interaction {
       g.lineStyle(3, OPTION_BORDER, 1);
       g.strokeCircle(cx, cy, SHAPE_W / 2);
       // PERF: Cache line endpoints once on mount — avoids re-computing each pointermove.
-      this._lineTop = cy - SHAPE_H / 2 - 20;
-      this._lineBottom = cy + SHAPE_H / 2 + 20;
+      // Circle radius is SHAPE_W/2 (not SHAPE_H/2); use correct dimension here.
+      this._lineTop = cy - SHAPE_W / 2 - 20;
+      this._lineBottom = cy + SHAPE_W / 2 + 20;
     } else {
       // chocolate_bar: delegate to ChocolateBarModel
       this.chocolateBar = new ChocolateBarModel({
