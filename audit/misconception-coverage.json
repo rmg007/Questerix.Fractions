@@ -1,4 +1,44 @@
 {
+  "updatedAt": "2026-05-05",
+  "detector_implementation_status": {
+    "methodology": "Cross-referenced docs/10-curriculum/misconceptions.md catalog against src/engine/misconceptionRules.ts MISCONCEPTION_RULES table.",
+    "codes": {
+      "MC-WHB-01": { "status": "detected", "archetypes": ["compare"], "levels": "L6+" },
+      "MC-WHB-02": { "status": "detected", "archetypes": ["compare"], "levels": "L7+" },
+      "MC-NOM-01": { "status": "detected", "archetypes": ["compare"], "levels": "L6+" },
+      "MC-EOL-01": { "status": "detected", "archetypes": ["equal_or_not"], "levels": "L1+" },
+      "MC-EOL-02": { "status": "detected", "archetypes": ["equal_or_not"], "levels": "any" },
+      "MC-EOL-03": { "status": "detected", "archetypes": ["equal_or_not"], "levels": "any" },
+      "MC-EOL-04": { "status": "detected", "archetypes": ["equal_or_not"], "levels": "any" },
+      "MC-MAG-01": { "status": "detected", "archetypes": ["any"], "levels": "L8+" },
+      "MC-MAG-02": { "status": "detected", "archetypes": ["partition"], "levels": "L5" },
+      "MC-PRX-01": { "status": "detected", "archetypes": ["benchmark"], "levels": "L8+" },
+      "MC-PRX-02": { "status": "detected", "archetypes": ["benchmark"], "levels": "L8+" },
+      "MC-SHP-01": { "status": "detected", "archetypes": ["partition"], "levels": "L1-2" },
+      "MC-SHP-02": { "status": "detected", "archetypes": ["partition"], "levels": "L1" },
+      "MC-VOC-01": { "status": "detected", "archetypes": ["label", "identify"], "levels": "any" },
+      "MC-L5-THIRDS-HALF-01": { "status": "detected", "archetypes": ["partition"], "levels": "L5" },
+      "MC-L5-FOURTHS-3CUTS-01": { "status": "detected", "archetypes": ["partition"], "levels": "L5" },
+      "MC-L5-DENSWITCH-01": { "status": "detected", "archetypes": ["partition"], "levels": "L5" },
+      "MC-EQ-01": {
+        "status": "missing",
+        "archetypes": ["compare"],
+        "levels": "L6-7",
+        "notes": "Catalog says 'planned — not yet implemented'. Signal: student picks '=' on same-denominator compare when numerators differ by 1, ≥50% of time over 4+ attempts."
+      },
+      "MC-EQ-02": {
+        "status": "missing",
+        "archetypes": ["benchmark", "order"],
+        "levels": "L8-9",
+        "notes": "Catalog says 'planned — not yet implemented'. Signal: student misplaces ½-equivalent fractions (2/4, 3/6, 4/8) in 'almost_half' zone instead of 'half' zone, ≥50% over 3+ attempts."
+      }
+    },
+    "gaps": ["MC-EQ-01", "MC-EQ-02"],
+    "implicitlyDetectedNotInCatalog": [
+      { "id": "MC-ORD-01", "notes": "In MISCONCEPTION_RULES, referenced in level-09.md §8.3 but not in misconceptions.md catalog." },
+      { "id": "MC-STRAT-01", "notes": "In MISCONCEPTION_RULES, referenced in level-09.md §8.3 but not in misconceptions.md catalog." }
+    ]
+  },
   "total_misconceptions": 19,
   "triggered_l1_l9": 2,
   "coverage_percent": 10.5,

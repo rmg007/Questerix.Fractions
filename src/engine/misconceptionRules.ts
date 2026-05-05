@@ -463,6 +463,91 @@ export const MISCONCEPTION_RULES: readonly MisconceptionRule[] = [
     },
   },
 
+  // ── EQ-01 — Perceptual Equality Bias ("Equal Looks the Same") ───────────
+  // Fires when a student picks "=" on same-denominator compare items where
+  // the numerators differ by exactly 1 — i.e. the bars look nearly the same
+  // length but are not equal. Candidate filter checks that the payload has
+  // the same denominator for both fractions and numerators that differ by 1.
+  // The student answer relation must be "=" while the correct answer is not "=".
+  // Uses aggregator because we need both payload inspection AND answer shape
+  // checking, which would be awkward to decompose into a pure predicate.
+  {
+    id: 'MC-EQ-01' as MisconceptionId,
+    appliesTo: { levels: { min: 6, max: 7 }, archetypes: ['compare'] },
+    minCandidates: 4,
+    minObservations: 1,
+    evidenceRate: 0.5,
+    candidateFilter: (a) => {
+      // Only consider compare attempts where fractionA and fractionB share a
+      // denominator but differ in numerator by exactly 1 (the "nearly equal bars" trap).
+      const p = a.payload as unknown;
+      if (!isRecord(p)) return false;
+      const fa = p.fractionA;
+      const fb = p.fractionB;
+      if (!isRecord(fa) || !isRecord(fb)) return false;
+      const denA = typeof fa.denominator === 'number' ? fa.denominator : undefined;
+      const denB = typeof fb.denominator === 'number' ? fb.denominator : undefined;
+      const numA = typeof fa.numerator === 'number' ? fa.numerator : undefined;
+      const numB = typeof fb.numerator === 'number' ? fb.numerator : undefined;
+      if (denA === undefined || denB === undefined || numA === undefined || numB === undefined) {
+        return false;
+      }
+      return denA === denB && Math.abs(numA - numB) === 1;
+    },
+    predicate: (a) => {
+      if (a.outcome !== 'WRONG') return false;
+      const studentRelation = readRelation(a.studentAnswerRaw);
+      const correctRelation = readRelation(a.correctAnswerRaw);
+      // Student picked "=" but the correct relation is "<" or ">".
+      return studentRelation === '=' && correctRelation !== '=';
+    },
+  },
+
+  // ── EQ-02 — Equivalent Benchmark Unrecognised ────────────────────────────
+  // Fires when a student fails to recognise that a ½-equivalent fraction
+  // (e.g. 2/4, 3/6, 4/8 — decimal value exactly 0.5) belongs in the "half"
+  // zone. The candidate filter restricts to benchmark attempts where the
+  // correct answer decimal value is exactly 0.5. The predicate checks
+  // whether the student placed the fraction in a non-half zone.
+  //
+  // Two zone representations are tolerated:
+  //   - Numeric zoneIndex: 2 = half (consistent with PRX-01 reading).
+  //   - String zone label: "half" (from raw correctPlacements strings).
+  // A student in this misconception typically places the fraction at zone 1
+  // ("almost_half") or zone 3 ("almost_one"), not zone 2 ("half").
+  {
+    id: 'MC-EQ-02' as MisconceptionId,
+    appliesTo: { levels: { min: 8 }, archetypes: ['benchmark'] },
+    candidateFilter: (a) => {
+      // Target fraction must be a ½-equivalent (decimal value = 0.5 exactly).
+      const p = a.payload as unknown;
+      if (!isRecord(p)) return false;
+      // Payload carries numerator/denominator directly.
+      const num = typeof p.numerator === 'number' ? p.numerator : undefined;
+      const den = typeof p.denominator === 'number' ? p.denominator : undefined;
+      if (num === undefined || den === undefined || den === 0) return false;
+      return Math.abs(num / den - 0.5) < 1e-9;
+    },
+    minCandidates: 3,
+    minObservations: 1,
+    evidenceRate: 0.5,
+    predicate: (a) => {
+      if (a.outcome !== 'WRONG') return false;
+      // Accept either numeric zoneIndex or string zone label from studentAnswerRaw.
+      const s = a.studentAnswerRaw as unknown;
+      if (isRecord(s)) {
+        // Numeric zoneIndex: half = 2. Zones 0,1,3,4 are not half.
+        const zoneIdx = readNumber(s, 'zoneIndex');
+        if (zoneIdx !== undefined) return zoneIdx !== 2;
+        // String zone name.
+        if (typeof s.zone === 'string') return s.zone !== 'half';
+        // Flat placedZone field.
+        if (typeof s.placedZone === 'string') return s.placedZone !== 'half';
+      }
+      return false;
+    },
+  },
+
   // ── STRAT-01 — No Strategy (Trial & Error) ───────────────────────────────
   {
     id: 'MC-STRAT-01' as MisconceptionId,

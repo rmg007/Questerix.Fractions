@@ -141,6 +141,40 @@ export interface QuestionPrompt {
 }
 
 /**
+ * Per-tier hint text for a question, optionally keyed by misconception ID.
+ *
+ * When the hint ladder escalates to a given tier, the runtime first checks
+ * whether the currently-flagged misconception has a specific override string
+ * in `byMisconception`. If no override is found, or no misconception is
+ * active, the `default` string is used.
+ *
+ * Phase 3 (misconception-and-hint-system plan): this block is optional on
+ * `QuestionTemplate`. When absent, the HintLadder falls back to the i18n
+ * catalog strings (existing behavior).
+ */
+export interface QuestionHintTier {
+  /** Fallback text shown when no active misconception matches. */
+  default: string;
+  /**
+   * Misconception-specific overrides. Key is an MC-* code (e.g. "MC-WHB-01");
+   * value is the hint text to show when that misconception is active.
+   */
+  byMisconception: Partial<Record<string, string>>;
+}
+
+/**
+ * Optional per-question hints block. Carries text for tier 1 (verbal) and
+ * tier 2 (visual_overlay). Tier 3 (worked_example) is always derived from
+ * a reference to a worked-example asset — not a plain text string.
+ */
+export interface QuestionHints {
+  tier1: QuestionHintTier;
+  tier2: QuestionHintTier;
+  /** Tier 3 is worked-example only; stores an optional asset/template ref. */
+  tier3?: { workedExampleRef: string | null };
+}
+
+/**
  * per data-schema.md §2.7
  * id format: 'q:<archetype-short>:L{N}:NNNN' e.g. 'q:ms:L1:0001'
  * archetype replaces old type/mechanic fields (audit §1.5 fix)
@@ -159,6 +193,13 @@ export interface QuestionTemplate {
   difficultyTier: 'easy' | 'medium' | 'hard';
   /** Indexed field computed during curriculum seeding: '01-02' | '03-05' | '06-09'. */
   levelGroup?: string;
+  /**
+   * Optional per-question hint text. When present, HintLadder uses these
+   * strings (falling back to byMisconception overrides when an MC is active).
+   * When absent, the existing i18n catalog strings are used.
+   * per Phase 3 of the misconception-and-hint-system plan.
+   */
+  hints?: QuestionHints;
 }
 
 // ── §2.8 Misconception ─────────────────────────────────────────────────────
