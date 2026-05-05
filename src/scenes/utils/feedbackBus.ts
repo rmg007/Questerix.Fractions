@@ -109,15 +109,20 @@ export function emitFeedback(
       const originalAlpha = target.alpha ?? 1;
 
       // Quick pulse: brighten slightly, then return (alpha yoyo)
-      tween(scene, target, {
-        alpha: Math.min(originalAlpha + 0.15, 1.0),
-      }, {
-        duration: 50,
-        ease: Ease.out,
-        yoyo: true,
-        hold: 0,
-        repeat: 0,
-      });
+      tween(
+        scene,
+        target,
+        {
+          alpha: Math.min(originalAlpha + 0.15, 1.0),
+        },
+        {
+          duration: 50,
+          ease: Ease.out,
+          yoyo: true,
+          hold: 0,
+          repeat: 0,
+        }
+      );
     }
   }
 }

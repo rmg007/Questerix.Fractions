@@ -186,11 +186,7 @@ export const State = {
  *
  * @todo Implement tween application, spinner management, ring rendering
  */
-export function applyState(
-  target: any,
-  stateName: StateName,
-  scene: Phaser.Scene
-): void {
+export function applyState(target: any, stateName: StateName, scene: Phaser.Scene): void {
   const def = State[stateName];
 
   if (def.scale !== undefined && target.setScale) {
@@ -233,20 +229,30 @@ export function applyState(
       const shakeY = originalY; // shake only on X axis
       const delayMs = i * cycleDurationMs; // Sequential timing
 
-      tween(scene, target, { x: shakeX, y: shakeY }, {
-        duration: cycleDurationMs,
-        ease: Ease.out,
-        delay: delayMs,
-      });
+      tween(
+        scene,
+        target,
+        { x: shakeX, y: shakeY },
+        {
+          duration: cycleDurationMs,
+          ease: Ease.out,
+          delay: delayMs,
+        }
+      );
     }
 
     // Return to original position after all cycles complete
     const totalShakeTimeMs = cycles * cycleDurationMs;
-    tween(scene, target, { x: originalX, y: originalY }, {
-      duration: cycleDurationMs,
-      ease: Ease.out,
-      delay: totalShakeTimeMs,
-    });
+    tween(
+      scene,
+      target,
+      { x: originalX, y: originalY },
+      {
+        duration: cycleDurationMs,
+        ease: Ease.out,
+        delay: totalShakeTimeMs,
+      }
+    );
   }
 
   // Apply focus ring if present
@@ -298,11 +304,16 @@ export function applyState(
     spinner.setDepth(1000);
 
     // Rotate the spinner continuously
-    tween(scene, spinner, { rotation: Math.PI * 2 }, {
-      duration: 1000,
-      ease: Ease.out,
-      loop: -1, // infinite loop
-    });
+    tween(
+      scene,
+      spinner,
+      { rotation: Math.PI * 2 },
+      {
+        duration: 1000,
+        ease: Ease.out,
+        loop: -1, // infinite loop
+      }
+    );
 
     target._spinner = spinner; // Store reference for cleanup
   }

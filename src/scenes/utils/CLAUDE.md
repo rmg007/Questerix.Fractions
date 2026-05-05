@@ -11,6 +11,7 @@ This module provides the shared tokens, wrappers, and utilities that all scenes 
 **Files:** `motion.ts`, `motion.test.ts`
 
 All tweens must go through the `tween()` wrapper (never `scene.tweens.add()` directly). The wrapper ensures:
+
 - Automatic reduced-motion compliance
 - Consistent duration and easing defaults
 - Single source of truth for K–2-calibrated timings
@@ -51,7 +52,7 @@ Defines 8 visual states for buttons and draggables: idle, hover, pressed, focuse
 ```ts
 import { applyState } from './states';
 
-applyState(button, 'pressed', scene);  // Handles motion + appearance
+applyState(button, 'pressed', scene); // Handles motion + appearance
 ```
 
 ---

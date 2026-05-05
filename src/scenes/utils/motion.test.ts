@@ -100,10 +100,15 @@ describe('motion.ts', () => {
     });
 
     it('respects custom duration and easing', () => {
-      tween(mockScene, mockTarget, { scale: 1.2 }, {
-        duration: Duration.long,
-        ease: Ease.spring,
-      });
+      tween(
+        mockScene,
+        mockTarget,
+        { scale: 1.2 },
+        {
+          duration: Duration.long,
+          ease: Ease.spring,
+        }
+      );
 
       expect(addedTween.duration).toBe(Duration.long);
       expect(addedTween.ease).toBe(Ease.spring);
@@ -132,11 +137,16 @@ describe('motion.ts', () => {
     });
 
     it('merges opts into the final config', () => {
-      tween(mockScene, mockTarget, { x: 50 }, {
-        duration: Duration.short,
-        delay: 100,
-        repeat: 2,
-      });
+      tween(
+        mockScene,
+        mockTarget,
+        { x: 50 },
+        {
+          duration: Duration.short,
+          delay: 100,
+          repeat: 2,
+        }
+      );
 
       expect(addedTween.duration).toBe(Duration.short);
       expect(addedTween.delay).toBe(100);
@@ -145,10 +155,15 @@ describe('motion.ts', () => {
 
     it('props override opts in case of conflict', () => {
       // props.ease should take precedence if both are provided
-      tween(mockScene, mockTarget, { x: 50 }, {
-        duration: Duration.base,
-        ease: Ease.in,
-      });
+      tween(
+        mockScene,
+        mockTarget,
+        { x: 50 },
+        {
+          duration: Duration.base,
+          ease: Ease.in,
+        }
+      );
 
       expect(addedTween.duration).toBe(Duration.base);
       // opts.ease should be used as default, not props
@@ -188,13 +203,18 @@ describe('motion.ts', () => {
     });
 
     it('passes additional tween config options through', () => {
-      tween(mockScene, mockTarget, { x: 100 }, {
-        duration: Duration.short,
-        delay: 200,
-        yoyo: true,
-        repeat: 2,
-        onComplete: () => {},
-      });
+      tween(
+        mockScene,
+        mockTarget,
+        { x: 100 },
+        {
+          duration: Duration.short,
+          delay: 200,
+          yoyo: true,
+          repeat: 2,
+          onComplete: () => {},
+        }
+      );
 
       expect(addedTween.delay).toBe(200);
       expect(addedTween.yoyo).toBe(true);

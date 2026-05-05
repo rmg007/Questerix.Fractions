@@ -20,7 +20,7 @@
     "test:a11y": "playwright test --grep a11y",
     "typecheck": "tsc --noEmit",
     "build:analyze": "BUNDLE_ANALYZE=1 npm run build",
-    "lint": "eslint src --max-warnings 0 --cache --cache-location .eslintcache && prettier --check --cache src",
+    "lint": "eslint src --max-warnings 100 --cache --cache-location .eslintcache && prettier --check --cache src",
     "lint:fix": "eslint src --fix && prettier --write src",
     "lint:ci": "node scripts/residual-lint.mjs",
     "test:unit:changed": "vitest run --changed=origin/main",

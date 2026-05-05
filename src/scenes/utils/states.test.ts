@@ -79,12 +79,16 @@ describe('states.ts', () => {
   describe('Visual feedback states', () => {
     it('pressed shows darker and smaller', () => {
       expect(State.pressed.scale as number).toBeLessThan(State.idle.scale as number);
-      expect((State.pressed.tintShift ?? 0) as number).toBeLessThan((State.idle.tintShift ?? 0) as number);
+      expect((State.pressed.tintShift ?? 0) as number).toBeLessThan(
+        (State.idle.tintShift ?? 0) as number
+      );
     });
 
     it('hover shows slightly lighter and larger', () => {
       expect(State.hover.scale as number).toBeGreaterThan(State.idle.scale as number);
-      expect((State.hover.tintShift ?? 0) as number).toBeLessThan((State.idle.tintShift ?? 0) as number); // darker = more negative
+      expect((State.hover.tintShift ?? 0) as number).toBeLessThan(
+        (State.idle.tintShift ?? 0) as number
+      ); // darker = more negative
     });
 
     it('success is celebratory (scales up)', () => {
