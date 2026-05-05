@@ -267,7 +267,6 @@ jobs:
 // Write generated workflows
 const workflows = {
   'ci.yml': generateCiWorkflow(),
-  'synthetic-playtest.yml': generateSyntheticPlaytestWorkflow(),
 }
 
 for (const [filename, content] of Object.entries(workflows)) {
