@@ -7,36 +7,52 @@ import './lib/i18n/keys/quest';
 import './lib/i18n/keys/system';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
+import { RecoveryBus, registerGame } from './lib/recovery/recoveryBus';
 
-// R8: Catch synchronous errors (e.g., in scene callbacks) that could freeze the canvas.
+// R8 / crash-and-recovery §1: Catch synchronous errors (e.g., in scene callbacks)
+// that could freeze the canvas. Routes to RecoveryScene when the game is up;
+// falls back to a pure-DOM error UI when Phaser hasn't booted yet.
 window.addEventListener('error', (event) => {
   const error =
     event.error instanceof Error ? event.error : new Error(String(event.error ?? event.message));
   console.error('[main] Uncaught error:', error.message);
-  errorReporter.report(error, { source: 'uncaught_error' });
-  // Show fatal error UI (but Phaser may have crashed, so use pure DOM)
-  const container = document.createElement('div');
-  container.style.cssText =
-    'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:20px;max-width:500px;z-index:9999;font-family:sans-serif;text-align:center';
-  const heading = document.createElement('h2');
-  heading.textContent = 'Something went wrong';
-  heading.style.cssText = 'color:#721c24;margin:0 0 10px 0';
-  const message = document.createElement('p');
-  message.textContent = error.message;
-  message.style.cssText = 'color:#721c24;margin:0 0 20px 0';
-  const button = document.createElement('button');
-  button.textContent = 'Refresh';
-  button.style.cssText =
-    'background:#721c24;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer';
-  button.addEventListener('click', () => location.reload());
-  container.appendChild(heading);
-  container.appendChild(message);
-  container.appendChild(button);
-  document.body.appendChild(container);
+
+  // Try to route via RecoveryBus first (game may already be running)
+  try {
+    RecoveryBus.report({ kind: 'unknown', error });
+    // If RecoveryBus successfully dispatched, it will handle the UI.
+    // Keep the DOM fallback as a safety net in case the scene can't mount.
+  } catch {
+    /* ignore */
+  }
+
+  // Pure-DOM fallback: shown when Phaser itself crashed or hasn't loaded yet
+  if (!document.getElementById('qf-error-overlay')) {
+    const container = document.createElement('div');
+    container.id = 'qf-error-overlay';
+    container.style.cssText =
+      'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:20px;max-width:500px;z-index:9999;font-family:sans-serif;text-align:center';
+    const heading = document.createElement('h2');
+    heading.textContent = 'Something went wrong';
+    heading.style.cssText = 'color:#721c24;margin:0 0 10px 0';
+    const message = document.createElement('p');
+    message.textContent = error.message;
+    message.style.cssText = 'color:#721c24;margin:0 0 20px 0';
+    const button = document.createElement('button');
+    button.textContent = 'Refresh';
+    button.style.cssText =
+      'background:#721c24;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer';
+    button.addEventListener('click', () => location.reload());
+    container.appendChild(heading);
+    container.appendChild(message);
+    container.appendChild(button);
+    document.body.appendChild(container);
+  }
 });
 
-// Swallow unhandled storage errors from third-party / sandboxed contexts
+// crash-and-recovery §1: Swallow unhandled promise rejections from storage
 // (e.g. embedded preview iframes where IndexedDB and localStorage are blocked).
+// Non-storage promise rejections are forwarded to RecoveryBus.
 // The game continues in volatile mode per runtime-architecture.md §10.
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
@@ -46,6 +62,11 @@ window.addEventListener('unhandledrejection', (event) => {
     event.preventDefault();
   } else if (reason instanceof Error) {
     errorReporter.report(reason, { source: 'unhandledrejection' });
+    try {
+      RecoveryBus.report({ kind: 'unknown', error: reason });
+    } catch {
+      /* ignore */
+    }
   }
 });
 
@@ -106,6 +127,8 @@ async function boot(): Promise<void> {
       Level01Scene,
       LevelScene,
       SettingsScene,
+      RecoveryScene,
+      DBRecoveryScene,
     } = await import('./scenes');
     scenes = [
       BootScene,
@@ -116,6 +139,8 @@ async function boot(): Promise<void> {
       Level01Scene,
       LevelScene,
       SettingsScene,
+      RecoveryScene,
+      DBRecoveryScene,
     ];
   } catch (err) {
     errorReporter.report(err instanceof Error ? err : new Error(String(err)), {
@@ -134,10 +159,54 @@ async function boot(): Promise<void> {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
+    // Plan 1 Phase 1b — multi-touch: 3 simultaneous pointers prevents a
+    // resting finger from claiming pointer 0 and killing an active drag.
+    input: {
+      activePointers: 3,
+    },
     scene: scenes,
   };
 
   const game = new Phaser.Game(config);
+
+  // crash-and-recovery §1 — register the game instance with RecoveryBus so it
+  // can route to RecoveryScene/DBRecoveryScene from the global error boundary.
+  registerGame(game);
+
+  // Plan 5 Phase 3 — Background throttling fix:
+  // Pause all scene tweens when the tab is hidden so timers don't drift or
+  // fire stale callbacks that could corrupt state. Resume on visibility restore.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      game.scene.scenes.forEach((s) => {
+        s.tweens?.pauseAll?.();
+      });
+    } else {
+      game.scene.scenes.forEach((s) => {
+        s.tweens?.resumeAll?.();
+      });
+    }
+  });
+
+  // crash-and-recovery §1 — wire the recovery:report event from RecoveryBus
+  // (emitted via game.registry.events) to the scene router.
+  game.events.once('ready', () => {
+    // Listen for recovery reports emitted after the game is ready
+    game.registry.events.on(
+      'recovery:report',
+      (report: import('./lib/recovery/recoveryBus').RecoveryReport) => {
+        RecoveryBus.routeToScene(report);
+      }
+    );
+
+    // Also handle any recovery reports that fired via window event before the
+    // game was ready (e.g. an error during Phaser's own boot).
+    window.addEventListener('qf:recovery', (ev: Event) => {
+      const report = (ev as CustomEvent<import('./lib/recovery/recoveryBus').RecoveryReport>)
+        .detail;
+      RecoveryBus.routeToScene(report);
+    });
+  });
 
   // 3. Instrument the game instance (non-fatal)
   try {

@@ -15,6 +15,8 @@ import { attachVersionTapToggle } from './settings/versionTapToggle';
 
 import { ResetDeviceHandler } from './settings/ResetDeviceHandler';
 import { BackupRestoreHandler } from './settings/BackupRestoreHandler';
+import { applyState } from './utils/states';
+import { Gesture } from './utils/interaction';
 
 const CW = 800;
 const CH = 1280;
@@ -284,19 +286,40 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   // ── Privacy link ───────────────────────────────────────────────────────────
+  // Fix (Phase 2): Text-only interactive had ~24px hit height — below 44×44 minimum.
+  // Now uses a transparent Zone as the hit target (≥180×44) with press feedback
+  // and double-tap debounce per Gesture.doubleTapWindowMs.
   private createPrivacyLink(cx: number, y: number): void {
-    const text = this.add
+    // Non-interactive label text (visual only)
+    this.add
       .text(cx, y, 'Privacy Notice →', {
         fontSize: '16px',
         fontFamily: BODY_FONT,
         color: '#5848D6',
       })
       .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
       .setDepth(3);
-    text.on('pointerup', () => {
+
+    // Padded transparent hit zone — minimum 44×44 px per WCAG touch target spec
+    const HIT_W = 220;
+    const HIT_H = 44;
+    const hitZone = this.add
+      .rectangle(cx, y, HIT_W, HIT_H, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(4);
+
+    let lastTapAt = 0;
+    hitZone.on('pointerdown', () => {
+      const now = Date.now();
+      if (now - lastTapAt < Gesture.doubleTapWindowMs) return;
+      lastTapAt = now;
+      applyState(hitZone, 'pressed', this);
+    });
+    hitZone.on('pointerup', () => {
+      this.time.delayedCall(100, () => applyState(hitZone, 'idle', this));
       if (typeof window !== 'undefined') window.open('/privacy.html', '_blank', 'noopener');
     });
+    hitZone.on('pointerout', () => applyState(hitZone, 'idle', this));
   }
 
   // ── Section label ──────────────────────────────────────────────────────────
