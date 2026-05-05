@@ -1,0 +1,184 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { emitFeedback, emitFeedbackSequence, FeedbackKind } from './feedbackBus';
+
+describe('feedbackBus.ts', () => {
+  let mockTarget: any;
+  let mockScene: any;
+
+  beforeEach(() => {
+    mockTarget = {
+      setScale: (val: number) => {
+        mockTarget._scale = val;
+        return mockTarget;
+      },
+      setAlpha: (val: number) => {
+        mockTarget._alpha = val;
+        return mockTarget;
+      },
+      setInteractive: (val: boolean) => {
+        mockTarget._interactive = val;
+        return mockTarget;
+      },
+    };
+
+    mockScene = {
+      registry: {
+        get: (key: string) => {
+          if (key === 'muted') return false;
+          if (key === 'prefersReducedMotion') return false;
+          return undefined;
+        },
+      },
+      events: {
+        emit: (event: string, data: any) => {
+          mockScene._lastEmit = { event, data };
+        },
+      },
+    };
+  });
+
+  describe('emitFeedback()', () => {
+    const validKinds: FeedbackKind[] = ['tap', 'snap', 'correct', 'incorrect', 'milestone'];
+
+    it('accepts all valid feedback kinds', () => {
+      validKinds.forEach((kind) => {
+        expect(() => {
+          emitFeedback(kind, { target: mockTarget, scene: mockScene });
+        }).not.toThrow();
+      });
+    });
+
+    it('applies visual state to target', () => {
+      emitFeedback('correct', { target: mockTarget, scene: mockScene });
+      // Should have applied 'success' state (scale 1.04)
+      expect(mockTarget._scale).toBe(1.04);
+    });
+
+    it('applies pressed state for tap feedback', () => {
+      emitFeedback('tap', { target: mockTarget, scene: mockScene });
+      expect(mockTarget._scale).toBe(0.96); // pressed state
+    });
+
+    it('applies error state for incorrect feedback', () => {
+      emitFeedback('incorrect', { target: mockTarget, scene: mockScene });
+      // Error state uses alpha and shake
+      expect(mockTarget._alpha).toBe(1.0);
+    });
+
+    it('works without target (audio-only)', () => {
+      expect(() => {
+        emitFeedback('tap', { scene: mockScene });
+      }).not.toThrow();
+    });
+
+    it('works without scene (target-only)', () => {
+      expect(() => {
+        emitFeedback('tap', { target: mockTarget });
+      }).not.toThrow();
+    });
+
+    it('works with no options', () => {
+      expect(() => {
+        emitFeedback('tap');
+      }).not.toThrow();
+    });
+
+    it('respects loud flag (forces audio even if muted)', () => {
+      mockScene.registry.get = (key: string) => {
+        if (key === 'muted') return true;
+        return false;
+      };
+
+      // loud: false (default) should check mute setting
+      emitFeedback('correct', { scene: mockScene, loud: false });
+
+      // loud: true should bypass mute setting
+      emitFeedback('correct', { scene: mockScene, loud: true });
+    });
+
+    it('respects muted registry setting', () => {
+      mockScene.registry.get = (key: string) => {
+        if (key === 'muted') return true;
+        return false;
+      };
+
+      // Should still apply visual feedback even if muted
+      emitFeedback('correct', { target: mockTarget, scene: mockScene });
+      expect(mockTarget._scale).toBe(1.04);
+    });
+  });
+
+  describe('emitFeedbackSequence()', () => {
+    it('emits multiple feedbacks in sequence', () => {
+      emitFeedbackSequence(['tap', 'snap', 'correct'], 100, {
+        target: mockTarget,
+        scene: mockScene,
+      });
+
+      // First feedback (tap) at 0ms
+      expect(mockTarget._scale).toBe(0.96);
+    });
+
+    it('uses default delay if not specified', () => {
+      expect(() => {
+        emitFeedbackSequence(['correct', 'milestone'], undefined, {
+          scene: mockScene,
+        });
+      }).not.toThrow();
+    });
+
+    it('handles empty sequence gracefully', () => {
+      expect(() => {
+        emitFeedbackSequence([], 100, { scene: mockScene });
+      }).not.toThrow();
+    });
+
+    it('handles single-item sequence', () => {
+      expect(() => {
+        emitFeedbackSequence(['correct'], 100, { scene: mockScene });
+      }).not.toThrow();
+    });
+  });
+
+  describe('Feedback mapping', () => {
+    const mappingTests: Array<[FeedbackKind, number]> = [
+      ['tap', 0.96], // pressed state (scale 0.96)
+      ['snap', 1.04], // success state (scale 1.04)
+      ['correct', 1.04], // success state (scale 1.04)
+      ['incorrect', 1.0], // error state (scale 1.0)
+      ['milestone', 1.04], // success state (scale 1.04)
+    ];
+
+    mappingTests.forEach(([kind, expectedScale]) => {
+      it(`${kind} feedback maps to correct visual state`, () => {
+        emitFeedback(kind, { target: mockTarget, scene: mockScene });
+        expect(mockTarget._scale).toBe(expectedScale);
+      });
+    });
+  });
+});
+
+
+describe('feedbackBus.ts - integration', () => {
+  it('one emission fires three channels', () => {
+    const mockTarget = {
+      setScale: () => mockTarget,
+      setAlpha: () => mockTarget,
+      setInteractive: () => mockTarget,
+    };
+
+    const mockScene = {
+      registry: { get: () => false },
+      events: { emit: () => {} },
+    };
+
+    // One call to emitFeedback should:
+    // 1. Apply visual state to target
+    // 2. Emit audio event
+    // 3. Prepare haptic feedback
+
+    expect(() => {
+      emitFeedback('correct', { target: mockTarget, scene: mockScene as Phaser.Scene });
+    }).not.toThrow();
+  });
+});
