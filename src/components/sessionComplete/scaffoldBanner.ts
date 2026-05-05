@@ -71,7 +71,7 @@ export function createScaffoldBanner(
     .setAlpha(0);
 
   const hit = scene.add
-    .rectangle(cx, y, W, H, 0, 0)
+    .rectangle(cx, y, W, 100, 0, 0) // 100 canvas px — WCAG 2.5.5 (≥44 CSS px at 360 vp)
     .setAlpha(0)
     .setInteractive({ useHandCursor: true })
     .on('pointerup', handleTap);

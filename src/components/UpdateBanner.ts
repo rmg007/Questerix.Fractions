@@ -34,7 +34,7 @@ export interface UpdateBannerConfig {
 }
 
 const DEFAULT_MESSAGE = 'A new version is ready — tap to refresh';
-const BANNER_HEIGHT = 80;
+const BANNER_HEIGHT = 100;
 const SLIDE_MS = 220;
 
 export class UpdateBanner {

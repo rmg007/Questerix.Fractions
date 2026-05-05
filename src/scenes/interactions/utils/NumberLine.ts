@@ -125,7 +125,7 @@ export class NumberLine {
     this.marker!.setInteractive({
       draggable: true,
       useHandCursor: true,
-      hitArea: new Phaser.Geom.Circle(0, 0, 22),
+      hitArea: new Phaser.Geom.Circle(0, 0, 55), // r=55 → d=110 canvas px (≥44 CSS px at 360 vp)
     });
 
     // Trail dots drawn during drag

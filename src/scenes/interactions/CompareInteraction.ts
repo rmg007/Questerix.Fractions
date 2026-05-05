@@ -155,7 +155,7 @@ export class CompareInteraction implements Interaction {
         .setOrigin(0.5)
         .setDepth(7);
       const hit = scene.add
-        .rectangle(bx, btnY, 180, 56, 0, 0)
+        .rectangle(bx, btnY, 180, 100, 0, 0)
         .setInteractive({ useHandCursor: true })
         .setDepth(8);
       const aVal = aFrac.n / aFrac.d;
