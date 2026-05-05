@@ -1,7 +1,7 @@
 ---
 name: game-design-k2
 description: Create visually cohesive, pedagogically sound game interfaces for Questerix Fractions. Use when adding UI components, interactive questions, or visual systems. Prioritize clarity, accessibility, and engaging aesthetics for young learners.
-type: reference
+tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Game Design for K–2 Educational Games
