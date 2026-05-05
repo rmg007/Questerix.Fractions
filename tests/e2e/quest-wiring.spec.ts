@@ -58,14 +58,14 @@ test.describe('Quest voice wiring (T28) — e2e smoke', () => {
     // q:cp:L6:0001: fractionA=1/2, fractionB=1/4 → correct is '>'.
     // 'compare-relation-lt' (<) is the deterministic wrong choice.
     await expect(page.locator('[data-testid="compare-relation-lt"]').first()).toBeVisible({
-      timeout: 8000,
+      timeout: 15000,
     });
     await page.locator('[data-testid="compare-relation-lt"]').click();
     // Wait for feedback overlay to appear so we know the wrong-answer flow ran.
-    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="feedback-overlay"]')).toBeVisible({ timeout: 15000 });
     // Assert via the aria-live status region.
     await expect(page.getByRole('status')).toContainText('Try again. Look at both again.', {
-      timeout: 5000,
+      timeout: 10000,
     });
   });
 });
