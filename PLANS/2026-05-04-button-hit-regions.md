@@ -32,8 +32,10 @@ The codebase already has the right pattern in `createStationButton`, `createActi
 ### Phase 1 — Audit + baseline (gate: report committed)
 
 - Walk the audit list below and confirm each call site in current code (line numbers may have drifted).
-- Add a Playwright assertion helper `expectHitAreaCoversVisual(testId)` that asserts the element's bounding-box click region matches its visual size within 2 px.
-- No source changes yet. Commit only the test helper + an inventory file under `docs/30-architecture/`.
+- **Two-layer test strategy** (Phaser `input.hitArea` is not exposed to the DOM, so Playwright cannot measure the rectangle directly):
+  - **Unit (Vitest):** `expectHitAreaCoversVisual(container)` — construct the button container in-process, read `input.hitArea.width/height` off the interactive child, and assert it ≥ visual bounds (including shadow drop). This is the geometry gate.
+  - **Playwright:** assert *clickability* by clicking at the edge of the visual bounds (±4 px) and verifying the handler fires. This is the user-facing gate.
+- No source changes yet. Commit only the test helpers + an inventory file under `docs/30-architecture/`.
 
 ### Phase 2 — Fix all text-only & link buttons (gate: targeted E2E green)
 
@@ -83,7 +85,9 @@ For each option/choice button in all archetypes:
 
 ### Phase 5 — Extract shared helper (gate: typecheck + lint + all tests green)
 
-Once Phases 2–4 land and the pattern is duplicated 4–6 times, promote it to `src/scenes/utils/buttonHitArea.ts`:
+The padded-rectangle pattern already appears in 4 sites within Phase 2 alone. Promote at the **3+ duplicate threshold** to avoid drift — do not wait for Phase 4 to finish. If Phase 2 lands first and triples the duplication, run this phase **between 2 and 3** rather than after 4.
+
+Helper home: `src/scenes/utils/buttonHitArea.ts`:
 
 ```ts
 export function makeHitArea(width: number, height: number, padding = 8): Phaser.Geom.Rectangle

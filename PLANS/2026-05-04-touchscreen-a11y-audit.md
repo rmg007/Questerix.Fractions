@@ -4,6 +4,10 @@
 **Branch (when started):** `audit/2026-05-04-touchscreen-a11y`
 **Status:** Draft — not yet implemented
 
+## Sequencing dependency
+
+This plan **must run after `2026-05-04-button-hit-regions.md`** completes. That plan fixes the *mechanism* (padded hit rectangles in the right pattern); this plan validates *compliance* (every interactive element ≥44×44 across the app, fonts/spacing readable). Running in parallel will produce merge conflicts in `MenuScene.ts`, `SettingsScene.ts`, `OnboardingScene.ts`, and the `interactions/` archetypes — all of which both plans touch. If button-hit-regions is in-flight, this plan's Phase 3 (critical fixes) is blocked; Phases 1–2 (audit only) may proceed.
+
 ## Problem
 
 Questerix Fractions targets K–2 students on touchscreen devices (iOS Safari, Android Chrome, per C7). Current codebase has not been systematically audited for touchscreen usability:
@@ -85,11 +89,13 @@ Walk every component in `src/components/` and every scene in `src/scenes/` with 
      - Flag any ≤44×44 or font <14 px
    ```
 
-2. **Test on real devices (or Playwright + viewport resize):**
-   - Open the game on a 360 px mobile browser
-   - Attempt to tap each button with a finger (or simulate with Playwright click at edge)
-   - Log tap accuracy (success on first attempt, or multiple taps needed?)
-   - Check for text overflow or unintended line breaks
+2. **Automated checks (gate criteria — must pass in CI):**
+   - Playwright at 360 / 768 / 1024 px viewports (this is the same matrix as Phase 5; do not duplicate the spec — share fixtures).
+   - Click each interactive element at its bounding-box edge ±4 px to verify hit area coverage.
+   - Assert no horizontal overflow at 360 px.
+3. **Real-device spot-check (one-time, manual, NOT a gate):**
+   - Optional one-time pass on a physical iPhone SE and a low-end Android (per C7) to sanity-check tap accuracy and font readability with a real finger.
+   - Findings feed back into the report as `INFO` items only — they do not block the phase gate, since CI cannot reproduce them.
 
 3. **Report format:**
    ```

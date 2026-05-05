@@ -8,10 +8,14 @@
 
 The app has multiple scenes and screens (MenuScene, LevelMapScene, 9 levels, SettingsScene, OnboardingScene, SessionCompleteOverlay, etc.) that have never been systematically audited for visual consistency, usability, or design quality. Additionally:
 
-- No screenshot inventory exists for reference, testing, or regression detection
+- No automated visual-regression baseline exists in CI
 - Asset filenames in `public/` may be unclear or include orphaned/unused images
-- Visual regressions are hard to detect without baseline screenshots
+- Visual regressions are hard to detect without baseline assertions
 - Design inconsistencies across scenes go unnoticed
+
+## C10 framing
+
+C10 says every change must serve **validation**, not polish. A static PNG archive in `.claude/screenshots/` is an artifact, not a gate — it does nothing in CI. Reframe the deliverable: **Playwright `toHaveScreenshot()` baselines that assert pixel-diff regression in CI**. That turns this work from "polish" into a regression-prevention mechanism, which validates that changes don't break what already works. The asset cleanup (Phase 0) is independent and unambiguously aligned with C10 (smaller bundle, clearer code).
 
 ## Goals
 
@@ -30,7 +34,23 @@ The app has multiple scenes and screens (MenuScene, LevelMapScene, 9 levels, Set
 
 ## Phases
 
-### Phase 1 — Screenshot inventory & naming convention (gate: naming spec committed)
+### Phase 0 — Asset cleanup (gate: orphaned assets removed, manifest committed)
+
+Run this **first** — it's independent, low-risk, and shows immediate value (smaller bundle, clearer `public/`) before the larger screenshot effort begins.
+
+1. Inventory all files under `public/` (images, icons, sprites, fonts).
+2. `grep -r` each filename across `src/` and `pipeline/` to determine usage.
+3. Delete unreferenced files in a single PR.
+4. Add `public/ASSETS.md` listing every remaining asset with its purpose.
+5. Verify `npm run build` and `npm run test:e2e` still pass (no missing-asset 404s).
+
+Phase 4 below is now redundant — collapse it into this Phase 0 and remove the duplicate.
+
+### Phase 1 — Screenshot baseline strategy (gate: spec + naming committed, Playwright config updated)
+
+**Mechanism:** use Playwright's built-in `await expect(page).toHaveScreenshot('<name>.png', { maxDiffPixels: N })`. Baselines live next to specs (`tests/e2e/__screenshots__/<spec>/<name>.png`), are checked into git, and produce real CI diffs on regression — not a static archive.
+
+**Initial scope: 360 px viewport only.** This is the hardest case (per C7) and where regressions hurt most. 360 × ~30 baseline screens is maintainable; 1024 × 200 is not. Add 768 / 1024 viewports later, scene-by-scene, only where the layout actually diverges.
 
 Define a descriptive naming convention:
 
@@ -86,7 +106,9 @@ Define a descriptive naming convention:
 - [ ] SessionCompleteOverlay (with different accuracy scores)
 - [ ] FeedbackOverlay (correct flash, incorrect flash)
 
-At minimum: **3 viewports × 7 scenes × 3 tiers = 63 base screenshots**. With hints + feedback states, expect 150–200 total.
+**Initial baseline (this plan):** 360 px only, 1 tier per level (easy), default + key feedback states ≈ **25–30 screenshots**.
+
+**Future expansion (separate plan, gated on baseline being maintained):** 768 px and 1024 px viewports for scenes whose layout actually changes responsively, plus medium/hard tier captures. The 150–200 number is a long-term ceiling, not a Phase-1 target.
 
 ### Phase 2 — Capture all screenshots (gate: inventory complete, all images committed)
 
@@ -117,21 +139,19 @@ Using Playwright:
    - With high-contrast enabled
    - With both toggles on
 
-4. **Playwright spec template:**
+4. **Playwright spec template (regression-asserting, not archival):**
    ```ts
-   describe('Visual Audit: Full Screenshot Inventory', () => {
-     it('captures MenuScene in all viewport sizes', async () => {
-       await page.setViewportSize({ width: 360, height: 812 });
-       await page.goto('http://localhost:5000');
-       await page.screenshot({ path: '.claude/screenshots/MenuScene/MenuScene-default-mobile-360.png' });
-       
-       await page.setViewportSize({ width: 768, height: 1024 });
-       await page.screenshot({ path: '.claude/screenshots/MenuScene/MenuScene-default-tablet-768.png' });
+   test('MenuScene matches baseline at 360 px', async ({ page }) => {
+     await page.setViewportSize({ width: 360, height: 812 });
+     await page.goto('http://localhost:5000');
+     // First run writes the baseline; subsequent runs diff against it and fail on drift.
+     await expect(page).toHaveScreenshot('MenuScene-default-mobile-360.png', {
+       maxDiffPixels: 100,
      });
    });
    ```
 
-5. **Output:** All screenshots in `.claude/screenshots/<scene>/` with consistent naming.
+5. **Output:** Baselines live in `tests/e2e/__screenshots__/<spec-name>/` (Playwright default), checked into git. CI fails on unreviewed visual regressions. **Do not** also dump copies into `.claude/screenshots/` — single source of truth.
 
 ### Phase 3 — Visual audit of all screenshots (gate: audit report with findings)
 
@@ -205,34 +225,9 @@ For **each screenshot**, audit against:
 3. Card shadows could be more prominent
 ```
 
-### Phase 4 — Asset cleanup: Remove unused images (gate: asset inventory committed, old files deleted)
+### Phase 4 — (moved to Phase 0)
 
-1. **Inventory all assets in `public/`:**
-   - List every image, icon, sprite, font file
-   - Check which ones are referenced in code (`grep -r "public/" src/`)
-   - Mark used vs. unused
-
-2. **Delete unused assets:**
-   - Remove any orphaned images
-   - Rename any unclear filenames to be descriptive (e.g., `icon.png` → `icon-settings.png`)
-   - Keep only what's actually loaded
-
-3. **Document asset manifest:**
-   - Create `public/ASSETS.md` listing all remaining assets with their purpose
-   - Example:
-     ```
-     ## Sprites
-     - `backgrounds/menu-bg.png` — MenuScene background
-     - `buttons/btn-start.png` — (deprecated, replaced with Phaser Graphics)
-     
-     ## Fonts
-     - `fonts/OpenSans-Regular.ttf` — body text
-     - `fonts/OpenSans-Bold.ttf` — headings
-     ```
-
-4. **Verify no regressions:**
-   - Run `npm run build` to confirm no missing assets
-   - Spot-check a few scenes to ensure images still load
+Asset cleanup is now Phase 0 — see top of document. This phase intentionally left blank; do not duplicate.
 
 ### Phase 5 — Improvement recommendations (gate: prioritized action list)
 
