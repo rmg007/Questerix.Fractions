@@ -303,3 +303,4 @@ None. The Sprint 0 set (BUG-01, BUG-02, BUG-04, G-E1, G-C7) was verified fixed o
 | Roadmap + sprint history | `PLANS/_archive/` (latest dated file) |
 | UI/UX design principles | `docs/00-foundation/ui-design-principles.md` |
 | Git branch + PR process | `docs/00-foundation/git-workflow.md` |
+| Pilot validation protocol | `docs/40-validation/pilot-protocol.md` |
