@@ -90,17 +90,40 @@ export function updatePKnown(pKnown: number, correct: boolean, params: BktParams
 }
 
 /**
+ * Options for updateMastery.
+ */
+export interface UpdateMasteryOptions {
+  /**
+   * When true, the attempt is an assisted correct answer (student watched the
+   * worked-example demo first). The BKT posterior still updates normally, but
+   * `consecutiveCorrectUnassisted` is reset to 0 instead of incremented.
+   * This prevents a student from reaching MASTERED by copying demo solutions.
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 4
+   */
+  assisted?: boolean;
+}
+
+/**
  * Update a full SkillMastery record after one attempt.
  * Returns a new immutable record; does not mutate the input.
+ *
+ * @param prev    Current skill mastery record.
+ * @param correct Whether the student answered correctly.
+ * @param params  BKT parameters (defaults to DEFAULT_PRIORS).
+ * @param options Optional flags (e.g. assisted for demo-watched attempts).
  */
 export function updateMastery(
   prev: SkillMastery,
   correct: boolean,
-  params: BktParams = DEFAULT_PRIORS
+  params: BktParams = DEFAULT_PRIORS,
+  options: UpdateMasteryOptions = {}
 ): SkillMastery {
   const newEstimate = updatePKnown(prev.masteryEstimate, correct, params);
 
-  const nextConsecutiveCorrect = correct ? prev.consecutiveCorrectUnassisted + 1 : 0;
+  // Assisted correct answers do NOT advance the unassisted streak — the student
+  // watched the solution and must prove they can do it independently.
+  const nextConsecutiveCorrect =
+    correct && !options.assisted ? prev.consecutiveCorrectUnassisted + 1 : 0;
 
   const newState = deriveState(newEstimate, nextConsecutiveCorrect);
 

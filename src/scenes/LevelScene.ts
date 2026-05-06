@@ -548,7 +548,6 @@ export class LevelScene extends Phaser.Scene {
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
     if (!this.studentId) return;
-    // Phase 4 will use nextAttemptIsAssisted to write outcome: 'ASSISTED'.
     // Snapshot and reset here so the flag covers exactly one submission.
     const assisted = this.nextAttemptIsAssisted;
     this.nextAttemptIsAssisted = false;
@@ -565,7 +564,8 @@ export class LevelScene extends Phaser.Scene {
       responseMs,
       this.lastPayload,
       this.hintController.getCurrentQuestionHintIds(),
-      this.currentRoundEvents
+      this.currentRoundEvents,
+      assisted
     );
   }
 

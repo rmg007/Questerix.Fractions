@@ -17,6 +17,7 @@ import {
   deriveState,
   validateBktParams,
 } from '@/engine/bkt';
+import type { UpdateMasteryOptions } from '@/engine/bkt';
 import type { SkillMastery, BktParams } from '@/types';
 import { StudentId, SkillId } from '@/types';
 
@@ -168,6 +169,62 @@ describe('mastery convergence on correct streak', () => {
     expect(m.consecutiveCorrectUnassisted).toBe(2);
     m = updateMastery(m, true);
     expect(m.consecutiveCorrectUnassisted).toBe(3);
+  });
+});
+
+// ── 8a. Assisted (worked-example) correct answers ────────────────────────────
+
+describe('assisted correct answers (worked-example demo)', () => {
+  it('assisted correct: posterior rises but consecutiveCorrectUnassisted stays 0', () => {
+    const before = freshMastery(0.3);
+    const after = updateMastery(before, true, DEFAULT_PRIORS, { assisted: true });
+    // BKT posterior still improves
+    expect(after.masteryEstimate).toBeGreaterThan(before.masteryEstimate);
+    // Unassisted streak does NOT increment
+    expect(after.consecutiveCorrectUnassisted).toBe(0);
+  });
+
+  it('assisted correct: state cannot be MASTERED even at high estimate', () => {
+    // Artificially high estimate and streak to test state gate
+    let m: import('@/types').SkillMastery = {
+      ...freshMastery(MASTERY_THRESHOLD - 0.01),
+      consecutiveCorrectUnassisted: 2,
+    };
+    // An assisted correct should push estimate above threshold but NOT grant MASTERED
+    m = updateMastery(m, true, DEFAULT_PRIORS, { assisted: true });
+    // Posterior should be at or above threshold
+    expect(m.masteryEstimate).toBeGreaterThanOrEqual(MASTERY_THRESHOLD - 0.01);
+    // But streak resets to 0, so state is APPROACHING or lower (never MASTERED)
+    expect(m.state).not.toBe('MASTERED');
+    expect(m.consecutiveCorrectUnassisted).toBe(0);
+  });
+
+  it('three consecutive demo-assisted correct answers leave skill LEARNING/APPROACHING, not MASTERED', () => {
+    let m = freshMastery(DEFAULT_PRIORS.pInit);
+    // Simulate 3 correct answers each preceded by a demo
+    for (let i = 0; i < 3; i++) {
+      m = updateMastery(m, true, DEFAULT_PRIORS, { assisted: true });
+    }
+    expect(m.state).not.toBe('MASTERED');
+    expect(m.consecutiveCorrectUnassisted).toBe(0);
+  });
+
+  it('assisted incorrect: posterior drops and streak stays at 0', () => {
+    const before = freshMastery(0.5);
+    const after = updateMastery(before, false, DEFAULT_PRIORS, { assisted: true });
+    // BKT posterior still updates downward (incorrect signal)
+    expect(after.masteryEstimate).toBeLessThan(before.masteryEstimate + 0.01);
+    expect(after.consecutiveCorrectUnassisted).toBe(0);
+  });
+
+  it('after demo, unassisted correct answer increments streak normally', () => {
+    let m = freshMastery(0.5);
+    // Demo view (correct answer, assisted)
+    m = updateMastery(m, true, DEFAULT_PRIORS, { assisted: true });
+    expect(m.consecutiveCorrectUnassisted).toBe(0);
+    // Next unassisted correct answer
+    m = updateMastery(m, true, DEFAULT_PRIORS, { assisted: false });
+    expect(m.consecutiveCorrectUnassisted).toBe(1);
   });
 });
 

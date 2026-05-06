@@ -75,7 +75,8 @@ export class ProgressionController {
     responseMs: number,
     lastPayload: unknown,
     currentQuestionHintIds: string[],
-    currentRoundEvents: ProgressionEvent[]
+    currentRoundEvents: ProgressionEvent[],
+    assisted: boolean = false
   ): Promise<void> {
     if (!this.sessionId) return;
     await recordAttemptAndMasteryForLevel(
@@ -89,7 +90,8 @@ export class ProgressionController {
       responseMs,
       lastPayload,
       currentQuestionHintIds,
-      currentRoundEvents
+      currentRoundEvents,
+      assisted
     );
   }
 

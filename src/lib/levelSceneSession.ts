@@ -65,7 +65,8 @@ export async function recordAttemptAndMasteryForLevel(
   responseMs: number,
   lastPayload: unknown,
   currentQuestionHintIds: string[],
-  currentRoundEvents: ProgressionEvent[]
+  currentRoundEvents: ProgressionEvent[],
+  assisted: boolean = false
 ): Promise<number | null> {
   if (!studentId || !sessionId) return null;
   const studentIdTyped = studentId as StudentId;
@@ -78,9 +79,11 @@ export async function recordAttemptAndMasteryForLevel(
     const { attemptRepo } = await import('@/persistence/repositories/attempt');
     const { skillMasteryRepo } = await import('@/persistence/repositories/skillMastery');
     const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('@/engine/bkt');
-    const outcome: AttemptOutcome =
+    const baseOutcome: AttemptOutcome =
       result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
-    const isCorrect = outcome === 'EXACT';
+    // A correct answer submitted after a worked-example demo is recorded as ASSISTED.
+    const outcome: AttemptOutcome = assisted && baseOutcome === 'EXACT' ? 'ASSISTED' : baseOutcome;
+    const isCorrect = baseOutcome === 'EXACT';
     const skillIds = currentTemplate.skillIds ?? [];
     const skillId = (skillIds[0] ?? `skill.level_${levelNumber}`) as SkillId;
     const attemptId = crypto.randomUUID() as AttemptId;
@@ -109,7 +112,7 @@ export async function recordAttemptAndMasteryForLevel(
         errorMagnitude: null,
         pointsEarned: result.score,
         hintsUsedIds: [...currentQuestionHintIds],
-        hintsUsed: [],
+        hintsUsed: assisted ? ['worked_example'] : [],
         roundEvents: [...currentRoundEvents],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
@@ -131,7 +134,7 @@ export async function recordAttemptAndMasteryForLevel(
         syncState: 'local',
       };
       prevMasteryState = prev.state;
-      const updated = updateMastery(prev, isCorrect);
+      const updated = updateMastery(prev, isCorrect, DEFAULT_PRIORS, { assisted });
       const withMeta: import('@/types').SkillMastery = {
         ...updated,
         compositeKey: [studentIdTyped, skillId],

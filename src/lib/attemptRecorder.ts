@@ -33,7 +33,8 @@ export async function recordAttemptAndMastery(
   hintIds: string[],
   shapeType: string,
   snapMode: string,
-  areaTolerance: number
+  areaTolerance: number,
+  assisted: boolean = false
 ): Promise<number | null> {
   if (!studentId || !sessionId) return null;
 
@@ -48,10 +49,12 @@ export async function recordAttemptAndMastery(
     const { skillMasteryRepo } = await import('../persistence/repositories/skillMastery');
     const { updateMastery, DEFAULT_PRIORS, MASTERY_THRESHOLD } = await import('../engine/bkt');
 
-    const outcome: AttemptOutcome =
+    const baseOutcome: AttemptOutcome =
       result.outcome === 'correct' ? 'EXACT' : result.outcome === 'partial' ? 'CLOSE' : 'WRONG';
+    // A correct answer submitted after a worked-example demo is recorded as ASSISTED.
+    const outcome: AttemptOutcome = assisted && baseOutcome === 'EXACT' ? 'ASSISTED' : baseOutcome;
     const attemptId = crypto.randomUUID() as AttemptId;
-    const isCorrect = outcome === 'EXACT';
+    const isCorrect = baseOutcome === 'EXACT';
     const skillId = 'skill.partition_halves' as SkillId;
 
     log.atmp('record_start', {
@@ -80,7 +83,7 @@ export async function recordAttemptAndMastery(
         errorMagnitude: null,
         pointsEarned: result.score,
         hintsUsedIds: [...hintIds],
-        hintsUsed: [],
+        hintsUsed: assisted ? ['worked_example'] : [],
         flaggedMisconceptionIds: [],
         validatorPayload: result,
         payload: {
@@ -117,7 +120,7 @@ export async function recordAttemptAndMastery(
       };
 
       prevMasteryState = prev.state;
-      const updated = updateMastery(prev, isCorrect);
+      const updated = updateMastery(prev, isCorrect, DEFAULT_PRIORS, { assisted });
       const withMeta: SkillMastery = {
         ...updated,
         compositeKey: [studentId, skillId],

@@ -642,7 +642,6 @@ export class Level01Scene extends Phaser.Scene {
     responseMs: number,
     input: PartitionInput
   ): Promise<void> {
-    // Phase 4 will use nextAttemptIsAssisted to write outcome: 'ASSISTED'.
     const assisted = this.nextAttemptIsAssisted;
     this.nextAttemptIsAssisted = false;
     if (assisted) {
@@ -660,7 +659,8 @@ export class Level01Scene extends Phaser.Scene {
       this.currentQuestionHintIds,
       this.currentQuestion.shapeType,
       this.currentQuestion.snapMode,
-      this.currentQuestion.areaTolerance
+      this.currentQuestion.areaTolerance,
+      assisted
     );
     if (estimate !== null) {
       this.currentMasteryEstimate = estimate;
