@@ -40,6 +40,11 @@ export interface SkillSummaryEntry {
   /** Number of attempts where a hint was used (approximated from hintsUsed on attempts) */
   assistedCount: number;
   misconceptions: MisconceptionRecord[];
+  /**
+   * True when a spaced-repetition warm-up review for this skill occurred in
+   * the current session (lastReviewedAt within the last 2 hours).
+   */
+  keptFresh?: boolean;
 }
 
 export interface LevelMasterySummary {
@@ -158,6 +163,24 @@ export async function selectLevelMasterySummary(
         misconceptions,
       };
     });
+
+    // 6. Mark skills kept fresh via warm-up: ReviewSchedule.lastReviewedAt
+    //    within the last 2 hours indicates a review occurred this session.
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    const sessionStart = Date.now() - TWO_HOURS_MS;
+    try {
+      const { reviewScheduleRepo } = await import('./reviewSchedule');
+      for (const entry of skills) {
+        if (entry.state === 'MASTERED') {
+          const sched = await reviewScheduleRepo.get(studentId, entry.skillId);
+          if (sched && sched.lastReviewedAt >= sessionStart) {
+            entry.keptFresh = true;
+          }
+        }
+      }
+    } catch {
+      // Non-blocking: kept-fresh indicators are best-effort
+    }
 
     return { skills, questionsAnswered, questionsCorrect };
   } catch (err) {
