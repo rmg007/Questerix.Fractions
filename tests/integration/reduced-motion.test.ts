@@ -77,11 +77,9 @@ describe('reduced-motion compliance: source code', () => {
       });
     }
 
-    // Phase 5 migration in progress: count should not GROW beyond the baseline.
-    // Phase 6 gate (future): this expectation will tighten to 0 once all
-    // bare tweens.add() calls are migrated to the tween() wrapper.
-    // Baseline as of 2026-05-05: 85 violations (tracked via ESLint no-restricted-syntax).
-    expect(violations.length).toBeLessThanOrEqual(90);
+    // Phase 6 gate: zero violations
+    // (During Phase 5 migration, this count will drop from ~93 to 0)
+    expect(violations).toHaveLength(0);
   });
 
   /**
@@ -215,10 +213,8 @@ describe('reduced-motion compliance: registry initialization', () => {
     // Verify the wrapper exists
     expect(fileContent).toContain('export function tween(');
 
-    // Verify it checks for reduced-motion preference via the canonical helper
-    // (Phase 3 a11y-parity: replaced scene.registry approach with checkReduceMotion()
-    // from src/lib/preferences.ts so OS media query + DB-backed cache are both honoured)
-    expect(fileContent).toContain('checkReduceMotion()');
+    // Verify it checks for reduced-motion preference
+    expect(fileContent).toContain("scene.registry.get('prefersReducedMotion')");
 
     // Verify it uses Duration.instant as fallback
     expect(fileContent).toContain('Duration.instant');

@@ -36,7 +36,7 @@ const DEFAULT_AVATAR: AvatarKey = 'star';
 
 /** Chip dimensions (canvas pixels) */
 const CHIP_W = 200;
-const CHIP_H = 100;
+const CHIP_H = 80;
 const CHIP_X = 110; // left-aligned
 const CHIP_Y = 60;
 
@@ -44,7 +44,7 @@ const CHIP_Y = 60;
 const PANEL_W = 340;
 const CARD_H = 100;
 const CARD_GAP = 12;
-const ADD_BTN_H = 100;
+const ADD_BTN_H = 80;
 
 export interface StudentSwitcherOptions {
   scene: Phaser.Scene;
@@ -112,7 +112,7 @@ export class StudentSwitcher {
     const nameText = this.scene.add
       .text(10, 0, name, {
         fontFamily: BODY_FONT,
-        fontSize: '36px',
+        fontSize: '26px',
         fontStyle: 'bold',
         color: '#ffffff',
       })
@@ -122,7 +122,7 @@ export class StudentSwitcher {
     const chevron = this.scene.add
       .text(CHIP_W / 2 - 24, 0, '▾', {
         fontFamily: BODY_FONT,
-        fontSize: '28px',
+        fontSize: '22px',
         color: '#93c5fd',
       })
       .setOrigin(0.5);
@@ -238,7 +238,7 @@ export class StudentSwitcher {
       this.scene.add
         .text(-PANEL_W / 2 + 90, y, name, {
           fontFamily: BODY_FONT,
-          fontSize: '36px',
+          fontSize: '26px',
           fontStyle: isActive ? 'bold' : 'normal',
           color: '#ffffff',
         })
@@ -287,7 +287,7 @@ export class StudentSwitcher {
       this.scene.add
         .text(0, y, '+ Add Player', {
           fontFamily: BODY_FONT,
-          fontSize: '36px',
+          fontSize: '26px',
           fontStyle: 'bold',
           color: '#ffffff',
         })
