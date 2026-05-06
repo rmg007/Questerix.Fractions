@@ -72,7 +72,7 @@ export async function recordAttemptAndMasteryForLevel(
   const sessionIdTyped = sessionId as SessionId;
   let masteryEstimate: number | null = null;
   let prevMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
-  let newMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
+  const newMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
   try {
     const { db } = await import('@/persistence/db');
     const { attemptRepo } = await import('@/persistence/repositories/attempt');
