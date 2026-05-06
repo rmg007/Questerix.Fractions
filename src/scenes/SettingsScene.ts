@@ -120,6 +120,20 @@ export class SettingsScene extends Phaser.Scene {
       )
     );
 
+    // ── Warm-ups toggle ──────────────────────────────────────────────────────
+    this.toggles.push(
+      new PreferenceToggle(
+        {
+          key: 'warmUpsEnabled',
+          label: 'Quick review at the start of each level.',
+          onChange: (value) => {
+            void updatePreferences({ warmUpsEnabled: value === true });
+          },
+        },
+        { top: toViewport(700), left: halfCanvas }
+      )
+    );
+
     // ── Export button (row 1 of Data section) ─────────────────────────────
     TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(730), {
       top: toViewport(730),

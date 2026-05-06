@@ -60,6 +60,8 @@ export class ProgressBar extends Phaser.GameObjects.Container {
   private chipGraphics: Phaser.GameObjects.Graphics[] = [];
   /** Current chip states, cached to detect transitions. */
   private chipStates: ChipState[] = [];
+  /** Trophy text overlays (⭐) for kept-fresh chips, aligned with chipGraphics. */
+  private chipLabels: Phaser.GameObjects.Text[] = [];
   /** Overflow "+N" text when there are more skills than chips. */
   private overflowText: Phaser.GameObjects.Text | null = null;
 
@@ -161,11 +163,17 @@ export class ProgressBar extends Phaser.GameObjects.Container {
     );
     const startX = (barWidth - chipAreaWidth) / 2;
 
-    // Lazily create or reuse chip graphics.
+    // Lazily create or reuse chip graphics and kept-fresh labels.
     while (this.chipGraphics.length < visible.length) {
       const g = this.scene.add.graphics();
       this.add(g);
       this.chipGraphics.push(g);
+      const lbl = this.scene.add
+        .text(0, 0, '⭐', { fontSize: '10px', fontFamily: TITLE_FONT })
+        .setOrigin(0.5)
+        .setVisible(false);
+      this.add(lbl);
+      this.chipLabels.push(lbl);
     }
 
     // Update each chip.
@@ -197,12 +205,20 @@ export class ProgressBar extends Phaser.GameObjects.Container {
       }
 
       this.chipStates[i] = entry.state;
+
+      // Show ⭐ trophy on kept-fresh MASTERED chips.
+      const lbl = this.chipLabels[i];
+      if (lbl) {
+        lbl.setPosition(cx + CHIP_SIZE - 4, cy + 4);
+        lbl.setVisible(entry.keptFresh === true && entry.state === 'MASTERED');
+      }
     });
 
-    // Hide any excess chip graphics.
+    // Hide any excess chip graphics and labels.
     for (let i = visible.length; i < this.chipGraphics.length; i++) {
       this.chipGraphics[i]!.clear();
       this.chipGraphics[i]!.setScale(1);
+      this.chipLabels[i]?.setVisible(false);
     }
 
     // Overflow "+N" chip.

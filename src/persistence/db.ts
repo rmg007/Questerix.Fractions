@@ -27,6 +27,7 @@ import type {
   LevelProgression,
   StreakRecord,
   TelemetryEvent,
+  ReviewSchedule,
 } from '../types';
 import { observabilityMiddleware } from './middleware';
 
@@ -58,6 +59,7 @@ export class QuesterixDB extends Dexie {
   levelProgression!: Table<LevelProgression, string>;
   streakRecord!: Table<StreakRecord, string>;
   telemetryEvents!: Table<TelemetryEvent, number>;
+  reviewSchedule!: Table<ReviewSchedule, [string, string]>;
 
   constructor() {
     super('questerix-fractions');
@@ -498,6 +500,11 @@ export class QuesterixDB extends Dexie {
           console.error('[db.v11] attempts migration failed', err);
         }
       });
+
+    // Schema version 12 — adds reviewSchedule store for Leitner spaced repetition.
+    this.version(12).stores({
+      reviewSchedule: '[studentId+skillId], dueAt, studentId',
+    });
   }
 }
 

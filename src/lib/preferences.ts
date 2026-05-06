@@ -20,6 +20,7 @@ interface PreferenceCache {
    * For children who need more time to process visual motion.
    */
   slowMode: boolean;
+  warmUpsEnabled: boolean;
 }
 
 let cache: PreferenceCache | null = null;
@@ -36,6 +37,7 @@ export async function initPreferences(): Promise<void> {
       highContrast: meta.preferences.highContrast ?? false,
       unlockGateBypass: meta.preferences.unlockGateBypass ?? false,
       slowMode: meta.preferences.slowMode ?? false,
+      warmUpsEnabled: meta.preferences.warmUpsEnabled ?? true,
     };
     applyContrastMode(cache.highContrast);
   } catch (err) {
@@ -45,6 +47,7 @@ export async function initPreferences(): Promise<void> {
       highContrast: false,
       unlockGateBypass: false,
       slowMode: false,
+      warmUpsEnabled: true,
     };
   }
 }
@@ -78,6 +81,17 @@ export async function updatePreferences(updates: Partial<PreferenceCache>): Prom
   if (updates.slowMode !== undefined) {
     cache!.slowMode = updates.slowMode;
   }
+  if (updates.warmUpsEnabled !== undefined) {
+    cache!.warmUpsEnabled = updates.warmUpsEnabled;
+  }
+}
+
+/**
+ * Returns true if the warm-up block is enabled (default on).
+ * Used by loadWarmUpTemplates to gate the DB query entirely.
+ */
+export function isWarmUpsEnabled(): boolean {
+  return cache?.warmUpsEnabled ?? true;
 }
 
 /**

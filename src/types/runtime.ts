@@ -315,6 +315,11 @@ export interface DevicePreferences {
    * Optional for backward compatibility.
    */
   slowMode?: boolean;
+  /**
+   * Whether to show a short warm-up block of due review questions at the
+   * start of each level. Default true. Optional for backward compatibility.
+   */
+  warmUpsEnabled?: boolean;
 }
 
 /** Singleton per device. per data-schema.md §3.8 */
@@ -417,4 +422,21 @@ export interface TelemetryEvent {
   /** Application version (VITE_GIT_SHA). */
   version: string;
   syncState: SyncState;
+}
+
+// ── ReviewSchedule ─────────────────────────────────────────────────────────
+
+/**
+ * Leitner-style spaced-repetition schedule for a mastered skill.
+ * One row per (studentId, skillId). Intervals: [1, 3, 7, 21, 60] days.
+ */
+export interface ReviewSchedule {
+  studentId: StudentId;
+  skillId: SkillId;
+  /** Current Leitner interval in days (one of 1 | 3 | 7 | 21 | 60). */
+  intervalDays: number;
+  /** Epoch ms — when this review becomes due. */
+  dueAt: number;
+  /** Epoch ms — time of the most recent review outcome. */
+  lastReviewedAt: number;
 }
