@@ -56,6 +56,9 @@ import {
   buildOutcomeFlowCallbacks,
 } from './utils/levelSceneContextBuilder';
 
+import { loadWarmUpTemplates } from '../lib/levelWarmUp';
+import { showWarmUpCompleteOverlay, createSkipWarmUpButton } from '../lib/levelSceneWarmUp';
+
 const CW = 800;
 const CH = 1280;
 const SESSION_GOAL = 5;
@@ -86,6 +89,8 @@ export class LevelScene extends Phaser.Scene {
 
   // Template pool
   private templatePool: QuestionTemplate[] = [];
+  private warmUpPool: QuestionTemplate[] = [];
+  private warmUpSkipBtn: Phaser.GameObjects.Text | null = null;
   private currentTemplate!: QuestionTemplate;
 
   // Current interaction
@@ -171,6 +176,15 @@ export class LevelScene extends Phaser.Scene {
       clearLastCurriculumLoadFailure();
       showOfflineCurriculumToastLib(this, this.studentId, CW, CH);
       return;
+    }
+
+    // Spaced-rep Phase 3: load warm-up questions from overdue review schedules
+    {
+      const warmUps = await loadWarmUpTemplates(this.studentId, Date.now());
+      if (warmUps.length > 0) {
+        this.warmUpPool = warmUps;
+        this.warmUpSkipBtn = createSkipWarmUpButton(this, () => this.skipWarmUp());
+      }
     }
 
     await this.openSession();
@@ -286,6 +300,15 @@ export class LevelScene extends Phaser.Scene {
     this.levelVignette = new LevelVignette(this, this.levelNumber);
     this.levelVignette.play(() => {
       this.levelVignette = null;
+      if (this.warmUpPool.length > 0) {
+        const n = this.warmUpPool.length;
+        this.time.delayedCall(400, () =>
+          this.mascot?.showSpeechBubble(
+            `Quick warm-up — ${n} question${n > 1 ? 's' : ''} to remember!`,
+            3000
+          )
+        );
+      }
       this.loadQuestion(0);
     });
   }
@@ -319,7 +342,7 @@ export class LevelScene extends Phaser.Scene {
       recordAttempt: (result, responseMs) => this.recordAttempt(result, responseMs),
       showOutcome: (result) => this.showOutcome(result),
       makeFallbackTemplate: () => makeFallbackTemplateLib(this.levelNumber),
-      getTemplatePool: () => this.templatePool,
+      getTemplatePool: () => this.warmUpPool.length > 0 ? this.warmUpPool : this.templatePool,
       animateCounterBadge: () => this.animateCounterBadge(),
       setQuestionIndex: (i) => {
         this.questionIndex = i;
@@ -356,6 +379,25 @@ export class LevelScene extends Phaser.Scene {
 
   private async loadQuestion(index: number): Promise<void> {
     await loadQuestionFlow(index, this.buildQFContext(index), this.buildQFCallbacks());
+  }
+
+  private async finishWarmUp(): Promise<void> {
+    this.warmUpPool = [];
+    this.warmUpSkipBtn?.destroy();
+    this.warmUpSkipBtn = null;
+    await showWarmUpCompleteOverlay(this);
+    this.attemptCount = 0;
+    this.correctCount = 0;
+    await this.loadQuestion(0);
+  }
+
+  private skipWarmUp(): void {
+    this.warmUpPool = [];
+    this.warmUpSkipBtn?.destroy();
+    this.warmUpSkipBtn = null;
+    this.attemptCount = 0;
+    this.correctCount = 0;
+    void this.loadQuestion(0);
   }
 
   private lastPayload: unknown = null;
@@ -402,7 +444,10 @@ export class LevelScene extends Phaser.Scene {
         this.lastPayload = p;
       },
       loadQuestion: (i) => {
-        void this.loadQuestion(i);
+        if (this.warmUpPool.length > 0 && i >= this.warmUpPool.length)
+          void this.finishWarmUp();
+        else
+          void this.loadQuestion(i);
       },
       showSessionComplete: () => this.showSessionComplete(),
       setCurrentQuestionHintIds: (ids) => this.hintController.setCurrentQuestionHintIds(ids),
