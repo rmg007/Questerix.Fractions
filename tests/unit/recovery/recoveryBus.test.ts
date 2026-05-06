@@ -10,10 +10,13 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// ── Mock errorReporter ───────────────────────────────────────────────────────
+// ── Mock observability (errorReporter + tracerService) ──────────────────────
 vi.mock('../../../src/lib/observability', () => ({
   errorReporter: {
     report: vi.fn(),
+  },
+  tracerService: {
+    startSpan: vi.fn(() => ({ end: vi.fn() })),
   },
 }));
 

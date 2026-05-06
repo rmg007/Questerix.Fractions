@@ -7,7 +7,7 @@ import './lib/i18n/keys/quest';
 import './lib/i18n/keys/system';
 import { initObservability, errorReporter } from './lib/observability';
 import { deviceMetaRepo } from './persistence/repositories/deviceMeta';
-import { RecoveryBus, registerGame } from './lib/recovery/recoveryBus';
+import { RecoveryBus, registerGame, getRecoveryLog } from './lib/recovery/recoveryBus';
 import { initLiveRegions } from './lib/a11y/liveRegion';
 
 // R8 / crash-and-recovery §1: Catch synchronous errors (e.g., in scene callbacks)
@@ -300,6 +300,42 @@ async function boot(): Promise<void> {
     if (game.scene.getScene('MenuScene')) hookMenu();
     else game.events.once('ready', hookMenu);
   }
+
+  // Phase 6 — ?debug=recovery overlay: shows the in-memory recovery log as a
+  // fixed panel. Useful during pilot testing; never shown in production builds.
+  if (new URLSearchParams(window.location.search).get('debug') === 'recovery') {
+    mountRecoveryDebugOverlay();
+  }
+}
+
+function mountRecoveryDebugOverlay(): void {
+  const panel = document.createElement('div');
+  panel.id = 'qf-recovery-debug';
+  panel.setAttribute('role', 'log');
+  panel.setAttribute('aria-label', 'Recovery event log');
+  panel.style.cssText = [
+    'position:fixed;bottom:8px;right:8px;max-width:360px;max-height:40vh;overflow-y:auto',
+    'background:rgba(0,0,0,0.85);color:#0f0;font:11px/1.4 monospace',
+    'padding:8px 10px;border-radius:6px;z-index:99999;pointer-events:none',
+  ].join(';');
+  document.body.appendChild(panel);
+
+  const render = (): void => {
+    const entries = getRecoveryLog();
+    if (entries.length === 0) {
+      panel.textContent = '[recovery log empty]';
+      return;
+    }
+    panel.textContent = entries
+      .map(
+        (e) =>
+          `[${new Date(e.ts).toISOString().slice(11, 23)}] ${e.kind}${e.scene ? ' @' + e.scene : ''} routed=${String(e.routed)} — ${e.error.message}`
+      )
+      .join('\n');
+  };
+
+  render();
+  setInterval(render, 2000);
 }
 
 boot().catch((err: unknown) => {

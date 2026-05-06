@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `feat/2026-05-04-crash-and-recovery`
-**Status:** Draft — not yet implemented
+**Status:** Complete — all phases implemented and merged (2026-05-05)
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 1. Independent of plans 1–3; runs in parallel.
 
 ## Problem
