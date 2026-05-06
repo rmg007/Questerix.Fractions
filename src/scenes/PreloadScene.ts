@@ -178,7 +178,7 @@ export class PreloadScene extends Phaser.Scene {
     // Status text — navy matching level scene body text
     this.loadingText = this.add
       .text(cx, cy + 48, 'Loading', {
-        fontSize: '20px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,

@@ -65,7 +65,7 @@ export function createHeaderUI(
   backBtn.on('pointerup', () => {
     if (!menuConfirmPending) {
       menuConfirmPending = true;
-      backBtn.setText('✕ Leave?').setStyle({ fontSize: '20px', color: '#b45309' });
+      backBtn.setText('✕ Leave?').setStyle({ fontSize: '32px', color: '#b45309' });
       menuConfirmTimer = scene.time.delayedCall(2000, resetMenuBtn);
       scene.input.once('pointerdown', (ptr: Phaser.Input.Pointer) => {
         const btnBounds = backBtn.getBounds();
@@ -91,7 +91,7 @@ export function createHeaderUI(
   ctrG.strokeRoundedRect(ctrX, ctrY, CTR_W, CTR_H, 14);
   const questionCounterText = scene.add
     .text(ctrX + CTR_W / 2, ctrY + CTR_H / 2, `${questionIndex + 1} / ${SESSION_GOAL}`, {
-      fontSize: '22px',
+      fontSize: '32px',
       fontFamily: BODY_FONT,
       fontStyle: 'bold',
       color: NAVY_HEX,

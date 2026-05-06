@@ -85,7 +85,7 @@ export function createPerfectLine(
 ): Phaser.GameObjects.Text {
   return scene.add
     .text(cx, 620, "ALL 5 correct! You're a star! ⭐", {
-      fontSize: '20px',
+      fontSize: '32px',
       fontFamily: BODY_FONT,
       fontStyle: 'bold',
       color: '#ffffff',
@@ -104,7 +104,7 @@ export function createEncouragement(
 ): Phaser.GameObjects.Text {
   return scene.add
     .text(cx, isPerfect ? 660 : 640, text, {
-      fontSize: '24px',
+      fontSize: '36px',
       fontFamily: BODY_FONT,
       fontStyle: 'bold',
       color: isPerfect ? '#ffffff' : NAVY_HEX,
@@ -124,7 +124,7 @@ export function createAccuracyText(
 ): Phaser.GameObjects.Text {
   return scene.add
     .text(cx, isPerfect ? 710 : 690, `${correctCount} / ${totalAttempts} correct  (${accuracy}%)`, {
-      fontSize: '19px',
+      fontSize: '28px',
       fontFamily: BODY_FONT,
       color: isPerfect ? '#ffffff' : NAVY_HEX,
     })

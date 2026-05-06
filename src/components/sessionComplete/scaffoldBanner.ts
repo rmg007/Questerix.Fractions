@@ -63,7 +63,7 @@ export function createScaffoldBanner(
   const txt = scene.add
     .text(cx, y, bannerText, {
       fontFamily: TITLE_FONT,
-      fontSize: '24px',
+      fontSize: '36px',
       color: NAVY_HEX,
       fontStyle: 'bold',
     })

@@ -62,7 +62,7 @@ export class DBRecoveryScene extends Phaser.Scene {
     const bodyObj = this.add
       .text(cx, 700, get('db.recovery.body'), {
         fontFamily: BODY_FONT,
-        fontSize: '26px',
+        fontSize: '36px',
         color: '#444444',
         align: 'center',
         wordWrap: { width: CW - 80 },
@@ -158,7 +158,7 @@ export class DBRecoveryScene extends Phaser.Scene {
     const txt = this.add
       .text(0, 0, label, {
         fontFamily: BODY_FONT,
-        fontSize: '24px',
+        fontSize: '32px',
         fontStyle: 'bold',
         color: textColor,
       })

@@ -67,7 +67,7 @@ export class LabelInteraction implements Interaction {
       box.setStrokeStyle(2, OPTION_BORDER);
       scene.add
         .text(rx, regionY, reg.alt ?? reg.id, {
-          fontSize: '13px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_BODY,
         })
@@ -76,7 +76,7 @@ export class LabelInteraction implements Interaction {
       // Drop-target placeholder — populated when a tile snaps in.
       const dropText = scene.add
         .text(rx, regionY, '', {
-          fontSize: '20px',
+          fontSize: '36px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: NAVY_HEX,
           fontStyle: 'bold',
@@ -97,7 +97,7 @@ export class LabelInteraction implements Interaction {
         .setInteractive({ draggable: true, useHandCursor: true });
       const ttext = scene.add
         .text(tx, ty, lbl.text, {
-          fontSize: '16px',
+          fontSize: '32px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: NAVY_HEX,
         })
@@ -167,7 +167,7 @@ export class LabelInteraction implements Interaction {
     const sbg = scene.add.rectangle(centerX, sy, 240, 52, NAVY).setDepth(7);
     const slbl = scene.add
       .text(centerX, sy, 'Check', {
-        fontSize: '20px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,

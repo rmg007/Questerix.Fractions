@@ -89,7 +89,7 @@ export class OrderInteraction implements Interaction {
         .setDepth(4);
       scene.add
         .text(sx, slotY + cardH / 2 + 14, `${si + 1}`, {
-          fontSize: '13px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_BODY,
         })
@@ -174,7 +174,7 @@ export class OrderInteraction implements Interaction {
     const sbg = scene.add.rectangle(centerX, sy, 200, 52, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check Order', {
-        fontSize: '17px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,

@@ -235,7 +235,7 @@ export class FirstRunScene extends Phaser.Scene {
     this.add
       .text(cx, y, 'No thanks, just play', {
         fontFamily: BODY_FONT,
-        fontSize: '24px',
+        fontSize: '32px',
         color: '#bfdbfe',
         align: 'center',
       })

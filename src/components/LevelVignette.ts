@@ -166,7 +166,7 @@ export class LevelVignette {
     const taglineColor = isSpace ? '#a5b4fc' : '#374151';
     const tagline = this.scene.add
       .text(0, 142, meta.tagline, {
-        fontSize: '24px',
+        fontSize: '36px',
         fontFamily: BODY_FONT,
         color: taglineColor,
         align: 'center',
@@ -178,7 +178,7 @@ export class LevelVignette {
     const skipColor = isSpace ? '#6366f1' : '#9ca3af';
     const skipHint = this.scene.add
       .text(0, 225, 'Tap to skip →', {
-        fontSize: '17px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         color: skipColor,
       })

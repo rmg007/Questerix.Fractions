@@ -114,7 +114,7 @@ export class SnapMatchInteraction implements Interaction {
         .setInteractive({ draggable: true, useHandCursor: true });
       const txt = scene.add
         .text(colLeft, ly, item.label, {
-          fontSize: '18px',
+          fontSize: '32px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           fontStyle: 'bold',
           color: NAVY_HEX,
@@ -166,10 +166,10 @@ export class SnapMatchInteraction implements Interaction {
 
     // Submit
     const sy = startY + rows * rowH + 32;
-    const sbg = scene.add.rectangle(centerX, sy, 200, 52, NAVY).setDepth(7);
+    const sbg = scene.add.rectangle(centerX, sy, 200, 100, NAVY).setDepth(7);
     const stxt = scene.add
       .text(centerX, sy, 'Check', {
-        fontSize: '18px',
+        fontSize: '32px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         fontStyle: 'bold',
         color: TEXT_ON_FILL,
@@ -177,7 +177,7 @@ export class SnapMatchInteraction implements Interaction {
       .setOrigin(0.5)
       .setDepth(8);
     const hit = scene.add
-      .rectangle(centerX, sy, 200, 52, 0, 0)
+      .rectangle(centerX, sy, 200, 100, 0, 0)
       .setInteractive({ useHandCursor: true })
       .setDepth(9);
     const submitSnapMatch = () => onCommit({ pairs: this.pairs });

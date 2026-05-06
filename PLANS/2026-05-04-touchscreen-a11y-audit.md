@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `audit/2026-05-04-touchscreen-a11y`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-05 — all phases merged to main via fix/2026-05-05-touchscreen-a11y
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Touch + perf + reliability). Phase 3 hard-gates on plan 1 Phase 4 merge; Phases 1–2, 5 are audit-only and may run anytime. Reduced-motion compliance (Phase 1 §7) is enforced architecturally via the `motion.ts:tween()` wrapper from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md) — this plan's audit becomes a regression check, not a vigilance task.
 
 ## Dependencies & blockers

@@ -133,7 +133,7 @@ export function createActionButton(
   const txt = scene.add
     .text(0, 0, label, {
       fontFamily: TITLE_FONT,
-      fontSize: '28px',
+      fontSize: '36px',
       color: ACTION_TEXT,
       fontStyle: 'bold',
     })
@@ -200,7 +200,7 @@ export function createHintPillButton(
   onTap: () => void,
   depth = 10
 ): Phaser.GameObjects.Container {
-  const W = 160,
+  const W = 200,
     H = 60,
     SHADOW = 5,
     R = 30;
@@ -215,9 +215,9 @@ export function createHintPillButton(
   const face = scene.add.graphics();
 
   const txt = scene.add
-    .text(0, 0, '💡 Need a hint?', {
+    .text(0, 0, '💡 Hint', {
       fontFamily: TITLE_FONT,
-      fontSize: '18px',
+      fontSize: '32px',
       color: HINT_TEXT_CLR,
       fontStyle: 'bold',
     })
@@ -296,7 +296,7 @@ export function createHintCircleButton(
   const txt = scene.add
     .text(0, 0, '?', {
       fontFamily: TITLE_FONT,
-      fontSize: '30px',
+      fontSize: '32px',
       color: HINT_TEXT_CLR,
       fontStyle: 'bold',
     })
@@ -319,9 +319,12 @@ export function createHintCircleButton(
 
   const container = scene.add.container(x, y, [shadow, face, txt]).setDepth(depth);
 
-  const D = R * 2 + SHADOW;
-  container.setSize(D, D);
-  container.setInteractive(new Phaser.Geom.Rectangle(-R, -R, D, D), Phaser.Geom.Rectangle.Contains);
+  // Hit area: 100×100 canvas px (45×45 CSS px at 360 vp) — WCAG 2.5.5.
+  container.setSize(100, 100);
+  container.setInteractive(
+    new Phaser.Geom.Rectangle(-50, -50, 100, 100),
+    Phaser.Geom.Rectangle.Contains
+  );
   container.input!.cursor = 'pointer';
 
   container.on('pointerover', () => {
@@ -360,7 +363,7 @@ export function createSecondaryButton(
   depth = 52
 ): void {
   const W = 320,
-    H = 56,
+    H = 100,
     R = 28;
   const g = scene.add.graphics().setDepth(depth);
   g.fillStyle(SEC_FILL, 1);
@@ -370,12 +373,13 @@ export function createSecondaryButton(
   scene.add
     .text(x, y, label, {
       fontFamily: BODY_FONT,
-      fontSize: '20px',
+      fontSize: '32px',
       fontStyle: 'bold',
       color: NAVY_HEX,
     })
     .setOrigin(0.5)
     .setDepth(depth + 1);
+  // Hit area: W×100 canvas px (45 CSS px at 360 vp) — WCAG 2.5.5.
   scene.add
     .rectangle(x, y, W, H, 0, 0)
     .setInteractive({ useHandCursor: true })
@@ -391,7 +395,7 @@ export function createSecondaryButton(
  * WCAG contrast confirmed: NAVY_HEX (#1E3A8A) on WHITE (#FFFFFF) = 10.36:1 — PASSES AA 4.5:1.
  */
 export const HINT_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontSize: '18px',
+  fontSize: '32px',
   fontFamily: BODY_FONT,
   color: NAVY_HEX,
   align: 'center',

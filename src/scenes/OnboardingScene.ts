@@ -128,7 +128,7 @@ export class OnboardingScene extends Phaser.Scene {
     // ── Step badge ────────────────────────────────────────────────────────────
     this.stepBadge = this.add
       .text(CW / 2, 132, 'Step 1 of 3', {
-        fontSize: '20px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         color: '#475569',
       })
@@ -151,7 +151,7 @@ export class OnboardingScene extends Phaser.Scene {
     // ── Instruction text ──────────────────────────────────────────────────────
     this.instructionText = this.add
       .text(CW / 2, 245, '', {
-        fontSize: '24px',
+        fontSize: '36px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: NAVY_HEX,
@@ -186,7 +186,7 @@ export class OnboardingScene extends Phaser.Scene {
     // double-tap debounce per Gesture.doubleTapWindowMs.
     this.skipText = this.add
       .text(CW / 2, CH - 90, 'Skip tutorial', {
-        fontSize: '20px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         color: NAVY_HEX,
         padding: { x: 12, y: 12 },
@@ -317,7 +317,7 @@ export class OnboardingScene extends Phaser.Scene {
       this.tapSkipHint = this.add
         .text(SHAPE_CX, CH - 120, 'Tap anywhere to skip', {
           fontFamily: BODY_FONT,
-          fontSize: '16px',
+          fontSize: '28px',
           color: NAVY_HEX,
           alpha: 0.5,
         } as Phaser.Types.GameObjects.Text.TextStyle)

@@ -156,7 +156,7 @@ export class PartitionInteraction implements Interaction {
     this.dragAffordance = this.scene.add
       .text(this.handlePos, centerY, '▲\n▼', {
         fontFamily: 'BODY_FONT',
-        fontSize: '16px',
+        fontSize: '36px',
         color: '#1e3a8a',
         align: 'center',
         lineSpacing: -4,
@@ -218,7 +218,7 @@ export class PartitionInteraction implements Interaction {
       this.ghostLabel = this.scene.add
         .text(cx + SHAPE_W / 2 + 6, cy, 'half', {
           fontFamily: BODY_FONT,
-          fontSize: '14px',
+          fontSize: '28px',
           color: '#1e3a8a',
         })
         .setOrigin(0, 0.5)
@@ -231,7 +231,7 @@ export class PartitionInteraction implements Interaction {
       this.ghostLabel = this.scene.add
         .text(cx + SHAPE_W / 2 + 6, cy, 'half', {
           fontFamily: BODY_FONT,
-          fontSize: '14px',
+          fontSize: '28px',
           color: '#1e3a8a',
         })
         .setOrigin(0, 0.5)
@@ -281,7 +281,7 @@ export class PartitionInteraction implements Interaction {
           const label = this.scene.add
             .text(lx, cy, `1/${n}`, {
               fontFamily: TITLE_FONT,
-              fontSize: '28px',
+              fontSize: '36px',
               color: '#1e3a8a',
             })
             .setOrigin(0.5)
@@ -332,7 +332,7 @@ export class PartitionInteraction implements Interaction {
           const label = this.scene.add
             .text(lx, ly, `1/${n}`, {
               fontFamily: TITLE_FONT,
-              fontSize: '24px',
+              fontSize: '36px',
               color: '#1e3a8a',
             })
             .setOrigin(0.5)

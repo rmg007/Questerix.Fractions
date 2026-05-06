@@ -23,7 +23,7 @@ export function attachVersionTapToggle(
   const showToast = (msg: string): void => {
     toast?.destroy();
     toast = scene.add
-      .text(CW / 2, 1240, msg, { fontSize: '16px', fontFamily: BODY_FONT, color: '#5848D6' })
+      .text(CW / 2, 1240, msg, { fontSize: '28px', fontFamily: BODY_FONT, color: '#5848D6' })
       .setOrigin(0.5)
       .setDepth(5);
     scene.time.delayedCall(2000, () => {
@@ -34,7 +34,7 @@ export function attachVersionTapToggle(
 
   const txt = scene.add
     .text(cx, y, `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`, {
-      fontSize: '14px',
+      fontSize: '24px',
       fontFamily: BODY_FONT,
       color: HEX.neutral600,
     })

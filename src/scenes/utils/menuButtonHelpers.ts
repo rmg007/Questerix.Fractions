@@ -157,7 +157,7 @@ export async function renderStreakDisplay(
 
   // Measure text width
   const probe = scene.add
-    .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '18px' })
+    .text(0, 0, label, { fontFamily: BODY_FONT, fontSize: '28px' })
     .setAlpha(0);
   const tw = probe.width + PILL_PAD * 2;
   probe.destroy();
@@ -172,7 +172,7 @@ export async function renderStreakDisplay(
   scene.add
     .text(px, py, label, {
       fontFamily: BODY_FONT,
-      fontSize: '18px',
+      fontSize: '28px',
       color: '#FFFFFF',
       fontStyle: 'bold',
     })
@@ -202,7 +202,7 @@ export function createChooseLevelButton(scene: Phaser.Scene, onTap: () => void):
     .text(bx, by, get('menu.choose_level'), {
       fontFamily: BODY_FONT,
       fontStyle: 'bold',
-      fontSize: '22px',
+      fontSize: '32px',
       color: NAVY_HEX,
     })
     .setOrigin(0.5)

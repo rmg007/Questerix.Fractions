@@ -167,7 +167,7 @@ export class RecoveryScene extends Phaser.Scene {
     const txt = this.add
       .text(0, 0, label, {
         fontFamily: BODY_FONT,
-        fontSize: '26px',
+        fontSize: '32px',
         fontStyle: 'bold',
         color: textColor,
       })

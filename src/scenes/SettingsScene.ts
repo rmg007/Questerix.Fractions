@@ -240,7 +240,7 @@ export class SettingsScene extends Phaser.Scene {
     this.statusText?.destroy();
     const color = isError ? '#DC2626' : '#059669';
     this.statusText = this.add
-      .text(CW / 2, y, msg, { fontSize: '16px', fontFamily: BODY_FONT, color })
+      .text(CW / 2, y, msg, { fontSize: '28px', fontFamily: BODY_FONT, color })
       .setOrigin(0.5)
       .setDepth(5);
     if (duration) {
@@ -316,7 +316,7 @@ export class SettingsScene extends Phaser.Scene {
     // Non-interactive label text (visual only)
     this.add
       .text(cx, y, 'Privacy Notice →', {
-        fontSize: '16px',
+        fontSize: '28px',
         fontFamily: BODY_FONT,
         color: '#5848D6',
       })
@@ -350,7 +350,7 @@ export class SettingsScene extends Phaser.Scene {
   private sectionLabel(cx: number, y: number, label: string): void {
     this.add
       .text(cx, y, label, {
-        fontSize: '22px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: HEX.neutral600,
@@ -374,7 +374,7 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(x, y, label, {
-        fontSize: '22px',
+        fontSize: '32px',
         fontFamily: BODY_FONT,
         fontStyle: 'bold',
         color: textColor,

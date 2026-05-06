@@ -89,7 +89,7 @@ export function createHeader(
   backBtn.on('pointerup', () => {
     if (!menuConfirmPending) {
       menuConfirmPending = true;
-      backBtn.setText('✕ Leave?').setStyle({ fontSize: '18px', color: '#b45309' });
+      backBtn.setText('✕ Leave?').setStyle({ fontSize: '32px', color: '#b45309' });
       menuConfirmTimer = scene.time.delayedCall(2000, resetMenuBtn);
       scene.input.once('pointerdown', (ptr: Phaser.Input.Pointer, _objs: unknown[]) => {
         const btnBounds = backBtn.getBounds();
@@ -125,7 +125,7 @@ export function createHeader(
     const relX = (i - (STAR_COUNT - 1) / 2) * starSpacing; // -56, -28, 0, 28, 56
     return scene.add
       .text(relX, 0, '★', {
-        fontSize: '20px',
+        fontSize: '28px',
         fontFamily: TITLE_FONT,
         color: STAR_EMPTY,
       })

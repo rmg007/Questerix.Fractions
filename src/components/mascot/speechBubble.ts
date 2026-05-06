@@ -25,11 +25,11 @@ export function createSpeechBubble(
   onDismiss: (container: Phaser.GameObjects.Container) => void
 ): Phaser.GameObjects.Container {
   const PAD = 24;
-  const MAX_W = 300;
+  const MAX_W = 440;
 
   const measurer = ctx.scene.add
     .text(0, 0, text, {
-      fontSize: '18px',
+      fontSize: '32px',
       fontFamily: BODY_FONT,
       wordWrap: { width: MAX_W - PAD * 2 },
     })
@@ -56,7 +56,7 @@ export function createSpeechBubble(
 
   const label = ctx.scene.add
     .text(0, 0, text, {
-      fontSize: '18px',
+      fontSize: '32px',
       fontFamily: BODY_FONT,
       color: NAVY_HEX,
       align: 'center',

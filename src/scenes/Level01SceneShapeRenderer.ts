@@ -117,7 +117,7 @@ export class ShapeRenderer {
     this.ghostGuideLabel = this.scene.add
       .text(SHAPE_CX + SHAPE_W / 2 + 6, shapeCy, 'half', {
         fontFamily: BODY_FONT,
-        fontSize: '14px',
+        fontSize: '28px',
         color: NAVY_HEX,
       })
       .setOrigin(0, 0.5)

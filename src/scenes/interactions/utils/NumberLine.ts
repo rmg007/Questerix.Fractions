@@ -92,7 +92,7 @@ export class NumberLine {
       const lbl = this.formatTickLabel(v);
       const t = this.scene.add
         .text(tx, y + 20, lbl, {
-          fontSize: '14px',
+          fontSize: '28px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: HEX.neutral600,
         })

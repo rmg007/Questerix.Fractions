@@ -91,7 +91,7 @@ export class BenchmarkInteraction implements Interaction {
         .setDepth(5);
       scene.add
         .text(bx, zoneY, zl, {
-          fontSize: '14px',
+          fontSize: '32px',
           fontFamily: '"Nunito", system-ui, sans-serif',
           color: TEXT_HEADING,
           align: 'center',

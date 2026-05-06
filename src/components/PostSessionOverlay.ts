@@ -55,9 +55,9 @@ interface ButtonStyle {
 // prettier-ignore
 const PRIMARY: ButtonStyle = { w: 360, h: 110, r: 28, shadow: 6, fill: ACTION_FILL, border: ACTION_BORDER, textColor: ACTION_TEXT, fontSize: '32px', fontFamily: TITLE_FONT };
 // prettier-ignore
-const SECONDARY: ButtonStyle = { w: 320, h: 90, r: 24, shadow: 5, fill: HINT_FILL, border: HINT_BORDER, textColor: HINT_TEXT_CLR, fontSize: '26px', fontFamily: TITLE_FONT };
+const SECONDARY: ButtonStyle = { w: 320, h: 90, r: 24, shadow: 5, fill: HINT_FILL, border: HINT_BORDER, textColor: HINT_TEXT_CLR, fontSize: '32px', fontFamily: TITLE_FONT };
 // prettier-ignore
-const TERTIARY: ButtonStyle = { w: 260, h: 60, r: 30, shadow: 0, fill: 0xffffff, border: NAVY, textColor: NAVY_HEX, fontSize: '20px', fontFamily: BODY_FONT };
+const TERTIARY: ButtonStyle = { w: 260, h: 60, r: 30, shadow: 0, fill: 0xffffff, border: NAVY, textColor: NAVY_HEX, fontSize: '32px', fontFamily: BODY_FONT };
 
 const HOOK_IDS = [
   'post-session-overlay',

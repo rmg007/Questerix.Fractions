@@ -109,7 +109,7 @@ export class PlacementInteraction implements Interaction {
     // Instruction label
     const instrTxt = scene.add
       .text(centerX, centerY + 50, 'Drag the marker to place the fraction', {
-        fontSize: '15px',
+        fontSize: '36px',
         fontFamily: '"Nunito", system-ui, sans-serif',
         color: TEXT_BODY,
         align: 'center',
