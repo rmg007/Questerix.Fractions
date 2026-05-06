@@ -17,7 +17,6 @@ import {
   deriveState,
   validateBktParams,
 } from '@/engine/bkt';
-import type { UpdateMasteryOptions } from '@/engine/bkt';
 import type { SkillMastery, BktParams } from '@/types';
 import { StudentId, SkillId } from '@/types';
 
