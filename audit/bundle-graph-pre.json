@@ -1,0 +1,27 @@
+{
+  "capturedAt": "2026-05-05",
+  "branch": "perf/2026-05-04-bundle-splitting-and-cold-start",
+  "phase": "pre-split baseline",
+  "totalGzippedBytes": 513169,
+  "totalGzippedKB": 501.1,
+  "budgetBytes": 1048576,
+  "budgetUsedPct": 48.9,
+  "chunks": [
+    { "name": "phaser",            "rawBytes": 1353312, "gzBytes": 350315, "brBytes": 279248, "budgetKB": 380, "budgetUsedPct": 90.0 },
+    { "name": "scenes",            "rawBytes": 347552,  "gzBytes": 93157,  "brBytes": 76038,  "budgetKB": 100, "budgetUsedPct": 91.0 },
+    { "name": "observability",     "rawBytes": 31273,   "gzBytes": 8871,   "brBytes": 7933,   "budgetKB": 12,  "budgetUsedPct": 72.2 },
+    { "name": "dexie",             "rawBytes": 95088,   "gzBytes": 30979,  "brBytes": 27440,  "budgetKB": 35,  "budgetUsedPct": 86.4 },
+    { "name": "index",             "rawBytes": 26170,   "gzBytes": 8860,   "brBytes": 7696,   "budgetKB": null, "budgetUsedPct": null },
+    { "name": "misconceptionDetectors", "rawBytes": 8285, "gzBytes": 2221, "brBytes": 1994,  "budgetKB": null, "budgetUsedPct": null },
+    { "name": "registry",          "rawBytes": 6536,    "gzBytes": 1956,   "brBytes": 1753,   "budgetKB": null, "budgetUsedPct": null },
+    { "name": "QuestCompleteOverlay", "rawBytes": 4014, "gzBytes": 1674,   "brBytes": 1479,   "budgetKB": null, "budgetUsedPct": null }
+  ],
+  "notes": [
+    "scenes chunk at 91% of 100KB budget — heaviest split target",
+    "scenes contains all 11 interaction archetypes + all scene classes bundled together",
+    "phaser at 90% of 380KB budget — already in own chunk via manualChunks",
+    "observability tree-shaken to 8.7KB — OTel/Sentry SDKs excluded by env-gating",
+    "Phase 3 will lazy-split each interaction archetype into its own chunk",
+    "Phase 2 will split curriculum from monolithic v1.json into per-level files"
+  ]
+}

@@ -260,6 +260,50 @@ function parseBundle(bundle: CurriculumBundle, empty: ParsedBundle): ParsedBundl
  *
  * per persistence-spec.md §5 (static seed cost), runtime-architecture.md §10 (failure modes)
  */
+interface PerLevelBundle {
+  version: number;
+  levelKey: string;
+  templates: unknown[];
+}
+
+function assertPerLevelShape(raw: unknown): asserts raw is PerLevelBundle {
+  if (
+    typeof raw !== 'object' ||
+    raw === null ||
+    typeof (raw as Record<string, unknown>).version !== 'number' ||
+    !Array.isArray((raw as Record<string, unknown>).templates)
+  ) {
+    throw new Error('Invalid per-level bundle shape');
+  }
+}
+
+/** Load templates for a single level from a per-level curriculum file. Falls back to the full bundle on error. */
+export async function loadCurriculumForLevel(url: string): Promise<QuestionTemplate[]> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const full = await loadCurriculumBundle();
+      return full.questionTemplates;
+    }
+    const raw: unknown = await response.json();
+    assertPerLevelShape(raw);
+    return raw.templates.filter(validateTemplateRow) as QuestionTemplate[];
+  } catch (err) {
+    if (err instanceof TypeError) {
+      // Network unavailable — use static fallback
+      try {
+        assertBundleShape(bundledData);
+        return parseBundle(bundledData as CurriculumBundle, makeEmpty()).questionTemplates;
+      } catch {
+        return [];
+      }
+    }
+    // Other errors (bad JSON, shape mismatch) — try full bundle
+    const full = await loadCurriculumBundle();
+    return full.questionTemplates;
+  }
+}
+
 export async function loadCurriculumBundle(url = '/curriculum/v1.json'): Promise<ParsedBundle> {
   const empty = makeEmpty();
 

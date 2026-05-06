@@ -42,7 +42,7 @@ export default defineConfig(async () => {
               // without an explicit "Refresh Curriculum" tap.
               // Cache name `curriculum-cache` is referenced by SettingsScene's
               // "Refresh Curriculum" affordance — keep the strings in sync.
-              urlPattern: /\/curriculum\/v\d+\.json/,
+              urlPattern: /\/curriculum\/(v\d+|index|level-\d+)\.json/,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'curriculum-cache',

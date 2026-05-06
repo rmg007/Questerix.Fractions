@@ -26,6 +26,7 @@ import {
   getLastCurriculumLoadFailure,
   clearLastCurriculumLoadFailure,
 } from '../curriculum/loader';
+import { A11yLayer } from '../components/A11yLayer';
 
 interface PreloadData {
   lastStudentId: string | null;
@@ -45,6 +46,9 @@ export class PreloadScene extends Phaser.Scene {
   private progressBar!: Phaser.GameObjects.Rectangle;
   private loadingText!: Phaser.GameObjects.Text;
   private loadingDotsEvent?: Phaser.Time.TimerEvent;
+  private timeoutEvent5s?: Phaser.Time.TimerEvent;
+  private timeoutEvent12s?: Phaser.Time.TimerEvent;
+  private announcedThresholds = new Set<number>();
   private lastStudentId: string | null = null;
   /** Count of asset-load errors encountered in the current load batch. */
   private loadErrorCount = 0;
@@ -115,12 +119,22 @@ export class PreloadScene extends Phaser.Scene {
         const threshold = (index + 1) / tiles.length;
         (tile as HTMLElement).style.opacity = value >= threshold ? '1' : '0';
       });
+
+      // A11y: announce at 25%, 50%, 75%, 100% milestones (once each)
+      for (const pct of [25, 50, 75, 100]) {
+        if (value * 100 >= pct && !this.announcedThresholds.has(pct)) {
+          this.announcedThresholds.add(pct);
+          A11yLayer.announce(`Loading ${pct}%`);
+        }
+      }
     });
 
     this.load.on('complete', () => {
       if (this.loadingDotsEvent) {
         this.loadingDotsEvent.destroy();
       }
+      this.timeoutEvent5s?.destroy();
+      this.timeoutEvent12s?.destroy();
       this.loadingText.setText('Ready!');
     });
 
@@ -200,6 +214,24 @@ export class PreloadScene extends Phaser.Scene {
         // Let's make it consistent.
         this.updateLoadingText(dots);
       },
+    });
+
+    // Timeout UX: reassure the player if loading stalls
+    this.timeoutEvent5s = this.time.delayedCall(5000, () => {
+      if (this.load.progress < 1) {
+        this.loadingText.setText('Still working…');
+        A11yLayer.announce('Still loading, please wait');
+      }
+    });
+
+    this.timeoutEvent12s = this.time.delayedCall(12000, () => {
+      if (this.load.progress < 1) {
+        this.loadingText.setText('This is taking longer than usual…\nTap to retry');
+        A11yLayer.announce('Loading is taking longer than usual. Tap the screen to retry.');
+        this.input.once('pointerdown', () => {
+          this.scene.restart();
+        });
+      }
     });
 
     // Mascot — static during preload (idle timer and DOM sentinel are unsafe in preload context)
