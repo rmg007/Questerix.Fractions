@@ -1,4 +1,5 @@
 import { selectDueReviews } from '@/engine/reviewScheduler';
+import { isWarmUpsEnabled } from '@/lib/preferences';
 import type { QuestionTemplate } from '@/types';
 import type { SkillId } from '@/types/branded';
 
@@ -14,7 +15,7 @@ export async function loadWarmUpTemplates(
   studentId: string | null,
   now: number
 ): Promise<QuestionTemplate[]> {
-  if (!studentId) return [];
+  if (!studentId || !isWarmUpsEnabled()) return [];
   try {
     const { reviewScheduleRepo } = await import(
       '@/persistence/repositories/reviewSchedule'

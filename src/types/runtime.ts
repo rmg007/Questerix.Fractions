@@ -315,6 +315,11 @@ export interface DevicePreferences {
    * Optional for backward compatibility.
    */
   slowMode?: boolean;
+  /**
+   * Whether to show a short warm-up block of due review questions at the
+   * start of each level. Default true. Optional for backward compatibility.
+   */
+  warmUpsEnabled?: boolean;
 }
 
 /** Singleton per device. per data-schema.md §3.8 */
