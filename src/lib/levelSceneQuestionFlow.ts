@@ -116,7 +116,7 @@ export async function loadQuestion(
   callbacks.setQuestionStartTime(questionStartTime);
   ctx.questionStartTime = questionStartTime;
 
-  const interaction = getInteractionForArchetype(template.archetype, template.validatorId);
+  const interaction = await getInteractionForArchetype(template.archetype, template.validatorId);
   callbacks.setActiveInteraction(interaction);
   interaction.mount({
     scene: ctx.scene,

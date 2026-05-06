@@ -19,6 +19,34 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
+/** Emit public/curriculum/level-NN.json + index.json from the levels map. */
+function writePerLevelFiles(outDir, levels, generatedAt) {
+  const indexEntries = {};
+  for (const levelKey of LEVELS) {
+    const templates = levels[levelKey];
+    if (!templates || templates.length === 0) continue;
+    const levelBundle = JSON.stringify({
+      version: 1,
+      contentVersion: '1.0.0',
+      generatedAt,
+      levelKey,
+      templates,
+    });
+    writeFileSync(join(outDir, `level-${levelKey}.json`), levelBundle);
+    const sha256 = createHash('sha256').update(levelBundle).digest('hex');
+    indexEntries[levelKey] = {
+      url: `/curriculum/level-${levelKey}.json`,
+      sha256,
+      count: templates.length,
+    };
+  }
+  writeFileSync(
+    join(outDir, 'index.json'),
+    JSON.stringify({ version: 1, generatedAt, levels: indexEntries })
+  );
+  console.log(`[build-curriculum] Per-level files and index.json written to public/curriculum/`);
+}
+
 /** Archetypes allowed per level — matches architecture spec exactly. */
 const LEVEL_ARCHETYPES = {
   '01': ['partition', 'identify'],
@@ -114,7 +142,9 @@ function buildBundle() {
         .update(JSON.stringify({ version: existing.version, contentVersion: existing.contentVersion, levels: existing.levels }))
         .digest('hex');
       if (existingHash === contentHash) {
-        console.log(`\n[build-curriculum] Content unchanged — skipping write (${totalIncluded} templates already current)`);
+        console.log(`\n[build-curriculum] Content unchanged — skipping v1.json + bundle.json write (${totalIncluded} templates already current)`);
+        // Still fall through to emit per-level files + index.json
+        writePerLevelFiles(outDir, levels, existing.generatedAt ?? new Date().toISOString());
         return totalIncluded;
       }
     } catch {
@@ -154,6 +184,9 @@ function buildBundle() {
 
   console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json and src/curriculum/bundle.json (${totalSkipped} skipped)`);
   console.log(`[build-curriculum] Checksum verified: both files have SHA256 = ${v1Hash.slice(0, 8)}...`);
+
+  writePerLevelFiles(outDir, bundle.levels, bundle.generatedAt);
+
   return totalIncluded;
 }
 

@@ -22,30 +22,65 @@ import { describe, it, expect, vi } from 'vitest';
 // but their constructors are trivial enough to stub out for structural tests.
 vi.mock('phaser', () => {
   class GameObject {
-    setInteractive() { return this; }
-    on() { return this; }
-    setDepth() { return this; }
-    setAlpha() { return this; }
-    setStrokeStyle() { return this; }
-    setFillStyle() { return this; }
-    destroy() { return; }
+    setInteractive() {
+      return this;
+    }
+    on() {
+      return this;
+    }
+    setDepth() {
+      return this;
+    }
+    setAlpha() {
+      return this;
+    }
+    setStrokeStyle() {
+      return this;
+    }
+    setFillStyle() {
+      return this;
+    }
+    destroy() {
+      return;
+    }
   }
   class Scene {}
   class Container extends GameObject {}
   class Rectangle extends GameObject {
-    width = 0; height = 0; x = 0; y = 0;
-    setSize() { return this; }
-    setPosition() { return this; }
-    static Contains() { return false; }
+    width = 0;
+    height = 0;
+    x = 0;
+    y = 0;
+    setSize() {
+      return this;
+    }
+    setPosition() {
+      return this;
+    }
+    static Contains() {
+      return false;
+    }
   }
   class Text extends GameObject {}
   class Graphics extends GameObject {
-    fillRectShape() { return this; }
-    lineStyle() { return this; }
-    strokeRect() { return this; }
-    fillStyle() { return this; }
-    fillRect() { return this; }
-    clear() { return this; }
+    fillRectShape() {
+      return this;
+    }
+    lineStyle() {
+      return this;
+    }
+    strokeRect() {
+      return this;
+    }
+    fillStyle() {
+      return this;
+    }
+    fillRect() {
+      return this;
+    }
+    clear() {
+      return this;
+    }
   }
   class Image extends GameObject {}
   return {
@@ -158,10 +193,9 @@ describe('Curriculum bundle archetypes — validity', () => {
     for (const meta of LEVEL_META) {
       const key = String(meta.number).padStart(2, '0') as keyof typeof bundle.levels;
       const questions = (bundle.levels[key] ?? []) as BundleLevel;
-      expect(
-        questions.length,
-        `Level ${meta.number} has no questions in bundle`
-      ).toBeGreaterThan(0);
+      expect(questions.length, `Level ${meta.number} has no questions in bundle`).toBeGreaterThan(
+        0
+      );
     }
   });
 
@@ -177,7 +211,7 @@ describe('Curriculum bundle archetypes — validity', () => {
 });
 
 describe('getInteractionForArchetype — returns non-null for every archetype in use', () => {
-  it('returns a non-null Interaction for every archetype across all levels', () => {
+  it('returns a non-null Interaction for every archetype across all levels', async () => {
     const allArchetypes = new Set<ArchetypeId>();
     for (const meta of LEVEL_META) {
       for (const arch of archetypesForLevel(meta.number)) {
@@ -185,16 +219,20 @@ describe('getInteractionForArchetype — returns non-null for every archetype in
       }
     }
 
-    for (const archetype of allArchetypes) {
-      const interaction = getInteractionForArchetype(archetype);
+    const results = await Promise.all(
+      [...allArchetypes].map((archetype) =>
+        getInteractionForArchetype(archetype).then((interaction) => ({ archetype, interaction }))
+      )
+    );
+    for (const { archetype, interaction } of results) {
       expect(
         interaction,
         `getInteractionForArchetype("${archetype}") returned null/undefined`
       ).toBeTruthy();
     }
-  });
+  }, 15000);
 
-  it('does not throw for any registered archetype', () => {
+  it('does not reject for any registered archetype', async () => {
     const allArchetypes = new Set<ArchetypeId>();
     for (const meta of LEVEL_META) {
       for (const arch of archetypesForLevel(meta.number)) {
@@ -202,32 +240,33 @@ describe('getInteractionForArchetype — returns non-null for every archetype in
       }
     }
 
-    for (const archetype of allArchetypes) {
-      expect(
-        () => getInteractionForArchetype(archetype),
-        `getInteractionForArchetype("${archetype}") threw unexpectedly`
-      ).not.toThrow();
-    }
-  });
+    await Promise.all(
+      [...allArchetypes].map((archetype) =>
+        expect(
+          getInteractionForArchetype(archetype),
+          `getInteractionForArchetype("${archetype}") rejected unexpectedly`
+        ).resolves.toBeTruthy()
+      )
+    );
+  }, 15000);
 
-  it('throws a descriptive error for an unknown archetype', () => {
-    // Verify the error surface for anything not in the registry.
-    // Cast through unknown to satisfy the ArchetypeId type at call site.
-    expect(() =>
+  it('rejects with a descriptive error for an unknown archetype', async () => {
+    await expect(
       getInteractionForArchetype('unknown_archetype' as unknown as ArchetypeId)
-    ).toThrow(/No interaction registered/);
+    ).rejects.toThrow(/No interaction registered/);
   });
 
-  it('covers the full ARCHETYPES list minus explain_your_order (which is order variant)', () => {
+  it('covers the full ARCHETYPES list minus explain_your_order (which is order variant)', async () => {
     // explain_your_order is routed via order + validatorId, not directly.
     // All other ARCHETYPES entries should be reachable directly.
     const unreachable = new Set<string>(['explain_your_order', 'placement']);
-    for (const arch of ARCHETYPES) {
-      if (unreachable.has(arch)) continue;
-      expect(
-        () => getInteractionForArchetype(arch),
-        `ARCHETYPES entry "${arch}" has no factory in levelRouter`
-      ).not.toThrow();
-    }
-  });
+    await Promise.all(
+      ARCHETYPES.filter((arch) => !unreachable.has(arch)).map((arch) =>
+        expect(
+          getInteractionForArchetype(arch),
+          `ARCHETYPES entry "${arch}" has no factory in levelRouter`
+        ).resolves.toBeTruthy()
+      )
+    );
+  }, 15000);
 });

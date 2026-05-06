@@ -81,3 +81,22 @@ Lighthouse thresholds enforced in CI (`lighthouserc.js`):
 - PRs that increase any single slice by more than 10% from the checked-in baseline must include a written justification in the PR description.
 - `bundle-budget.json` in the repo root captures the current slice snapshot. `rollup-plugin-visualizer` output is compared against it on each build.
 - The Curriculum JSON lazy-load strategy (L1 initial only) is a deliberate design decision to keep the initial payload small; do not bundle all 9 levels into the initial chunk.
+
+---
+
+## 6. Per-Chunk Gates (post-split baseline, 2026-05-04)
+
+Measured after `perf/2026-05-04-bundle-splitting-and-cold-start` Phase 1. All values are gzipped.
+
+| Chunk | Actual (KB gz) | Budget (KB gz) |
+|---|---|---|
+| phaser (vendor) | 342.1 | 380 |
+| scenes | 91.1 | 100 |
+| app (main) | 37.8 | 50 |
+| dexie | 26.1 | 35 |
+| Total initial transfer | 501.2 | 1,000 |
+
+**Notes:**
+- Interaction dynamic imports (`levelRouter.ts`) do not create separate chunks — rolldown inlines them back into the `scenes` chunk because the module graph is synchronous at build time.
+- Per-level curriculum files (`public/curriculum/level-NN.json`) are fetched at runtime and cached by the SW, not counted in the initial transfer.
+- If rolldown gains true code-splitting support in a future release, re-evaluate whether interaction chunks can be deferred.

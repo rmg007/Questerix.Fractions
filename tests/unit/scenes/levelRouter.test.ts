@@ -9,7 +9,7 @@
  *      is dispatched to its custom factory.
  *   4. A validatorId whose archetype mismatches falls through to the
  *      archetype default (defensive guard).
- *   5. Unknown archetype throws a descriptive error.
+ *   5. Unknown archetype rejects with a descriptive error.
  *
  * Per PLANS/code-quality-2026-05-01.md Phase 8.3 (OCP).
  *
@@ -119,34 +119,37 @@ import type { ArchetypeId } from '@/types/archetype';
 import type { Interaction } from '@/scenes/interactions/types';
 
 describe('getInteractionForArchetype — default factory dispatch', () => {
-  it('returns the archetype default when no validatorId is supplied', () => {
-    const interaction = getInteractionForArchetype('order');
+  it('returns the archetype default when no validatorId is supplied', async () => {
+    const interaction = await getInteractionForArchetype('order');
     expect(interaction).toBeInstanceOf(OrderInteraction);
   });
 
-  it('returns the archetype default when validatorId is unknown', () => {
-    const interaction = getInteractionForArchetype('order', 'validator.order.unknown');
+  it('returns the archetype default when validatorId is unknown', async () => {
+    const interaction = await getInteractionForArchetype('order', 'validator.order.unknown');
     expect(interaction).toBeInstanceOf(OrderInteraction);
   });
 
-  it('throws a descriptive error for an unregistered archetype', () => {
-    expect(() =>
+  it('rejects with a descriptive error for an unregistered archetype', async () => {
+    await expect(
       getInteractionForArchetype('not_a_real_archetype' as unknown as ArchetypeId)
-    ).toThrow(/No interaction registered/);
+    ).rejects.toThrow(/No interaction registered/);
   });
 });
 
 describe('getInteractionForArchetype — pre-registered variant', () => {
-  it('dispatches validator.order.withRuleExplanation → ExplainYourOrderInteraction', () => {
-    const interaction = getInteractionForArchetype('order', 'validator.order.withRuleExplanation');
+  it('dispatches validator.order.withRuleExplanation → ExplainYourOrderInteraction', async () => {
+    const interaction = await getInteractionForArchetype(
+      'order',
+      'validator.order.withRuleExplanation'
+    );
     expect(interaction).toBeInstanceOf(ExplainYourOrderInteraction);
   });
 
-  it('does NOT dispatch the variant if the archetype mismatches', () => {
+  it('does NOT dispatch the variant if the archetype mismatches', async () => {
     // Defensive: the variant entry pins archetype = 'order'. A caller passing
     // 'compare' with the order-variant validatorId must fall through to the
     // compare default rather than silently swap interactions.
-    const interaction = getInteractionForArchetype(
+    const interaction = await getInteractionForArchetype(
       'compare',
       'validator.order.withRuleExplanation'
     );
@@ -161,7 +164,7 @@ describe('registerValidatorVariant — runtime extension', () => {
     unregisterValidatorVariant(SYNTHETIC_ID);
   });
 
-  it('dispatches to a freshly-registered variant factory', () => {
+  it('dispatches to a freshly-registered variant factory', async () => {
     class StubInteraction implements Interaction {
       archetype: ArchetypeId = 'compare';
       mount(): void {}
@@ -171,18 +174,18 @@ describe('registerValidatorVariant — runtime extension', () => {
     let factoryCalls = 0;
     registerValidatorVariant(SYNTHETIC_ID, {
       archetype: 'compare',
-      factory: () => {
+      factory: async () => {
         factoryCalls++;
         return new StubInteraction();
       },
     });
 
-    const interaction = getInteractionForArchetype('compare', SYNTHETIC_ID);
+    const interaction = await getInteractionForArchetype('compare', SYNTHETIC_ID);
     expect(interaction).toBeInstanceOf(StubInteraction);
     expect(factoryCalls).toBe(1);
   });
 
-  it('after unregister, falls back to the archetype default', () => {
+  it('after unregister, falls back to the archetype default', async () => {
     class StubInteraction implements Interaction {
       archetype: ArchetypeId = 'compare';
       mount(): void {}
@@ -191,11 +194,11 @@ describe('registerValidatorVariant — runtime extension', () => {
 
     registerValidatorVariant(SYNTHETIC_ID, {
       archetype: 'compare',
-      factory: () => new StubInteraction(),
+      factory: async () => new StubInteraction(),
     });
     unregisterValidatorVariant(SYNTHETIC_ID);
 
-    const interaction = getInteractionForArchetype('compare', SYNTHETIC_ID);
+    const interaction = await getInteractionForArchetype('compare', SYNTHETIC_ID);
     expect(interaction).toBeInstanceOf(CompareInteraction);
   });
 });
