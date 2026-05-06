@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `feat/2026-05-04-progression-mastery-display`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED — 2026-05-06
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Pedagogy depth), runs in parallel with [2026-05-04-worked-example-flow.md](2026-05-04-worked-example-flow.md).
 
 ## Problem
