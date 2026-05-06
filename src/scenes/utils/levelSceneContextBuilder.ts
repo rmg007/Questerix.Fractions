@@ -101,6 +101,7 @@ export function buildOutcomeFlowCallbacks(sceneCallbacks: {
   onHintRequest: () => Promise<void>;
   pulseHintButton: () => void;
   showHintForTier: (tier: HintTier) => void;
+  showWorkedExampleButton?: () => void;
 }): OutcomeFlowCallbacks {
   return { ...sceneCallbacks };
 }

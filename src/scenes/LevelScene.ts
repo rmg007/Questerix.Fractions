@@ -58,6 +58,11 @@ import {
 
 import { loadWarmUpTemplates } from '../lib/levelWarmUp';
 import { showWarmUpCompleteOverlay, createSkipWarmUpButton } from '../lib/levelSceneWarmUp';
+import {
+  createWorkedExampleButton,
+  runWorkedExampleDemo,
+  type WorkedExampleButtonContainer,
+} from '../lib/levelSceneWorkedExample';
 
 const CW = 800;
 const CH = 1280;
@@ -116,6 +121,10 @@ export class LevelScene extends Phaser.Scene {
   private hintController!: HintController;
   private progressionController!: ProgressionController;
 
+  // Worked-example CTA state (per PLANS/2026-05-04-worked-example-flow.md §Phase 2)
+  private workedExampleCta: WorkedExampleButtonContainer | null = null;
+  private nextAttemptIsAssisted: boolean = false;
+
   constructor(key = 'LevelScene') {
     super({ key });
   }
@@ -132,6 +141,8 @@ export class LevelScene extends Phaser.Scene {
     this.questionStartTime = 0;
     this.inputLocked = false;
     this.activeInteraction = null;
+    this.workedExampleCta = null;
+    this.nextAttemptIsAssisted = false;
     // Initialize controllers
     this.hintController = new HintController(this);
     this.progressionController = new ProgressionController(this);
@@ -378,6 +389,10 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private async loadQuestion(index: number): Promise<void> {
+    // Clean up any pending CTA from the previous question
+    this.workedExampleCta?.destroy();
+    this.workedExampleCta = null;
+    this.nextAttemptIsAssisted = false;
     await loadQuestionFlow(index, this.buildQFContext(index), this.buildQFCallbacks());
   }
 
@@ -456,6 +471,9 @@ export class LevelScene extends Phaser.Scene {
       showHintForTier: (tier) => {
         void this.showHintForTier(tier);
       },
+      showWorkedExampleButton: () => {
+        this.showWorkedExampleCta();
+      },
     });
     void showOutcomeFlow(result, ctx, callbacks);
   }
@@ -530,6 +548,13 @@ export class LevelScene extends Phaser.Scene {
 
   private async recordAttempt(result: ValidatorResult, responseMs: number): Promise<void> {
     if (!this.studentId) return;
+    // Phase 4 will use nextAttemptIsAssisted to write outcome: 'ASSISTED'.
+    // Snapshot and reset here so the flag covers exactly one submission.
+    const assisted = this.nextAttemptIsAssisted;
+    this.nextAttemptIsAssisted = false;
+    if (assisted) {
+      log.scene('worked_example_assisted_attempt', { questionIndex: this.questionIndex });
+    }
     await this.progressionController.recordAttempt(
       this.studentId as import('@/types').StudentId,
       this.levelNumber,
@@ -593,6 +618,53 @@ export class LevelScene extends Phaser.Scene {
     );
   }
 
+  /**
+   * Show the "Show me how" CTA button if not already visible.
+   * Called from onWrongAnswer via OutcomeFlowCallbacks when the gate opens.
+   */
+  private showWorkedExampleCta(): void {
+    if (this.workedExampleCta) return; // already visible
+
+    const CW = 800;
+    const CH = 1280;
+    // Position below the hint area, above the progress bar
+    const x = CW / 2;
+    const y = CH - 220;
+
+    this.workedExampleCta = createWorkedExampleButton(
+      this,
+      x,
+      y,
+      12,
+      () => void this.onWorkedExampleActivated()
+    ) as WorkedExampleButtonContainer;
+  }
+
+  /**
+   * Handler for when the student taps "Show me how".
+   */
+  private async onWorkedExampleActivated(): Promise<void> {
+    if (!this.activeInteraction) return;
+    const cta = this.workedExampleCta;
+    if (!cta) return;
+
+    this.workedExampleCta = null; // clear before await so re-tap during demo is rejected
+
+    await runWorkedExampleDemo(
+      this,
+      this.activeInteraction,
+      cta,
+      this.submitButtonContainer,
+      (locked) => {
+        this.inputLocked = locked;
+      },
+      () => {
+        // Mark the next submission from this question as ASSISTED
+        this.nextAttemptIsAssisted = true;
+      }
+    );
+  }
+
   private animateCounterBadge(): void {
     if (checkReduceMotion()) return;
     const badge = this.counterContainer;
@@ -622,6 +694,8 @@ export class LevelScene extends Phaser.Scene {
     this.tweens.killAll();
     this.input.off('pointerdown', this.pointerdownHandler);
     this.levelVignette?.destroy();
+    this.workedExampleCta?.destroy();
+    this.workedExampleCta = null;
     this.activeInteraction?.unmount();
     this.feedbackOverlay?.destroy();
     this.progressBar?.destroy();

@@ -66,6 +66,11 @@ import {
   loadTemplatesForLevel1,
 } from './Level01SceneSetup';
 import { createPartitionDragHandle } from './Level01SceneDragHandle';
+import {
+  createWorkedExampleButton,
+  type WorkedExampleButtonContainer,
+} from '../lib/levelSceneWorkedExample';
+import { tween } from './utils/motion';
 
 // ── Canvas & layout constants ─────────────────────────────────────────────
 
@@ -125,6 +130,10 @@ export class Level01Scene extends Phaser.Scene {
   // Event listeners (tracked for cleanup)
   private pointerdownHandler?: () => void;
 
+  // Worked-example CTA state (per PLANS/2026-05-04-worked-example-flow.md §Phase 2)
+  private workedExampleCta: WorkedExampleButtonContainer | null = null;
+  private nextAttemptIsAssisted: boolean = false;
+
   constructor() {
     super({ key: 'Level01Scene' });
   }
@@ -139,6 +148,8 @@ export class Level01Scene extends Phaser.Scene {
     this.inputLocked = false;
     this.usedQuestionIds = new Set<string>();
     this.recentOutcomes = [];
+    this.workedExampleCta = null;
+    this.nextAttemptIsAssisted = false;
     log.scene('init', { studentId: this.studentId, resume: this.resume });
   }
 
@@ -287,6 +298,10 @@ export class Level01Scene extends Phaser.Scene {
   // ── UI construction ──────────────────────────────────────────────────────
 
   private loadQuestion(index: number): void {
+    // Clean up any pending worked-example CTA from prior question
+    this.workedExampleCta?.destroy();
+    this.workedExampleCta = null;
+    this.nextAttemptIsAssisted = false;
     this.questionIndex = index;
     const sel = selectNextQuestion(
       this.templatePool,
@@ -497,6 +512,92 @@ export class Level01Scene extends Phaser.Scene {
     }
 
     this.inputLocked = false;
+
+    // Worked-example gate: after ≥5 wrong + hint ladder exhausted.
+    // L01 has no activeInteraction, so we check hintLadder directly and
+    // always offer the demo (the shapeRenderer provides the animation).
+    if (this.wrongCount >= 5 && this.hintLadder.state.exhausted && !this.workedExampleCta) {
+      this.showWorkedExampleCta();
+    }
+  }
+
+  /**
+   * Show the "Show me how" CTA button for Level 1.
+   */
+  private showWorkedExampleCta(): void {
+    const x = SHAPE_CX;
+    const y = 1280 - 220; // above progress bar, consistent with LevelScene
+    this.workedExampleCta = createWorkedExampleButton(
+      this,
+      x,
+      y,
+      12,
+      () => void this.onWorkedExampleActivated()
+    ) as WorkedExampleButtonContainer;
+  }
+
+  /**
+   * Level 1 worked-example demo: animate the partition handle to center.
+   */
+  private async onWorkedExampleActivated(): Promise<void> {
+    const cta = this.workedExampleCta;
+    if (!cta) return;
+    this.workedExampleCta = null;
+
+    // Disable CTA and inputs during demo
+    cta.setDisabled(true);
+    this.submitButtonContainer?.setAlpha(0.4);
+    this.inputLocked = true;
+
+    const { checkReduceMotion } = await import('../lib/preferences');
+    const targetX = SHAPE_CX; // correct halves position
+
+    if (checkReduceMotion()) {
+      this.handlePos = targetX;
+      this.shapeRenderer.updatePartitionLine(targetX, SHAPE_CY);
+      (this.dragHandle as import('../components/DragHandle').DragHandle | undefined)?.moveTo(
+        targetX,
+        false
+      );
+      await new Promise<void>((r) => setTimeout(r, 500));
+    } else {
+      const tracker = { value: this.handlePos };
+      await new Promise<void>((resolve) => {
+        tween(
+          this,
+          tracker,
+          { value: targetX },
+          {
+            duration: 1500,
+            ease: 'Cubic.easeInOut',
+            onUpdate: () => {
+              this.handlePos = tracker.value;
+              this.shapeRenderer.updatePartitionLine(tracker.value, SHAPE_CY);
+              (
+                this.dragHandle as import('../components/DragHandle').DragHandle | undefined
+              )?.moveTo(tracker.value, false);
+            },
+            onComplete: () => resolve(),
+          }
+        );
+      });
+    }
+
+    // Re-enable inputs
+    this.inputLocked = false;
+    this.submitButtonContainer?.setAlpha(1);
+    cta.destroy();
+
+    // Mark next submission as ASSISTED
+    this.nextAttemptIsAssisted = true;
+
+    // Move focus to partition submit
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>(
+        '[data-a11y-id="a11y-partition-submit"]'
+      );
+      btn?.focus();
+    }
   }
 
   // ── Hint handling ────────────────────────────────────────────────────────
@@ -541,6 +642,12 @@ export class Level01Scene extends Phaser.Scene {
     responseMs: number,
     input: PartitionInput
   ): Promise<void> {
+    // Phase 4 will use nextAttemptIsAssisted to write outcome: 'ASSISTED'.
+    const assisted = this.nextAttemptIsAssisted;
+    this.nextAttemptIsAssisted = false;
+    if (assisted) {
+      log.scene('worked_example_assisted_attempt', { questionIndex: this.questionIndex });
+    }
     const estimate = await recordAttemptAndMastery(
       this.studentId as import('@/types').StudentId | null,
       this.sessionId as import('@/types').SessionId | null,
@@ -618,6 +725,8 @@ export class Level01Scene extends Phaser.Scene {
     this.time.removeAllEvents();
     log.scene('destroy');
     this.tweens.killAll();
+    this.workedExampleCta?.destroy();
+    this.workedExampleCta = null;
     this.input.off('pointerdown', this.pointerdownHandler);
     this.feedbackOverlay?.destroy();
     this.dragHandle?.destroy();

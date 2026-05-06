@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { log } from './log';
 import { get as getCopy } from './i18n/catalog';
 import type { ValidatorResult, QuestionTemplate, HintTier } from '@/types';
+import { shouldOfferWorkedExample } from './levelSceneWorkedExample';
 import { Mascot } from '@/components/Mascot';
 import { AccessibilityAnnouncer } from '@/components/AccessibilityAnnouncer';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -48,6 +49,13 @@ export interface OutcomeFlowCallbacks {
   onHintRequest: () => Promise<void>;
   pulseHintButton: () => void;
   showHintForTier: (tier: HintTier) => void;
+  /**
+   * Called by onWrongAnswer when the worked-example gate opens.
+   * The scene creates the CTA button and wires the demo handler.
+   * Optional so callers that pre-date this feature don't break.
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 2
+   */
+  showWorkedExampleButton?: () => void;
 }
 
 /**
@@ -251,6 +259,12 @@ export async function onWrongAnswer(
 
   if (newWrongCount >= 3) {
     callbacks.pulseHintButton();
+  }
+
+  // Worked-example gate: offer "Show me how" after ≥5 wrong + hint ladder exhausted.
+  // Checked after hint logic so the ladder has advanced before we test state.exhausted.
+  if (shouldOfferWorkedExample(newWrongCount, ctx.hintLadder, ctx.activeInteraction)) {
+    callbacks.showWorkedExampleButton?.();
   }
 }
 
