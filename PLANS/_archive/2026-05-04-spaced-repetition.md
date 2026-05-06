@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `feat/2026-05-04-spaced-repetition`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — Phases 1–6 merged to main (Leitner scheduler, warm-ups, kept-fresh indicator)
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Pedagogy depth). Runs after [2026-05-04-progression-mastery-display.md](2026-05-04-progression-mastery-display.md) so the mastery state model is in place.
 
 ## Problem

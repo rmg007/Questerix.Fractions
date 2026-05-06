@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `audit/2026-05-04-visual-audit`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — asset audit script + perf baseline + curriculum sync merged
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2 (Touch + perf + reliability). Phase 0 (asset cleanup) runs anytime; Phases 1–2 (capture baselines) run after plans 1, 2, 4 land so baselines reflect the corrected UI. The state-language baseline from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md) (idle / hover / pressed / focused / disabled / error per component) is captured as part of this plan's Phase 2.
 
 ## Dependencies & blockers

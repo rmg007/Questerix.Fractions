@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `feat/2026-05-04-misconception-and-hint-system`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — MC-EQ-01/MC-EQ-02 detectors + HintLadder text merged to main
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 3 (Pedagogy), runs **before** [2026-05-04-worked-example-flow.md](2026-05-04-worked-example-flow.md). Hint-reveal animations use the `tween()` wrapper and `Duration.short` / `Ease.out` from [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md); the live-region announcement from [2026-05-04-screen-reader-keyboard-parity.md](2026-05-04-screen-reader-keyboard-parity.md) fires whenever a new hint tier renders so screen-reader users hear the same change sighted users see.
 
 ## Problem

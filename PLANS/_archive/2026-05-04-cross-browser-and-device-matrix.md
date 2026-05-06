@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `test/2026-05-04-cross-browser-and-device-matrix`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — WebKit + iOS Playwright specs live in CI
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 1. Provides the validation surface for plans 1–3 and the perf plan; should be in place before plan 1 Phase 4 ships so its hit-area fixes are validated on real touch devices.
 
 ## Problem

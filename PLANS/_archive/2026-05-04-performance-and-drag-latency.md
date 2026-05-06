@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `perf/2026-05-04-performance-and-drag-latency`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — drag pipeline optimized across 5 archetypes P95 ≤ 50ms; perf baseline tooling merged
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 1. Runs after [2026-05-04-interaction-and-motion-system.md](2026-05-04-interaction-and-motion-system.md) so measurements use the unified gesture grammar.
 
 ## Problem

@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `a11y/2026-05-04-screen-reader-keyboard-parity`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — ARIA live-region wired into feedbackBus + SessionCompleteOverlay; A11yLayer parity merged
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2. Runs after [2026-05-04-touchscreen-a11y-audit.md](2026-05-04-touchscreen-a11y-audit.md) Phase 3.
 
 ## Problem

@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `feat/2026-05-04-multi-student-and-first-run`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — FirstRunScene + StudentSwitcher registered; multi-student flow merged
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 2. Independent of pedagogy plans; can run in parallel with plans 4–6.
 
 ## Problem

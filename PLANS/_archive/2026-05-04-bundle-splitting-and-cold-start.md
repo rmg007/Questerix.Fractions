@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `perf/2026-05-04-bundle-splitting-and-cold-start`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — bundle splitting + curriculum lazy-load merged to main
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 4 (Integration & release). Runs after plans 5 + 7 land so we know the real bundle size we are splitting.
 
 ## Problem
