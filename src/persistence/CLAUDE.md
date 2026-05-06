@@ -41,3 +41,12 @@ As of 2026-05-01, all known localStorage uses outside the documented `lastUsedSt
 - `DEBUG_VITALS` (dev flag) — moved to `sessionStorage` (session-scoped, not progress data)
 
 Migration is handled by upgrade callbacks in `db.ts` (best-effort; tolerates absent localStorage). Run `/c5-check` to verify the constraint holds — only `lastUsedStudentId` should appear.
+
+## DB integrity probe
+
+`src/persistence/integrity.ts` exports `probe(): Promise<'ok' | { corrupt: true; reason: string }>`.
+`BootScene` runs this before transitioning to `PreloadScene`. On corruption, it routes to
+`DBRecoveryScene` which offers: (a) restore from backup, (b) start fresh, (c) cancel.
+
+"Start fresh" calls `db.delete()` then recreates the schema. `lastUsedStudentId` is preserved
+so the child keeps their name. If the backup is also corrupt, falls through to (b) with a warning.

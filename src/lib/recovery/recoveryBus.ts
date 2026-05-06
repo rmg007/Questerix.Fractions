@@ -10,7 +10,7 @@
  * main.ts (before Phaser loads) and from persistence/ (which must not import Phaser).
  */
 
-import { errorReporter } from '../observability';
+import { errorReporter, tracerService } from '../observability';
 
 export type RecoveryKind =
   | 'scene-throw' // An exception escaped from a scene's update/create callback
@@ -24,6 +24,17 @@ export interface RecoveryReport {
   error: Error;
   /** Scene key that originated the error, if known. */
   scene?: string;
+}
+
+export interface RecoveryLogEntry extends RecoveryReport {
+  ts: number;
+  routed: boolean;
+}
+
+const _log: RecoveryLogEntry[] = [];
+
+export function getRecoveryLog(): readonly RecoveryLogEntry[] {
+  return _log;
 }
 
 /** Singleton Phaser.Game reference — set once by main.ts after boot. */
@@ -48,6 +59,19 @@ export const RecoveryBus = {
    * the game to RecoveryScene or DBRecoveryScene.
    */
   report(report: RecoveryReport): void {
+    _log.push({ ...report, ts: Date.now(), routed: false });
+
+    // Emit OTel span (env-gated, noop when VITE_OTLP_URL is unset — C1 safe)
+    try {
+      const attrs: Record<string, string> = { 'recovery.kind': report.kind };
+      if (report.scene) attrs['recovery.scene'] = report.scene;
+      attrs['recovery.error'] = report.error.message;
+      const span = tracerService.startSpan('recovery.event', attrs);
+      span.end();
+    } catch {
+      // Never let telemetry block the recovery path
+    }
+
     // 1. Forward to error reporter (env-gated, dormant by default — C1 safe)
     errorReporter.report(report.error, {
       source: `recovery:${report.kind}`,
@@ -69,6 +93,16 @@ export const RecoveryBus = {
    */
   routeToScene(report: RecoveryReport): void {
     if (!_game?.scene?.start) return;
+
+    // Mark the matching log entry as routed
+    for (let i = _log.length - 1; i >= 0; i--) {
+      const e = _log[i];
+      if (e && e.kind === report.kind && e.error === report.error) {
+        e.routed = true;
+        break;
+      }
+    }
+
     if (report.kind === 'db-corrupt') {
       _game.scene.start('DBRecoveryScene', report);
     } else {
