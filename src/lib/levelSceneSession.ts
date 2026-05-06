@@ -71,6 +71,8 @@ export async function recordAttemptAndMasteryForLevel(
   const studentIdTyped = studentId as StudentId;
   const sessionIdTyped = sessionId as SessionId;
   let masteryEstimate: number | null = null;
+  let prevMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
+  let newMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
   try {
     const { db } = await import('@/persistence/db');
     const { attemptRepo } = await import('@/persistence/repositories/attempt');
@@ -128,6 +130,7 @@ export async function recordAttemptAndMasteryForLevel(
         decayedAt: null,
         syncState: 'local',
       };
+      prevMasteryState = prev.state;
       const updated = updateMastery(prev, isCorrect);
       const withMeta: import('@/types').SkillMastery = {
         ...updated,
@@ -156,6 +159,12 @@ export async function recordAttemptAndMasteryForLevel(
       }
       masteryEstimate = withMeta.masteryEstimate;
     });
+    // Spaced-repetition hook
+    {
+      const { handleMasteryTransition } = await import('./masteryTransitionHook');
+      await handleMasteryTransition(studentIdTyped, skillId, prevMasteryState, newMasteryState, Date.now());
+    }
+
     log.atmp('record_ok', { attemptId, outcome, points: result.score });
 
     // Link pending hint events to the attempt now that it's persisted

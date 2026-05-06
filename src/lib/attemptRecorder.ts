@@ -38,6 +38,8 @@ export async function recordAttemptAndMastery(
   if (!studentId || !sessionId) return null;
 
   let masteryEstimate: number | null = null;
+  let prevMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
+  let newMasteryState: import('@/types').MasteryState = 'NOT_STARTED';
 
   try {
     const { db } = await import('../persistence/db');
@@ -114,6 +116,7 @@ export async function recordAttemptAndMastery(
         syncState: 'local',
       };
 
+      prevMasteryState = prev.state;
       const updated = updateMastery(prev, isCorrect);
       const withMeta: SkillMastery = {
         ...updated,
@@ -138,11 +141,18 @@ export async function recordAttemptAndMastery(
         justMastered: !!withMeta.masteredAt && !prev.masteredAt,
       });
 
+      newMasteryState = withMeta.state;
       await skillMasteryRepo.upsert(withMeta);
       masteryEstimate = withMeta.masteryEstimate;
     });
 
     log.atmp('record_ok', { attemptId, outcome, points: result.score });
+
+    // Spaced-repetition hook
+    {
+      const { handleMasteryTransition } = await import('./masteryTransitionHook');
+      await handleMasteryTransition(studentId, skillId, prevMasteryState, newMasteryState, Date.now());
+    }
 
     // Misconception detection (best-effort, outside transaction)
     try {
