@@ -222,4 +222,17 @@ export class SnapMatchInteraction implements Interaction {
       );
     });
   }
+
+  /** Worked-example stub: 500 ms delay; full snap animation deferred. */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset: move focus to first draggable card. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>('[data-a11y-id^="a11y-snap-match"]');
+      btn?.focus();
+    }
+  }
 }

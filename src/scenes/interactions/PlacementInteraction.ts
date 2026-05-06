@@ -127,4 +127,17 @@ export class PlacementInteraction implements Interaction {
     this.bar = undefined;
     this.line = undefined;
   }
+
+  /** Worked-example stub: 500 ms delay; full placement animation deferred. */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset: move focus to first placement input. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>('[data-a11y-id^="a11y-placement"]');
+      btn?.focus();
+    }
+  }
 }

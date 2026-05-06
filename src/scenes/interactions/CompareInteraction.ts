@@ -219,4 +219,17 @@ export class CompareInteraction implements Interaction {
       });
     }
   }
+
+  /** Worked-example stub: 500 ms delay; full bar animation deferred. */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset: move focus to first relation button. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>('[data-testid="compare-relation-lt"]');
+      btn?.focus();
+    }
+  }
 }

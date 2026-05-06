@@ -34,4 +34,19 @@ export interface Interaction {
    * Fills the two halves with color and shows fraction labels.
    */
   showCorrectFeedback?(): void;
+
+  /**
+   * Plays an archetype-specific worked-example animation.
+   * Resolves when complete (either full animation or reduced-motion instant).
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 1
+   */
+  playWorkedExample?(): Promise<void>;
+
+  /**
+   * Restores the interaction to its initial input-ready state without
+   * re-mounting (preserves scene state the student observed during the demo).
+   * Must programmatically set keyboard focus on the first input element.
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 1
+   */
+  reset?(): void;
 }

@@ -236,4 +236,17 @@ export class MakeInteraction implements Interaction {
     this.partitionLine.lineStyle(4, NAVY, 1);
     this.partitionLine.lineBetween(x, this._lineTop, x, this._lineBottom);
   }
+
+  /** Worked-example stub: 500 ms delay; full drag-path animation deferred. */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset: move focus to the drag handle. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>('[data-a11y-id^="a11y-make"]');
+      btn?.focus();
+    }
+  }
 }

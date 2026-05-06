@@ -454,6 +454,70 @@ export class PartitionInteraction implements Interaction {
     this.partitionLine.lineBetween(handleX, this._lineTop, handleX, this._lineBottom);
   }
 
+  /**
+   * Worked-example demo for partition: animate the dividing line to the
+   * correct centre position over 1.5 s.
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 3
+   */
+  async playWorkedExample(): Promise<void> {
+    const { checkReduceMotion } = await import('../../lib/preferences');
+
+    const cx = this.shapeCenterX;
+    const cy = this.shapeCenterY;
+    const n = this.targetPartitions;
+
+    // Compute the first correct cut position (centre for halves, 1/3 for thirds, etc.)
+    const left = cx - SHAPE_W / 2;
+    const targetX = left + SHAPE_W / n;
+
+    if (checkReduceMotion()) {
+      // Reduced-motion path: snap to correct position, show final state for 500 ms
+      this.handlePos = targetX;
+      this.updatePartitionLine(targetX, cy);
+      if (this.dragAffordance) this.dragAffordance.setX(targetX);
+      await new Promise<void>((r) => setTimeout(r, 500));
+      return;
+    }
+
+    // Animate handle sliding to the first correct cut position
+    const tracker = { value: this.handlePos };
+    await new Promise<void>((resolve) => {
+      this.scene.tweens.add({
+        targets: tracker,
+        value: targetX,
+        duration: 1500,
+        ease: 'Cubic.easeInOut',
+        onUpdate: () => {
+          this.handlePos = tracker.value;
+          this.updatePartitionLine(tracker.value, cy);
+          if (this.dragAffordance) this.dragAffordance.setX(tracker.value);
+        },
+        onComplete: () => resolve(),
+      });
+    });
+  }
+
+  /**
+   * Reset the interaction to its initial input-ready state.
+   * Does NOT re-mount; preserves what was shown during the demo.
+   */
+  reset(): void {
+    // Re-enable the drag handle so the student can attempt again.
+    // The handle already exists; just ensure the partition line reflects
+    // the current (post-demo) handle position.
+    this.updatePartitionLine(this.handlePos, this.shapeCenterY);
+    if (this.dragAffordance) {
+      this.dragAffordance.setX(this.handlePos);
+    }
+    // Move focus to the A11y partition action so keyboard users are oriented.
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>(
+        '[data-a11y-id="a11y-partition-submit"]'
+      );
+      btn?.focus();
+    }
+  }
+
   private drawDashedLine(
     g: Phaser.GameObjects.Graphics,
     x1: number,

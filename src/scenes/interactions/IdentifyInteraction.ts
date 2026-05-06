@@ -54,11 +54,16 @@ export class IdentifyInteraction implements Interaction {
   private selectedIndex: number = -1;
   private submitContainer: Phaser.GameObjects.Container | null = null;
   private optionBackgrounds: Phaser.GameObjects.Rectangle[] = [];
+  // Stored in mount() for use in playWorkedExample() and reset()
+  private _scene: Phaser.Scene | null = null;
+  private _mountedPayload: IdentifyPayload | null = null;
 
   mount(ctx: InteractionContext): void {
     A11yLayer.unmountAll();
     const { scene, template, centerX, centerY, width, onCommit } = ctx;
     const payload = template.payload as IdentifyPayload;
+    this._scene = scene;
+    this._mountedPayload = payload;
     const options = payload.options ?? optionsFromCurriculum(payload);
     const count = options.length;
     const cardW = Math.min(180, (width - 80) / count);
@@ -225,5 +230,70 @@ export class IdentifyInteraction implements Interaction {
     this.submitContainer = null;
     this.optionBackgrounds = [];
     TestHooks.unmountAll(); // Interaction owns its ephemeral hooks
+  }
+
+  /**
+   * Worked-example demo for identify: glow/highlight the correct option
+   * over 1.0 s, then hold for 500 ms.
+   * per PLANS/2026-05-04-worked-example-flow.md §Phase 3
+   */
+  async playWorkedExample(): Promise<void> {
+    const { checkReduceMotion } = await import('../../lib/preferences');
+    const payload = this._mountedPayload;
+    if (!payload) {
+      await new Promise<void>((r) => setTimeout(r, 500));
+      return;
+    }
+    const targetIdx = payload.targetIndex ?? 0;
+    const correctBg = this.optionBackgrounds[targetIdx];
+    if (!correctBg) {
+      await new Promise<void>((r) => setTimeout(r, 500));
+      return;
+    }
+
+    const { SELECTED_BG, SELECTED_BORDER } = await import('../utils/levelTheme');
+    correctBg.setFillStyle(SELECTED_BG);
+    correctBg.setStrokeStyle(4, SELECTED_BORDER);
+
+    if (checkReduceMotion()) {
+      await new Promise<void>((r) => setTimeout(r, 500));
+      return;
+    }
+
+    // Pulse scale to highlight the correct choice
+    await new Promise<void>((resolve) => {
+      correctBg.setScale(1.0);
+      this._scene!.tweens.add({
+        targets: correctBg,
+        scaleX: 1.12,
+        scaleY: 1.12,
+        duration: 400,
+        ease: 'Back.easeOut',
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => resolve(),
+      });
+    });
+
+    await new Promise<void>((r) => setTimeout(r, 300));
+  }
+
+  /**
+   * Reset the interaction: deselect all options and move focus to first option.
+   */
+  reset(): void {
+    this.selectedIndex = -1;
+    this.submitContainer?.setAlpha(0.4);
+    this.optionBackgrounds.forEach((bg) => {
+      bg.setFillStyle(OPTION_BG);
+      bg.setStrokeStyle(2, OPTION_BORDER);
+      bg.setScale(1.0);
+    });
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>(
+        '[data-a11y-id="a11y-identify-option-0"]'
+      );
+      btn?.focus();
+    }
   }
 }

@@ -211,6 +211,22 @@ export class LabelInteraction implements Interaction {
     TestHooks.unmountAll();
   }
 
+  /**
+   * Worked-example stub for label: 500 ms delay placeholder.
+   * Full animation (snap tiles to correct regions) deferred to a future phase.
+   */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset the interaction: move focus to first label tile. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>('[data-a11y-id="a11y-label-tile-0"]');
+      btn?.focus();
+    }
+  }
+
   showVisualOverlay(): void {
     // Hint tier 2: amber outline around each region to guide placement.
     const regionW = 140;

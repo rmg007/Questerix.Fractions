@@ -328,4 +328,19 @@ export class ExplainYourOrderInteraction implements Interaction {
   unmount(): void {
     this.clearUI();
   }
+
+  /** Worked-example stub: 500 ms delay; full explanation animation deferred. */
+  async playWorkedExample(): Promise<void> {
+    await new Promise<void>((r) => setTimeout(r, 500));
+  }
+
+  /** Reset: move focus to first option button. */
+  reset(): void {
+    if (typeof document !== 'undefined') {
+      const btn = document.querySelector<HTMLButtonElement>(
+        '[data-a11y-id^="a11y-explain-your-order"]'
+      );
+      btn?.focus();
+    }
+  }
 }
