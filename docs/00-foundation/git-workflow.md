@@ -28,7 +28,6 @@ chore/2026-04-30-drop-nanoid
 - Date is the day the branch is created, not the day it is merged.
 - Slug is lowercase, hyphen-separated, ≤ 40 characters.
 - No random suffixes (e.g. `-Z5xQz`), no bare slugs without a date.
-- A branch that violates the format must be renamed before the first push to origin.
 
 ---
 
