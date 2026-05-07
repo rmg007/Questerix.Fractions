@@ -17,8 +17,16 @@ export function fadeAndStart(scene: Phaser.Scene, key: string, data?: object): v
     scene.scene.start(key, data);
     return;
   }
-  scene.cameras.main.fadeOut(300, 0, 0, 0);
-  scene.cameras.main.once('camerafadeoutcomplete', () => {
+  let advanced = false;
+  const advance = () => {
+    if (advanced) return;
+    advanced = true;
+    scene.cameras.main.off('camerafadeoutcomplete', advance);
     scene.scene.start(key, data);
-  });
+  };
+  scene.cameras.main.fadeOut(300, 0, 0, 0);
+  scene.cameras.main.once('camerafadeoutcomplete', advance);
+  // Fallback: if tab was backgrounded during fade, tween pauses and event
+  // never fires. Advance after 600 ms regardless.
+  scene.time.delayedCall(600, advance);
 }
