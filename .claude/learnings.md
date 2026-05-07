@@ -83,3 +83,4 @@ YYYY-MM-DD <area>: <gotcha or shortcut> [#commit-or-branch]
 2026-04-30 mascot: Use `mascot.setState('idle')`, never `mascot.idle()` — ESLint blocks the latter because the DOM sentinel mirror won't update.
 2026-04-30 c5: `unlockedLevels:<studentId>` and `completedLevels:<studentId>` localStorage keys are a **known C5 deviation** in `MenuScene` and `LevelMapScene`. Don't extend; the proper home is a Dexie `progressionStat` row.
 2026-04-30 obs: OpenTelemetry + Sentry are bundled but env-gated (`VITE_OTLP_URL`, `dsn`). Default builds emit no network traffic, but the code still counts against the 1 MB gzip budget.
+2026-05-06 push-hygiene: Never run git push as run_in_background — use foreground Bash with timeout:60000. Multiple background push retries flood the user with stale task notifications. If a push fails, diagnose first (check credential.helper, test with gh auth status) before retrying.
