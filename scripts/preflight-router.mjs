@@ -119,7 +119,8 @@ function tierForBranch(branch) {
   if (/^(fix|test)\//.test(branch)) return 'medium';
   if (/^(feat|refactor)\//.test(branch)) return 'full';
   if (/^(claude\/|worktree-agent-)/.test(branch)) return 'medium';
-  return 'full'; // main, release/*, detached
+  if (branch === 'main') return 'none'; // content-only on trunk — no branch override
+  return 'full'; // release/*, detached
 }
 
 function tierForContent(paths) {
