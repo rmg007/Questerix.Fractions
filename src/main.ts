@@ -16,6 +16,19 @@ import { initLiveRegions } from './lib/a11y/liveRegion';
 window.addEventListener('error', (event) => {
   const error =
     event.error instanceof Error ? event.error : new Error(String(event.error ?? event.message));
+
+  // Swallow storage-restriction errors (from SW context on Cloudflare Pages).
+  // Same pattern as the unhandledrejection filter below.
+  if (
+    /storage is not allowed|UnknownError|NotAllowedError|QuotaExceededError/i.test(
+      event.error instanceof Error ? event.error.message : String(event.error ?? event.message)
+    )
+  ) {
+    console.warn('[main] Suppressed storage-restricted sync error:', event.message);
+    event.preventDefault();
+    return;
+  }
+
   console.error('[main] Uncaught error:', error.message);
 
   // Try to route via RecoveryBus first (game may already be running)
@@ -248,12 +261,12 @@ async function boot(): Promise<void> {
   }
 
   // Phase 11.3 — Update-available banner.
-  // `vite-plugin-pwa` is configured with `registerType: 'autoUpdate'`, so a
-  // new bundle activates automatically; the running tab keeps executing the
-  // stale code until it reloads. We listen for `controllerchange` (which
-  // fires the moment the new SW takes over) and mount an `UpdateBanner` —
-  // but only at safe checkpoints. Showing the banner mid-level would yank
-  // the player out of an answer, so we wait until MenuScene becomes active.
+  // `vite-plugin-pwa` is configured with `registerType: 'prompt'`, so a
+  // new bundle waits for the app to call skipWaiting before activating.
+  // We listen for `controllerchange` (which fires when the new SW takes over)
+  // and mount an `UpdateBanner` — but only at safe checkpoints. Showing the
+  // banner mid-level would yank the player out of an answer, so we wait until
+  // MenuScene becomes active.
   if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     let updatePending = false;
     let bannerMounted = false;
