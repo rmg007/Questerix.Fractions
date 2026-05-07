@@ -109,19 +109,21 @@ export async function openChooseLevelOverlay(
   // Level card grid
   const colX = [160, 400, 640];
   const rowY = [470, 620, 770];
-  const unlockedMeta = LEVEL_META.filter((m) => unlocked.has(m.number));
-  const suggestedLevel = unlockedMeta.find((m) => !completedLevels.has(m.number))?.number ?? null;
+  const suggestedLevel =
+    LEVEL_META.find((m) => unlocked.has(m.number) && !completedLevels.has(m.number))?.number ??
+    null;
 
-  for (let i = 0; i < unlockedMeta.length; i++) {
-    const meta = unlockedMeta[i]!;
+  for (let i = 0; i < LEVEL_META.length; i++) {
+    const meta = LEVEL_META[i]!;
     const cx = colX[i % 3]!;
     const cy = rowY[Math.floor(i / 3)]!;
+    const isUnlocked = unlocked.has(meta.number);
     const card = new LevelCard({
       scene,
       x: cx,
       y: cy,
       meta,
-      unlocked: true,
+      unlocked: isUnlocked,
       suggested: meta.number === suggestedLevel,
       mastered: masteredLevels.has(meta.number),
       containerScale: OVERLAY_CARD_SCALE,
