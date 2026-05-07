@@ -26,7 +26,7 @@ export default defineConfig(async () => {
     const { VitePWA } = await import('vite-plugin-pwa');
     plugins.push(
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         injectRegister: 'script',
         includeAssets: ['manifest.json', 'icons/*.png', 'screenshots/*.png'],
         workbox: {
