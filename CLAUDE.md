@@ -58,6 +58,34 @@ Delegate to these via the Agent tool when scope warrants. CI auto-fires them on 
 | `validator-parity-checker` | Confirms that a changed TypeScript validator has a matching Python clone in pipeline/validators_py.py and that parity fixtures still pass. Use after any change to src/validators/*.ts. |
 <!-- AUTO:subagents-table:end -->
 
+## Auto-invoke agents
+
+Hooks cover *mechanical* triggers. The conditions below are *semantic* — I spawn these agents via the Agent tool **without being asked** whenever the condition is met. Fire them **after** the change lands (post-commit or post-edit batch), not before.
+
+| Agent | Auto-invoke when… |
+|---|---|
+| `a11y-auditor` | I added or modified any file in `src/scenes/interactions/`, `src/components/`, or any scene that adds interactive elements. Always fire before declaring a UI task done. |
+| `bundle-watcher` | I added/removed an npm dependency, modified `vite.config.ts`, or the task touches performance or bundle size. |
+| `c1-c10-auditor` | My diff touches persistence, networking, new dependencies, UI surface, or device targets — especially across ≥3 files. |
+| `curriculum-byte-parity` | I ran `build:curriculum` or modified any `pipeline/output/` file. |
+| `engine-determinism-auditor` | I modified any file under `src/engine/`. |
+| `game-design-k2` | I am adding a new UI component, interaction archetype, or visual system visible to students. |
+| `level-spec-parity` | I modified a `docs/10-curriculum/levels/level-NN.md` or the `LEVEL_META` array, or after `build:curriculum` runs. |
+| `pedagogy-reviewer` | A PR adds or modifies a level spec. Fire before authoring pipeline content. |
+| `validator-parity-checker` | I modified any file under `src/validators/*.ts`. |
+
+**Team patterns — when to fan out:**
+
+| Scenario | Pattern |
+|---|---|
+| Full UI feature | Parallel: `a11y-auditor` + `bundle-watcher` + `c1-c10-auditor` → then sequential: `validator-parity-checker` if validators changed |
+| New level | Sequential: `pedagogy-reviewer` → pipeline authoring → `curriculum-byte-parity` → `level-spec-parity` |
+| Engine change | `engine-determinism-auditor` first (blocks if violations), then parallel: `c1-c10-auditor` + `bundle-watcher` |
+| Validator change | `validator-parity-checker` (blocks if parity fails), then `c1-c10-auditor` |
+| Dependency bump | Parallel: `bundle-watcher` + `c1-c10-auditor` |
+
+**Recursion guard:** agents never auto-invoke other agents. A spawned agent reports back — I synthesize the result and decide next steps.
+
 ## Auto-invoke skills
 
 The harness exposes user-invocable skills that overlap our slash commands. Hooks cover *mechanical* triggers (file paths). The triggers below are *semantic* and live with me — when the condition is met I invoke the skill via the Skill tool **before** finalizing a response, without waiting to be asked.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Branch (when started):** `docs/2026-05-04-pilot-protocol`
-**Status:** Draft — not yet implemented
+**Status:** COMPLETED 2026-05-06 — docs/40-validation/ populated; pilot-protocol.md, consent-script.md, observation-rubric.md, audit/pilot-template.md committed
 **Part of:** [2026-05-04-roadmap.md](2026-05-04-roadmap.md) — Phase 4. The capstone validation loop the project exists to serve.
 
 ## Problem

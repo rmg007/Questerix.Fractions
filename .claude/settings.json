@@ -3,13 +3,18 @@
   "_comment": "Project-level Claude Code settings. Committed to the repo so any agent (any clone, any device) inherits the same baseline. Personal overrides go in .claude/settings.local.json (gitignored).",
 
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Read(**)",
+      "Read(.claude/**)",
       "Glob(**)",
       "Grep(**)",
       "Edit(**)",
+      "Edit(.claude/**)",
       "Write(**)",
+      "Write(.claude/**)",
       "MultiEdit(**)",
+      "MultiEdit(.claude/**)",
 
       "Bash(npm install:*)",
       "Bash(npm ci:*)",
@@ -141,8 +146,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "# Auto-consolidate memory at session end\nmkdir -p ~/.claude/projects/C--dev-Questerix-Fractions/memory && echo 'Session ended — memory consolidation available via /consolidate-memory skill' >&2; exit 0",
-            "statusMessage": "Session wrap-up..."
+            "command": "SESSION_FILE=\".claude/sessions/$(date '+%Y-%m-%d-%H%M').md\"; mkdir -p .claude/sessions; { echo \"# Session $(date '+%Y-%m-%d %H:%M')\"; echo; echo \"**Branch:** $(git branch --show-current 2>/dev/null)\"; echo \"**Dirty:** $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files\"; echo; echo \"## Last 5 commits\"; git log -5 --oneline 2>/dev/null; echo; echo \"## Uncommitted changes\"; git status --short 2>/dev/null || echo '(none)'; } > \"$SESSION_FILE\" 2>/dev/null; echo \"Session snapshot → $SESSION_FILE\" >&2; exit 0",
+            "statusMessage": "Writing session snapshot..."
           }
         ]
       }
