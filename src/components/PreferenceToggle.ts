@@ -107,6 +107,7 @@ export class PreferenceToggle {
     this.btn.setAttribute('role', 'switch');
     this.btn.setAttribute('aria-checked', 'false');
     this.btn.setAttribute('aria-labelledby', labelId);
+    this.btn.setAttribute('aria-label', opts.label);
     this.btn.setAttribute('data-testid', `pref-toggle-${opts.key}`);
     if (this.readOnly) {
       this.btn.setAttribute('aria-disabled', 'true');
@@ -203,8 +204,8 @@ export class PreferenceToggle {
     // Read-only value display
     if (this.readOnly) {
       if (typeof raw === 'boolean') {
-        this.valueEl.textContent = raw ? 'Granted' : 'Denied';
-        this.valueEl.style.color = raw ? '#059669' : '#DC2626';
+        this.valueEl.textContent = raw ? 'Pinned' : 'Not pinned';
+        this.valueEl.style.color = raw ? '#059669' : '#6B7280';
       } else {
         this.valueEl.textContent = String(raw);
       }

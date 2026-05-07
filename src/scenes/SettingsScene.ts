@@ -18,6 +18,7 @@ import { ResetDeviceHandler } from './settings/ResetDeviceHandler';
 import { BackupRestoreHandler } from './settings/BackupRestoreHandler';
 import { applyState } from './utils/states';
 import { Gesture } from './utils/interaction';
+import { A11yLayer } from '../components/A11yLayer';
 
 const CW = 800;
 const CH = 1280;
@@ -43,6 +44,10 @@ export class SettingsScene extends Phaser.Scene {
 
     TestHooks.unmountAll();
     TestHooks.mountSentinel('settings-scene');
+
+    // A11y: clear stale menu buttons and register the Back action
+    A11yLayer.unmountAll();
+    A11yLayer.mountAction('settings-back', 'Back', () => this.goBack());
 
     // Fade in from black on arrival
     try {
@@ -424,6 +429,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
+    A11yLayer.unmountAll();
     if (this._keyHandler && typeof document !== 'undefined') {
       document.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
