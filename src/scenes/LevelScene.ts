@@ -320,8 +320,73 @@ export class LevelScene extends Phaser.Scene {
           )
         );
       }
-      this.loadQuestion(0);
+      // L5 thirds-transition signpost — one narrative beat before first question.
+      // Reduced-motion: instant render, tap-to-dismiss (no auto-dismiss timer).
+      if (this.levelNumber === 5) {
+        this.showThirdsSignpost(() => this.loadQuestion(0));
+      } else {
+        this.loadQuestion(0);
+      }
     });
+  }
+
+  /** L5 narrative beat: "New shape: thirds" — auto-dismisses after 2s or on tap. */
+  private showThirdsSignpost(onDone: () => void): void {
+    const reduceMotion = checkReduceMotion();
+    const CX = CW / 2;
+    const CY = CH / 2;
+
+    // Semi-transparent overlay card
+    const card = this.add.graphics().setDepth(50);
+    card.fillStyle(0xffffff, 0.95);
+    card.fillRoundedRect(CX - 300, CY - 160, 600, 320, 24);
+    card.lineStyle(4, 0x6366f1, 1); // indigo border for thirds
+    card.strokeRoundedRect(CX - 300, CY - 160, 600, 320, 24);
+
+    const heading = this.add
+      .text(CX, CY - 90, 'New shape: thirds!', {
+        fontSize: '48px',
+        fontFamily: 'Nunito, sans-serif',
+        fontStyle: 'bold',
+        color: '#1e3a8a',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(51);
+
+    const body = this.add
+      .text(CX, CY - 10, 'Three equal parts of the same whole.', {
+        fontSize: '34px',
+        fontFamily: 'Nunito, sans-serif',
+        color: '#374151',
+        align: 'center',
+        wordWrap: { width: 520 },
+      })
+      .setOrigin(0.5)
+      .setDepth(51);
+
+    this.mascot?.showSpeechBubble(
+      'New shape: thirds — three equal parts!',
+      reduceMotion ? 0 : 2000
+    );
+    this.mascot?.setState('wave');
+
+    const dismiss = () => {
+      card.destroy();
+      heading.destroy();
+      body.destroy();
+      tapZone.destroy();
+      this.mascot?.setState('idle');
+      onDone();
+    };
+
+    // Full-screen tap zone to allow early dismiss
+    const tapZone = this.add.rectangle(CX, CY, CW, CH, 0x000000, 0).setInteractive().setDepth(55);
+    tapZone.once('pointerup', dismiss);
+
+    if (!reduceMotion) {
+      this.time.delayedCall(2000, dismiss);
+    }
   }
 
   private buildQFContext(questionIndexOverride?: number): QuestionFlowContext {

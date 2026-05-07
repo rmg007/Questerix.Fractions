@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-05-06",
+  "baseline": [
+    {
+      "level": 1,
+      "totalTemplates": 3,
+      "archetypeCount": 1,
+      "archetypes": {
+        "partition": 3
+      },
+      "gap": 4
+    },
+    {
+      "level": 2,
+      "totalTemplates": 6,
+      "archetypeCount": 2,
+      "archetypes": {
+        "identify": 3,
+        "partition": 3
+      },
+      "gap": 3
+    },
+    {
+      "level": 3,
+      "totalTemplates": 6,
+      "archetypeCount": 2,
+      "archetypes": {
+        "equal_or_not": 4,
+        "label": 2
+      },
+      "gap": 3
+    },
+    {
+      "level": 4,
+      "totalTemplates": 6,
+      "archetypeCount": 1,
+      "archetypes": {
+        "make": 6
+      },
+      "gap": 4
+    },
+    {
+      "level": 5,
+      "totalTemplates": 5,
+      "archetypeCount": 1,
+      "archetypes": {
+        "snap_match": 5
+      },
+      "gap": 4
+    },
+    {
+      "level": 6,
+      "totalTemplates": 6,
+      "archetypeCount": 1,
+      "archetypes": {
+        "compare": 6
+      },
+      "gap": 4
+    },
+    {
+      "level": 7,
+      "totalTemplates": 6,
+      "archetypeCount": 1,
+      "archetypes": {
+        "compare": 6
+      },
+      "gap": 4
+    },
+    {
+      "level": 8,
+      "totalTemplates": 6,
+      "archetypeCount": 1,
+      "archetypes": {
+        "benchmark": 6
+      },
+      "gap": 4
+    },
+    {
+      "level": 9,
+      "totalTemplates": 6,
+      "archetypeCount": 1,
+      "archetypes": {
+        "order": 6
+      },
+      "gap": 4
+    }
+  ]
+}

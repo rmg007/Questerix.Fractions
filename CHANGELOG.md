@@ -8,6 +8,13 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added (2026-05-06 Content & Curriculum)
+
+- **LEVEL_META archetype lists**: Added `archetypes: ActivityArchetype[]` field to `LevelMeta` (5 archetypes per level, pedagogically ordered simpler→complex). Serves as pipeline target spec and level-spec-parity validation anchor.
+- **L5 thirds signpost**: One-screen narrative beat at Level 5 start — "New shape: thirds!" overlay (2 s auto-dismiss or tap) with mascot wave, tap-to-dismiss for reduced-motion users.
+- **OnboardingScene mascot intro**: 1.5 s mascot wave + pulsing visual cue on partition target before the drag demo begins; reduced-motion: instant 0.6 s then proceeds.
+- **Content audit matrix**: `audit/content-distribution.json` captures baseline archetype × variant counts for all L1–L9 (pipeline regeneration blocked on `ANTHROPIC_API_KEY` — tracked separately).
+
 ### Added (2026-05-01 Phase 3 — UX Pre-Playtest)
 
 10 groups shipped via 2-round swarm + sequential orchestration (PR #55, commits 265ba9e..5042cb9). Zero merge conflicts across 20+ commits.

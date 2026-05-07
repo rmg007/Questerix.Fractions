@@ -261,7 +261,7 @@ export class OnboardingScene extends Phaser.Scene {
 
     // Draw shape and start tutorial
     this.drawShape();
-    this.startWatchStep();
+    this.showMascotIntro();
   }
 
   // ── Shape rendering ───────────────────────────────────────────────────────
@@ -290,6 +290,54 @@ export class OnboardingScene extends Phaser.Scene {
     g.lineBetween(x, top, x, bottom);
     g.lineStyle(4, 0xffffff, 0.6);
     g.lineBetween(x, top, x, bottom);
+  }
+
+  // ── Mascot intro (shown ~1.5 s before watch step begins) ────────────────
+
+  private showMascotIntro(): void {
+    const introMsg = "Hi! I'm Questy! Let's learn about fractions!";
+    this.instructionText.setText(introMsg);
+    tts.speak(introMsg);
+    this.mascot.setState('wave');
+
+    // Visual cue: pulsing ring at the shape's center partition target
+    const cue = this.add.graphics().setDepth(15);
+    const drawCue = (alpha: number) => {
+      cue.clear();
+      cue.lineStyle(6, PATH_BLUE, alpha);
+      cue.strokeCircle(SHAPE_CX, SHAPE_CY, 28);
+    };
+    drawCue(0.9);
+
+    if (!this.checkReduceMotion()) {
+      const proxy = { alpha: 0.9 };
+      tween(
+        this,
+        proxy,
+        { alpha: 0.2 },
+        {
+          duration: Duration.base,
+          yoyo: true,
+          repeat: 2,
+          onUpdate: () => drawCue(proxy.alpha),
+          onComplete: () => cue.destroy(),
+        }
+      );
+    }
+
+    A11yLayer.mountAction(
+      'a11y-onboarding-intro',
+      "Hi! I'm Questy! Let's learn about fractions!",
+      () => {
+        /* read-only announcement */
+      }
+    );
+
+    this.time.delayedCall(this.checkReduceMotion() ? 600 : 1500, () => {
+      cue.destroy();
+      this.mascot.setState('idle');
+      this.startWatchStep();
+    });
   }
 
   // ── Step 1: WATCH — animated drag demonstration ───────────────────────────
