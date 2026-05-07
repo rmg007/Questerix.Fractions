@@ -185,15 +185,12 @@ async function boot(): Promise<void> {
   // Pause all scene tweens when the tab is hidden so timers don't drift or
   // fire stale callbacks that could corrupt state. Resume on visibility restore.
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      game.scene.scenes.forEach((s) => {
-        s.tweens?.pauseAll?.();
-      });
-    } else {
-      game.scene.scenes.forEach((s) => {
-        s.tweens?.resumeAll?.();
-      });
-    }
+    const TRANSITION_SCENES = new Set(['BootScene', 'PreloadScene']);
+    game.scene.scenes.forEach((s) => {
+      if (TRANSITION_SCENES.has(s.sys.settings.key)) return;
+      if (document.hidden) s.tweens?.pauseAll?.();
+      else s.tweens?.resumeAll?.();
+    });
   });
 
   // crash-and-recovery §1 — wire the recovery:report event from RecoveryBus

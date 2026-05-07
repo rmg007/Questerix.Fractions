@@ -12,12 +12,15 @@ vi.mock('phaser', () => {
 function makeMockScene() {
   const fadeOut = vi.fn();
   const once = vi.fn();
+  const off = vi.fn();
   const sceneStart = vi.fn();
+  const delayedCall = vi.fn();
   const scene = {
-    cameras: { main: { fadeOut, once } },
+    cameras: { main: { fadeOut, once, off } },
     scene: { start: sceneStart },
+    time: { delayedCall },
   } as unknown as import('phaser').Scene;
-  return { scene, fadeOut, once, sceneStart };
+  return { scene, fadeOut, once, off, sceneStart, delayedCall };
 }
 
 function setReduceMotion(active: boolean) {
