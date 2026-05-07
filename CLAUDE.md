@@ -12,6 +12,7 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 
 <!-- AUTO:slash-commands-list:start -->
 - `/c5-check` — Grep for localStorage usage outside documented C5 exceptions — catches constraint drift
+- `/ci` — Show CI status for current branch — recent runs, failures, and open PRs
 - `/decision` — Append a new architectural decision entry to docs/00-foundation/decision-log.md
 - `/economy` — Summarize this session's token cost — file reads vs tool output vs assistant prose
 - `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md

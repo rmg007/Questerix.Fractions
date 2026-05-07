@@ -69,6 +69,9 @@
       "mcp__github__merge_pull_request",
       "mcp__github__update_pull_request",
       "mcp__github__update_pull_request_branch",
+      "mcp__github__pull_request_read",
+      "mcp__github__list_pull_requests",
+      "mcp__github__search_pull_requests",
       "mcp__github__add_issue_comment",
       "mcp__github__add_reply_to_pull_request_comment",
       "mcp__github__add_comment_to_pending_review",
@@ -77,6 +80,41 @@
       "mcp__github__unsubscribe_pr_activity",
       "mcp__github__resolve_review_thread",
       "mcp__github__unresolve_review_thread",
+      "mcp__github__issue_read",
+      "mcp__github__issue_write",
+      "mcp__github__list_issues",
+      "mcp__github__search_issues",
+      "mcp__github__list_commits",
+      "mcp__github__get_commit",
+      "mcp__github__list_branches",
+      "mcp__github__get_me",
+      "mcp__github__push_files",
+      "mcp__github__get_file_contents",
+      "mcp__github__search_code",
+
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh run rerun:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr checkout:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh auth token:*)",
+      "Bash(gh api:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh release view:*)",
 
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -126,7 +164,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; CI_STATUS=$(gh run list --branch main --workflow CI --limit 1 --json conclusion --jq '.[0].conclusion // \"running\"' 2>/dev/null || echo 'gh-unavailable'); CI_ICON=$([ \"$CI_STATUS\" = 'success' ] && echo '✓' || ([ \"$CI_STATUS\" = 'failure' ] && echo '✗' || echo '·')); echo \"├─ main CI: $CI_ICON $CI_STATUS\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /learn /retro /c5-check /decision /recreate-pr /economy /retro-weekly\"; echo \"├─ Subagents: a11y-auditor bundle-watcher c1-c10-auditor curriculum-byte-parity engine-determinism-auditor level-spec-parity pedagogy-reviewer validator-parity-checker\"; echo \"├─ Plan history: PLANS/_archive/ (latest dated file)\";echo \"├─ Recent learnings (3 newest):\"; grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} ' .claude/learnings.md 2>/dev/null | head -3 | sed 's/^/│   • /'; echo \"└─ /learn <text> appends a new one\""
+            "command": "BRANCH=$(git branch --show-current 2>/dev/null || echo 'detached'); DIRTY=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); echo \"┌─ Questerix Fractions\"; echo \"├─ branch: $BRANCH  |  dirty: $DIRTY files\"; CI_STATUS=$(gh run list --branch main --workflow CI --limit 1 --json conclusion --jq '.[0].conclusion // \"running\"' 2>/dev/null || echo 'gh-unavailable'); CI_ICON=$([ \"$CI_STATUS\" = 'success' ] && echo '✓' || ([ \"$CI_STATUS\" = 'failure' ] && echo '✗' || echo '·')); echo \"├─ main CI: $CI_ICON $CI_STATUS\"; OPEN_PRS=$(gh pr list --json number,title --jq 'length' 2>/dev/null || echo '?'); echo \"├─ open PRs: $OPEN_PRS  (use /ci for full status)\"; echo \"├─ Read CLAUDE.md first; nested CLAUDE.md auto-loads in src/scenes/interactions, src/validators, src/persistence, src/engine, src/components, src/lib, tests, pipeline\"; echo \"├─ Slash: /learn /retro /c5-check /decision /recreate-pr /economy /retro-weekly /ci\"; echo \"├─ Subagents: a11y-auditor bundle-watcher c1-c10-auditor curriculum-byte-parity engine-determinism-auditor level-spec-parity pedagogy-reviewer validator-parity-checker\"; echo \"├─ Plan history: PLANS/_archive/ (latest dated file)\"; echo \"├─ Recent learnings (3 newest):\"; grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} ' .claude/learnings.md 2>/dev/null | head -3 | sed 's/^/│   • /'; echo \"└─ /learn <text> appends a new one\""
           }
         ]
       }
