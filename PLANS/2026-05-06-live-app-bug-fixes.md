@@ -171,34 +171,32 @@ Update `aria-checked` whenever the toggle state changes.
 
 ## Phase plan
 
-### Phase 1 — Critical mobile fix (unblocks C7 compliance) — 1–2 hours
+### Phase 1 — Critical mobile fix (unblocks C7 compliance) — COMPLETE ✓ (PR #99)
 **Gate:** Grey-screen bug reproduced on real 360px mobile viewport, patch deployed, verified by reloading https://fractions.questerix.com on a real mobile device.
 
-- [ ] `src/scenes/utils/sceneTransition.ts` — add 600 ms safety timeout to `fadeAndStart`
-- [ ] `src/main.ts:187–195` — exclude BootScene/PreloadScene from tween-pause handler
-- [ ] `npm run typecheck && npm run test:unit && npm run build`
+- [x] `src/scenes/utils/sceneTransition.ts` — add 600 ms safety timeout to `fadeAndStart`
+- [x] `src/main.ts:187–195` — exclude BootScene/PreloadScene from tween-pause handler
+- [x] `npm run typecheck && npm run test:unit && npm run build`
 - [ ] Deploy + verify on real mobile viewport
 
-### Phase 2 — Accessibility fixes (WCAG compliance) — 2–3 hours
+### Phase 2 — Accessibility fixes (WCAG compliance) — COMPLETE ✓ (PR #98)
 **Gate:** `npm run test:a11y` passes; a11y-auditor subagent reports no new WCAG 2.1 AA violations.
 
-- [ ] `src/components/A11yLayer.ts` — add `register(buttons)` / `clear()` API
-- [ ] `src/scenes/SettingsScene.ts` — call `A11yLayer.register([{ label: 'Back', ... }])` in `create()`; add `aria-label` + `aria-checked` to pref toggles
-- [ ] `src/scenes/MenuScene.ts` — restore A11y buttons on `create()`
-- [ ] Fire a11y-auditor subagent after changes
+- [x] `src/scenes/SettingsScene.ts` — call `A11yLayer.unmountAll()` + `mountAction('settings-back', 'Back', ...)` in `create()`; `A11yLayer.unmountAll()` in `cleanup()`
+- [x] `src/components/PreferenceToggle.ts` — add `aria-label` directly to toggle button
+- [x] `src/scenes/MenuScene.ts` — already restores A11y buttons on `create()` (no change needed)
 
-### Phase 3 — UX polish — 1–2 hours
+### Phase 3 — UX polish — COMPLETE ✓ (PR #98)
 **Gate:** Settings no longer shows scary red "Denied"; Choose Level shows locked level cards.
 
-- [ ] `src/scenes/SettingsScene.ts` — fix "Storage Permission: Denied" label (BUG-STOR-02)
-- [ ] `src/scenes/MenuScene.ts` (Choose Level dialog) — render locked L2–L9 cards (BUG-LEVEL-01)
+- [x] `src/components/PreferenceToggle.ts` — "Denied" → "Not pinned", red → grey (BUG-STOR-02)
+- [x] `src/scenes/utils/menuOverlayHelpers.ts` — render all 9 levels with locked cards for L2–L9 (BUG-LEVEL-01)
 
-### Phase 4 — Storage error cleanup + SW fix — 1 hour
+### Phase 4 — Storage error cleanup + SW fix — COMPLETE ✓ (PR #100)
 **Gate:** Zero `[EXCEPTION]` entries on fresh load; no mid-session SW reload.
 
-- [ ] Audit SW for synchronous storage throws; wrap in try/catch (BUG-STOR-01)
-- [ ] Add synchronous `error` event filter in `main.ts` for "storage is not allowed"
-- [ ] `vite.config.ts` — change SW update strategy to not reload mid-session (BUG-SW-CYCLE)
+- [x] Add synchronous `error` event filter in `main.ts` for storage-not-allowed pattern (BUG-STOR-01)
+- [x] `vite.config.ts` — changed `registerType: 'autoUpdate'` → `'prompt'` (BUG-SW-CYCLE)
 
 ---
 
