@@ -1,0 +1,21 @@
+name: Nightly fix auto-merge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    # Only runs for nightly bot branches
+    if: startsWith(github.head_ref, 'fix/') && contains(github.event.pull_request.title, 'nightly findings')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Queue squash-merge when CI passes
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash --repo ${{ github.repository }}
