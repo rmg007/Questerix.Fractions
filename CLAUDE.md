@@ -103,9 +103,10 @@ The harness exposes user-invocable skills that overlap our slash commands. Hooks
 ## Autonomous mode
 
 `.claude/settings.json` (committed, repo-wide) pre-approves the safe surface so agents work without permission prompts:
-- **allow** — all `npm run` scripts, `npx tsc`/`eslint`/`prettier`/`vitest`/`playwright`, read-only `git`, project `node scripts/*`, pipeline Python, `git add`/`commit`/`mv`/`rm`/`push`, and the GitHub MCP PR tools (`create_pull_request`, `merge_pull_request`, `update_pull_request`).
+- **allow** — all `npm run` scripts, `npx tsc`/`eslint`/`prettier`/`vitest`/`playwright`, read-only `git`, project `node scripts/*`, pipeline Python, `git add`/`commit`/`mv`/`rm`/`push`, `gh pr create`, `gh pr merge`, `gh pr view`.
 - **ask** — `git reset --hard`, `npm run deploy`, `npx wrangler`, `npm publish` (always confirm).
 - **deny** — `.env*` reads, `git push --force`, `curl`/`wget`, `rm -rf /`/`~`.
+- **GitHub MCP tools** (`mcp__f4258cc3-*`) return 403 on this repo — **never use them for PR operations**. Always use `gh` CLI instead.
 - **SessionStart hook** — prints branch, dirty count, doc pointers, and slash commands when a session starts so the agent orients in one screen.
 
 Personal overrides go in `.claude/settings.local.json` (gitignored — your local file persists; not committed).
@@ -114,9 +115,9 @@ Personal overrides go in `.claude/settings.local.json` (gitignored — your loca
 
 After a successful commit on a non-`main` feature/`claude/*` branch where typecheck + lint + unit tests are green, **push to remote and squash-merge the PR without asking**. The flow:
 
-1. `git push -u origin <branch>` (with the network-retry policy already documented above).
-2. `mcp__github__create_pull_request` against `main` with a Summary + Test plan body.
-3. `mcp__github__merge_pull_request` with `merge_method: "squash"` (matches the existing `(#NN)` history).
+1. `git push -u origin <branch>`
+2. `gh pr create --base main --title "..." --body "..."` with a Summary + Test plan body.
+3. `gh pr merge <url> --auto --squash` — queues squash-merge to fire automatically when CI passes.
 
 Skip the PR step only if the branch already has an open PR — update it instead. Pause for confirmation only when: `main` itself is the head, the diff touches `.env*` or CI infra, force-push would be involved, or the user has indicated otherwise this turn.
 
