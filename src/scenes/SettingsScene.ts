@@ -172,8 +172,8 @@ export class SettingsScene extends Phaser.Scene {
     TestHooks.mountInteractive('settings-export-btn', () => void this.backupHandler.doExport(775), {
       top: toViewport(775),
       left: `${canvasLeft + PAIR_LEFT * scaleX}px`,
-      width: `${PAIR_W * scaleX}px`,
-      height: `${PAIR_H * scaleY}px`,
+      width: `${PAIR_W}px`,
+      height: `${PAIR_H}px`,
     });
     this.createButton(
       PAIR_LEFT,
@@ -192,8 +192,8 @@ export class SettingsScene extends Phaser.Scene {
       {
         top: toViewport(775),
         left: `${canvasLeft + PAIR_RIGHT * scaleX}px`,
-        width: `${PAIR_W * scaleX}px`,
-        height: `${PAIR_H * scaleY}px`,
+        width: `${PAIR_W}px`,
+        height: `${PAIR_H}px`,
       }
     );
     this.createButton(
@@ -213,9 +213,9 @@ export class SettingsScene extends Phaser.Scene {
       () => this.resetHandler.handleExternalReset(),
       {
         top: toViewport(875),
-        left: `${canvasLeft + (cx - FULL_W / 2) * scaleX}px`,
-        width: `${FULL_W * scaleX}px`,
-        height: `${FULL_H * scaleY}px`,
+        left: `${canvasLeft + cx * scaleX}px`,
+        width: `${FULL_W}px`,
+        height: `${FULL_H}px`,
       }
     );
     this.resetHandler.create(cx, 875);
@@ -224,8 +224,8 @@ export class SettingsScene extends Phaser.Scene {
     TestHooks.mountInteractive('settings-update-btn', () => void this.doCheckForAppUpdate(), {
       top: toViewport(970),
       left: `${canvasLeft + PAIR_LEFT * scaleX}px`,
-      width: `${PAIR_W * scaleX}px`,
-      height: `${PAIR_H * scaleY}px`,
+      width: `${PAIR_W}px`,
+      height: `${PAIR_H}px`,
     });
     this.createButton(
       PAIR_LEFT,
@@ -244,8 +244,8 @@ export class SettingsScene extends Phaser.Scene {
       {
         top: toViewport(970),
         left: `${canvasLeft + PAIR_RIGHT * scaleX}px`,
-        width: `${PAIR_W * scaleX}px`,
-        height: `${PAIR_H * scaleY}px`,
+        width: `${PAIR_W}px`,
+        height: `${PAIR_H}px`,
       }
     );
     this.createButton(
@@ -265,9 +265,9 @@ export class SettingsScene extends Phaser.Scene {
     // ── Back button ────────────────────────────────────────────────────────
     TestHooks.mountInteractive('settings-back-btn', () => this.goBack(), {
       top: toViewport(1145),
-      left: `${canvasLeft + (cx - FULL_W / 2) * scaleX}px`,
-      width: `${FULL_W * scaleX}px`,
-      height: `${FULL_H * scaleY}px`,
+      left: `${canvasLeft + cx * scaleX}px`,
+      width: `${FULL_W}px`,
+      height: `${FULL_H}px`,
     });
     this.createButton(cx, 1145, 'Back', CLR.neutral100, HEX.neutral600, () => this.goBack());
 
@@ -463,6 +463,8 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
+    // Dismiss the Reset confirm modal if it's still open (covers Escape/Back-mid-modal exit).
+    this.resetHandler.popModalIfOpen();
     A11yLayer.unmountAll();
     if (this._keyHandler && typeof document !== 'undefined') {
       document.removeEventListener('keydown', this._keyHandler);

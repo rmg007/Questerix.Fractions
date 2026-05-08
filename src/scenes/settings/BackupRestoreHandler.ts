@@ -47,7 +47,7 @@ export class BackupRestoreHandler {
   }
 
   async doRestore(file: File): Promise<void> {
-    const y = 850; // Matches restore button y-position in SettingsScene (Phase 3 layout shift +90)
+    const y = 775; // Matches both Export and Restore buttons at y=775 in SettingsScene layout.
     try {
       const result = await restoreFromFile(file);
       this.showStatus(`Restored ${result.added} records — reloading…`, y);

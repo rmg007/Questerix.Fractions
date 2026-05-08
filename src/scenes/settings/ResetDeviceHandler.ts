@@ -174,7 +174,30 @@ export class ResetDeviceHandler {
     if (hit) hit.emit('pointerup');
   }
 
+  /**
+   * Public escape hatch — called by parent scene's cleanup() to dismiss
+   * an open confirm modal during scene shutdown. Safe to call when the
+   * modal is not open (no-op).
+   */
+  popModalIfOpen(): void {
+    if (this.step !== 'confirm') return;
+    // Pop the A11yLayer that was pushed in showConfirmUI
+    A11yLayer.popLayer();
+    // Tear down confirm UI
+    this.confirmTexts.forEach((t) => t.destroy());
+    this.confirmButtons.forEach((b) => b.destroy());
+    this.confirmGraphics.forEach((g) => g.destroy());
+    this.confirmTexts = [];
+    this.confirmButtons = [];
+    this.confirmGraphics = [];
+    // Restore idle state visibility (in case the scene survives, though typically called on shutdown)
+    this.texts.forEach((t) => t.setVisible(true));
+    this.buttons.forEach((b) => b.setVisible(true));
+    this.step = 'idle';
+  }
+
   destroy(): void {
+    this.popModalIfOpen();
     this.graphics?.destroy();
     this.texts.forEach((t) => t.destroy());
     this.buttons.forEach((b) => b.destroy());
