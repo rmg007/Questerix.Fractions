@@ -10,12 +10,20 @@ import { toggleUnlockGateBypass, isUnlockGateBypassEnabled } from '../../lib/pre
 
 const CW = 800;
 
+function buildVersionLabel(sha: string, date: string): string {
+  const researcher = isUnlockGateBypassEnabled() ? '  (researcher)' : '';
+  return `v ${sha} · ${date}${researcher}`;
+}
+
 export function attachVersionTapToggle(
   scene: Phaser.Scene,
   cx: number,
   y: number
 ): Phaser.GameObjects.Text {
   const sha = (import.meta.env.VITE_GIT_SHA as string | undefined) ?? 'dev';
+  const rawTime = (import.meta.env.VITE_BUILD_TIME as string | undefined) ?? '';
+  const date = rawTime.length >= 10 ? rawTime.slice(0, 10) : new Date().toISOString().slice(0, 10);
+
   let tapCount = 0;
   let tapTimer: Phaser.Time.TimerEvent | null = null;
   let toast: Phaser.GameObjects.Text | null = null;
@@ -23,7 +31,7 @@ export function attachVersionTapToggle(
   const showToast = (msg: string): void => {
     toast?.destroy();
     toast = scene.add
-      .text(CW / 2, 1240, msg, { fontSize: '28px', fontFamily: BODY_FONT, color: '#5848D6' })
+      .text(CW / 2, y - 60, msg, { fontSize: '28px', fontFamily: BODY_FONT, color: '#5848D6' })
       .setOrigin(0.5)
       .setDepth(5);
     scene.time.delayedCall(2000, () => {
@@ -33,8 +41,8 @@ export function attachVersionTapToggle(
   };
 
   const txt = scene.add
-    .text(cx, y, `v ${sha}${isUnlockGateBypassEnabled() ? '  (researcher)' : ''}`, {
-      fontSize: '24px',
+    .text(cx, y, buildVersionLabel(sha, date), {
+      fontSize: '32px',
       fontFamily: BODY_FONT,
       color: HEX.neutral600,
     })
@@ -51,7 +59,7 @@ export function attachVersionTapToggle(
     if (tapCount >= 3) {
       tapCount = 0;
       const next = await toggleUnlockGateBypass();
-      txt.setText(`v ${sha}${next ? '  (researcher)' : ''}`);
+      txt.setText(buildVersionLabel(sha, date));
       showToast(next ? 'Researcher mode ON' : 'Researcher mode OFF');
     }
   });
