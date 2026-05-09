@@ -7,8 +7,12 @@ import * as Phaser from 'phaser';
 import { BODY_FONT } from '../utils/levelTheme';
 import { HEX } from '../utils/colors';
 import { toggleUnlockGateBypass, isUnlockGateBypassEnabled } from '../../lib/preferences';
+import { A11yLayer } from '../../components/A11yLayer';
 
 const CW = 800;
+// C7: ≥44 CSS px ≈ 100 canvas px @ 360 vw
+const HIT_W = 360;
+const HIT_H = 100;
 
 function buildVersionLabel(sha: string, date: string): string {
   const researcher = isUnlockGateBypassEnabled() ? '  (researcher)' : '';
@@ -47,10 +51,15 @@ export function attachVersionTapToggle(
       color: HEX.neutral600,
     })
     .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
     .setDepth(3);
 
-  txt.on('pointerup', async () => {
+  // C7: invisible hit zone ≥100 canvas px tall (≥44 CSS px @ 360 vw)
+  const hitZone = scene.add
+    .rectangle(cx, y, HIT_W, HIT_H, 0x000000, 0)
+    .setInteractive({ useHandCursor: true })
+    .setDepth(4);
+
+  hitZone.on('pointerup', async () => {
     tapCount += 1;
     tapTimer?.remove();
     tapTimer = scene.time.delayedCall(800, () => {
@@ -62,6 +71,16 @@ export function attachVersionTapToggle(
       txt.setText(buildVersionLabel(sha, date));
       showToast(next ? 'Researcher mode ON' : 'Researcher mode OFF');
     }
+  });
+
+  // A11yLayer parity: a single deliberate DOM activation toggles directly
+  // (independent of the 3-tap counter so it never races with pointer taps).
+  A11yLayer.mountAction('settings-version-toggle', 'Toggle researcher mode', () => {
+    void (async () => {
+      const next = await toggleUnlockGateBypass();
+      txt.setText(buildVersionLabel(sha, date));
+      showToast(next ? 'Researcher mode ON' : 'Researcher mode OFF');
+    })();
   });
 
   return txt;
