@@ -18,7 +18,7 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 - `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
 - `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
 - `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
-- `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+- `/retro` — End-of-session retro — apply CLAUDE.md / learnings.md / PLANS updates based on what changed
 - `/sprint-status` — Print active sprint blockers and their current status in compact form
 <!-- AUTO:slash-commands-list:end -->
 
@@ -30,7 +30,7 @@ Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-cha
 
 - **Skim `.claude/learnings.md` at session start.** It captures non-obvious gotchas surfaced in prior sessions.
 - **Append to it whenever you discover something a future agent would benefit from.** Use `/learn <text>` — one line per entry, newest first. Bar for inclusion: cost you debugging time, contradicted apparent docs, or wasn't in CLAUDE.md.
-- **Run `/retro` before closing a substantive session.** It proposes targeted updates to CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, and the decision log based on the diff.
+- **Run `/retro` before closing a substantive session.** It applies targeted updates to CLAUDE.md, nested CLAUDE.mds, PLANS, CHANGELOG, and the decision log based on the diff — autonomously, no proposal step.
 
 ### Plans must have phases. End-of-phase = update docs.
 
@@ -39,11 +39,13 @@ Harness skills also available: `preflight`, `sync-curriculum`, `diag`, `test-cha
 
 ## Specialist subagents (in `.claude/agents/`)
 
-Delegate to these via the Agent tool when scope warrants. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`. The table body below is auto-generated from `.claude/agents/*.md` frontmatter by `npm run sync:claude-md`.
+Delegate via the Agent tool. CI auto-fires them on PR open via `.github/workflows/subagent-pr-audit.yml`. Table auto-generated from `.claude/agents/*.md` frontmatter by `npm run sync:claude-md`.
 
-**Swarm orchestration (when to fan out):** prefer parallel agent fan-out for independent workstreams within a phase — partition by **file**, not by feature. Two agents touching the same file in parallel = guaranteed merge mess. Workflow: list each workstream's file set, group into rounds where every round's agents have **zero file overlap**, run rounds sequentially, give each agent an explicit "do NOT touch these files" guard. Don't fan out for sequential or contended work — overusing agents has a real coordination cost.
+> **`game-design-k2` is the only agent with Edit/Write access.** All others are read-only auditors.
 
-**God-file-heavy phases (Phase 3 pattern):** when ≥4 groups touch the same saturated files (`Level01Scene.ts`, `LevelScene.ts`, `Mascot.ts`), use a 2-round hybrid: (a) **Round 1** — parallel agents on independent file domains (FeedbackOverlay, deviceMeta, OnboardingScene, MenuScene); (b) **Round 2** — strictly sequential agents on the god files, one group at a time. Verified zero merge conflicts across 20+ commits in Phase 3. Sequential coordination cost is paid once per round, not once per commit.
+**Swarm orchestration:** prefer parallel fan-out for independent workstreams — partition by **file**. Two agents on the same file = merge conflict. Give each agent an explicit "do NOT touch these files" guard. Don't fan out for sequential or contended work.
+
+**God-file phases (Phase 3 pattern):** when ≥4 groups touch the same saturated files, use 2-round hybrid: (a) parallel agents on independent file domains; (b) strictly sequential agents on god files. Verified zero conflicts across 20+ commits.
 
 | Subagent | Description |
 |---|---|
@@ -59,33 +61,31 @@ Delegate to these via the Agent tool when scope warrants. CI auto-fires them on 
 | `validator-parity-checker` | Confirms that a changed TypeScript validator has a matching Python clone in pipeline/validators_py.py and that parity fixtures still pass. Use after any change to src/validators/*.ts. |
 <!-- AUTO:subagents-table:end -->
 
-## Auto-invoke agents
+### Auto-invoke triggers (semantic — fire without being asked)
 
-Hooks cover *mechanical* triggers. The conditions below are *semantic* — I spawn these agents via the Agent tool **without being asked** whenever the condition is met. Fire them **after** the change lands (post-commit or post-edit batch), not before.
+Fire **after** the change lands, not before. Recursion guard: agents never spawn other agents.
 
-| Agent | Auto-invoke when… |
+| Agent | Fire when… |
 |---|---|
-| `a11y-auditor` | I added or modified any file in `src/scenes/interactions/`, `src/components/`, or any scene that adds interactive elements. Always fire before declaring a UI task done. |
-| `bundle-watcher` | I added/removed an npm dependency, modified `vite.config.ts`, or the task touches performance or bundle size. |
-| `c1-c10-auditor` | My diff touches persistence, networking, new dependencies, UI surface, or device targets — especially across ≥3 files. |
-| `curriculum-byte-parity` | I ran `build:curriculum` or modified any `pipeline/output/` file. |
-| `engine-determinism-auditor` | I modified any file under `src/engine/`. |
-| `game-design-k2` | I am adding a new UI component, interaction archetype, or visual system visible to students. |
-| `level-spec-parity` | I modified a `docs/10-curriculum/levels/level-NN.md` or the `LEVEL_META` array, or after `build:curriculum` runs. |
-| `pedagogy-reviewer` | A PR adds or modifies a level spec. Fire before authoring pipeline content. |
-| `validator-parity-checker` | I modified any file under `src/validators/*.ts`. |
+| `a11y-auditor` | Modified `src/scenes/interactions/`, `src/components/`, or any scene with new interactive elements. Always fire before declaring a UI task done. |
+| `bundle-watcher` | Added/removed an npm dependency, modified `vite.config.ts`, or task touches performance. |
+| `c1-c10-auditor` | Diff touches persistence, networking, new deps, UI surface, or device targets — especially ≥3 files. |
+| `curriculum-byte-parity` | Ran `build:curriculum` or modified any `pipeline/output/` file. |
+| `engine-determinism-auditor` | Modified any file under `src/engine/`. |
+| `game-design-k2` | Adding a new UI component, interaction archetype, or visual system visible to students. |
+| `level-spec-parity` | Modified a level spec doc or `LEVEL_META` array, or after `build:curriculum` runs. |
+| `pedagogy-reviewer` | PR adds or modifies a level spec. Fire before pipeline authoring starts. |
+| `validator-parity-checker` | Modified any file under `src/validators/*.ts`. |
 
-**Team patterns — when to fan out:**
+### Team fan-out patterns
 
 | Scenario | Pattern |
 |---|---|
-| Full UI feature | Parallel: `a11y-auditor` + `bundle-watcher` + `c1-c10-auditor` → then sequential: `validator-parity-checker` if validators changed |
+| Full UI feature | Parallel: `a11y-auditor` + `bundle-watcher` + `c1-c10-auditor` → sequential: `validator-parity-checker` if validators changed |
 | New level | Sequential: `pedagogy-reviewer` → pipeline authoring → `curriculum-byte-parity` → `level-spec-parity` |
 | Engine change | `engine-determinism-auditor` first (blocks if violations), then parallel: `c1-c10-auditor` + `bundle-watcher` |
 | Validator change | `validator-parity-checker` (blocks if parity fails), then `c1-c10-auditor` |
 | Dependency bump | Parallel: `bundle-watcher` + `c1-c10-auditor` |
-
-**Recursion guard:** agents never auto-invoke other agents. A spawned agent reports back — I synthesize the result and decide next steps.
 
 ## Auto-invoke skills
 
