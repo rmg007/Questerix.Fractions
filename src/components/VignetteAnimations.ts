@@ -7,6 +7,7 @@
 
 import * as Phaser from 'phaser';
 import { NAVY, NAVY_HEX, TITLE_FONT, BODY_FONT, ACTION_FILL } from '../scenes/utils/levelTheme';
+import { tween } from '../scenes/utils/motion';
 
 // Layout constants (same as LevelVignette)
 export const CW = 800;
@@ -50,22 +51,18 @@ export function createAnimateInTweens(
   card: Phaser.GameObjects.Container,
   onDone: () => void
 ): Phaser.Tweens.Tween[] {
-  const overlayTween = scene.tweens.add({
-    targets: overlay,
-    alpha: 0.58,
-    duration: ENTRY_MS,
-    ease: 'Cubic.easeOut',
-  });
-  const cardTween = scene.tweens.add({
-    targets: card,
-    alpha: 1,
-    scaleX: 1,
-    scaleY: 1,
-    y: CARD_CY,
-    duration: ENTRY_MS,
-    ease: 'Back.easeOut',
-    onComplete: () => onDone(),
-  });
+  const overlayTween = tween(
+    scene,
+    overlay,
+    { alpha: 0.58 },
+    { duration: ENTRY_MS, ease: 'Cubic.easeOut' }
+  );
+  const cardTween = tween(
+    scene,
+    card,
+    { alpha: 1, scaleX: 1, scaleY: 1, y: CARD_CY },
+    { duration: ENTRY_MS, ease: 'Back.easeOut', onComplete: () => onDone() }
+  );
   return [overlayTween, cardTween];
 }
 
@@ -75,21 +72,18 @@ export function createAnimateOutTweens(
   card: Phaser.GameObjects.Container,
   onDone: () => void
 ): Phaser.Tweens.Tween[] {
-  const overlayTween = scene.tweens.add({
-    targets: overlay,
-    alpha: 0,
-    duration: EXIT_MS,
-    ease: 'Cubic.easeIn',
-  });
-  const cardTween = scene.tweens.add({
-    targets: card,
-    alpha: 0,
-    scaleX: 0.9,
-    scaleY: 0.9,
-    duration: EXIT_MS,
-    ease: 'Cubic.easeIn',
-    onComplete: () => onDone(),
-  });
+  const overlayTween = tween(
+    scene,
+    overlay,
+    { alpha: 0 },
+    { duration: EXIT_MS, ease: 'Cubic.easeIn' }
+  );
+  const cardTween = tween(
+    scene,
+    card,
+    { alpha: 0, scaleX: 0.9, scaleY: 0.9 },
+    { duration: EXIT_MS, ease: 'Cubic.easeIn', onComplete: () => onDone() }
+  );
   return [overlayTween, cardTween];
 }
 
@@ -122,29 +116,26 @@ function drawL1(ctx: SceneCtx): void {
   knife.setAngle(35);
 
   addTw(
-    scene.tweens.add({
-      targets: knife,
-      y: artCY - 10,
-      duration: 600,
-      ease: 'Back.easeOut',
-      delay: 200,
-    })
+    tween(scene, knife, { y: artCY - 10 }, { duration: 600, ease: 'Back.easeOut', delay: 200 })
   );
 
   const cutLine = scene.add.graphics().setDepth(depth + 1);
   addObj(cutLine);
   cutLine.setAlpha(0);
   addTw(
-    scene.tweens.add({
-      targets: cutLine,
-      alpha: 1,
-      duration: 250,
-      delay: 820,
-      onStart: () => {
-        cutLine.lineStyle(3, 0xfbbf24, 1);
-        cutLine.lineBetween(artCX - 140, artCY - 2, artCX + 140, artCY - 2);
-      },
-    })
+    tween(
+      scene,
+      cutLine,
+      { alpha: 1 },
+      {
+        duration: 250,
+        delay: 820,
+        onStart: () => {
+          cutLine.lineStyle(3, 0xfbbf24, 1);
+          cutLine.lineBetween(artCX - 140, artCY - 2, artCX + 140, artCY - 2);
+        },
+      }
+    )
   );
 }
 
@@ -171,14 +162,12 @@ function drawL2(ctx: SceneCtx): void {
     stem.setY(artCY + 30);
 
     addTw(
-      scene.tweens.add({
-        targets: stem,
-        scaleY: 1,
-        y: 0,
-        duration: 350,
-        ease: 'Sine.easeOut',
-        delay: 200 + i * 220,
-      })
+      tween(
+        scene,
+        stem,
+        { scaleY: 1, y: 0 },
+        { duration: 350, ease: 'Sine.easeOut', delay: 200 + i * 220 }
+      )
     );
 
     const flowerColors = [0xf472b6, 0xfbbf24, 0xa78bfa];
@@ -196,15 +185,17 @@ function drawL2(ctx: SceneCtx): void {
     addTm(
       scene.time.delayedCall(550 + i * 220, () => {
         addTw(
-          scene.tweens.add({
-            targets: flower,
-            scaleX: 1.15,
-            scaleY: 1.15,
-            duration: 220,
-            ease: 'Back.easeOut',
-            yoyo: true,
-            onComplete: () => flower.setScale(1),
-          })
+          tween(
+            scene,
+            flower,
+            { scaleX: 1.15, scaleY: 1.15 },
+            {
+              duration: 220,
+              ease: 'Back.easeOut',
+              yoyo: true,
+              onComplete: () => flower.setScale(1),
+            }
+          )
         );
       })
     );
@@ -231,13 +222,7 @@ function drawL3(ctx: SceneCtx): void {
     qg.fillStyle(quadColors[i]!, 0.7);
     qg.fillRect(x, y, w, h);
     addTw(
-      scene.tweens.add({
-        targets: qg,
-        alpha: 1,
-        duration: 300,
-        delay: 600 + i * 120,
-        ease: 'Sine.easeOut',
-      })
+      tween(scene, qg, { alpha: 1 }, { duration: 300, delay: 600 + i * 120, ease: 'Sine.easeOut' })
     );
   });
 
@@ -250,35 +235,41 @@ function drawL3(ctx: SceneCtx): void {
   addObj(hLine);
   hLine.lineStyle(3, NAVY, 0.9);
   addTw(
-    scene.tweens.add({
-      targets: { p: 0 },
-      p: 1,
-      duration: 380,
-      delay: 180,
-      ease: 'Sine.easeInOut',
-      onUpdate: (_, obj: { p: number }) => {
-        hLine.clear();
-        hLine.lineStyle(3, NAVY, 0.9);
-        hLine.lineBetween(L, artCY, L + SZ * obj.p, artCY);
-      },
-    })
+    tween(
+      scene,
+      { p: 0 },
+      { p: 1 },
+      {
+        duration: 380,
+        delay: 180,
+        ease: 'Sine.easeInOut',
+        onUpdate: (_, obj: { p: number }) => {
+          hLine.clear();
+          hLine.lineStyle(3, NAVY, 0.9);
+          hLine.lineBetween(L, artCY, L + SZ * obj.p, artCY);
+        },
+      }
+    )
   );
 
   const vLine = scene.add.graphics().setDepth(depth + 2);
   addObj(vLine);
   addTw(
-    scene.tweens.add({
-      targets: { p: 0 },
-      p: 1,
-      duration: 380,
-      delay: 380,
-      ease: 'Sine.easeInOut',
-      onUpdate: (_, obj: { p: number }) => {
-        vLine.clear();
-        vLine.lineStyle(3, NAVY, 0.9);
-        vLine.lineBetween(artCX, T, artCX, T + SZ * obj.p);
-      },
-    })
+    tween(
+      scene,
+      { p: 0 },
+      { p: 1 },
+      {
+        duration: 380,
+        delay: 380,
+        ease: 'Sine.easeInOut',
+        onUpdate: (_, obj: { p: number }) => {
+          vLine.clear();
+          vLine.lineStyle(3, NAVY, 0.9);
+          vLine.lineBetween(artCX, T, artCX, T + SZ * obj.p);
+        },
+      }
+    )
   );
 }
 
@@ -310,13 +301,7 @@ function drawL4(ctx: SceneCtx): void {
     book.setPosition(artCX + 300, by);
 
     addTw(
-      scene.tweens.add({
-        targets: book,
-        x: bx,
-        duration: 260,
-        delay: 150 + i * 120,
-        ease: 'Back.easeOut',
-      })
+      tween(scene, book, { x: bx }, { duration: 260, delay: 150 + i * 120, ease: 'Back.easeOut' })
     );
   }
 }
@@ -347,11 +332,11 @@ function drawL5(ctx: SceneCtx): void {
 
   const leftBar = drawBar(artCX - 140, 2, 2, 1);
   leftBar.setAlpha(0);
-  addTw(scene.tweens.add({ targets: leftBar, alpha: 1, duration: 300, delay: 100 }));
+  addTw(tween(scene, leftBar, { alpha: 1 }, { duration: 300, delay: 100 }));
 
   const rightBar = drawBar(artCX + 120, 4, 4, 2);
   rightBar.setAlpha(0);
-  addTw(scene.tweens.add({ targets: rightBar, alpha: 1, duration: 300, delay: 320 }));
+  addTw(tween(scene, rightBar, { alpha: 1 }, { duration: 300, delay: 320 }));
 
   const eqText = scene.add
     .text(artCX - 12, artCY - 18, '=', {
@@ -364,17 +349,18 @@ function drawL5(ctx: SceneCtx): void {
   addObj(eqText);
 
   addTw(
-    scene.tweens.add({
-      targets: eqText,
-      alpha: 1,
-      scaleX: 1.3,
-      scaleY: 1.3,
-      duration: 300,
-      delay: 600,
-      ease: 'Back.easeOut',
-      yoyo: true,
-      onComplete: () => eqText.setAlpha(1).setScale(1),
-    })
+    tween(
+      scene,
+      eqText,
+      { alpha: 1, scaleX: 1.3, scaleY: 1.3 },
+      {
+        duration: 300,
+        delay: 600,
+        ease: 'Back.easeOut',
+        yoyo: true,
+        onComplete: () => eqText.setAlpha(1).setScale(1),
+      }
+    )
   );
 
   const labels = [
@@ -399,7 +385,7 @@ function drawL5(ctx: SceneCtx): void {
   ];
   labels.forEach((l, i) => {
     addObj(l);
-    addTw(scene.tweens.add({ targets: l, alpha: 1, duration: 250, delay: 200 + i * 220 }));
+    addTw(tween(scene, l, { alpha: 1 }, { duration: 250, delay: 200 + i * 220 }));
   });
 }
 
@@ -434,8 +420,8 @@ function drawL6(ctx: SceneCtx): void {
       .setAlpha(0);
     addObj(lbl);
 
-    addTw(scene.tweens.add({ targets: g, alpha: 1, duration: 350, ease: 'Sine.easeOut' }));
-    addTw(scene.tweens.add({ targets: lbl, alpha: 1, duration: 350, delay: 150 }));
+    addTw(tween(scene, g, { alpha: 1 }, { duration: 350, ease: 'Sine.easeOut' }));
+    addTw(tween(scene, lbl, { alpha: 1 }, { duration: 350, delay: 150 }));
   };
 
   drawFracBar(artCX - 130, 1 / 3, '1/3', 0x93c5fd);
@@ -451,20 +437,21 @@ function drawL6(ctx: SceneCtx): void {
     .setAlpha(0);
   addObj(arrow);
   addTw(
-    scene.tweens.add({
-      targets: arrow,
-      alpha: 1,
-      scaleX: 1.25,
-      scaleY: 1.25,
-      duration: 300,
-      delay: 650,
-      ease: 'Back.easeOut',
-      yoyo: true,
-      onComplete: () => {
-        arrow.setAlpha(1);
-        arrow.setScale(1);
-      },
-    })
+    tween(
+      scene,
+      arrow,
+      { alpha: 1, scaleX: 1.25, scaleY: 1.25 },
+      {
+        duration: 300,
+        delay: 650,
+        ease: 'Back.easeOut',
+        yoyo: true,
+        onComplete: () => {
+          arrow.setAlpha(1);
+          arrow.setScale(1);
+        },
+      }
+    )
   );
 }
 
@@ -496,14 +483,7 @@ function drawL7(ctx: SceneCtx): void {
 
     addTm(
       scene.time.delayedCall(180 + i * 180, () => {
-        addTw(
-          scene.tweens.add({
-            targets: activeStep,
-            alpha: 1,
-            duration: 200,
-            ease: 'Sine.easeOut',
-          })
-        );
+        addTw(tween(scene, activeStep, { alpha: 1 }, { duration: 200, ease: 'Sine.easeOut' }));
       })
     );
 
@@ -521,7 +501,7 @@ function drawL7(ctx: SceneCtx): void {
     addObj(lbl);
     addTm(
       scene.time.delayedCall(240 + i * 180, () => {
-        addTw(scene.tweens.add({ targets: lbl, alpha: 1, duration: 180 }));
+        addTw(tween(scene, lbl, { alpha: 1 }, { duration: 180 }));
       })
     );
   }
@@ -539,15 +519,12 @@ function drawL7(ctx: SceneCtx): void {
   addTm(
     scene.time.delayedCall(1100, () => {
       addTw(
-        scene.tweens.add({
-          targets: star,
-          alpha: 1,
-          y: star.y - 6,
-          duration: 400,
-          ease: 'Back.easeOut',
-          yoyo: true,
-          repeat: -1,
-        })
+        tween(
+          scene,
+          star,
+          { alpha: 1, y: star.y - 6 },
+          { duration: 400, ease: 'Back.easeOut', yoyo: true, repeat: -1 }
+        )
       );
     })
   );
@@ -583,13 +560,12 @@ function drawL8(ctx: SceneCtx): void {
   });
 
   addTw(
-    scene.tweens.add({
-      targets: plankContainer,
-      angle: 0,
-      duration: 700,
-      delay: 400,
-      ease: 'Sine.easeInOut',
-    })
+    tween(
+      scene,
+      plankContainer,
+      { angle: 0 },
+      { duration: 700, delay: 400, ease: 'Sine.easeInOut' }
+    )
   );
 
   const halfLabel = scene.add
@@ -603,14 +579,12 @@ function drawL8(ctx: SceneCtx): void {
     .setAlpha(0);
   addObj(halfLabel);
   addTw(
-    scene.tweens.add({
-      targets: halfLabel,
-      alpha: 1,
-      y: artCY - 32,
-      duration: 350,
-      delay: 1150,
-      ease: 'Back.easeOut',
-    })
+    tween(
+      scene,
+      halfLabel,
+      { alpha: 1, y: artCY - 32 },
+      { duration: 350, delay: 1150, ease: 'Back.easeOut' }
+    )
   );
 }
 
@@ -656,13 +630,7 @@ function drawL9(ctx: SceneCtx): void {
   rocketG.setPosition(artCX, rocketStartY);
 
   addTw(
-    scene.tweens.add({
-      targets: rocketG,
-      y: rocketEndY,
-      duration: 1100,
-      delay: 200,
-      ease: 'Cubic.easeOut',
-    })
+    tween(scene, rocketG, { y: rocketEndY }, { duration: 1100, delay: 200, ease: 'Cubic.easeOut' })
   );
 
   const spawnFlame = () => {
@@ -673,14 +641,12 @@ function drawL9(ctx: SceneCtx): void {
     flame.fillStyle(0xf97316, 0.7);
     flame.fillCircle(artCX, rocketG.y + 38, fr);
     addTw(
-      scene.tweens.add({
-        targets: flame,
-        alpha: 0,
-        y: flame.y + 20,
-        duration: 420,
-        ease: 'Cubic.easeIn',
-        onComplete: () => flame.destroy(),
-      })
+      tween(
+        scene,
+        flame,
+        { alpha: 0, y: flame.y + 20 },
+        { duration: 420, ease: 'Cubic.easeIn', onComplete: () => flame.destroy() }
+      )
     );
   };
 
@@ -703,16 +669,17 @@ function drawL9(ctx: SceneCtx): void {
     addTm(
       scene.time.delayedCall(i * 200, () => {
         addTw(
-          scene.tweens.add({
-            targets: ct,
-            alpha: 1,
-            scaleX: 1.3,
-            scaleY: 1.3,
-            duration: 160,
-            ease: 'Back.easeOut',
-            yoyo: true,
-            onComplete: () => ct.setAlpha(0.6),
-          })
+          tween(
+            scene,
+            ct,
+            { alpha: 1, scaleX: 1.3, scaleY: 1.3 },
+            {
+              duration: 160,
+              ease: 'Back.easeOut',
+              yoyo: true,
+              onComplete: () => ct.setAlpha(0.6),
+            }
+          )
         );
       })
     );
