@@ -45,6 +45,9 @@ function getOrCreateContainer(): HTMLElement | null {
 
 const registry = new Map<string, HTMLElement>();
 
+// ResizeObserver instances keyed by testid so unmount() can disconnect them.
+const resizeObservers = new Map<string, ResizeObserver>();
+
 export const TestHooks = {
   /** Check if test hooks are currently enabled. */
   isEnabled(): boolean {
@@ -76,7 +79,13 @@ export const TestHooks = {
    * Mount an interactive, transparent overlay button positioned over the canvas.
    * The button forwards clicks to the provided handler.
    * z-index is high enough to sit above the Phaser canvas.
-   * Positions account for canvas scaling on mobile viewports (Scale.FIT).
+   *
+   * Percentage opts (e.g. top:'35%') are interpreted as percentages of the
+   * logical game canvas (800×1280). Pixel opts are passed through as-is.
+   *
+   * Positioning is applied via requestAnimationFrame so the canvas has been
+   * laid out by the browser before we call getBoundingClientRect(). A
+   * ResizeObserver keeps the button anchored when the viewport resizes.
    */
   mountInteractive(
     testid: string,
@@ -97,50 +106,13 @@ export const TestHooks = {
     btn.setAttribute('data-testid', testid);
     btn.setAttribute('tabindex', '-1');
 
-    // Account for canvas scaling on mobile. Get the canvas bounds to calculate
-    // the actual scaled position. The game is 800x1280 logically but may be
-    // scaled to fit the viewport via Phaser's Scale.FIT mode.
-    let top = opts?.top ?? '50%';
-    let left = opts?.left ?? '50%';
-    let width = opts?.width ?? '80px';
-    let height = opts?.height ?? '80px';
-
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const gameW = 800;
-      const gameH = 1280;
-      const scaleX = rect.width / gameW;
-      const scaleY = rect.height / gameH;
-
-      // Convert percentage-based positions from game coords to viewport coords
-      if (opts?.top && opts.top.endsWith('%')) {
-        const gamePercent = parseFloat(opts.top);
-        const scaledPixels = (gamePercent / 100) * gameH * scaleY + rect.top;
-        top = `${scaledPixels}px`;
-      }
-      if (opts?.left && opts.left.endsWith('%')) {
-        const gamePercent = parseFloat(opts.left);
-        const scaledPixels = (gamePercent / 100) * gameW * scaleX + rect.left;
-        left = `${scaledPixels}px`;
-      }
-      // Scale dimensions as well
-      if (opts?.width && opts.width.endsWith('px')) {
-        const gamePixels = parseFloat(opts.width);
-        width = `${gamePixels * scaleX}px`;
-      }
-      if (opts?.height && opts.height.endsWith('px')) {
-        const gamePixels = parseFloat(opts.height);
-        height = `${gamePixels * scaleY}px`;
-      }
-    }
-
+    // Start off-screen; positionBtn() will move it into place after layout.
     btn.style.cssText = [
       'position:fixed',
-      `top:${top}`,
-      `left:${left}`,
-      `width:${width}`,
-      `height:${height}`,
+      'top:-9999px',
+      'left:-9999px',
+      'width:1px',
+      'height:1px',
       'transform:translate(-50%,-50%)',
       'opacity:0.01',
       'cursor:pointer',
@@ -153,11 +125,71 @@ export const TestHooks = {
     btn.addEventListener('click', onClick);
     container.appendChild(btn);
     registry.set(testid, btn);
+
+    // Compute and apply the canvas-relative position. Returns false when the
+    // canvas is not yet rendered (rect is zero-sized), so the caller can retry.
+    const positionBtn = (): boolean => {
+      if (!btn.isConnected) return true; // element removed — stop retrying
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return false;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return false; // layout pending
+
+      const gameW = 800;
+      const gameH = 1280;
+      const scaleX = rect.width / gameW;
+      const scaleY = rect.height / gameH;
+
+      let top = opts?.top ?? '50%';
+      let left = opts?.left ?? '50%';
+      let width = opts?.width ?? '80px';
+      let height = opts?.height ?? '80px';
+
+      if (opts?.top?.endsWith('%')) {
+        top = `${(parseFloat(opts.top) / 100) * gameH * scaleY + rect.top}px`;
+      }
+      if (opts?.left?.endsWith('%')) {
+        left = `${(parseFloat(opts.left) / 100) * gameW * scaleX + rect.left}px`;
+      }
+      if (opts?.width?.endsWith('px')) {
+        width = `${parseFloat(opts.width) * scaleX}px`;
+      }
+      if (opts?.height?.endsWith('px')) {
+        height = `${parseFloat(opts.height) * scaleY}px`;
+      }
+
+      btn.style.top = top;
+      btn.style.left = left;
+      btn.style.width = width;
+      btn.style.height = height;
+      return true;
+    };
+
+    // Try immediately (canvas already rendered), then retry via rAF to catch
+    // the common case where layout hasn't been flushed during scene create().
+    if (!positionBtn()) {
+      requestAnimationFrame(() => {
+        positionBtn();
+      });
+    }
+
+    // Reposition whenever the canvas resizes (orientation changes, window resize).
+    const canvas = document.querySelector('canvas');
+    if (canvas && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        positionBtn();
+      });
+      ro.observe(canvas);
+      resizeObservers.set(testid, ro);
+    }
+
     return btn;
   },
 
   /** Remove a sentinel/interactive button by testid. */
   unmount(testid: string): void {
+    resizeObservers.get(testid)?.disconnect();
+    resizeObservers.delete(testid);
     const el = registry.get(testid);
     if (el) {
       el.remove();
@@ -167,6 +199,8 @@ export const TestHooks = {
 
   /** Remove all mounted sentinels. Call on scene shutdown. */
   unmountAll(): void {
+    resizeObservers.forEach((ro) => ro.disconnect());
+    resizeObservers.clear();
     registry.forEach((el) => el.remove());
     registry.clear();
   },
