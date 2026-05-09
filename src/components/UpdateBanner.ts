@@ -17,6 +17,7 @@ import * as Phaser from 'phaser';
 import { CLR, HEX } from '../scenes/utils/colors';
 import { BODY_FONT } from '../scenes/utils/levelTheme';
 import { TestHooks } from '../scenes/utils/TestHooks';
+import { A11yLayer } from './A11yLayer';
 import { checkReduceMotion } from '../lib/preferences';
 
 export interface UpdateBannerConfig {
@@ -87,12 +88,7 @@ export class UpdateBanner {
     // Test sentinel + DOM mirror so screen readers and Playwright pick it up.
     TestHooks.mountSentinel('update-banner');
     TestHooks.setText('update-banner', message);
-    TestHooks.mountInteractive('update-banner-action', () => this.handleAccept(), {
-      width: '100%',
-      height: `${BANNER_HEIGHT}px`,
-      top: '0px',
-      left: '50%',
-    });
+    A11yLayer.mountAction('update-banner-action', message, () => this.handleAccept());
 
     if (!reduceMotion) {
       scene.tweens.add({
@@ -127,6 +123,6 @@ export class UpdateBanner {
     this.label.destroy();
     this.hitZone.destroy();
     TestHooks.unmount('update-banner');
-    TestHooks.unmount('update-banner-action');
+    A11yLayer.unmount('update-banner-action');
   }
 }
