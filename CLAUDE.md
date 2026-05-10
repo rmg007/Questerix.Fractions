@@ -18,7 +18,7 @@ Many slash commands are now harness skills that auto-discover by intent — typi
 - `/learn` — Append a one-line gotcha or pattern to .claude/learnings.md
 - `/recreate-pr` — Re-open an auto-closed PR with a merged-with-main head and rephrased title.
 - `/retro-weekly` — Weekly token-cost rollup — group _session-log.md by day, print percentiles, flag outliers
-- `/retro` — End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+- `/retro` — End-of-session retro — apply CLAUDE.md / learnings.md / PLANS updates based on what changed
 - `/sprint-status` — Print active sprint blockers and their current status in compact form
 <!-- AUTO:slash-commands-list:end -->
 
