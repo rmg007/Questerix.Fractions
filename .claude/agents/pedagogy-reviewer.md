@@ -1,7 +1,7 @@
 ---
 name: pedagogy-reviewer
 description: Audits a level spec (docs/10-curriculum/levels/level-NN.md) for pedagogical correctness — skill progression, misconception coverage, denominator ordering, and question density. Use before authoring pipeline content for any new level, and on PRs that add or modify a level spec.
-tools: [Read, Grep, Glob]
+tools: Read, Grep, Glob
 ---
 
 # Pedagogy Reviewer

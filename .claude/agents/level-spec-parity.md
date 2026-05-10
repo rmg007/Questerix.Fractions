@@ -1,7 +1,7 @@
 ---
 name: level-spec-parity
 description: Confirms that a level spec doc (docs/10-curriculum/levels/level-NN.md), LEVEL_META entry, and curriculum bundle are consistent with each other. Use after modifying a level spec or after running build:curriculum.
-tools: [Read, Grep, Glob, Bash]
+tools: Read, Grep, Glob, Bash
 ---
 
 # Level Spec Parity Checker
