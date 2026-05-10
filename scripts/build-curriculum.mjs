@@ -50,14 +50,14 @@ function writePerLevelFiles(outDir, levels, generatedAt) {
 /** Archetypes allowed per level — matches architecture spec exactly. */
 const LEVEL_ARCHETYPES = {
   '01': ['partition', 'identify'],
-  '02': ['partition', 'identify'],
-  '03': ['equal_or_not', 'label'],
-  '04': ['make'],
-  '05': ['snap_match'],
-  '06': ['compare'],
-  '07': ['compare'],
-  '08': ['benchmark'],
-  '09': ['order'],
+  '02': ['identify', 'label'],
+  '03': ['identify', 'label'],
+  '04': ['make', 'partition'],
+  '05': ['make', 'partition'],
+  '06': ['compare', 'snap_match'],
+  '07': ['compare', 'label'],
+  '08': ['benchmark', 'placement'],
+  '09': ['order', 'placement'],
 };
 
 const LEVELS = Object.keys(LEVEL_ARCHETYPES);

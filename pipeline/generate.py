@@ -309,21 +309,20 @@ def _default_pool_for_level(level: int) -> list[tuple[int, int]]:
 
 def _default_skill_ids_for_level(level: int) -> list[str]:
     """
-    Stub skill mapping by level — sourced from docs/10-curriculum/skills.md.
-    Real implementation parses skills.md at build time.
+    Canonical KC-* skill IDs per level — matches docs/10-curriculum/skills.md.
     """
     mapping: dict[int, list[str]] = {
-        1: ["SK-01", "SK-02", "SK-03"],
-        2: ["SK-04", "SK-05", "SK-06"],
-        3: ["SK-07", "SK-08", "SK-09", "SK-10"],
-        4: ["SK-11", "SK-12", "SK-13"],
-        5: ["SK-14", "SK-15", "SK-16", "SK-17"],
-        6: ["SK-18", "SK-19", "SK-20", "SK-21"],
-        7: ["SK-22", "SK-23", "SK-24"],
-        8: ["SK-25", "SK-26", "SK-27", "SK-28"],
-        9: ["SK-29", "SK-30", "SK-31", "SK-32", "SK-33"],
+        1: ["KC-HALVES-VIS"],
+        2: ["KC-HALVES-VIS", "KC-SET-MODEL"],
+        3: ["KC-UNITS-VIS"],
+        4: ["KC-PRODUCTION-1"],
+        5: ["KC-PRODUCTION-2"],
+        6: ["KC-SYMBOL-BASIC"],
+        7: ["KC-SYMBOL-ADV"],
+        8: ["KC-MAGNITUDE"],
+        9: ["KC-ORDERING"],
     }
-    return mapping.get(level, [f"SK-{str(level).zfill(2)}"])
+    return mapping.get(level, [f"KC-LEVEL-{level:02d}"])
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
