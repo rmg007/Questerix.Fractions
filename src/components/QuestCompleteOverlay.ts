@@ -18,6 +18,7 @@ import {
   ACTION_TEXT,
 } from '../scenes/utils/levelTheme';
 import { AccessibilityAnnouncer } from './AccessibilityAnnouncer';
+import { A11yLayer } from './A11yLayer';
 import { TestHooks } from '../scenes/utils/TestHooks';
 import { sfx } from '../audio/SFXService';
 import { checkReduceMotion } from '../lib/preferences';
@@ -173,6 +174,8 @@ export class QuestCompleteOverlay {
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
 
+    A11yLayer.mountAction('quest-complete-play-again', 'Play Again from Level 1', onTap);
+
     this.container.add([shadow, face, txt, hit]);
   }
 
@@ -200,6 +203,8 @@ export class QuestCompleteOverlay {
       .rectangle(x, y, W, 100, 0, 0) // 100 canvas px — WCAG 2.5.5 (≥44 CSS px at 360 vp)
       .setInteractive({ useHandCursor: true })
       .on('pointerup', onTap);
+
+    A11yLayer.mountAction('quest-complete-menu', 'Back to Menu', onTap);
 
     this.container.add([bg, txt, hit]);
   }
@@ -312,6 +317,8 @@ export class QuestCompleteOverlay {
       this.glowTween.stop();
       this.glowTween = null;
     }
+    A11yLayer.unmount('quest-complete-play-again');
+    A11yLayer.unmount('quest-complete-menu');
     this.container.destroy(true);
   }
 }

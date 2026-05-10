@@ -4,11 +4,17 @@ status: active
 owner: solo
 last_reviewed: 2026-04-30
 applies_to: [mvp]
+gradeBand: 'K'
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 ---
 
 # Level 1 — Halves and Equal Parts
+
+## Overview
+
+**Name:** Halves  
+**Concept:** Equal parts
 
 The student's first encounter with fractions. Goal: build the schema "**equal parts** of a whole."
 

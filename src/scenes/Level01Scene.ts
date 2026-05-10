@@ -318,7 +318,10 @@ export class Level01Scene extends Phaser.Scene {
     this.handlePos = SHAPE_CX - SHAPE_W * INITIAL_HANDLE_OFFSET_PCT;
     this.currentQuestionHintIds = [];
     this.questionStartTime = Date.now();
-    this.hintLadder = new HintLadder(this.currentQuestion.difficultyTier);
+    this.hintLadder = new HintLadder(
+      this.currentQuestion.difficultyTier,
+      this.currentQuestion.hints
+    );
     this.hintSystem.setLadder(this.hintLadder);
     this.promptText.setText(this.currentQuestion.promptText);
 
@@ -607,7 +610,10 @@ export class Level01Scene extends Phaser.Scene {
       this.time.delayedCall(100, () => this.onHintRequest());
       return;
     }
-    this.hintLadder ??= new HintLadder(this.currentQuestion.difficultyTier);
+    this.hintLadder ??= new HintLadder(
+      this.currentQuestion.difficultyTier,
+      this.currentQuestion.hints
+    );
     this.hintSystem.setLadder(this.hintLadder);
     const tier = this.hintLadder.next();
     log.hint('request', { tier, questionIndex: this.questionIndex, wrongCount: this.wrongCount });

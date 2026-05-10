@@ -4,11 +4,17 @@ status: draft
 owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
+gradeBand: '1'
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md, level-05.md, level-07.md]
 ---
 
 # Level 6 — Compare Same-Denominator Fractions
+
+## Overview
+
+**Name:** Compare Same Denom.  
+**Concept:** Compare same-denominator fractions
 
 The first level where the student compares two fractions and answers with a relational symbol. Goal: when the denominators match, **larger numerator = larger fraction**.
 
@@ -38,11 +44,11 @@ See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-10/
 
 | Skill ID | Name                                         | BKT priors                                           |
 | -------- | -------------------------------------------- | ---------------------------------------------------- |
-| `SK-21`  | Read symbolic fraction notation `a/b`        | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.25` |
-| `SK-22`  | Same-denominator comparison (numerator rule) | `pInit=0.30, pTransit=0.30, pSlip=0.10, pGuess=0.33` |
-| `SK-23`  | Use of `<`, `=`, `>` symbols                 | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
+| `KC-SYMBOL-BASIC`  | Read symbolic fraction notation `a/b`        | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.25` |
+| `KC-SYMBOL-BASIC`  | Same-denominator comparison (numerator rule) | `pInit=0.30, pTransit=0.30, pSlip=0.10, pGuess=0.33` |
+| `KC-SYMBOL-BASIC`  | Use of `<`, `=`, `>` symbols                 | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
 
-`SK-21` carries forward into Levels 7–9. `SK-22` and `SK-23` are first introduced here. The `pGuess` prior on `SK-22` and `SK-23` is `0.33` because the student is choosing among three options (`<`, `=`, `>`).
+`KC-SYMBOL-BASIC` carries forward into Levels 7–9. `KC-SYMBOL-BASIC` and `KC-SYMBOL-BASIC` are first introduced here. The `pGuess` prior on `KC-SYMBOL-BASIC` and `KC-SYMBOL-BASIC` is `0.33` because the student is choosing among three options (`<`, `=`, `>`).
 
 Mastery of all three skills at `state: "MASTERED"` is the gate to unlock Level 7.
 
@@ -105,7 +111,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   },
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-21", "SK-22", "SK-23"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -122,7 +128,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   },
   "correctAnswer": "=",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-22", "SK-23"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -139,7 +145,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   },
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-22", "SK-23"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "medium"
 }
@@ -159,7 +165,7 @@ This is the canonical archetype from `RoadMap/03_Level_06_09/05-FractionSnap.md`
   },
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-21", "SK-22", "SK-23"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
@@ -213,7 +219,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
   },
   "correctAnswer": "right",
   "validatorId": "validator.comparison.tapSide",
-  "skillIds": ["SK-21", "SK-22"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -231,7 +237,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
   },
   "correctAnswer": "right",
   "validatorId": "validator.comparison.tapSide",
-  "skillIds": ["SK-22"],
+  "skillIds": ["KC-SYMBOL-BASIC"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "medium"
 }
@@ -249,7 +255,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
   },
   "correctAnswer": "left",
   "validatorId": "validator.comparison.tapSide",
-  "skillIds": ["SK-21", "SK-22"],
+  "skillIds": ["KC-SYMBOL-BASIC", "KC-SYMBOL-BASIC"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
@@ -266,7 +272,7 @@ Per **C9**, even Hard tier sessions are designed to fit a 10–15 minute play wi
 **Title:** "Match the Fraction to the Picture"
 **Levels in app:** L6 only
 
-A bridge activity that explicitly trains `SK-21` (read symbolic notation). The student sees three or four shaded shapes (bars or circles) and a single fraction symbol like `2/3`. They drag the symbol card onto the matching shape. This is the _only_ same-denominator activity that does not directly involve a comparison — its job is to anchor the symbol to the visual, so that Activities 4.1 and 4.2 can rely on the student reading `2/3` correctly under timer pressure.
+A bridge activity that explicitly trains `KC-SYMBOL-BASIC` (read symbolic notation). The student sees three or four shaded shapes (bars or circles) and a single fraction symbol like `2/3`. They drag the symbol card onto the matching shape. This is the _only_ same-denominator activity that does not directly involve a comparison — its job is to anchor the symbol to the visual, so that Activities 4.1 and 4.2 can rely on the student reading `2/3` correctly under timer pressure.
 
 The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a first-class activity here.
 
@@ -315,7 +321,7 @@ The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a 
   },
   "correctAnswer": 0,
   "validatorId": "validator.snap_match.exactIndex",
-  "skillIds": ["SK-21"],
+  "skillIds": ["KC-SYMBOL-BASIC"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "easy"
 }
@@ -352,7 +358,7 @@ The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a 
   },
   "correctAnswer": 1,
   "validatorId": "validator.snap_match.exactIndex",
-  "skillIds": ["SK-21"],
+  "skillIds": ["KC-SYMBOL-BASIC"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -368,7 +374,6 @@ The same archetype reappears in Level 7+ as a hint mechanism, but it lives as a 
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `MC-WHB-01` | "Whole-number bias on numerator" — student picks the fraction with the _visually larger numerator digit_ without checking the denominator | Wrong on `match_symbol_to_shape` Hard items where `3/3` is offered as a distractor for target `2/3`                                       |
 | `MC-EQ-01`  | "Equal looks the same" — student picks `=` whenever the two bars look approximately the same length, even with unequal numerators         | Wrong "=" on `comparison_battle_same_denom` Medium items where numerators differ by 1                                                     |
-| `MC-SYM-01` | "Reverses `<` and `>`" — student knows the rule but consistently picks the wrong direction symbol                                         | Correct relative judgement on `fraction_snap_same_denom` (which side to tap) but wrong direction symbol on `comparison_battle_same_denom` |
 
 `MC-WHB-02` (whole-number bias on the _denominator_, the classic "1/4 > 1/3 because 4 > 3" error) is **not yet** observable here because all comparisons share a denominator. It first appears at Level 7.
 
@@ -441,12 +446,12 @@ Within a single comparison item, both fractions must share a denominator. Across
 
 A student unlocks Level 7 when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-21`, `SK-22`, **and** `SK-23` (see `../skills.md`)
+- `SkillMastery.state === "MASTERED"` for `KC-SYMBOL-BASIC`, `KC-SYMBOL-BASIC`, **and** `KC-SYMBOL-BASIC` (see `../skills.md`)
 - At least 18 attempts across at least 2 different activities at this level
 - Tier 3 (Hard) accuracy ≥ 70% across the last 6 hard attempts (no scaffolding, no bar model)
 - Average response time on Hard `fraction_snap_same_denom` ≤ 5 seconds (the fluency check — same-denominator comparison should be near-automatic before the mixed-denominator complexity of L7 lands)
 
-The progression engine runs after each session and may recommend `"advance"`, `"stay"`, or `"regress"`. Regression to Level 5 is rare and only triggered after sustained struggle on `SK-21` (symbolic reading), which would indicate the symbol introduction is not consolidated.
+The progression engine runs after each session and may recommend `"advance"`, `"stay"`, or `"regress"`. Regression to Level 5 is rare and only triggered after sustained struggle on `KC-SYMBOL-BASIC` (symbolic reading), which would indicate the symbol introduction is not consolidated.
 
 ---
 

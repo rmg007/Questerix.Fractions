@@ -4,6 +4,7 @@ status: draft
 owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
+gradeBand: '2'
 constraint_refs: [C3, C8, C9, C10]
 related:
   [
@@ -15,6 +16,11 @@ related:
 ---
 
 # Level 9 — Order 3+ Fractions
+
+## Overview
+
+**Name:** Order Fractions  
+**Concept:** Order 3+ fractions (capstone)
 
 The MVP capstone. Goal: given three to five fractions with mixed denominators, **order them from smallest to largest** (or largest to smallest), correctly, without scaffolding. Mastery here is the answer to **C10**'s validation question — a student who can do Level 9 has demonstrated genuine fraction magnitude understanding.
 
@@ -44,16 +50,16 @@ See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-19.
 
 | Skill ID | Name                                            | BKT priors                                           |
 | -------- | ----------------------------------------------- | ---------------------------------------------------- |
-| `SK-30`  | Order 3 fractions, mixed denominators           | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.17` |
-| `SK-31`  | Order 4–5 fractions, mixed denominators         | `pInit=0.05, pTransit=0.15, pSlip=0.20, pGuess=0.04` |
-| `SK-32`  | Equivalent-fraction recognition during ordering | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
-| `SK-33`  | Strategy: benchmark-cluster-then-order          | `pInit=0.05, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| `KC-ORDERING`  | Order 3 fractions, mixed denominators           | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.17` |
+| `KC-ORDERING`  | Order 4–5 fractions, mixed denominators         | `pInit=0.05, pTransit=0.15, pSlip=0.20, pGuess=0.04` |
+| `KC-ORDERING`  | Equivalent-fraction recognition during ordering | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| `KC-ORDERING`  | Strategy: benchmark-cluster-then-order          | `pInit=0.05, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
 
-`pGuess` for `SK-30` is `0.17` (= 1/6, since there are 6 permutations of 3 cards). `pGuess` for `SK-31` is `0.04` (= 1/24 for 4 cards; for 5 cards it would be 1/120 ≈ 0.008, averaged here). These low guess priors reflect that ordering tasks are nearly impossible to fluke.
+`pGuess` for `KC-ORDERING` is `0.17` (= 1/6, since there are 6 permutations of 3 cards). `pGuess` for `KC-ORDERING` is `0.04` (= 1/24 for 4 cards; for 5 cards it would be 1/120 ≈ 0.008, averaged here). These low guess priors reflect that ordering tasks are nearly impossible to fluke.
 
-`SK-33` is a **strategy** skill — observed when a student's drag pattern shows them placing a benchmark fraction (one near 1/2, say) first, then placing other fractions relative to it. The progression engine detects this from the drag-event sequence (see `RoadMap/03_Level_06_09/03-FractionOrderingTournament.md` §4 `evaluateCurrentOrder`).
+`KC-ORDERING` is a **strategy** skill — observed when a student's drag pattern shows them placing a benchmark fraction (one near 1/2, say) first, then placing other fractions relative to it. The progression engine detects this from the drag-event sequence (see `RoadMap/03_Level_06_09/03-FractionOrderingTournament.md` §4 `evaluateCurrentOrder`).
 
-Mastery of `SK-30` **and** `SK-31` at `state: "MASTERED"`, with `SK-32` and `SK-33` at least `"APPROACHING"`, signals the student has completed the MVP curriculum. There is no Level 10 in MVP.
+Mastery of `KC-ORDERING` **and** `KC-ORDERING` at `state: "MASTERED"`, with `KC-ORDERING` and `KC-ORDERING` at least `"APPROACHING"`, signals the student has completed the MVP curriculum. There is no Level 10 in MVP.
 
 ---
 
@@ -62,7 +68,7 @@ Mastery of `SK-30` **and** `SK-31` at `state: "MASTERED"`, with `SK-32` and `SK-
 | Standard                                                                                                                                | Coverage                                                                                             |
 | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | **CCSS.3.NF.A.3.d** (compare fractions by reasoning about their size; record the results of comparisons with the symbols `<`, `=`, `>`) | **Primary, full coverage**                                                                           |
-| **CCSS.3.NF.A.3.b** (recognise simple equivalent fractions, e.g., `1/2 = 2/4`)                                                          | Touched (the equivalence-during-ordering pattern in `SK-32`)                                         |
+| **CCSS.3.NF.A.3.b** (recognise simple equivalent fractions, e.g., `1/2 = 2/4`)                                                          | Touched (the equivalence-during-ordering pattern in `KC-ORDERING`)                                         |
 | **CCSS.4.NF.A.2** (compare two fractions with different numerators and different denominators)                                          | Anticipatory — Level 9 demands this skill informally, even though the standard is officially Grade 4 |
 
 The Grade 4 anticipatory coverage is intentional and defensible: the validation question (**C10**) is about whether the mechanic can teach the _concept_ of magnitude, and the concept does not respect grade boundaries. Students who cannot order mixed-denominator fractions have not learned magnitude in any meaningful sense.
@@ -124,7 +130,7 @@ The validator implements the `buildAcceptableOrders` function from the source do
     { "num": 3, "den": 4 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-30"],
+  "skillIds": ["KC-ORDERING"],
   "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "easy"
 }
@@ -150,7 +156,7 @@ The validator implements the `buildAcceptableOrders` function from the source do
     { "num": 3, "den": 4 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-30", "SK-32"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": [],
   "difficultyTier": "medium"
 }
@@ -176,7 +182,7 @@ The validator implements the `buildAcceptableOrders` function from the source do
     { "num": 1, "den": 6 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-30", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "hard"
 }
@@ -193,7 +199,7 @@ The validator implements the `buildAcceptableOrders` function from the source do
 **Title:** "The Long Line — 4 or 5 Fractions"
 **Levels in app:** L9 only
 
-Same UI and mechanic as `ordering_tournament_3`, but with 4 or 5 cards and slots. This is where `SK-33` (benchmark-cluster strategy) becomes load-bearing — at 5 cards, exhaustive pairwise comparison is too slow even at Easy tier, and the student is naturally pushed toward strategic reasoning.
+Same UI and mechanic as `ordering_tournament_3`, but with 4 or 5 cards and slots. This is where `KC-ORDERING` (benchmark-cluster strategy) becomes load-bearing — at 5 cards, exhaustive pairwise comparison is too slow even at Easy tier, and the student is naturally pushed toward strategic reasoning.
 
 The number-line model view becomes especially valuable here per the source doc §3 ("Implicit feedback from number line"): when the student places cards in approximately-correct order, the dots on the line connect with a green segment, providing real-time positive feedback without explicit messaging.
 
@@ -239,7 +245,7 @@ The spread parameters come directly from the source doc §8 generation table, re
     { "num": 3, "den": 4 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-30", "SK-31"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "easy"
 }
@@ -267,7 +273,7 @@ The spread parameters come directly from the source doc §8 generation table, re
     { "num": 5, "den": 6 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-31", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": [],
   "difficultyTier": "medium"
 }
@@ -297,7 +303,7 @@ The spread parameters come directly from the source doc §8 generation table, re
     { "num": 7, "den": 8 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-31", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -327,7 +333,7 @@ The spread parameters come directly from the source doc §8 generation table, re
     { "num": 5, "den": 6 }
   ],
   "validatorId": "validator.ordering.acceptableOrders",
-  "skillIds": ["SK-31", "SK-32", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": ["MC-EQ-02"],
   "difficultyTier": "hard"
 }
@@ -346,7 +352,7 @@ The last template's validator accepts both `[1/6, 1/2, 3/6, 2/3, 5/6]` and `[1/6
 **Title:** "How Did You Decide?"
 **Levels in app:** L9 only
 
-After the student successfully orders a 3- or 4-card sequence, this activity asks **why**. A multiple-choice prompt appears asking the student to pick the rule they used: "Same bottom — bigger top wins" / "Same top — bigger bottom is smaller" / "Used the half-line idea" / "Compared to 0 and 1." This is the metacognitive activity for the level — directly trains `G9.5` and produces evidence of `SK-33` for the mastery gate.
+After the student successfully orders a 3- or 4-card sequence, this activity asks **why**. A multiple-choice prompt appears asking the student to pick the rule they used: "Same bottom — bigger top wins" / "Same top — bigger bottom is smaller" / "Used the half-line idea" / "Compared to 0 and 1." This is the metacognitive activity for the level — directly trains `G9.5` and produces evidence of `KC-ORDERING` for the mastery gate.
 
 The pedagogical rationale (per `RoadMap/03_Level_06_09/04-FractionStoryProblems.md` §1 point 4) is that articulating reasoning consolidates conceptual understanding and exposes shallow guess-correct attempts that pure correctness data cannot detect.
 
@@ -409,7 +415,7 @@ This activity is **gated**: it only runs after the student gets the ordering ste
     "rule": "same_denom_rule"
   },
   "validatorId": "validator.ordering.withRuleExplanation",
-  "skillIds": ["SK-30", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -442,7 +448,7 @@ This activity is **gated**: it only runs after the student gets the ordering ste
     "rule": "same_denom_rule"
   },
   "validatorId": "validator.ordering.withRuleExplanation",
-  "skillIds": ["SK-30", "SK-33"],
+  "skillIds": ["KC-ORDERING", "KC-ORDERING"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -460,9 +466,9 @@ This activity is **gated**: it only runs after the student gets the ordering ste
 | `MC-WHB-02`   | (carried) "Whole-number bias on denominator"                                                      | Wrong relative position of cards where the larger-denominator unit fraction is placed later in ascending order                                                                                                             |
 | `MC-EQ-02`    | (carried) "Equal benchmarks unrecognised"                                                         | In `ordering_tournament_5` Hard with equivalence pair: student places one of the equal cards far from the other, resulting in a wrong ordering even though the validator would have accepted either equivalent permutation |
 | `MC-PRX-01`   | (carried) "Proximity-to-1 confusion"                                                              | `5/6` or `7/8` placed before `1/2` in ascending order                                                                                                                                                                      |
-| `MC-STRAT-01` | "No strategy" — student drag-pattern shows trial and error rather than benchmark-cluster strategy | `SK-33` mastery state stays `"NOT_STARTED"` despite `SK-30` and `SK-31` reaching `"LEARNING"` or higher                                                                                                                    |
+| `MC-ORD-01` | "No strategy" — student drag-pattern shows trial and error rather than benchmark-cluster strategy | `KC-ORDERING` mastery state stays `"NOT_STARTED"` despite `KC-ORDERING` and `KC-ORDERING` reaching `"LEARNING"` or higher                                                                                                                    |
 
-`MC-STRAT-01` is the only Level-9-original misconception. Its detection is via the drag-pattern signal: a strategic student picks up a benchmark fraction first and places it; an unstrategic student picks up cards in tray order and tests them against slot 1, then 2, etc. The progression engine reads the `roundEvents` array on the Attempt record (sequence of pickUp/place events) to compute this.
+`MC-ORD-01` is the only Level-9-original misconception. Its detection is via the drag-pattern signal: a strategic student picks up a benchmark fraction first and places it; an unstrategic student picks up cards in tray order and tests them against slot 1, then 2, etc. The progression engine reads the `roundEvents` array on the Attempt record (sequence of pickUp/place events) to compute this.
 
 ---
 
@@ -613,8 +619,8 @@ Level 9 is the last MVP level. There is no Level 10 to unlock. "Mastery" of Leve
 
 A student is marked **MVP-complete** when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-30` **and** `SK-31` (see `../skills.md`)
-- `SkillMastery.state` for `SK-32` and `SK-33` is **at least** `"APPROACHING"`
+- `SkillMastery.state === "MASTERED"` for `KC-ORDERING` **and** `KC-ORDERING` (see `../skills.md`)
+- `SkillMastery.state` for `KC-ORDERING` and `KC-ORDERING` is **at least** `"APPROACHING"`
 - At least 30 attempts across all three Level 9 activities
 - Tier 3 (Hard) accuracy ≥ 65% across the last 8 hard attempts (lower threshold than L8's 70% because Hard L9 is genuinely difficult — 5-card mixed-denominator ordering is a Grade 4 standard)
 - At least one `explain_your_order` attempt at Hard tier with the correct rule selected
@@ -661,4 +667,4 @@ Level 9 is the longest mastery horizon in the MVP. A 6-week classroom playtest a
 
 4. **Validator computational cost.** The `acceptableOrders` validator generates all permutations of equivalence groups. With a 5-card set containing two equivalence pairs (theoretical worst case, even though our pool prevents it), that is `2! × 2! = 4` orderings — fine. With three equivalent cards (also blocked by our pool) it would be `3! = 6` — still fine. Confirm: no cost concern at MVP scale, no need for the `curatedSets` fallback in the source doc §8.
 
-5. **Strategy detection signal.** `MC-STRAT-01` is detected by drag-pattern analysis. The Attempt record needs a `roundEvents` array (see `data-schema.md` §3.3 — currently the schema does not have this field). This is a **schema change** required before L9 can ship its full progression engine. Action: add `roundEvents?: ProgressionEvent[]` as an **optional** field on Attempt before L9 implementation begins; fall back to no-strategy-detection if absent. The MVP can ship L9 without `MC-STRAT-01` detection if the schema change slips.
+5. **Strategy detection signal.** `MC-ORD-01` is detected by drag-pattern analysis. The Attempt record needs a `roundEvents` array (see `data-schema.md` §3.3 — currently the schema does not have this field). This is a **schema change** required before L9 can ship its full progression engine. Action: add `roundEvents?: ProgressionEvent[]` as an **optional** field on Attempt before L9 implementation begins; fall back to no-strategy-detection if absent. The MVP can ship L9 without `MC-ORD-01` detection if the schema change slips.

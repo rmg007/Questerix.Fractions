@@ -42,7 +42,7 @@ const ARCHETYPE_RULES = {
     if (Array.isArray(p.fractionIds) && p.fractionIds.length >= 2) return null;
     return 'must have fractions[] or fractionIds[] with ≥2 items';
   },
-  place: () => null,
+  placement: () => null,
 };
 
 function validate(source, levels) {

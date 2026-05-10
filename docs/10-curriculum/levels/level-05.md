@@ -4,12 +4,18 @@ status: active
 owner: solo
 last_reviewed: 2026-04-30
 applies_to: [mvp]
+gradeBand: '1'
 constraint_refs: [C3, C8, C9]
 related:
   [./level-04.md, ./level-03.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 ---
 
 # Level 5 — Make Thirds and Fourths
+
+## Overview
+
+**Name:** Make Thirds & Fourths  
+**Concept:** Make, fold, compositional
 
 The capstone of the **"Identify and Make"** band (Levels 1–5). Students now actively partition shapes into **thirds** and **fourths**. Both denominator families are covered within this level — the first time the student is asked to switch between denominators **within a session**.
 
