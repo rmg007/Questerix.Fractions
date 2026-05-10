@@ -4,11 +4,17 @@ status: active
 owner: solo
 last_reviewed: 2026-04-30
 applies_to: [mvp]
+gradeBand: 'K'
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../skills.md]
 ---
 
 # Level 2 — Identify Halves
+
+## Overview
+
+**Name:** Halves Depth  
+**Concept:** Identify halves across shapes
 
 The student's second encounter with fractions. Goal: deepen the "one of two equal parts" schema established in Level 1 and stretch it across **shape variety**, **orientation**, and **set models**.
 
@@ -223,7 +229,7 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
   "correctAnswer": 0,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-IDENT-01"],
+  "misconceptionTraps": ["MC-EOL-04"],
   "difficultyTier": "medium"
 }
 
@@ -263,7 +269,7 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
   "correctAnswer": 0,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "hard"
 }
 
@@ -283,7 +289,7 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01", "MC-L2-IDENT-01"],
+  "misconceptionTraps": ["MC-EOL-02", "MC-EOL-04"],
   "difficultyTier": "hard"
 }
 
@@ -303,7 +309,7 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
   "correctAnswer": 1,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "hard"
 }
 
@@ -323,7 +329,7 @@ The student sees 3 or 4 shapes side-by-side. Exactly one has 1 of 2 equal parts 
   "correctAnswer": 2,
   "validatorId": "validator.identify.exactIndex",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "hard"
 }
 ```
@@ -371,7 +377,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "easy"
 }
 
@@ -396,7 +402,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "easy"
 }
 
@@ -421,7 +427,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-IDENT-01"],
+  "misconceptionTraps": ["MC-EOL-04"],
   "difficultyTier": "medium"
 }
 
@@ -446,7 +452,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "medium"
 }
 
@@ -496,7 +502,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01", "MC-EOL-01"],
+  "misconceptionTraps": ["MC-EOL-02", "MC-EOL-01"],
   "difficultyTier": "hard"
 }
 
@@ -521,7 +527,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-IDENT-01"],
+  "misconceptionTraps": ["MC-EOL-04"],
   "difficultyTier": "hard"
 }
 
@@ -546,7 +552,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "hard"
 }
 
@@ -596,7 +602,7 @@ A single shape is shown in two orientations (or with two different valid fold di
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.bothShowSameFraction",
   "skillIds": ["KC-HALVES-VIS"],
-  "misconceptionTraps": ["MC-L2-ROT-01"],
+  "misconceptionTraps": ["MC-EOL-02"],
   "difficultyTier": "hard"
 }
 ```
@@ -629,7 +635,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "easy"
 }
 
@@ -647,7 +653,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "easy"
 }
 
@@ -665,7 +671,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "medium"
 }
 
@@ -683,7 +689,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "medium"
 }
 
@@ -701,7 +707,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "medium"
 }
 
@@ -719,7 +725,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 
@@ -737,7 +743,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 
@@ -755,7 +761,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 
@@ -773,7 +779,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": true,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 
@@ -791,7 +797,7 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
   "correctAnswer": false,
   "validatorId": "validator.equal_or_not.setHalf",
   "skillIds": ["KC-SET-MODEL"],
-  "misconceptionTraps": ["MC-L2-WNB-01"],
+  "misconceptionTraps": ["MC-WHB-01"],
   "difficultyTier": "hard"
 }
 ```
@@ -802,10 +808,10 @@ The student sees a set of identical objects (apples, blocks, dots). Some are hig
 
 | MC ID | Name | Detection signal |
 |---|---|---|
-| `MC-L2-ROT-01` | "Rotated halves are not halves" | Wrong answer on `rotated_half` Tier 1-2 with two valid halves |
-| `MC-L2-SHAPE-01` | "Halves only happen in circles" | Pattern of always-circle picks on `identify_half_v2` Medium |
-| `MC-L2-IDENT-01` | "Equal means identical" | Wrong "no" on `rotated_half` for diagonal-vs-axis halves |
-| `MC-L2-WNB-01` | "Whole-number bias on sets" | Wrong "yes" on `half_of_a_set` when `highlightedCount > setSize/2` |
+| `MC-EOL-02` | "Rotated halves are not halves" | Wrong answer on `rotated_half` Tier 1-2 with two valid halves |
+| `MC-SHP-01` | "Halves only happen in circles" | Pattern of always-circle picks on `identify_half_v2` Medium |
+| `MC-EOL-04` | "Equal means identical" | Wrong "no" on `rotated_half` for diagonal-vs-axis halves |
+| `MC-WHB-01` | "Whole-number bias on sets" | Wrong "yes" on `half_of_a_set` when `highlightedCount > setSize/2` |
 
 ---
 
@@ -822,7 +828,7 @@ A student unlocks Level 3 when **all** are true:
 - `SkillMastery.state === "MASTERED"` for `KC-HALVES-VIS` and `KC-SET-MODEL`
 - At least 18 attempts across at least 2 different activities
 - Tier 3 (Hard) accuracy ≥ 70% across the last 5 hard attempts
-- No active `MisconceptionFlag` for `MC-L2-ROT-01` or `MC-L2-IDENT-01`
+- No active `MisconceptionFlag` for `MC-EOL-02` or `MC-EOL-04`
 
 ---
 
@@ -843,4 +849,4 @@ A student unlocks Level 3 when **all** are true:
 1. **Set-model rendering.** Recommended: thick outline + color, dual-channel.
 2. **Scatter layout for sets.** Recommended: scatter starts Tier 2 with set sizes ≤ 8.
 3. **Rotation distractors.** Recommended: minimum 30° rotation between compared shapes.
-4. **Misconception persistence.** Recommended: only `MC-L2-ROT-01` and `MC-L2-IDENT-01` block advancement.
+4. **Misconception persistence.** Recommended: only `MC-EOL-02` and `MC-EOL-04` block advancement.

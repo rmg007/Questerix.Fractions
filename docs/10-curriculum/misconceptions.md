@@ -393,6 +393,22 @@ Before adding a new MC entry:
 
 ---
 
+## MC-ORD-01 — No Ordering Strategy (Trial-and-Error Drag)
+
+**Detector:** detectORD01 *(planned — not yet implemented)*
+**Templates baiting:** L9 ordering items (Hard) where correct order requires benchmark-cluster reasoning
+
+| Field                | Value                                                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Description**      | Student drag-pattern shows trial and error rather than benchmark-cluster strategy — they move fractions one at a time with many reversals rather than grouping around 0, ½, and 1. |
+| **Detection signal** | On `order` Hard templates, student makes ≥4 drag reversals (moving a fraction back after placing it) across 3+ consecutive attempts with no improvement in final accuracy.          |
+| **Intervention**     | Hint Tier 1: "Try grouping — which ones are close to 0? Close to 1?" Tier 2: Overlay showing 0, ½, 1 anchors. Replay `benchmark` Easy templates to build anchor fluency first.    |
+| **Grade level**      | Grade 2                                                                                                                                                                            |
+| **Related skills**   | `KC-ORDERING` (L9 ordering skill)                                                                                                                                                  |
+| **Source**           | `level-09.md` trap MC-ORD-01                                                                                                                                                       |
+
+---
+
 ## 7. Cross-Reference Map
 
 | Source taxonomy                    | MVP catalog ID                 |
@@ -411,5 +427,6 @@ Before adding a new MC entry:
 | M12 — Math identity                | (out of scope, but informs C6) |
 | L6/L7 perceptual-equality bias     | MC-EQ-01                       |
 | L8/L9 equivalence-benchmark gap    | MC-EQ-02                       |
+| L9 ordering trial-and-error        | MC-ORD-01                      |
 
-Last reviewed: 2026-04-30. (updated all SK-NN → KC-* in Related skills fields; added §3.7 Equivalence Recognition family: MC-EQ-01 and MC-EQ-02 — both were referenced in level-06..09 docs but had no catalog entry; detectors planned, not yet implemented)
+Last reviewed: 2026-05-10. (added MC-ORD-01 — ordering strategy gap referenced in level-09.md but missing from catalog; detector planned, not yet implemented)
