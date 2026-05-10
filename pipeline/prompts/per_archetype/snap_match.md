@@ -2,27 +2,33 @@
 
 ## Validator
 
-`validator.snap_match.equivalence` — checks that snapped fraction is equivalent (same decimal value).
+`validator.snap_match.equivalence` — checks that snapped pair is correct.
 
 ## Payload shape
 
 ```json
 {
-  "sourceFractionId": "frac:2/4",
-  "snapTargets": [
-    { "fractionId": "frac:1/2", "targetDecimal": 0.5 },
-    { "fractionId": "frac:3/6", "targetDecimal": 0.5 }
-  ]
+  "leftItems": [
+    { "id": "a", "label": "2/4", "numerator": 2, "denominator": 4 },
+    { "id": "b", "label": "1/3", "numerator": 1, "denominator": 3 }
+  ],
+  "rightItems": [
+    { "id": "c", "label": "1/2", "numerator": 1, "denominator": 2 },
+    { "id": "d", "label": "2/6", "numerator": 2, "denominator": 6 }
+  ],
+  "expectedPairs": [["a", "c"], ["b", "d"]]
 }
 ```
 
-`correctAnswer`: decimal value of the equivalent fraction (e.g. 0.5)
+- `leftItems` and `rightItems`: arrays of items to match. Each item has `id` (unique string), `label` (e.g. "1/2"), and optionally `numerator`/`denominator`.
+- `expectedPairs`: array of `[leftId, rightId]` pairs that are correct matches.
+- `correctAnswer`: decimal value of the primary correct match (e.g. 0.5 for 1/2).
 
 ## Typical combos by difficulty
 
-- easy: 2/4 → 1/2 (halves family only)
-- medium: 2/6 → 1/3 (thirds and sixths)
-- hard: 4/8 → 1/2, 2/6 → 1/3 with extra distractors
+- easy: 2 left + 2 right, same denominator family (halves/fourths)
+- medium: 2 left + 3 right (one distractor), cross-family (halves/sixths)
+- hard: 3 left + 4 right (two distractors), full pool
 
 ## Misconception triggers to surface
 
@@ -31,6 +37,6 @@
 
 ## Prompt patterns
 
-- "Drag the fraction that matches {fraction}."
-- "Find the equal fraction and snap it into place."
-- "Which fraction has the same value as {fraction}?"
+- "Match each fraction on the left to its equal on the right."
+- "Drag each fraction to its matching partner."
+- "Find the equal pairs and connect them."

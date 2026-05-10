@@ -25,7 +25,7 @@ const ARCHETYPE_RULES = {
   equal_or_not: (p) => ('partitionLines' in p ? null : 'missing partitionLines'),
   label:     (p) => null, // label has flexible payloads
   make:      (p) => null,
-  snap_match:(p) => ('leftItems' in p && 'rightItems' in p ? null : 'missing leftItems/rightItems'),
+  snap_match:(p) => ('leftItems' in p && 'rightItems' in p ? null : 'missing leftItems/rightItems (use leftItems/rightItems/expectedPairs shape)'),
   compare:   (p) => {
     // Must have parseable fractionA + fractionB
     const ok = (f) => typeof f === 'string' || (f && typeof f === 'object' && 'numerator' in f && 'denominator' in f);
@@ -41,6 +41,10 @@ const ARCHETYPE_RULES = {
     if (Array.isArray(p.fractions) && p.fractions.length >= 2) return null;
     if (Array.isArray(p.fractionIds) && p.fractionIds.length >= 2) return null;
     return 'must have fractions[] or fractionIds[] with ≥2 items';
+  },
+  placement: (p) => {
+    const hasFrac = p.numerator !== undefined || p.targetFracId || p.targetLabel;
+    return hasFrac ? null : 'missing numerator|targetFracId|targetLabel';
   },
   place: () => null,
 };
