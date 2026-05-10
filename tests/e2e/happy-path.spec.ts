@@ -62,7 +62,7 @@ test.describe('Happy Path — Start → Menu → L1 → 5Q → Completion → Me
     await expect(progressBar).toHaveAttribute('aria-valuemax', '5', { timeout: 3000 });
 
     // Verify ARIA-live region announces completion
-    const liveRegion = page.locator('[aria-live="polite"]');
+    const liveRegion = page.locator('#qf-live-polite');
     await expect(liveRegion).toContainText(
       /level \d+ complete|session complete|finished|congratulations/i,
       { timeout: 3000 }

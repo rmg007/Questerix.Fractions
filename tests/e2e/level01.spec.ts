@@ -36,7 +36,7 @@ test.describe('Level 01 — full 5-attempt flow', () => {
       await expect(feedbackOverlay).toBeVisible({ timeout: 10000 });
 
       // ARIA-live region announces outcome per accessibility.md §6
-      const liveRegion = page.locator('[aria-live="polite"]');
+      const liveRegion = page.locator('#qf-live-polite');
       await expect(liveRegion).not.toBeEmpty({ timeout: 2000 });
 
       // Progress bar should reflect current attempt count
@@ -64,7 +64,7 @@ test.describe('Level 01 — full 5-attempt flow', () => {
     await expect(progressBar).toHaveAttribute('aria-valuemax', '5');
 
     // ARIA-live announces session completion per accessibility.md §6
-    const liveRegion = page.locator('[aria-live="polite"]');
+    const liveRegion = page.locator('#qf-live-polite');
     await expect(liveRegion).toContainText(/level \d+ complete|session complete|finished/i);
   });
 
