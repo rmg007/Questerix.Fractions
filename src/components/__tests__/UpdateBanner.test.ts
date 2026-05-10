@@ -75,11 +75,19 @@ vi.mock('@/scenes/utils/TestHooks', () => ({
     setText: vi.fn((_: string, text: string) => {
       lastSentinelText = text;
     }),
-    mountInteractive: vi.fn(() => {
-      interactiveMounted = true;
-    }),
     unmount: vi.fn((id: string) => {
       if (id === 'update-banner') sentinelMounted = false;
+    }),
+  },
+}));
+
+vi.mock('@/components/A11yLayer', () => ({
+  A11yLayer: {
+    mountAction: vi.fn(() => {
+      interactiveMounted = true;
+      return null;
+    }),
+    unmount: vi.fn((id: string) => {
       if (id === 'update-banner-action') interactiveMounted = false;
     }),
   },
