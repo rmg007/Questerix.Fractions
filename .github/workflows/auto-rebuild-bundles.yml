@@ -56,17 +56,23 @@ jobs:
         run: cd pipeline && pip install -r requirements.txt -q
 
       - name: Rebuild curriculum bundles
-        run: npm run build:curriculum
+        run: |
+          # pipeline/output/ is gitignored; when absent CI can only verify parity.
+          if compgen -G "pipeline/output/level_*/all.json" > /dev/null 2>&1; then
+            npm run build:curriculum
+          else
+            echo "::notice::No pipeline output files present — skipping rebuild, checking committed bundle parity only."
+            cmp -s public/curriculum/v1.json src/curriculum/bundle.json \
+              || (echo "::error::public/curriculum/v1.json and src/curriculum/bundle.json are out of sync in the committed state." && exit 1)
+            exit 0
+          fi
 
       - name: Check if bundles changed
         id: diff-check
         run: |
-          git diff --quiet public/curriculum/v1.json src/curriculum/bundle.json
-          DIFF_EXIT=$?
-          if [ $DIFF_EXIT -eq 0 ]; then
-            echo "::notice::Curriculum bundles already in sync. No commit needed."
-            exit 0
-          fi
+          git diff --quiet public/curriculum/v1.json src/curriculum/bundle.json \
+            && { echo "::notice::Curriculum bundles already in sync. No commit needed."; exit 0; } \
+            || true
 
       - name: Commit and push synced bundles
         run: |
