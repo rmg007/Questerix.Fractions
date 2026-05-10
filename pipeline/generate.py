@@ -66,6 +66,7 @@ def _build_user_message(
     skill_ids: list[str],
     misconception_ids: list[str],
     archetype_guidance: str,
+    id_start: int = 1,
 ) -> str:
     return f"""
 {archetype_guidance}
@@ -80,7 +81,7 @@ Generate exactly {count} QuestionTemplate records for:
 - Available skill IDs: {json.dumps(skill_ids)}
 - Available misconception IDs: {json.dumps(misconception_ids)}
 
-ID sequence starts at 0001 for this batch.
+ID sequence starts at {id_start:04d} for this batch (format each id as a 4-digit zero-padded integer).
 Output only a JSON array. No prose.
 """.strip()
 
@@ -219,6 +220,7 @@ def generate_level(
 
     total_usage: dict = {"input_tokens": 0, "output_tokens": 0, "templates_generated": 0}
     all_templates: list[dict] = []
+    id_counter = 1  # global sequence across all (archetype, tier) batches for this level
 
     for arch in archetypes:
         archetype_guidance = _load_archetype_prompt(arch)
@@ -238,6 +240,7 @@ def generate_level(
                 skill_ids=skill_ids,
                 misconception_ids=misconception_ids,
                 archetype_guidance=archetype_guidance,
+                id_start=id_counter,
             )
 
             logger.info("Generating: level=%d archetype=%s tier=%s", level, arch, tier)
@@ -251,6 +254,7 @@ def generate_level(
                     max_retries=max_retries,
                 )
                 all_templates.extend(templates)
+                id_counter += len(templates)
                 total_usage["input_tokens"] += usage["input_tokens"]
                 total_usage["output_tokens"] += usage["output_tokens"]
                 total_usage["templates_generated"] += len(templates)
@@ -265,13 +269,14 @@ def generate_level(
                 # Flag for manual review per content-pipeline.md §4
                 all_templates.append(
                     {
-                        "id": f"q:{arch}:L{level}:MANUAL",
+                        "id": f"q:{arch}:L{level}:{id_counter:04d}",
                         "archetype": arch,
                         "difficultyTier": tier,
                         "manual_review": True,
                         "error": str(exc),
                     }
                 )
+                id_counter += count
 
     if dry_run:
         print(json.dumps(all_templates, indent=2))

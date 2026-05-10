@@ -19,6 +19,47 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
+/**
+ * Load pipeline/output/hints.json and return an index keyed by questionTemplateId.
+ * Each value is a QuestionHints object: { tier1: { default, byMisconception }, tier2: ... }.
+ * Returns an empty map if the hints file is absent.
+ */
+function loadHintIndex() {
+  const hintsPath = join(ROOT, 'pipeline', 'output', 'hints.json');
+  if (!existsSync(hintsPath)) {
+    console.log('[build-curriculum] hints.json not found — skipping hint attachment');
+    return {};
+  }
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync(hintsPath, 'utf8'));
+  } catch {
+    console.warn('[build-curriculum] hints.json unreadable — skipping hint attachment');
+    return {};
+  }
+  const index = {};
+  for (const h of raw) {
+    const tid = h.questionTemplateId;
+    if (!tid) continue;
+    if (!index[tid]) {
+      index[tid] = { tier1: { default: '', byMisconception: {} }, tier2: { default: '', byMisconception: {} } };
+    }
+    const text = h.content?.text ?? '';
+    if (h.type === 'verbal') index[tid].tier1.default = text;
+    else if (h.type === 'visual_overlay') index[tid].tier2.default = text;
+  }
+  const count = Object.keys(index).length;
+  console.log(`[build-curriculum] Loaded hints for ${count} templates from hints.json`);
+  return index;
+}
+
+/** Attach QuestionHints to a template if an entry exists in the index. */
+function attachHints(template, hintIndex) {
+  const hints = hintIndex[template.id];
+  if (!hints) return template;
+  return { ...template, hints };
+}
+
 /** Emit public/curriculum/level-NN.json + index.json from the levels map. */
 function writePerLevelFiles(outDir, levels, generatedAt) {
   const indexEntries = {};
@@ -63,9 +104,11 @@ const LEVEL_ARCHETYPES = {
 const LEVELS = Object.keys(LEVEL_ARCHETYPES);
 
 function buildBundle() {
+  const hintIndex = loadHintIndex();
   const levels = {};
   let totalIncluded = 0;
   let totalSkipped = 0;
+  let totalHintsAttached = 0;
 
   for (const levelKey of LEVELS) {
     const inputPath = join(ROOT, 'pipeline', 'output', `level_${levelKey}`, 'all.json');
@@ -102,9 +145,12 @@ function buildBundle() {
       return true;
     });
 
-    levels[levelKey] = filtered;
-    totalIncluded += filtered.length;
-    console.log(`  [build-curriculum] L${levelKey}: ${filtered.length} records included (${raw.length - filtered.length} skipped)`);
+    const withHints = filtered.map((t) => attachHints(t, hintIndex));
+    const hintsAttached = withHints.filter((t) => t.hints !== undefined).length;
+    totalHintsAttached += hintsAttached;
+    levels[levelKey] = withHints;
+    totalIncluded += withHints.length;
+    console.log(`  [build-curriculum] L${levelKey}: ${withHints.length} records included (${raw.length - withHints.length} skipped, ${hintsAttached} with hints)`);
   }
 
   // Safety guard: if no pipeline output was found, preserve any existing
@@ -182,7 +228,7 @@ function buildBundle() {
     process.exit(1);
   }
 
-  console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json and src/curriculum/bundle.json (${totalSkipped} skipped)`);
+  console.log(`\n[build-curriculum] Done. ${totalIncluded} templates written to public/curriculum/v1.json and src/curriculum/bundle.json (${totalSkipped} skipped, ${totalHintsAttached} hints attached)`);
   console.log(`[build-curriculum] Checksum verified: both files have SHA256 = ${v1Hash.slice(0, 8)}...`);
 
   writePerLevelFiles(outDir, bundle.levels, bundle.generatedAt);
