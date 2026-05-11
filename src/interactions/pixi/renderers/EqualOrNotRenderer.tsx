@@ -5,13 +5,12 @@
  */
 
 import { useEffect, useRef } from 'react';
-import type { CSSProperties, FocusEvent as ReactFocusEvent } from 'react';
 import * as PIXI from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
-import { KeyboardManager, isCancelKey } from '../keyboard';
-import { createButton } from '../visual';
-import { SPACING, TOUCH_TARGETS, COLORS } from '../tokens';
+import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
+import { createButton, createText } from '../visual';
+import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY } from '../tokens';
 import type { InteractionModel } from '../../model/types';
 import type {
   EqualOrNotQuestion,
@@ -77,11 +76,10 @@ export function EqualOrNotRenderer({
 
   const handleKeyboardEvent = (event: { type: string; key: string }): void => {
     if (event.type === 'keydown') {
-      // Enter/Space confirmation is handled natively by the DOM <button>
-      // mirrors in the returned JSX. A window-level Enter/Space handler here
-      // would unconditionally route confirmation to one choice and prevent
-      // keyboard users from selecting Not-Equal.
-      if (isCancelKey(event.key)) {
+      if (isConfirmationKey(event.key)) {
+        // On Enter/Space, select the focused button (default to Equal)
+        updateState({ type: 'select-equal' });
+      } else if (isCancelKey(event.key)) {
         // On Escape, clear selection
         updateState({ type: 'clear-selection' });
       }
@@ -112,13 +110,11 @@ export function EqualOrNotRenderer({
     app.stage.removeChildren();
 
     // Title/question text
-    const titleStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
-      fontSize: 24,
-      fill: COLORS.textPrimary,
-      align: 'center',
-    });
-    const titleText = new PIXI.Text({ text: 'Are these fractions equal?', style: titleStyle });
+    const titleText = createText(
+      'Are these fractions equal?',
+      TYPOGRAPHY.title,
+      COLORS.textPrimary
+    );
     titleText.anchor.set(0.5);
     titleText.x = width / 2;
     titleText.y = SPACING.xl;
@@ -165,80 +161,14 @@ export function EqualOrNotRenderer({
     renderStage(app, stateRef.current);
   };
 
-  // DOM-mirror handlers: native <button> elements below give assistive tech
-  // and keyboard users a way to choose either option. <button> handles
-  // Enter/Space activation natively, so no window-level shortcut is needed.
-  const handleEqualClick = (): void => {
-    updateState({ type: 'select-equal' });
-  };
-  const handleNotEqualClick = (): void => {
-    updateState({ type: 'select-not-equal' });
-  };
-
-  // Visually-hidden style: keeps the DOM mirrors focusable and clickable but
-  // off-screen so the Pixi canvas owns the visual presentation. The buttons
-  // become visible (with a focus outline) when focused via keyboard.
-  const srOnlyStyle: CSSProperties = {
-    position: 'absolute',
-    width: '1px',
-    height: '1px',
-    padding: 0,
-    margin: '-1px',
-    overflow: 'hidden',
-    clip: 'rect(0,0,0,0)',
-    whiteSpace: 'nowrap',
-    border: 0,
-  };
-  const srOnlyFocusStyle: CSSProperties = {
-    position: 'static',
-    width: 'auto',
-    height: 'auto',
-    margin: 0,
-    overflow: 'visible',
-    clip: 'auto',
-    whiteSpace: 'normal',
-    outline: '2px solid #1a73e8',
-    outlineOffset: '2px',
-  };
-  const applyFocus = (e: ReactFocusEvent<HTMLButtonElement>): void => {
-    Object.assign(e.currentTarget.style, srOnlyFocusStyle);
-  };
-  const applyBlur = (e: ReactFocusEvent<HTMLButtonElement>): void => {
-    Object.assign(e.currentTarget.style, srOnlyStyle);
-  };
-
   return (
-    <div className="equal-or-not-renderer-wrapper" style={{ position: 'relative' }}>
-      <PixiStage
-        width={width}
-        height={height}
-        backgroundColor={COLORS.backgroundLight}
-        onReady={handleReady}
-        className="equal-or-not-renderer"
-        ariaLabel="Choose whether the fractions are equal"
-      />
-      <button
-        type="button"
-        aria-label="Equal"
-        data-testid="equal-or-not-equal-mirror"
-        style={srOnlyStyle}
-        onClick={handleEqualClick}
-        onFocus={applyFocus}
-        onBlur={applyBlur}
-      >
-        Equal
-      </button>
-      <button
-        type="button"
-        aria-label="Not Equal"
-        data-testid="equal-or-not-not-equal-mirror"
-        style={srOnlyStyle}
-        onClick={handleNotEqualClick}
-        onFocus={applyFocus}
-        onBlur={applyBlur}
-      >
-        Not Equal
-      </button>
-    </div>
+    <PixiStage
+      width={width}
+      height={height}
+      backgroundColor={COLORS.backgroundLight}
+      onReady={handleReady}
+      className="equal-or-not-renderer"
+      ariaLabel="Choose whether the fractions are equal"
+    />
   );
 }
