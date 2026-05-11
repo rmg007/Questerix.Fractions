@@ -2,7 +2,7 @@
  * Level01SceneSelection — BKT-adaptive question selection.
  */
 
-import type { QuestionTemplate } from '@/types';
+import type { QuestionTemplate, QuestionHints } from '@/types';
 import type { PartitionPayload } from '@/validators/partition';
 import type { Rng } from '@/engine/ports';
 
@@ -14,6 +14,7 @@ export interface L01Question {
   areaTolerance: number;
   snapMode: 'axis' | 'free';
   promptText: string;
+  hints?: QuestionHints;
 }
 
 export const SYNTHETIC_QUESTIONS: L01Question[] = [

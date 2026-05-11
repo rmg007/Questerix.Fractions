@@ -4,12 +4,18 @@ status: active
 owner: solo
 last_reviewed: 2026-04-30
 applies_to: [mvp]
+gradeBand: '1'
 constraint_refs: [C3, C8, C9]
 related:
   [./level-02.md, ./level-04.md, ../scope-and-sequence.md, ../../30-architecture/data-schema.md]
 ---
 
 # Level 3 — Identify Thirds and Fourths
+
+## Overview
+
+**Name:** Thirds & Fourths  
+**Concept:** Identify thirds and fourths
 
 The student's **first encounter with denominators other than 2**. Level 3 introduces **thirds** and **fourths** as new denominator families, building directly on the halves schema from Levels 1–2.
 

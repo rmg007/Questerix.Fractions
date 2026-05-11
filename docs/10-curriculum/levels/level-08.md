@@ -4,11 +4,17 @@ status: draft
 owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
+gradeBand: '2'
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md, level-07.md, level-09.md]
 ---
 
 # Level 8 — Benchmarks (0, 1/2, 1)
+
+## Overview
+
+**Name:** Benchmarks  
+**Concept:** Place fractions at 0, 1/2, and 1
 
 The level where the student stops comparing pairs and starts **placing fractions in space**. Goal: develop the mental number line. The three anchors are **0**, **1/2**, and **1**. Every fraction in the MVP pool gets categorised: closer to 0, closer to 1/2, or closer to 1.
 
@@ -40,13 +46,13 @@ See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-16/
 
 | Skill ID | Name                                             | BKT priors                                           |
 | -------- | ------------------------------------------------ | ---------------------------------------------------- |
-| `SK-27`  | Number-line placement (single fraction on 0–1)   | `pInit=0.15, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
-| `SK-28`  | Benchmark proximity sorting (zones: 0, 1/2, 1)   | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
-| `SK-29`  | Benchmark 1/2 rule (`a > b/2` → bigger than 1/2) | `pInit=0.10, pTransit=0.25, pSlip=0.15, pGuess=0.33` |
+| `KC-MAGNITUDE`  | Number-line placement (single fraction on 0–1)   | `pInit=0.15, pTransit=0.20, pSlip=0.15, pGuess=0.10` |
+| `KC-MAGNITUDE`  | Benchmark proximity sorting (zones: 0, 1/2, 1)   | `pInit=0.20, pTransit=0.25, pSlip=0.10, pGuess=0.33` |
+| `KC-MAGNITUDE`  | Benchmark 1/2 rule (`a > b/2` → bigger than 1/2) | `pInit=0.10, pTransit=0.25, pSlip=0.15, pGuess=0.33` |
 
-The `pGuess` of `0.10` on `SK-27` reflects that random placement on a continuous line is unlikely to land within snap tolerance of the target. By contrast `SK-28` and `SK-29` both have ternary outcomes (`pGuess=0.33`).
+The `pGuess` of `0.10` on `KC-MAGNITUDE` reflects that random placement on a continuous line is unlikely to land within snap tolerance of the target. By contrast `KC-MAGNITUDE` and `KC-MAGNITUDE` both have ternary outcomes (`pGuess=0.33`).
 
-`SK-27`, `SK-28`, and `SK-29` all carry forward to Level 9. Mastery of all three at `state: "MASTERED"` is the gate to unlock Level 9.
+`KC-MAGNITUDE`, `KC-MAGNITUDE`, and `KC-MAGNITUDE` all carry forward to Level 9. Mastery of all three at `state: "MASTERED"` is the gate to unlock Level 9.
 
 ---
 
@@ -105,7 +111,7 @@ The full mechanic spec — pointer events, ghost preview, direction tooltip, sna
   },
   "correctAnswer": 0.5,
   "validatorId": "validator.placement.snapTolerance",
-  "skillIds": ["SK-27"],
+  "skillIds": ["KC-MAGNITUDE"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -122,7 +128,7 @@ The full mechanic spec — pointer events, ghost preview, direction tooltip, sna
   },
   "correctAnswer": 0.375,
   "validatorId": "validator.placement.snapTolerance",
-  "skillIds": ["SK-27", "SK-29"],
+  "skillIds": ["KC-MAGNITUDE", "KC-MAGNITUDE"],
   "misconceptionTraps": ["MC-PRX-01"],
   "difficultyTier": "medium"
 }
@@ -139,7 +145,7 @@ The full mechanic spec — pointer events, ghost preview, direction tooltip, sna
   },
   "correctAnswer": 0.833,
   "validatorId": "validator.placement.snapTolerance",
-  "skillIds": ["SK-27"],
+  "skillIds": ["KC-MAGNITUDE"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -158,7 +164,7 @@ The full mechanic spec — pointer events, ghost preview, direction tooltip, sna
 
 The archetype from `RoadMap/03_Level_06_09/02-FractionBenchmarkBattle.md`. A single fraction is shown. The student taps one of three buttons: **BIGGER than 1/2**, **SMALLER than 1/2**, **EQUAL to 1/2**. The benchmark 1/2 is always displayed at the top of the screen as a pie chart and a bar.
 
-This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rule card is fully visible; by Hard tier the student must apply the rule mentally. The "equal" button is hidden at Easy tier (binary decision only) and revealed at Medium per the staged-introduction approach in the source doc §4.
+This activity directly trains `KC-MAGNITUDE` (the rule `a > b/2`). At Easy tier the rule card is fully visible; by Hard tier the student must apply the rule mentally. The "equal" button is hidden at Easy tier (binary decision only) and revealed at Medium per the staged-introduction approach in the source doc §4.
 
 #### Difficulty tiers
 
@@ -191,7 +197,7 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
   },
   "correctAnswer": "smaller",
   "validatorId": "validator.benchmark_sort.threeWay",
-  "skillIds": ["SK-28", "SK-29"],
+  "skillIds": ["KC-MAGNITUDE", "KC-MAGNITUDE"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -209,7 +215,7 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
   },
   "correctAnswer": "bigger",
   "validatorId": "validator.benchmark_sort.threeWay",
-  "skillIds": ["SK-28", "SK-29"],
+  "skillIds": ["KC-MAGNITUDE", "KC-MAGNITUDE"],
   "misconceptionTraps": ["MC-PRX-01"],
   "difficultyTier": "medium"
 }
@@ -228,7 +234,7 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
   },
   "correctAnswer": "equal",
   "validatorId": "validator.benchmark_sort.threeWay",
-  "skillIds": ["SK-28", "SK-29"],
+  "skillIds": ["KC-MAGNITUDE", "KC-MAGNITUDE"],
   "misconceptionTraps": ["MC-EQ-02"],
   "difficultyTier": "medium"
 }
@@ -247,7 +253,7 @@ This activity directly trains `SK-29` (the rule `a > b/2`). At Easy tier the rul
   },
   "correctAnswer": "smaller",
   "validatorId": "validator.benchmark_sort.threeWay",
-  "skillIds": ["SK-29"],
+  "skillIds": ["KC-MAGNITUDE"],
   "misconceptionTraps": ["MC-PRX-01"],
   "difficultyTier": "hard"
 }
@@ -305,7 +311,7 @@ A fraction is "closer to" benchmark `b` when `|f - b|` is smaller than `|f - oth
     "7/8": "one"
   },
   "validatorId": "validator.benchmark_sort.multiCardZones",
-  "skillIds": ["SK-28"],
+  "skillIds": ["KC-MAGNITUDE"],
   "misconceptionTraps": [],
   "difficultyTier": "easy"
 }
@@ -335,7 +341,7 @@ A fraction is "closer to" benchmark `b` when `|f - b|` is smaller than `|f - oth
     "1/4": "zero"
   },
   "validatorId": "validator.benchmark_sort.multiCardZones",
-  "skillIds": ["SK-28", "SK-29"],
+  "skillIds": ["KC-MAGNITUDE", "KC-MAGNITUDE"],
   "misconceptionTraps": ["MC-PRX-01"],
   "difficultyTier": "hard"
 }
@@ -353,7 +359,7 @@ The card `1/4` is intentionally equidistant from 0 (distance 0.25) and 1/2 (dist
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `MC-PRX-01`  | "Proximity-to-1 confusion" — student places fractions near 1 (e.g., `5/6`, `7/8`) too far left because the numerator is small          | Wrong placement on `magnitude_scales` Hard items where the fraction is in the `[0.7, 0.9]` range |
 | `MC-EQ-02`   | "Equal benchmarks unrecognised" — student places `2/4` or `3/6` in the "almost half" zone instead of recognising it equals 1/2 exactly | Wrong "bigger" or "smaller" on `benchmark_battle` items where the fraction equals 1/2            |
-| `MC-RULE-01` | "Rule misapplication" — student inverts the benchmark rule (says `a > b/2` is smaller than 1/2)                                        | Mirror-image errors on `benchmark_battle`: consistently picking the opposite of correct          |
+| `MC-PRX-01` | "Rule misapplication" — student inverts the benchmark rule (says `a > b/2` is smaller than 1/2)                                        | Mirror-image errors on `benchmark_battle`: consistently picking the opposite of correct          |
 | `MC-WHB-01`  | (carried from L6) "Whole-number bias on numerator"                                                                                     | Wrong placement of fractions like `3/4` near the `3/8` position because the numerator is 3       |
 | `MC-WHB-02`  | (carried from L7) "Whole-number bias on denominator"                                                                                   | Re-emerges in `magnitude_scales` Hard items where `1/4` is placed left of `1/8` because `4 > 8`  |
 
@@ -506,7 +512,7 @@ Fractions equal to 1/2 (`2/4`, `3/6`, `4/8`) are explicitly tagged `benchmark: "
 
 A student unlocks Level 9 when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-27`, `SK-28`, **and** `SK-29` (see `../skills.md`)
+- `SkillMastery.state === "MASTERED"` for `KC-MAGNITUDE`, `KC-MAGNITUDE`, **and** `KC-MAGNITUDE` (see `../skills.md`)
 - At least 24 attempts across at least 2 different activities at this level
 - Tier 3 (Hard) accuracy ≥ 70% across the last 6 hard attempts (no scaffolding, no rule card)
 - For `magnitude_scales` Hard: at least 4 of last 6 placements have `outcome === "EXACT"` (per the validator's tier from `01-FractionMagnitudeScales.md` §5) — placement precision genuinely matters, and `CLOSE` placements are not enough at the gate

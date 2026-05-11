@@ -2,7 +2,7 @@
 
 ## Validator
 
-`validator.snap_match.equivalence` — checks that snapped pair is correct.
+`validator.snap_match.equivalence` — checks that snapped pairs match the expectedPairs list.
 
 ## Payload shape
 
@@ -20,15 +20,19 @@
 }
 ```
 
-- `leftItems` and `rightItems`: arrays of items to match. Each item has `id` (unique string), `label` (e.g. "1/2"), and optionally `numerator`/`denominator`.
-- `expectedPairs`: array of `[leftId, rightId]` pairs that are correct matches.
-- `correctAnswer`: decimal value of the primary correct match (e.g. 0.5 for 1/2).
+`correctAnswer`: list of matched pair IDs, e.g. `[["a","c"],["b","d"]]`
 
 ## Typical combos by difficulty
 
-- easy: 2 left + 2 right, same denominator family (halves/fourths)
-- medium: 2 left + 3 right (one distractor), cross-family (halves/sixths)
-- hard: 3 left + 4 right (two distractors), full pool
+- easy: one pair — 2/4 → 1/2 (halves family only)
+- medium: two pairs — 2/6 → 1/3, 2/4 → 1/2 (thirds and sixths)
+- hard: three pairs with extra distractors — mixed families
+
+## Rules
+
+- All IDs must be unique across leftItems and rightItems.
+- Each left item pairs with exactly one right item in expectedPairs.
+- Include at least one distractor item per side that has no valid match.
 
 ## Misconception triggers to surface
 
@@ -37,6 +41,6 @@
 
 ## Prompt patterns
 
-- "Match each fraction on the left to its equal on the right."
-- "Drag each fraction to its matching partner."
-- "Find the equal pairs and connect them."
+- "Drag each fraction on the left to its equal match on the right."
+- "Match the fractions that have the same value."
+- "Find the equal pairs and snap them together."

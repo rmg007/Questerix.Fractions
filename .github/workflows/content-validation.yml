@@ -21,11 +21,17 @@ jobs:
       - run: cd pipeline && pip install -r requirements.txt
       - name: Verify each level
         run: |
-          for f in pipeline/output/level_*/all.json; do
-            echo "::group::Verifying $f"
-            PYTHONPATH=. python -m pipeline.verify --in "$f" --templates-only
-            echo "::endgroup::"
-          done
+          shopt -s nullglob
+          files=(pipeline/output/level_*/all.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::notice::No pipeline output files present (gitignored) — skipping per-level verify."
+          else
+            for f in "${files[@]}"; do
+              echo "::group::Verifying $f"
+              PYTHONPATH=. python -m pipeline.verify --in "$f" --templates-only
+              echo "::endgroup::"
+            done
+          fi
       - name: Verify curriculum bundle
         run: |
           test -s public/curriculum/v1.json || (echo "Curriculum bundle missing or empty" && exit 1)

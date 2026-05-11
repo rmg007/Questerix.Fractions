@@ -4,11 +4,17 @@ status: draft
 owner: solo
 last_reviewed: 2026-04-25
 applies_to: [mvp]
+gradeBand: '2'
 constraint_refs: [C3, C8, C9]
 related: [../scope-and-sequence.md, ../../30-architecture/data-schema.md, level-06.md, level-08.md]
 ---
 
 # Level 7 — Compare Same-Numerator Fractions
+
+## Overview
+
+**Name:** Compare Same Num.  
+**Concept:** Compare same-numerator fractions
 
 The counter-intuitive level. Goal: when two fractions share the **same numerator**, the one with the **larger denominator is smaller**. The classic Grade 2 trap is `1/4 > 1/3` — false, because each fourth is smaller than each third.
 
@@ -38,15 +44,15 @@ See `../skills.md` for canonical definitions. (audit §1.1 fix — former SK-13/
 
 | Skill ID | Name                                                 | BKT priors                                           |
 | -------- | ---------------------------------------------------- | ---------------------------------------------------- |
-| `SK-24`  | Same-numerator comparison (inverse-denominator rule) | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.33` |
-| `SK-25`  | Unit-fraction ordering (1/2, 1/3, 1/4, 1/6, 1/8)     | `pInit=0.15, pTransit=0.25, pSlip=0.10, pGuess=0.20` |
-| `SK-26`  | Resisting whole-number bias on the denominator       | `pInit=0.20, pTransit=0.30, pSlip=0.15, pGuess=0.50` |
+| `KC-SYMBOL-ADV`  | Same-numerator comparison (inverse-denominator rule) | `pInit=0.10, pTransit=0.20, pSlip=0.15, pGuess=0.33` |
+| `KC-SYMBOL-ADV`  | Unit-fraction ordering (1/2, 1/3, 1/4, 1/6, 1/8)     | `pInit=0.15, pTransit=0.25, pSlip=0.10, pGuess=0.20` |
+| `KC-SYMBOL-ADV`  | Resisting whole-number bias on the denominator       | `pInit=0.20, pTransit=0.30, pSlip=0.15, pGuess=0.50` |
 
-`SK-24` carries forward into Level 8 (benchmarks) and Level 9 (ordering). `SK-26` is a _negative_ skill — its mastery is signalled by the _absence_ of `MC-WHB-02` flags across the last 8 attempts. The high `pSlip` (0.15) on `SK-24` reflects that even students who understand the rule sometimes default to the whole-number bias under timer pressure.
+`KC-SYMBOL-ADV` carries forward into Level 8 (benchmarks) and Level 9 (ordering). `KC-SYMBOL-ADV` is a _negative_ skill — its mastery is signalled by the _absence_ of `MC-WHB-02` flags across the last 8 attempts. The high `pSlip` (0.15) on `KC-SYMBOL-ADV` reflects that even students who understand the rule sometimes default to the whole-number bias under timer pressure.
 
-The `pGuess` on `SK-26` is `0.50` because the binary "did the student fall for the trap or not" has two possible outcomes.
+The `pGuess` on `KC-SYMBOL-ADV` is `0.50` because the binary "did the student fall for the trap or not" has two possible outcomes.
 
-Mastery of `SK-24` and `SK-25` at `state: "MASTERED"`, **and** at most one `MC-WHB-02` flag in the last 8 attempts, is the gate to unlock Level 8.
+Mastery of `KC-SYMBOL-ADV` and `KC-SYMBOL-ADV` at `state: "MASTERED"`, **and** at most one `MC-WHB-02` flag in the last 8 attempts, is the gate to unlock Level 8.
 
 ---
 
@@ -104,7 +110,7 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
   },
   "correctAnswer": ">",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "easy"
 }
@@ -121,7 +127,7 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
   },
   "correctAnswer": "<",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "easy"
 }
@@ -138,7 +144,7 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
   },
   "correctAnswer": ">",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "medium"
 }
@@ -155,7 +161,7 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
   },
   "correctAnswer": ">",
   "validatorId": "validator.comparison.relationalSymbol",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "hard"
 }
@@ -172,7 +178,7 @@ The same UI as `comparison_battle_same_denom` from Level 6, but now **the denomi
 **Title:** "Stack the Slices"
 **Levels in app:** L7 only (Level 9 generalises this to non-unit ordering with mixed denominators)
 
-The student is given 3, 4, or 5 unit-fraction cards (e.g., `1/2`, `1/3`, `1/4`, `1/6`, `1/8`) shuffled in a tray. Below the tray is a vertical "ladder" with N labelled rungs: top = LARGEST, bottom = SMALLEST. The student drags each card onto a rung. The mechanic is the drag-to-sequence archetype from `RoadMap/03_Level_06_09/03-FractionOrderingTournament.md`, restricted at this level to **unit fractions only** to keep the focus on `SK-25` (the unit-fraction inverse relationship: bigger bottom = smaller piece).
+The student is given 3, 4, or 5 unit-fraction cards (e.g., `1/2`, `1/3`, `1/4`, `1/6`, `1/8`) shuffled in a tray. Below the tray is a vertical "ladder" with N labelled rungs: top = LARGEST, bottom = SMALLEST. The student drags each card onto a rung. The mechanic is the drag-to-sequence archetype from `RoadMap/03_Level_06_09/03-FractionOrderingTournament.md`, restricted at this level to **unit fractions only** to keep the focus on `KC-SYMBOL-ADV` (the unit-fraction inverse relationship: bigger bottom = smaller piece).
 
 A bar-model strip down the right side of the screen shows each fraction's bar at unified scale; as the student places cards, the corresponding bars highlight in the same vertical order, providing implicit feedback (per the "implicit feedback from number line" pattern in the Ordering Tournament source doc §3).
 
@@ -215,7 +221,7 @@ The vertical ladder framing is a deliberate choice: a horizontal slot row (as in
     { "num": 1, "den": 4 }
   ],
   "validatorId": "validator.ordering.descendingDecimal",
-  "skillIds": ["SK-24", "SK-25"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "easy"
 }
@@ -241,7 +247,7 @@ The vertical ladder framing is a deliberate choice: a horizontal slot row (as in
     { "num": 1, "den": 6 }
   ],
   "validatorId": "validator.ordering.descendingDecimal",
-  "skillIds": ["SK-24", "SK-25"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "medium"
 }
@@ -269,7 +275,7 @@ The vertical ladder framing is a deliberate choice: a horizontal slot row (as in
     { "num": 1, "den": 8 }
   ],
   "validatorId": "validator.ordering.descendingDecimal",
-  "skillIds": ["SK-24", "SK-25"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "hard"
 }
@@ -329,7 +335,7 @@ This is the only L7 activity that is explicitly _about_ the misconception rather
   },
   "correctAnswer": { "judgement": "disagree", "correctionSide": "right" },
   "validatorId": "validator.identify.flipRuleTwoStep",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": ["MC-WHB-02"],
   "difficultyTier": "easy"
 }
@@ -353,7 +359,7 @@ This is the only L7 activity that is explicitly _about_ the misconception rather
   },
   "correctAnswer": { "judgement": "agree" },
   "validatorId": "validator.identify.flipRuleTwoStep",
-  "skillIds": ["SK-24", "SK-26"],
+  "skillIds": ["KC-SYMBOL-ADV", "KC-SYMBOL-ADV"],
   "misconceptionTraps": [],
   "difficultyTier": "hard"
 }
@@ -368,8 +374,8 @@ This is the only L7 activity that is explicitly _about_ the misconception rather
 | MC ID       | Name                                                                                                                                                   | Detection signal                                                                                                                     |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `MC-WHB-02` | "Whole-number bias on denominator" — student picks `1/4 > 1/3` because `4 > 3`                                                                         | Wrong answer with the explicit pattern (larger denominator chosen as larger fraction) on `comparison_battle_same_num` Easy or Medium |
-| `MC-INV-01` | "Inverse relationship not internalised" — student gets unit-fraction comparisons right when bars are visible but consistently wrong when symbolic-only | Accuracy gap > 30% between Medium (bars on miss) and Hard (bars only via hint) on `comparison_battle_same_num`                       |
-| `MC-NUM-01` | "Non-unit numerator-bias" — student applies the same-numerator rule correctly to `1/3` vs `1/4` but fails on `2/3` vs `2/4`                            | Wrong on `comparison_battle_same_num` Hard non-unit items while correct on equivalent unit items                                     |
+| `MC-WHB-02` | "Inverse relationship not internalised" — student gets unit-fraction comparisons right when bars are visible but consistently wrong when symbolic-only | Accuracy gap > 30% between Medium (bars on miss) and Hard (bars only via hint) on `comparison_battle_same_num`                       |
+| `MC-NOM-01` | "Non-unit numerator-bias" — student applies the same-numerator rule correctly to `1/3` vs `1/4` but fails on `2/3` vs `2/4`                            | Wrong on `comparison_battle_same_num` Hard non-unit items while correct on equivalent unit items                                     |
 | `MC-EQ-01`  | (carried from L6) "Equal looks the same"                                                                                                               | Wrong "=" on items where bar lengths are perceptually similar but not equal                                                          |
 
 `MC-WHB-02` is the _flagship_ misconception of this level. The intervention strategy (per `00-MASTER_PLAN.md` R-03) is the pre-emptive micro-lesson before the activity starts, plus the `flip_rule_check` activity, plus mandatory bar-model display on every wrong answer at Tier 1–2.
@@ -457,13 +463,13 @@ Within a single same-numerator comparison, the two fractions must share a numera
 
 A student unlocks Level 8 when **all** are true:
 
-- `SkillMastery.state === "MASTERED"` for `SK-24` **and** `SK-25` (see `../skills.md`)
-- `SkillMastery.state` for `SK-26` (resisting whole-number bias) is **at least** `"APPROACHING"`
+- `SkillMastery.state === "MASTERED"` for `KC-SYMBOL-ADV` **and** `KC-SYMBOL-ADV` (see `../skills.md`)
+- `SkillMastery.state` for `KC-SYMBOL-ADV` (resisting whole-number bias) is **at least** `"APPROACHING"`
 - At most **one** `MC-WHB-02` flag in the last 8 attempts (the "approximately resolved" criterion from `00-MASTER_PLAN.md` §9 metrics)
 - At least 20 attempts across at least 2 different activities at this level
 - Tier 3 (Hard) accuracy ≥ 65% across the last 6 hard attempts (lower than L6's 70% because L7 is genuinely harder, and a student who reaches 65% Hard with no recent MC-WHB-02 flags has the schema)
 
-The advancement bar for `SK-26` is intentionally `"APPROACHING"` not `"MASTERED"` — full mastery of "do not fall for the bias" is a multi-year process, and demanding it gates students out of Level 8 unnecessarily. What matters is that the student _recognises_ the trap, which `"APPROACHING"` captures.
+The advancement bar for `KC-SYMBOL-ADV` is intentionally `"APPROACHING"` not `"MASTERED"` — full mastery of "do not fall for the bias" is a multi-year process, and demanding it gates students out of Level 8 unnecessarily. What matters is that the student _recognises_ the trap, which `"APPROACHING"` captures.
 
 ---
 

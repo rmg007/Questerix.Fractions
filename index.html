@@ -132,6 +132,11 @@
       </div>
     </div>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module">
+      // Spike mode: load React entry point; production: load Phaser
+      const isSpikeMode = import.meta.env.VITE_SPIKE === '1';
+      const entryPoint = isSpikeMode ? '/src/app/main.tsx' : '/src/main.ts';
+      import(entryPoint);
+    </script>
   </body>
 </html>
