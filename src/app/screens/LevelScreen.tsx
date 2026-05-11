@@ -7,6 +7,16 @@ interface LevelScreenProps {
   params: { levelId: string };
 }
 
+/**
+ * Validate level ID from route parameter.
+ * Valid level IDs are 1-9 (Grades K-2).
+ */
+function isValidLevelId(levelId: unknown): levelId is string {
+  if (typeof levelId !== 'string' || !levelId.trim()) return false;
+  const num = Number.parseInt(levelId, 10);
+  return Number.isFinite(num) && Number.isInteger(num) && num >= 1 && num <= 9;
+}
+
 interface AnswerPayload {
   choice: 'equal' | 'not_equal';
 }
@@ -73,6 +83,16 @@ export function LevelScreen({ params }: LevelScreenProps) {
 
   const { loading, templatesByArchetype } = useCurriculum();
 
+  // Validate level ID from route parameters
+  if (!isValidLevelId(levelId)) {
+    return (
+      <div className="level-screen">
+        <h2>Invalid Level</h2>
+        <p>The requested level ID is invalid. Valid levels are 1-9.</p>
+      </div>
+    );
+  }
+
   // Get all equal_or_not questions for this level
   const questionsForLevel = useMemo(() => {
     const allEqualOrNot = templatesByArchetype('equal_or_not');
@@ -80,10 +100,6 @@ export function LevelScreen({ params }: LevelScreenProps) {
   }, [levelId, templatesByArchetype]);
 
   const currentQuestion = questionsForLevel[questionIndex];
-
-  if (!levelId) {
-    return <div>No level selected</div>;
-  }
 
   if (loading) {
     return (
