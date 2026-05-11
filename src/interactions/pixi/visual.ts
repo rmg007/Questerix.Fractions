@@ -139,7 +139,7 @@ export function createButton(config: ButtonConfig): PIXI.Container {
   });
 
   if (id) {
-    (container as any).id = id;
+    (container as unknown as { id: string }).id = id;
   }
 
   return container;

@@ -35,6 +35,6 @@
       "@interactions/*": ["src/interactions/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "tests/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "tests/**/*.ts"],
   "exclude": ["src/_legacy", "node_modules"]
 }

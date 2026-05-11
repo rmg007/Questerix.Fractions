@@ -41,8 +41,14 @@ export class KeyboardManager {
    */
   attach(): void {
     if (this.isAttached) return;
-    (this.target as any).addEventListener('keydown', this.boundKeyDown as any);
-    (this.target as any).addEventListener('keyup', this.boundKeyUp as any);
+    (this.target as EventTarget).addEventListener(
+      'keydown',
+      this.boundKeyDown as EventListenerOrEventListenerObject
+    );
+    (this.target as EventTarget).addEventListener(
+      'keyup',
+      this.boundKeyUp as EventListenerOrEventListenerObject
+    );
     this.isAttached = true;
   }
 
@@ -51,8 +57,14 @@ export class KeyboardManager {
    */
   detach(): void {
     if (!this.isAttached) return;
-    (this.target as any).removeEventListener('keydown', this.boundKeyDown as any);
-    (this.target as any).removeEventListener('keyup', this.boundKeyUp as any);
+    (this.target as EventTarget).removeEventListener(
+      'keydown',
+      this.boundKeyDown as EventListenerOrEventListenerObject
+    );
+    (this.target as EventTarget).removeEventListener(
+      'keyup',
+      this.boundKeyUp as EventListenerOrEventListenerObject
+    );
     this.isAttached = false;
   }
 

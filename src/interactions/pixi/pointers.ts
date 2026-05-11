@@ -145,7 +145,8 @@ export class PointerManager {
    */
   private onPointerDown(e: PIXI.FederatedPointerEvent): void {
     const pointerId = e.pointerId ?? 0;
-    const state = new PointerState(pointerId, e.clientX, e.clientY, (e.target as any)?.id);
+    const targetId = (e.target as unknown as { id?: string })?.id;
+    const state = new PointerState(pointerId, e.clientX, e.clientY, targetId);
     this.pointers.set(pointerId, state);
 
     const tapEvent: TapEvent = {

@@ -111,7 +111,9 @@ describe('equalOrNotModel.reduce — clear-selection', () => {
 describe('equalOrNotModel.reduce — unknown event', () => {
   it('returns state unchanged', () => {
     const state = equalOrNotModel.initialize(questionEqual);
-    const nextState = equalOrNotModel.reduce(state, { type: 'unknown-event' } as any);
+    const nextState = equalOrNotModel.reduce(state, {
+      type: 'unknown-event',
+    } as unknown as EqualOrNotEvent);
     expect(nextState).toEqual(state);
   });
 });
