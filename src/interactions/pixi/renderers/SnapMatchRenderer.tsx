@@ -4,8 +4,8 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText, createRect } from '../visual';
-import type { InteractionModel } from '../../model/types';
 import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX, TYPOGRAPHY } from '../tokens';
+import type { InteractionModel } from '../../model/types';
 import type {
   SnapMatchQuestion,
   SnapMatchState,

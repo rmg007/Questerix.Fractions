@@ -4,8 +4,8 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
 import { createButton, createRect, createText } from '../visual';
-import type { InteractionModel } from '../../model/types';
 import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY, STROKE } from '../tokens';
+import type { InteractionModel } from '../../model/types';
 import type {
   IdentifyQuestion,
   IdentifyState,
