@@ -112,11 +112,13 @@ async function run() {
   if (buildTime) ok(`x-build-time: ${buildTime}`);
   else fail('x-build-time meta missing', '');
 
-  // 7. Accessibility — verify A11yLayer code shipped (runtime-mounted DOM buttons
-  // mirror canvas controls per WCAG 4.1.2). The scenes chunk is dynamically
+  // 7. Accessibility — verify a11y code shipped (canvas role=application +
+  // per-renderer DOM mirrors per WCAG 4.1.2). The scenes chunk is dynamically
   // imported, so we extract its URL from the entry JS.
+  // Post-React+Pixi migration (PR #107): A11yLayer replaced by PixiStage canvas
+  // role=application + aria-label, with per-renderer DOM-button mirrors.
   console.log('\n  Accessibility:');
-  const markers = ['qf-a11y-layer', 'data-a11y-id'];
+  const markers = ['role', 'application', 'aria-label'];
   const seedUrls = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.js)"/g)].map((m) => m[1]);
   const allUrls = new Set(seedUrls);
   // Walk entry JS for chunk references (e.g. "scenes-XXXX.js")
@@ -144,8 +146,8 @@ async function run() {
       /* skip */
     }
   }
-  if (foundIn) ok(`A11yLayer code shipped (found in ${foundIn})`);
-  else fail('A11yLayer markers missing from all chunks', `checked ${allUrls.size} scripts`);
+  if (foundIn) ok(`Canvas a11y code shipped (found in ${foundIn})`);
+  else fail('Canvas a11y markers missing from all chunks', `checked ${allUrls.size} scripts`);
 
   // 8. Storage compatibility — COEP:require-corp causes IndexedDB "storage access
   // not allowed from this context" in embedded/iframe testers. We don't use
