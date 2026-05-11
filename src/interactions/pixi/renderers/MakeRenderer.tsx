@@ -5,7 +5,6 @@ import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText } from '../visual';
 import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX, TYPOGRAPHY } from '../tokens';
-import type { InteractionModel } from '../../model/types';
 import type { MakeQuestion, MakeState, MakeEvent, MakeAnswer } from '../../model/make';
 
 interface MakeRendererProps {

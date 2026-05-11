@@ -11,7 +11,6 @@ import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText } from '../visual';
 import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY } from '../tokens';
-import type { InteractionModel } from '../../model/types';
 import type {
   EqualOrNotQuestion,
   EqualOrNotState,

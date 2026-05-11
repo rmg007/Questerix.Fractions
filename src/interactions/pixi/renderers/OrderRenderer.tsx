@@ -5,7 +5,6 @@ import { PointerManager, type PointerEvent } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
 import { createText, createRect } from '../visual';
 import { SPACING, COLORS, TYPOGRAPHY, STROKE } from '../tokens';
-import type { InteractionModel } from '../../model/types';
 import type {
   OrderQuestion,
   OrderState,
