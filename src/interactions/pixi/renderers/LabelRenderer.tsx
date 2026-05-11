@@ -6,12 +6,7 @@ import { KeyboardManager, isConfirmationKey } from '../keyboard';
 import { createButton, createRect, createText } from '../visual';
 import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY, STROKE } from '../tokens';
 import type { InteractionModel } from '../../model/types';
-import type {
-  LabelQuestion,
-  LabelState,
-  LabelEvent,
-  LabelAnswer,
-} from '../../model/label';
+import type { LabelQuestion, LabelState, LabelEvent, LabelAnswer } from '../../model/label';
 
 interface LabelRendererProps {
   question: LabelQuestion;
@@ -65,7 +60,12 @@ export function LabelRenderer({
     };
   }, []);
 
-  const handlePointerEvent = (event: { type: string; targetId?: string; x?: number; y?: number }): void => {
+  const handlePointerEvent = (event: {
+    type: string;
+    targetId?: string;
+    x?: number;
+    y?: number;
+  }): void => {
     if (event.type === 'pointerdown' && event.targetId?.startsWith('label-tile-')) {
       const labelId = event.targetId.replace('label-tile-', '');
       draggingLabelRef.current = labelId;
@@ -170,7 +170,11 @@ export function LabelRenderer({
       app.stage.addChild(regionBg);
 
       // Region label
-      const regionLabel = createText(region.alt ?? region.id, TYPOGRAPHY.small, COLORS.textSecondary);
+      const regionLabel = createText(
+        region.alt ?? region.id,
+        TYPOGRAPHY.small,
+        COLORS.textSecondary
+      );
       regionLabel.anchor.set(0.5);
       regionLabel.x = regionX;
       regionLabel.y = regionsY - REGION_BOX_SIZE / 2 + SPACING.lg;

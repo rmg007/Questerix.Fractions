@@ -99,7 +99,11 @@ export function BenchmarkRenderer({
     app.stage.removeChildren();
 
     // Instruction
-    const instrText = createText('Which benchmark is this fraction closest to?', TYPOGRAPHY.normal, COLORS.textPrimary);
+    const instrText = createText(
+      'Which benchmark is this fraction closest to?',
+      TYPOGRAPHY.normal,
+      COLORS.textPrimary
+    );
     instrText.anchor.set(0.5);
     instrText.x = width / 2;
     instrText.y = SPACING.md;
@@ -121,14 +125,24 @@ export function BenchmarkRenderer({
     // Shaded segments
     const segmentWidth = barWidth / denominator;
     for (let i = 0; i < numerator; i++) {
-      const segRect = createRect(segmentWidth - 1, barHeight - 2, COLORS.correct, COLORS.border, STROKE.thin);
+      const segRect = createRect(
+        segmentWidth - 1,
+        barHeight - 2,
+        COLORS.correct,
+        COLORS.border,
+        STROKE.thin
+      );
       segRect.x = barBg.x + i * segmentWidth;
       segRect.y = barY - barHeight / 2 + 1;
       app.stage.addChild(segRect);
     }
 
     // Fraction label
-    const fracLabel = createText(`${numerator}/${denominator}`, TYPOGRAPHY.heading, COLORS.textPrimary);
+    const fracLabel = createText(
+      `${numerator}/${denominator}`,
+      TYPOGRAPHY.heading,
+      COLORS.textPrimary
+    );
     fracLabel.anchor.set(0.5);
     fracLabel.x = barX;
     fracLabel.y = barY + barHeight * 0.6;
@@ -138,7 +152,14 @@ export function BenchmarkRenderer({
     const lineY = height * 0.35;
     const lineLength = width * 0.6;
     const lineStartX = (width - lineLength) / 2;
-    const line = createLine(lineStartX, lineY, lineStartX + lineLength, lineY, COLORS.border, STROKE.normal);
+    const line = createLine(
+      lineStartX,
+      lineY,
+      lineStartX + lineLength,
+      lineY,
+      COLORS.border,
+      STROKE.normal
+    );
     app.stage.addChild(line);
 
     // Benchmark ticks

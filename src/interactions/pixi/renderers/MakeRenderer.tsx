@@ -4,14 +4,9 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText } from '../visual';
-import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX } from '../tokens';
+import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX, TYPOGRAPHY } from '../tokens';
 import type { InteractionModel } from '../../model/types';
-import type {
-  MakeQuestion,
-  MakeState,
-  MakeEvent,
-  MakeAnswer,
-} from '../../model/make';
+import type { MakeQuestion, MakeState, MakeEvent, MakeAnswer } from '../../model/make';
 
 interface MakeRendererProps {
   question: MakeQuestion;
@@ -206,7 +201,12 @@ export function MakeRenderer({
     const actualFoldX = dragState.isDragging ? dragState.currentX : foldX;
     handleGfx.beginFill(COLORS.buttonActive);
     handleGfx.lineStyle(STROKE.normal, COLORS.primary);
-    handleGfx.drawRect(actualFoldX - handleSize / 2, centerY - handleSize / 2, handleSize, handleSize);
+    handleGfx.drawRect(
+      actualFoldX - handleSize / 2,
+      centerY - handleSize / 2,
+      handleSize,
+      handleSize
+    );
     handleGfx.endFill();
     handleGfx.eventMode = 'static';
     handleGfx.cursor = 'grab';
@@ -250,7 +250,7 @@ export function MakeRenderer({
       state.phase === 'partition'
         ? 'Drag the fold line to create two equal parts'
         : `Tap ${state.targetShaded ?? 1} region(s) to shade`,
-      16,
+      TYPOGRAPHY.normal,
       COLORS.textPrimary
     );
     phaseText.anchor.set(0.5);
@@ -281,7 +281,7 @@ export function MakeRenderer({
       fill: COLORS.buttonActive,
       fillActive: COLORS.primary,
       textColor: COLORS.textInverse,
-      fontSize: 16,
+      fontSize: TYPOGRAPHY.normal,
       id: btnId,
     });
     btn.x = centerX - btnWidth / 2;

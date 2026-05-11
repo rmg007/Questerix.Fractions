@@ -4,7 +4,7 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText } from '../visual';
-import { COLORS, STROKE, Z_INDEX } from '../tokens';
+import { COLORS, STROKE, Z_INDEX, TYPOGRAPHY } from '../tokens';
 import type { InteractionModel } from '../../model/types';
 import type {
   CompareQuestion,
@@ -120,7 +120,6 @@ export function CompareRenderer({
     }
   };
 
-
   const renderStageContent = (app: PIXI.Application, state: CompareState): void => {
     const centerX = width / 2;
     const startY = 50;
@@ -128,7 +127,11 @@ export function CompareRenderer({
     const barH = 40;
     const barGap = 80;
 
-    const titleText = createText('Which fraction is bigger?', 18, COLORS.textPrimary);
+    const titleText = createText(
+      'Which fraction is bigger?',
+      TYPOGRAPHY.heading,
+      COLORS.textPrimary
+    );
     titleText.anchor.set(0.5);
     titleText.x = centerX;
     titleText.y = startY - 30;
@@ -151,7 +154,7 @@ export function CompareRenderer({
 
     const leftLabelText = createText(
       `${state.leftNumerator}/${state.leftDenominator}`,
-      14,
+      TYPOGRAPHY.small,
       COLORS.textPrimary
     );
     leftLabelText.anchor.set(0.5);
@@ -176,7 +179,7 @@ export function CompareRenderer({
 
     const rightLabelText = createText(
       `${state.rightNumerator}/${state.rightDenominator}`,
-      14,
+      TYPOGRAPHY.small,
       COLORS.textPrimary
     );
     rightLabelText.anchor.set(0.5);
@@ -204,8 +207,7 @@ export function CompareRenderer({
         width: btnWidth,
         height: btnHeight,
         text: rel.label,
-        fill:
-          state.selectedRelation === rel.val ? COLORS.buttonActive : COLORS.buttonInactive,
+        fill: state.selectedRelation === rel.val ? COLORS.buttonActive : COLORS.buttonInactive,
         fillActive: COLORS.primary,
         textColor: state.selectedRelation === rel.val ? COLORS.textInverse : COLORS.textPrimary,
         fontSize: 14,

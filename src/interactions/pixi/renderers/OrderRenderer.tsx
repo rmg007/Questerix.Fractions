@@ -138,7 +138,11 @@ export function OrderRenderer({
     slotsRef.current = [];
 
     // Instruction
-    const instrText = createText('Drag cards to order from smallest to largest', TYPOGRAPHY.normal, COLORS.textPrimary);
+    const instrText = createText(
+      'Drag cards to order from smallest to largest',
+      TYPOGRAPHY.normal,
+      COLORS.textPrimary
+    );
     instrText.anchor.set(0.5);
     instrText.x = width / 2;
     instrText.y = SPACING.md;
@@ -183,7 +187,11 @@ export function OrderRenderer({
       }
 
       // Label
-      const label = createText(`${frac.numerator}/${frac.denominator}`, TYPOGRAPHY.body, COLORS.textPrimary);
+      const label = createText(
+        `${frac.numerator}/${frac.denominator}`,
+        TYPOGRAPHY.body,
+        COLORS.textPrimary
+      );
       label.anchor.set(0.5);
       label.x = cx;
       label.y = cy + cardH / 2 - SPACING.sm;
@@ -204,7 +212,13 @@ export function OrderRenderer({
     // Draw slot outlines (bottom lane)
     for (let i = 0; i < numCards; i++) {
       const slotX = sourceStartX + i * (cardW + gap) + cardW / 2;
-      const slotBg = createRect(cardW, cardH + 8, COLORS.backgroundDark, COLORS.border, STROKE.normal);
+      const slotBg = createRect(
+        cardW,
+        cardH + 8,
+        COLORS.backgroundDark,
+        COLORS.border,
+        STROKE.normal
+      );
       slotBg.x = slotX - cardW / 2;
       slotBg.y = slotY - (cardH + 8) / 2;
       app.stage.addChild(slotBg);
@@ -238,13 +252,23 @@ export function OrderRenderer({
 
         const segW = (cardW - 4) / card.denominator;
         for (let j = 0; j < card.numerator; j++) {
-          const segRect = createRect(segW - 1, cardH - 4, COLORS.correct, COLORS.border, STROKE.thin);
+          const segRect = createRect(
+            segW - 1,
+            cardH - 4,
+            COLORS.correct,
+            COLORS.border,
+            STROKE.thin
+          );
           segRect.x = cardBg.x + 2 + j * segW;
           segRect.y = cardBg.y + 2;
           app.stage.addChild(segRect);
         }
 
-        const label = createText(`${card.numerator}/${card.denominator}`, TYPOGRAPHY.body, COLORS.textPrimary);
+        const label = createText(
+          `${card.numerator}/${card.denominator}`,
+          TYPOGRAPHY.body,
+          COLORS.textPrimary
+        );
         label.anchor.set(0.5);
         label.x = slot.x;
         label.y = slot.y + cardH / 2 - SPACING.sm;

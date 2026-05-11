@@ -127,13 +127,7 @@ export function IdentifyRenderer({
       const borderColor = isSelected ? COLORS.primary : COLORS.border;
       const borderWidth = isSelected ? STROKE.medium : STROKE.thin;
 
-      const cardBg = createRect(
-        cardWidth,
-        OPTION_CARD_HEIGHT,
-        bgColor,
-        borderColor,
-        borderWidth
-      );
+      const cardBg = createRect(cardWidth, OPTION_CARD_HEIGHT, bgColor, borderColor, borderWidth);
       cardBg.x = cardX - cardWidth / 2;
       cardBg.y = cardsY - OPTION_CARD_HEIGHT / 2;
       cardBg.eventMode = 'static';

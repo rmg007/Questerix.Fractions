@@ -147,12 +147,7 @@ export function PartitionRenderer({
     const handleSize = TOUCH_TARGETS.minimum;
     const dividerHandle = new PIXI.Graphics();
     dividerHandle.beginFill(COLORS.primary);
-    dividerHandle.drawRect(
-      dividerLocalX - handleSize / 2,
-      -handleSize / 2,
-      handleSize,
-      handleSize
-    );
+    dividerHandle.drawRect(dividerLocalX - handleSize / 2, -handleSize / 2, handleSize, handleSize);
     dividerHandle.endFill();
     dividerHandle.eventMode = 'static';
     dividerHandle.cursor = 'ew-resize';

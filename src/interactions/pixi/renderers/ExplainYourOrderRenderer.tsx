@@ -16,7 +16,12 @@ import type {
 
 interface ExplainYourOrderRendererProps {
   question: ExplainYourOrderQuestion;
-  model: InteractionModel<ExplainYourOrderQuestion, ExplainYourOrderState, ExplainYourOrderEvent, ExplainYourOrderAnswer>;
+  model: InteractionModel<
+    ExplainYourOrderQuestion,
+    ExplainYourOrderState,
+    ExplainYourOrderEvent,
+    ExplainYourOrderAnswer
+  >;
   onAnswer?: (answer: ExplainYourOrderAnswer) => void;
   onStateChange?: (state: ExplainYourOrderState) => void;
   width?: number;
@@ -36,7 +41,9 @@ export function ExplainYourOrderRenderer({
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<ExplainYourOrderState>(model.initialize(question));
   const dragStateRef = useRef<{ cardId: string; initialX: number; initialY: number } | null>(null);
-  const slotsRef = useRef<Array<{ index: number; x: number; y: number; width: number; height: number }>>([]);
+  const slotsRef = useRef<
+    Array<{ index: number; x: number; y: number; width: number; height: number }>
+  >([]);
 
   useEffect(() => {
     const pointerMgr = new PointerManager({
@@ -64,7 +71,12 @@ export function ExplainYourOrderRenderer({
         initialY: event.y,
       };
     } else if (event.type === 'drag' && dragStateRef.current) {
-      updateState({ type: 'move-card', cardId: dragStateRef.current.cardId, x: event.x, y: event.y });
+      updateState({
+        type: 'move-card',
+        cardId: dragStateRef.current.cardId,
+        x: event.x,
+        y: event.y,
+      });
     } else if (event.type === 'drag-end' && dragStateRef.current) {
       const { cardId } = dragStateRef.current;
       let closestSlotIndex = 0;
@@ -152,7 +164,11 @@ export function ExplainYourOrderRenderer({
         app.stage.addChild(segRect);
       }
 
-      const label = createText(`${frac.numerator}/${frac.denominator}`, TYPOGRAPHY.body, COLORS.textPrimary);
+      const label = createText(
+        `${frac.numerator}/${frac.denominator}`,
+        TYPOGRAPHY.body,
+        COLORS.textPrimary
+      );
       label.anchor.set(0.5);
       label.x = cx;
       label.y = cy + cardH / 2 - SPACING.sm;
@@ -162,7 +178,13 @@ export function ExplainYourOrderRenderer({
     // Slot outlines (ordering)
     for (let i = 0; i < numCards; i++) {
       const slotX = sourceStartX + i * (cardW + gap) + cardW / 2;
-      const slotBg = createRect(cardW, cardH + 8, COLORS.backgroundDark, COLORS.border, STROKE.normal);
+      const slotBg = createRect(
+        cardW,
+        cardH + 8,
+        COLORS.backgroundDark,
+        COLORS.border,
+        STROKE.normal
+      );
       slotBg.x = slotX - cardW / 2;
       slotBg.y = slotY - (cardH + 8) / 2;
       app.stage.addChild(slotBg);
@@ -183,8 +205,12 @@ export function ExplainYourOrderRenderer({
     }
 
     // Phase 2: Explanation (bottom section)
-    const explainPromptY = height * 0.50;
-    const explainPrompt = createText('Why did you order them this way?', TYPOGRAPHY.normal, COLORS.textPrimary);
+    const explainPromptY = height * 0.5;
+    const explainPrompt = createText(
+      'Why did you order them this way?',
+      TYPOGRAPHY.normal,
+      COLORS.textPrimary
+    );
     explainPrompt.anchor.set(0.5);
     explainPrompt.x = width / 2;
     explainPrompt.y = explainPromptY;

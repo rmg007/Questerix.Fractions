@@ -76,7 +76,10 @@ export function PlacementRenderer({
     } else if (event.type === 'drag' && dragStateRef.current?.isDragging) {
       // Constrain marker to horizontal axis (number line).
       // X position maps to [0, 1] decimal value.
-      const clampedX = Math.max(renderState.lineX, Math.min(renderState.lineX + renderState.lineLength, event.x));
+      const clampedX = Math.max(
+        renderState.lineX,
+        Math.min(renderState.lineX + renderState.lineLength, event.x)
+      );
       const newPosition = (clampedX - renderState.lineX) / renderState.lineLength;
       updateState({ type: 'place-marker', position: Math.max(0, Math.min(1, newPosition)) });
     } else if (event.type === 'drag-end') {
@@ -122,10 +125,10 @@ export function PlacementRenderer({
     app.stage.removeChildren();
 
     // Layout calculations
-    const lineX = (width * 0.2);
+    const lineX = width * 0.2;
     const lineLength = width * 0.6;
     const lineY = height * 0.35;
-    const markerRadius = 12;
+    const markerRadius = 22;
     const tickY = lineY;
     const submitButtonX = width / 2;
     const submitButtonY = height * 0.85;
@@ -141,7 +144,11 @@ export function PlacementRenderer({
     };
 
     // Instruction text
-    const instrText = createText('Drag the marker to place the fraction', TYPOGRAPHY.normal, COLORS.textPrimary);
+    const instrText = createText(
+      'Drag the marker to place the fraction',
+      TYPOGRAPHY.normal,
+      COLORS.textPrimary
+    );
     instrText.anchor.set(0.5);
     instrText.x = width / 2;
     instrText.y = SPACING.md;
@@ -164,21 +171,38 @@ export function PlacementRenderer({
     // Draw bar segments
     const segmentWidth = barWidth / denominator;
     for (let i = 0; i < numerator; i++) {
-      const segRect = createRect(segmentWidth - 1, barHeight - 2, COLORS.correct, COLORS.border, STROKE.thin);
+      const segRect = createRect(
+        segmentWidth - 1,
+        barHeight - 2,
+        COLORS.correct,
+        COLORS.border,
+        STROKE.thin
+      );
       segRect.x = barBg.x + i * segmentWidth;
       segRect.y = barY - barHeight / 2 + 1;
       app.stage.addChild(segRect);
     }
 
     // Bar label
-    const barLabel = createText(`${numerator}/${denominator}`, TYPOGRAPHY.heading, COLORS.textPrimary);
+    const barLabel = createText(
+      `${numerator}/${denominator}`,
+      TYPOGRAPHY.heading,
+      COLORS.textPrimary
+    );
     barLabel.anchor.set(0.5);
     barLabel.x = barX;
     barLabel.y = barY + barHeight * 0.6;
     app.stage.addChild(barLabel);
 
     // Number line
-    const lineStart = createLine(lineX, lineY, lineX + lineLength, lineY, COLORS.border, STROKE.normal);
+    const lineStart = createLine(
+      lineX,
+      lineY,
+      lineX + lineLength,
+      lineY,
+      COLORS.border,
+      STROKE.normal
+    );
     app.stage.addChild(lineStart);
 
     // Draw tick marks: 0, benchmark fractions, 1

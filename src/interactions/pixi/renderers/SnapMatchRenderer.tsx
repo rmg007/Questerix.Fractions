@@ -4,7 +4,7 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText, createRect } from '../visual';
-import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX } from '../tokens';
+import { TOUCH_TARGETS, COLORS, STROKE, Z_INDEX, TYPOGRAPHY } from '../tokens';
 import type { InteractionModel } from '../../model/types';
 import type {
   SnapMatchQuestion,
@@ -133,7 +133,11 @@ export function SnapMatchRenderer({
             });
 
             if (bestDist <= SNAP_THRESHOLD && bestRightId !== undefined) {
-              updateState({ type: 'match-pair', leftId: dragState.draggedItemId ?? '', rightId: bestRightId });
+              updateState({
+                type: 'match-pair',
+                leftId: dragState.draggedItemId ?? '',
+                rightId: bestRightId,
+              });
             }
           }
           dragState.isDragging = false;
@@ -206,7 +210,7 @@ export function SnapMatchRenderer({
     const dragState = dragStateRef.current;
 
     // Title
-    const titleText = createText('Match the fractions', 18, COLORS.textPrimary);
+    const titleText = createText('Match the fractions', TYPOGRAPHY.heading, COLORS.textPrimary);
     titleText.anchor.set(0.5);
     titleText.x = width / 2;
     titleText.y = 20;
@@ -238,7 +242,7 @@ export function SnapMatchRenderer({
       app.stage.addChild(itemBg);
 
       // Item text label
-      const label = createText(item.label ?? item.id, 14, COLORS.textPrimary);
+      const label = createText(item.label ?? item.id, TYPOGRAPHY.small, COLORS.textPrimary);
       label.anchor.set(0.5);
       label.x = 40 + itemW / 2;
       label.y = itemY + itemH / 2;
@@ -274,7 +278,7 @@ export function SnapMatchRenderer({
         app.stage.addChild(barGfx);
       } else {
         // Fallback to text label
-        const label = createText(item.label ?? item.id, 14, COLORS.textPrimary);
+        const label = createText(item.label ?? item.id, TYPOGRAPHY.small, COLORS.textPrimary);
         label.anchor.set(0.5);
         label.x = width * 0.7;
         label.y = itemY + itemH / 2;
@@ -303,7 +307,11 @@ export function SnapMatchRenderer({
         dragBg.zIndex = Z_INDEX.overlay;
         app.stage.addChild(dragBg);
 
-        const dragLabel = createText(draggedItem.label ?? draggedItem.id, 14, COLORS.textInverse);
+        const dragLabel = createText(
+          draggedItem.label ?? draggedItem.id,
+          TYPOGRAPHY.small,
+          COLORS.textInverse
+        );
         dragLabel.anchor.set(0.5);
         dragLabel.x = dragState.currentX;
         dragLabel.y = dragState.currentY;
@@ -315,7 +323,7 @@ export function SnapMatchRenderer({
     // Matched pairs section (bottom)
     if (matchedPairs.length > 0) {
       const pairsY = height - 80;
-      const pairsLabelText = createText('Matched pairs:', 14, COLORS.textPrimary);
+      const pairsLabelText = createText('Matched pairs:', TYPOGRAPHY.small, COLORS.textPrimary);
       pairsLabelText.anchor.set(0.5);
       pairsLabelText.x = width / 2;
       pairsLabelText.y = pairsY;
@@ -329,11 +337,7 @@ export function SnapMatchRenderer({
 
         const pairX = 60 + idx * 160;
         const pairY = pairsY + 35;
-        const pairText = createText(
-          `${leftItem.label} → ${rightItem.label}`,
-          12,
-          COLORS.correct
-        );
+        const pairText = createText(`${leftItem.label} → ${rightItem.label}`, 12, COLORS.correct);
         pairText.anchor.set(0.5);
         pairText.x = pairX;
         pairText.y = pairY;
@@ -350,9 +354,10 @@ export function SnapMatchRenderer({
       width: btnWidth,
       height: btnHeight,
       text: 'Submit',
-      fill: matchedPairs.length === Math.min(leftItems.length, rightItems.length)
-        ? COLORS.buttonActive
-        : COLORS.buttonInactive,
+      fill:
+        matchedPairs.length === Math.min(leftItems.length, rightItems.length)
+          ? COLORS.buttonActive
+          : COLORS.buttonInactive,
       fillActive: COLORS.primary,
       textColor: COLORS.textInverse,
       fontSize: 14,
