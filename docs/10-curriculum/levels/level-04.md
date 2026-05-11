@@ -4,6 +4,7 @@ status: active
 owner: solo
 last_reviewed: 2026-04-30
 applies_to: [mvp]
+gradeBand: '1'
 constraint_refs: [C3, C8, C9]
 related:
   [
@@ -16,6 +17,11 @@ related:
 ---
 
 # Level 4 — Make Halves
+
+## Overview
+
+**Name:** Make Halves  
+**Concept:** Make and fold halves
 
 The first level where **active partitioning becomes the primary mechanic**. Levels 1–3 trained the student to **identify** halves, thirds, and fourths. Level 4 returns to halves only and asks the student to **produce** them — by drag, by fold, by tap.
 
