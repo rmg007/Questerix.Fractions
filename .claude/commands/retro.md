@@ -1,8 +1,8 @@
 ---
-description: End-of-session retro — propose CLAUDE.md / learnings.md / PLANS updates based on what changed
+description: End-of-session retro — apply CLAUDE.md / learnings.md / PLANS updates based on what changed
 ---
 
-Review what happened in this session and propose targeted documentation updates. **Do not edit any docs in this command** — only propose. The user decides what to apply.
+Review what happened in this session and apply targeted documentation updates. **Apply all warranted changes autonomously** — do not just propose.
 
 ## Steps
 
@@ -11,35 +11,42 @@ Review what happened in this session and propose targeted documentation updates.
    - `git log --oneline -10`
    - `head -30 .claude/learnings.md`
 
-2. Cross-reference what changed against:
+2. Cross-reference what changed against each destination:
    - **`CLAUDE.md`** (root + nested) — does any architectural rule or pattern in the diff belong here?
-   - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **You must propose at least one candidate entry.** If nothing qualifies, say so explicitly with reasoning — do not omit the section.
-   - **`PLANS/PLAN.md`** — were any active blockers resolved?
+   - **`.claude/learnings.md`** — what non-obvious gotcha surfaced? **At least one entry is required.** If nothing qualifies, explain why.
+   - **`PLANS/PLAN.md`** — were any active blockers resolved? Mark them done.
    - **`CHANGELOG.md`** `[Unreleased]` — any user-visible change missing?
    - **`docs/00-foundation/decision-log.md`** — was a new architectural decision made? Needs a `D-NN` entry?
 
-3. Output a structured proposal in this exact shape. The `### .claude/learnings.md` section is **required** — never omit it.
+3. **Apply changes directly.** For each destination:
+   - **`.claude/learnings.md`**: prepend new entries after the marker comment.
+   - **`CLAUDE.md` / nested CLAUDE.mds**: edit the relevant section in-place.
+   - **`PLANS/PLAN.md`**: mark resolved items done.
+   - **`CHANGELOG.md`**: append under `[Unreleased]`.
+   - **`docs/00-foundation/decision-log.md`**: append new `D-NN` entry if warranted.
+
+4. Run `npm run sync:claude-md` after any CLAUDE.md edit.
+
+5. Output a brief summary in this shape:
 
 ```
-## Retro proposal
+## Retro applied
 
-### CLAUDE.md / nested CLAUDE.md
-- [path:section] proposed change — one-line reason
+### .claude/learnings.md
+- <date> <area>: <entry text>
+  (or: "Nothing qualified — <reason>")
 
-### .claude/learnings.md   (REQUIRED — propose ≥1 candidate or explain why none qualify)
-- YYYY-MM-DD <area>: <one-line gotcha> [#commit-or-branch]
-  rationale: cost N min of debugging / contradicted CLAUDE.md / hidden invariant
+### CLAUDE.md / nested
+- [path:section] <what changed>  (or: "No changes")
 
 ### PLANS/PLAN.md
-- ✅ mark <bug-id> done — reason
+- ✅ <id> marked done  (or: "No changes")
 
-### CHANGELOG.md [Unreleased]
-- "Added/Changed/Fixed: <line>"
+### CHANGELOG.md
+- "Added/Changed/Fixed: <line>"  (or: "No changes")
 
-### docs/00-foundation/decision-log.md
-- proposed D-NN entry — title only
+### decision-log.md
+- D-NN — <title>  (or: "No new decision")
 ```
 
-Skip any section other than `### .claude/learnings.md` that has nothing. Be concise — propose only updates that materially improve future agent context.
-
-4. End with: "Apply any of these? Reply with the section names to apply (e.g. 'CLAUDE.md and learnings')."
+Skip sections with nothing to apply. Be concise — apply only updates that materially improve future agent context.

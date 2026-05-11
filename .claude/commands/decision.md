@@ -7,8 +7,8 @@ Record an architectural decision while the context is fresh. Format matches the 
 
 ## Steps
 
-1. Read the last few entries in `docs/00-foundation/decision-log.md` to:
-   - Find the next `D-NN` number (increment the highest existing one)
+1. Read `docs/00-foundation/decision-log.md` to:
+   - Find the next `D-NN` number (scan for the highest `## D-NN` heading and increment)
    - Match the format exactly (heading level, fields used)
 
 2. If `$ARGUMENTS` is empty, ask: "What's the decision? Describe context, the decision itself, and consequences in 2–4 sentences."

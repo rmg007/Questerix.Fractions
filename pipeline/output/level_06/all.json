@@ -1,104 +1,1336 @@
 [
   {
-    "id": "q:cp:L6:0001",
+    "id": "q:cmp:L6:0001",
     "archetype": "compare",
-    "prompt": { "text": "Which is greater: 1/2 or 1/4?", "ttsKey": "q_cp_l6_0001" },
-    "payload": {
-      "fractionA": { "numerator": 1, "denominator": 2, "label": "1/2" },
-      "fractionB": { "numerator": 1, "denominator": 4, "label": "1/4" },
-      "trueRelation": ">",
-      "leftDecimal": 0.5,
-      "rightDecimal": 0.25
+    "prompt": {
+      "text": "Which fraction shows more of the whole?",
+      "ttsKey": "tts.cmp.l6.0001"
     },
-    "correctAnswer": { "trueRelation": ">" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:halves_fourths"],
-    "misconceptionTraps": ["MC-WHB-02"],
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:2/3",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-03"
+    ],
     "difficultyTier": "easy"
   },
   {
-    "id": "q:cp:L6:0002",
+    "id": "q:cmp:L6:0002",
     "archetype": "compare",
-    "prompt": { "text": "Which is greater: 1/3 or 1/2?", "ttsKey": "q_cp_l6_0002" },
-    "payload": {
-      "fractionA": { "numerator": 1, "denominator": 3, "label": "1/3" },
-      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
-      "trueRelation": "<",
-      "leftDecimal": 0.333,
-      "rightDecimal": 0.5
+    "prompt": {
+      "text": "Tap the bigger of the two fractions.",
+      "ttsKey": "tts.cmp.l6.0002"
     },
-    "correctAnswer": { "trueRelation": "<" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:thirds_halves"],
-    "misconceptionTraps": ["MC-WHB-02"],
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:3/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
     "difficultyTier": "easy"
   },
   {
-    "id": "q:cp:L6:0003",
+    "id": "q:cmp:L6:0003",
     "archetype": "compare",
-    "prompt": { "text": "Which is bigger: 2/3 or 3/4?", "ttsKey": "q_cp_l6_0003" },
-    "payload": {
-      "fractionA": { "numerator": 2, "denominator": 3, "label": "2/3" },
-      "fractionB": { "numerator": 3, "denominator": 4, "label": "3/4" },
-      "trueRelation": "<",
-      "leftDecimal": 0.667,
-      "rightDecimal": 0.75
+    "prompt": {
+      "text": "Pick the larger fraction of these two.",
+      "ttsKey": "tts.cmp.l6.0003"
     },
-    "correctAnswer": { "trueRelation": "<" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:thirds_fourths"],
-    "misconceptionTraps": ["MC-WHB-02"],
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-03"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0004",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the fraction that is greater.",
+      "ttsKey": "tts.cmp.l6.0004"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:5/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which one is the bigger fraction here?",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:cmp:L6:0001",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction is bigger of these two?",
+      "ttsKey": "tts.cmp.l6.0001"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:1/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
     "difficultyTier": "medium"
   },
   {
-    "id": "q:cp:L6:0004",
+    "id": "q:cmp:L6:0002",
     "archetype": "compare",
-    "prompt": { "text": "Are 2/4 and 1/2 equal?", "ttsKey": "q_cp_l6_0004" },
-    "payload": {
-      "fractionA": { "numerator": 2, "denominator": 4, "label": "2/4" },
-      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
-      "trueRelation": "=",
-      "leftDecimal": 0.5,
-      "rightDecimal": 0.5
+    "prompt": {
+      "text": "Pick the larger fraction between these two.",
+      "ttsKey": "tts.cmp.l6.0002"
     },
-    "correctAnswer": { "trueRelation": "=" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:equivalence"],
-    "misconceptionTraps": [],
+    "payload": {
+      "fractionA": "frac:2/6",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
     "difficultyTier": "medium"
   },
   {
-    "id": "q:cp:L6:0005",
+    "id": "q:cmp:L6:0003",
     "archetype": "compare",
-    "prompt": { "text": "Which is smaller: 1/6 or 1/3?", "ttsKey": "q_cp_l6_0005" },
-    "payload": {
-      "fractionA": { "numerator": 1, "denominator": 6, "label": "1/6" },
-      "fractionB": { "numerator": 1, "denominator": 3, "label": "1/3" },
-      "trueRelation": "<",
-      "leftDecimal": 0.167,
-      "rightDecimal": 0.333
+    "prompt": {
+      "text": "Which of these two fractions shows more?",
+      "ttsKey": "tts.cmp.l6.0003"
     },
-    "correctAnswer": { "trueRelation": "<" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:sixths_thirds"],
-    "misconceptionTraps": ["MC-WHB-02"],
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:1/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "equal",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
     "difficultyTier": "medium"
   },
   {
-    "id": "q:cp:L6:0006",
+    "id": "q:cmp:L6:0004",
     "archetype": "compare",
-    "prompt": { "text": "Which is bigger, 3/8 or 1/2?", "ttsKey": "q_cp_l6_0006" },
-    "payload": {
-      "fractionA": { "numerator": 3, "denominator": 8, "label": "3/8" },
-      "fractionB": { "numerator": 1, "denominator": 2, "label": "1/2" },
-      "trueRelation": "<",
-      "leftDecimal": 0.375,
-      "rightDecimal": 0.5
+    "prompt": {
+      "text": "Tap the fraction with greater value here.",
+      "ttsKey": "tts.cmp.l6.0004"
     },
-    "correctAnswer": { "trueRelation": "<" },
-    "validatorId": "validator.compare.relation",
-    "skillIds": ["skill:compare:eighths_halves"],
-    "misconceptionTraps": ["MC-WHB-02"],
+    "payload": {
+      "fractionA": "frac:1/6",
+      "fractionB": "frac:4/6",
+      "sameDenominator": true
+    },
+    "correctAnswer": "B",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the bigger fraction of the pair.",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:5/6",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:cmp:L6:0001",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which fraction is bigger, one third or one sixth?",
+      "ttsKey": "tts.cmp.l6.0001"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:1/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18",
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0002",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Tap the larger fraction between two thirds and four sixths.",
+      "ttsKey": "tts.cmp.l6.0002"
+    },
+    "payload": {
+      "fractionA": "frac:2/3",
+      "fractionB": "frac:4/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "equal",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0003",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Pick the fraction with the larger value from these two.",
+      "ttsKey": "tts.cmp.l6.0003"
+    },
+    "payload": {
+      "fractionA": "frac:1/3",
+      "fractionB": "frac:2/6",
+      "sameDenominator": false
+    },
+    "correctAnswer": "equal",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0004",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Choose the bigger fraction between five sixths and two thirds.",
+      "ttsKey": "tts.cmp.l6.0004"
+    },
+    "payload": {
+      "fractionA": "frac:5/6",
+      "fractionB": "frac:2/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:cmp:L6:0005",
+    "archetype": "compare",
+    "prompt": {
+      "text": "Which one shows more of the whole, one half or one third?",
+      "ttsKey": "tts.cmp.l6.0005"
+    },
+    "payload": {
+      "fractionA": "frac:3/6",
+      "fractionB": "frac:1/3",
+      "sameDenominator": false
+    },
+    "correctAnswer": "A",
+    "validatorId": "validator.compare.greaterThan",
+    "skillIds": [
+      "SK-19",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L6:0001",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match each fraction on the left to its equal on the right.",
+      "ttsKey": "tts.sm.l6.0001"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L6:0002",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag each fraction to find its matching partner.",
+      "ttsKey": "tts.sm.l6.0002"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "c"
+        ]
+      ]
+    },
+    "correctAnswer": 0.5,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L6:0003",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Connect the equal pairs on both sides.",
+      "ttsKey": "tts.sm.l6.0003"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L6:0004",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Find which fraction on the right matches the left one.",
+      "ttsKey": "tts.sm.l6.0004"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "b",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "a"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L6:0005",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match the two equal fractions and snap them together.",
+      "ttsKey": "tts.sm.l6.0005"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.5,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "easy"
+  },
+  {
+    "id": "q:sm:L6:0001",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag each fraction on the left to find its equal partner on the right.",
+      "ttsKey": "tts.sm.l6.0001"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L6:0002",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match each fraction on the left to its equal on the right by dragging.",
+      "ttsKey": "tts.sm.l6.0002"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.1667,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L6:0003",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Find the equal pairs and snap them together on the right.",
+      "ttsKey": "tts.sm.l6.0003"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "e"
+        ],
+        [
+          "b",
+          "a"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L6:0004",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag to match each left fraction with its equal partner on the right.",
+      "ttsKey": "tts.sm.l6.0004"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "b"
+        ]
+      ]
+    },
+    "correctAnswer": 0.6667,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L6:0005",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Connect each fraction on the left to the equal one on the right.",
+      "ttsKey": "tts.sm.l6.0005"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        },
+        {
+          "id": "e",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "e"
+        ],
+        [
+          "b",
+          "c"
+        ]
+      ]
+    },
+    "correctAnswer": 0.5,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "medium"
+  },
+  {
+    "id": "q:sm:L6:0001",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Drag each fraction on the left to match its equal on the right.",
+      "ttsKey": "tts.sm.l6.0001"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "c",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "f"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18",
+      "SK-19"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L6:0002",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Connect each fraction on the left to its matching equal on the right.",
+      "ttsKey": "tts.sm.l6.0002"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "b",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        },
+        {
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "g",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "f"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-20",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L6:0003",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Match the fractions by dragging equal pairs together.",
+      "ttsKey": "tts.sm.l6.0003"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "c",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "f"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "d"
+        ]
+      ]
+    },
+    "correctAnswer": 0.5,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18",
+      "SK-20"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L6:0004",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Snap each fraction card to its equal partner on the other side.",
+      "ttsKey": "tts.sm.l6.0004"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "c",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "g",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "f"
+        ]
+      ]
+    },
+    "correctAnswer": 0.3333,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-19",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-WHB-01",
+      "MC-EOL-01"
+    ],
+    "difficultyTier": "hard"
+  },
+  {
+    "id": "q:sm:L6:0005",
+    "archetype": "snap_match",
+    "prompt": {
+      "text": "Find and drag equal fraction pairs to connect them together.",
+      "ttsKey": "tts.sm.l6.0005"
+    },
+    "payload": {
+      "leftItems": [
+        {
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        },
+        {
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "g"
+        ],
+        [
+          "b",
+          "f"
+        ],
+        [
+          "c",
+          "e"
+        ]
+      ]
+    },
+    "correctAnswer": 0.5,
+    "validatorId": "validator.snap_match.equivalence",
+    "skillIds": [
+      "SK-18",
+      "SK-21"
+    ],
+    "misconceptionTraps": [
+      "MC-EOL-01"
+    ],
     "difficultyTier": "hard"
   }
 ]

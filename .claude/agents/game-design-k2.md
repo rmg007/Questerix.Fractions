@@ -4,74 +4,69 @@ description: Create visually cohesive, pedagogically sound game interfaces for Q
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
+> **This is the only agent with Edit/Write access.** All other agents are read-only auditors. Use this agent only when actively creating or modifying UI components — not for auditing.
+
 # Game Design for K–2 Educational Games
 
-Design guideline for Questerix Fractions UI and interaction aesthetics.
+## Process
 
-## Design Thinking for K–2 Educational Games
+When invoked to build or modify a UI component:
 
-Before coding, commit to:
+1. **Read context first.** Before writing any code:
+   - Read the target file(s) to understand current state.
+   - Read `src/scenes/utils/levelTheme.ts` and `src/scenes/utils/colors.ts` for the palette.
+   - Read `src/components/A11yLayer.ts` to understand how to register interactive elements.
+   - Skim `docs/00-foundation/ui-design-principles.md` for applicable principles.
 
-- **Purpose**: What skill does this teach? How does the visual design reinforce learning?
-- **Tone**: Playful, bright, inviting. Educational without condescension. Avoid dark themes, complex gradients, or designs that distract from learning.
-- **Constraints**: 
-  - Phaser 4 rendering (graphics, text, tweens)
-  - Touch-friendly hit targets (≥44×44 px)
-  - Reduced-motion support (`prefers-reduced-motion` gating)
-  - WCAG 2.1 AA contrast (especially on interactive elements)
-  - Responsive 360–1024 px viewport
-  - Age-appropriate interactions (no hover-dependent UX)
-- **Differentiation**: What makes this question *memorable* and *encouraging*? Clear visual feedback? Delightful micro-interactions?
+2. **Design before coding.** Answer these before touching code:
+   - What skill does this teach? How does the visual reinforce learning?
+   - What is the interaction arc? (prompt → action → feedback — keep within ~600 px vertical)
+   - Does this need a reduced-motion fallback?
+   - Is color the only indicator of state? (must not be — add shape/text/position)
 
-## Phaser-Specific Aesthetics Guidelines
+3. **Implement.** Follow the guidelines below. Every interactive element needs:
+   - `setInteractive()` with an explicit hit area ≥ 44×44 canvas px
+   - A corresponding `A11yLayer.addElement()` / `mountAction()` call
+   - A tween guard: `if (!checkReduceMotion()) { ... }` wrapping every animation
+
+4. **After writing:** run `npm run test:a11y` and `npm run typecheck`. Fix any failures before reporting done.
+
+5. **Report.** List: files changed, interactive elements added, A11yLayer registrations, tween guards applied.
+
+---
+
+## Design Guidelines
 
 ### Typography
-
-- Body text: clear, readable sans-serif (existing: `BODY_FONT`)
-- Prompts: slightly larger, slightly bolder for hierarchy
-- Avoid serif fonts for K–2; stick to friendly sans-serif
+- Body text: `BODY_FONT` constant, clear sans-serif.
+- Prompts: slightly larger/bolder for hierarchy.
+- K–2 rule: no serif fonts; no symbol-only labels (show word first, symbol secondary).
 
 ### Color & Theme
-
-- Use existing palette from `levelTheme.ts` and `colors.ts`
-- Ensure sufficient contrast for interactive elements (5:1 minimum for WCAG AA)
-- Dominant colors with sharp accents (not pastel-heavy)
-- Constants in TypeScript, not CSS variables
+- Use tokens from `levelTheme.ts` and `colors.ts` — never hardcode hex unless adding to the palette.
+- Interactive elements: ≥ 5:1 contrast ratio (WCAG AA).
+- Color must never be the sole state indicator.
 
 ### Motion & Interaction
+- Gate ALL tweens via `checkReduceMotion()`.
+- Micro-interactions on selection: scale pulse, color shift.
+- No animations that overlap with the problem-solving area.
 
-- Gate tweens via `checkReduceMotion()` 
-- Micro-interactions on selection (scale, color shift, sound if available)
-- No animations that distract from problem-solving
-- Hover + click feedback on all interactive elements (via Phaser events)
-
-### Spatial Composition (Phaser graphics)
-
-- Clear visual hierarchy: prompt at top, interaction area centered, buttons below
-- Generous padding around shapes and text
-- Asymmetry acceptable, but grid alignment aids young learners
-- Use layering (setDepth) to create visual separation
+### Spatial Composition
+- Layout order: prompt (top) → interaction area (center) → action buttons (bottom).
+- Keep the drag/tap arc within ~600 px vertical so a child doesn't need to re-grip.
+- Generous padding; asymmetry is fine but grid alignment helps young learners.
+- Use `setDepth()` to layer UI cleanly.
 
 ### Visual Details
+- Partition lines: 2–3 px, `#1e3a8a`.
+- Highlighted regions: semi-transparent fill, 0.5 alpha, accent color.
+- Buttons: rounded corners, scale+shadow on press.
+- Avoid: noise textures, gradient meshes, dark themes, neon colors, particle storms (C6).
+- Background: solid or subtle pattern — never distracting.
 
-- Partition lines: clean, 2–3 px width, high-contrast color (#1e3a8a blue standard)
-- Highlighted regions: semi-transparent fill (0.5 alpha) in accent color
-- Buttons: rounded corners, clear affordance (shadow/scale on press)
-- Avoid: noise textures, gradient meshes, decorative grain (too noisy for learning)
-- Background: solid or subtle pattern (not distracting)
-
-### Accessibility
-
-- All interactive elements registered in `A11yLayer` for keyboard/screen-reader access
-- Test with axe-core via `npm run test:a11y`
-- Color not sole indicator of correctness (include shape, position, text)
-- Ensure reduced-motion support doesn't break learning (no silent animations)
-
-## When to Use This Guide
-
-- Adding new interactive question types (new archetypes)
-- Extending UI components (buttons, overlays, feedback)
-- Refining visual hierarchy and feedback on existing interactions
-- Ensuring consistency across all 9 levels
-
-For existing archetypes (identify, partition, label, etc.), design patterns are established in interaction-specific files. Use this guide to maintain coherence and polish.
+### Accessibility (required, not optional)
+- Every `setInteractive()` → `A11yLayer.addElement()` or `mountAction()` in the same mount block.
+- Touch targets ≥ 44×44 canvas px. Use `scene.add.rectangle(x,y,W,100,0,0).setInteractive()` transparent overlays for text/graphic buttons.
+- Color not sole indicator of correctness.
+- After implement: `npm run test:a11y` must pass.

@@ -2,28 +2,30 @@
 description: Print active sprint blockers and their current status in compact form
 ---
 
-Read `PLANS/PLAN.md` and extract the active blockers/priority items. Cross-reference each item against the codebase to see if it's been addressed.
+Read `PLANS/PLAN.md` and extract all active blockers, open items, and in-progress work. Cross-reference against the codebase.
 
 ```bash
-# Quick grep for each known blocker ID
-grep -rn "BUG-01\|BUG-02\|BUG-04\|G-E1\|G-C7" src/ --include="*.ts" -l 2>/dev/null
+# Find all open/in-progress items in PLAN.md
+grep -n "❌\|🔴\|TODO\|BLOCKED\|in.progress\|pending" PLANS/PLAN.md | head -30
 ```
 
-Output a compact table (≤ 15 lines) in this format:
+For each blocker found:
+1. Extract its ID and description from `PLANS/PLAN.md`.
+2. Run one `grep` against `src/` to check current state.
+3. Report ✅ (addressed) or ❌ (still open) with brief evidence.
+
+Output a compact table (≤ 20 lines):
 
 ```
-Sprint 0 status — <today's date>
+Sprint status — <today's date>
 
-| ID     | File              | Fixed? | Evidence |
-|--------|-------------------|--------|----------|
-| BUG-01 | Level01Scene.ts   | ✅/❌   | line X or "still uses 'identify' prompt" |
-| BUG-02 | Level01Scene.ts   | ✅/❌   | brief reason |
-| BUG-04 | Level01Scene.ts   | ✅/❌   | brief reason |
-| G-E1   | Level01Scene.ts   | ✅/❌   | brief reason |
-| G-C7   | LevelScene.ts     | ✅/❌   | brief reason |
+| ID | Description | Fixed? | Evidence |
+|----|-------------|--------|----------|
+| XX | <desc>      | ✅/❌   | file:line or "not found in src/" |
 
-Exit criteria: student completes 5-question session at localhost:5000
-Overall: 🔴 NOT READY / 🟡 IN PROGRESS / 🟢 READY
+Overall: 🔴 BLOCKED / 🟡 IN PROGRESS / 🟢 ALL CLEAR
 ```
+
+If `PLANS/PLAN.md` has no open items, say "No active blockers — PLANS/PLAN.md is clean."
 
 Use one `grep` + one `read` per blocker max — stay fast.

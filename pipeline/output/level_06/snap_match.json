@@ -3,31 +3,53 @@
     "id": "q:sm:L6:0001",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place.",
+      "text": "Match each fraction on the left to its equal on the right.",
       "ttsKey": "tts.sm.l6.0001"
     },
     "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.3333333333333333
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
       ]
     },
-    "correctAnswer": 0.3333333333333333,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-18",
-      "SK-19"
+      "SK-18"
     ],
     "misconceptionTraps": [
       "MC-WHB-01"
@@ -38,31 +60,53 @@
     "id": "q:sm:L6:0002",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 1/3.",
+      "text": "Drag each fraction to find its matching partner.",
       "ttsKey": "tts.sm.l6.0002"
     },
     "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.6666666666666666
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.3333333333333333
-        },
-        {
-          "fractionId": "frac:5/6",
-          "targetDecimal": 0.8333333333333334
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "c"
+        ]
       ]
     },
-    "correctAnswer": 0.3333333333333333,
+    "correctAnswer": 0.5,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-19",
-      "SK-20"
+      "SK-19"
     ],
     "misconceptionTraps": [
       "MC-EOL-01"
@@ -73,31 +117,53 @@
     "id": "q:sm:L6:0003",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Which fraction has the same value as 2/6?",
+      "text": "Connect the equal pairs on both sides.",
       "ttsKey": "tts.sm.l6.0003"
     },
     "payload": {
-      "sourceFractionId": "frac:2/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.3333333333333333
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
       ]
     },
-    "correctAnswer": 0.3333333333333333,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-20",
-      "SK-21"
+      "SK-20"
     ],
     "misconceptionTraps": [
       "MC-WHB-01"
@@ -108,30 +174,52 @@
     "id": "q:sm:L6:0004",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place.",
+      "text": "Find which fraction on the right matches the left one.",
       "ttsKey": "tts.sm.l6.0004"
     },
     "payload": {
-      "sourceFractionId": "frac:2/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.3333333333333333
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:5/6",
-          "targetDecimal": 0.8333333333333334
+          "id": "b",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "a"
+        ]
       ]
     },
-    "correctAnswer": 0.3333333333333333,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-18",
       "SK-21"
     ],
     "misconceptionTraps": [
@@ -143,209 +231,56 @@
     "id": "q:sm:L6:0005",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 1/6.",
+      "text": "Match the two equal fractions and snap them together.",
       "ttsKey": "tts.sm.l6.0005"
     },
     "payload": {
-      "sourceFractionId": "frac:1/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.3333333333333333
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
+          "id": "b",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         }
-      ]
-    },
-    "correctAnswer": 0.16666666666666666,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:sm:L6:0006",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 3/6?",
-      "ttsKey": "tts.sm.l6.0006"
-    },
-    "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
+      ],
+      "rightItems": [
         {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
+          "id": "c",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
         },
         {
-          "fractionId": "frac:2/4",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:5/6",
-          "targetDecimal": 0.8333333333333334
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
       ]
     },
     "correctAnswer": 0.5,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-20",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:sm:L6:0007",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Find the equal fraction and snap it into place.",
-      "ttsKey": "tts.sm.l6.0007"
-    },
-    "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:2/4",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
-        }
-      ]
-    },
-    "correctAnswer": 0.5,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-19"
+      "SK-18"
     ],
     "misconceptionTraps": [
       "MC-WHB-01"
-    ],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:sm:L6:0008",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Drag the fraction that matches 4/6.",
-      "ttsKey": "tts.sm.l6.0008"
-    },
-    "payload": {
-      "sourceFractionId": "frac:4/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.6666666666666666
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:5/6",
-          "targetDecimal": 0.8333333333333334
-        }
-      ]
-    },
-    "correctAnswer": 0.6666666666666666,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:sm:L6:0009",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 5/6?",
-      "ttsKey": "tts.sm.l6.0009"
-    },
-    "payload": {
-      "sourceFractionId": "frac:5/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.6666666666666666
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
-        }
-      ]
-    },
-    "correctAnswer": 0.8333333333333334,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-20",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "easy"
-  },
-  {
-    "id": "q:sm:L6:0010",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Find the equal fraction and snap it into place.",
-      "ttsKey": "tts.sm.l6.0010"
-    },
-    "payload": {
-      "sourceFractionId": "frac:5/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.6666666666666666
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.6666666666666666
-        }
-      ]
-    },
-    "correctAnswer": 0.8333333333333334,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
     ],
     "difficultyTier": "easy"
   },
@@ -353,27 +288,59 @@
     "id": "q:sm:L6:0001",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 1/3.",
+      "text": "Drag each fraction on the left to find its equal partner on the right.",
       "ttsKey": "tts.sm.l6.0001"
     },
     "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333333
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
       ]
     },
-    "correctAnswer": 0.333333,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-19",
-      "SK-20"
+      "SK-18"
     ],
     "misconceptionTraps": [
       "MC-WHB-01"
@@ -384,27 +351,59 @@
     "id": "q:sm:L6:0002",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place for 2/6.",
+      "text": "Match each fraction on the left to its equal on the right by dragging.",
       "ttsKey": "tts.sm.l6.0002"
     },
     "payload": {
-      "sourceFractionId": "frac:2/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333333
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.666667
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
       ]
     },
-    "correctAnswer": 0.333333,
+    "correctAnswer": 0.1667,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-18",
-      "SK-21"
+      "SK-19"
     ],
     "misconceptionTraps": [
       "MC-EOL-01"
@@ -415,26 +414,58 @@
     "id": "q:sm:L6:0003",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Which fraction has the same value as 3/6?",
+      "text": "Find the equal pairs and snap them together on the right.",
       "ttsKey": "tts.sm.l6.0003"
     },
     "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.666667
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "e"
+        ],
+        [
+          "b",
+          "a"
+        ]
       ]
     },
-    "correctAnswer": 0.5,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-19",
       "SK-20"
     ],
     "misconceptionTraps": [
@@ -446,26 +477,58 @@
     "id": "q:sm:L6:0004",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 2/3.",
+      "text": "Drag to match each left fraction with its equal partner on the right.",
       "ttsKey": "tts.sm.l6.0004"
     },
     "payload": {
-      "sourceFractionId": "frac:2/3",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.666667
+          "id": "a",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "c"
+        ],
+        [
+          "b",
+          "b"
+        ]
       ]
     },
-    "correctAnswer": 0.666667,
+    "correctAnswer": 0.6667,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-18",
       "SK-21"
     ],
     "misconceptionTraps": [
@@ -477,185 +540,62 @@
     "id": "q:sm:L6:0005",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place for 1/6.",
+      "text": "Connect each fraction on the left to the equal one on the right.",
       "ttsKey": "tts.sm.l6.0005"
     },
     "payload": {
-      "sourceFractionId": "frac:1/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333333
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         }
-      ]
-    },
-    "correctAnswer": 0.166667,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:sm:L6:0006",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 4/6?",
-      "ttsKey": "tts.sm.l6.0006"
-    },
-    "payload": {
-      "sourceFractionId": "frac:4/6",
-      "snapTargets": [
+      ],
+      "rightItems": [
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.666667
+          "id": "c",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        }
-      ]
-    },
-    "correctAnswer": 0.666667,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:sm:L6:0007",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Drag the fraction that matches 5/6.",
-      "ttsKey": "tts.sm.l6.0007"
-    },
-    "payload": {
-      "sourceFractionId": "frac:5/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.666667
+          "id": "d",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "e",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         }
-      ]
-    },
-    "correctAnswer": 0.833333,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:sm:L6:0008",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Find the equal fraction and snap it into place for 3/6.",
-      "ttsKey": "tts.sm.l6.0008"
-    },
-    "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333333
-        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "e"
+        ],
+        [
+          "b",
+          "c"
+        ]
       ]
     },
     "correctAnswer": 0.5,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-18",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:sm:L6:0009",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 2/6?",
-      "ttsKey": "tts.sm.l6.0009"
-    },
-    "payload": {
-      "sourceFractionId": "frac:2/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333333
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        }
-      ]
-    },
-    "correctAnswer": 0.333333,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-20"
+      "SK-18"
     ],
     "misconceptionTraps": [
       "MC-WHB-01"
-    ],
-    "difficultyTier": "medium"
-  },
-  {
-    "id": "q:sm:L6:0010",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Drag the fraction that matches 1/3.",
-      "ttsKey": "tts.sm.l6.0010"
-    },
-    "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333333
-        },
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.666667
-        }
-      ]
-    },
-    "correctAnswer": 0.333333,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
     ],
     "difficultyTier": "medium"
   },
@@ -663,34 +603,80 @@
     "id": "q:sm:L6:0001",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 2/6.",
+      "text": "Drag each fraction on the left to match its equal on the right.",
       "ttsKey": "tts.sm.l6.0001"
     },
     "payload": {
-      "sourceFractionId": "frac:2/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:1/6",
-          "targetDecimal": 0.167
+          "id": "c",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "f"
+        ]
       ]
     },
-    "correctAnswer": 0.333,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
       "SK-18",
-      "SK-20"
+      "SK-19"
     ],
     "misconceptionTraps": [
-      "MC-WHB-01"
+      "MC-WHB-01",
+      "MC-EOL-01"
     ],
     "difficultyTier": "hard"
   },
@@ -698,34 +684,79 @@
     "id": "q:sm:L6:0002",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place for 1/6.",
+      "text": "Connect each fraction on the left to its matching equal on the right.",
       "ttsKey": "tts.sm.l6.0002"
     },
     "payload": {
-      "sourceFractionId": "frac:1/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333
+          "id": "a",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
         }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "g",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "f"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "d"
+        ]
       ]
     },
-    "correctAnswer": 0.167,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-19",
+      "SK-20",
       "SK-21"
     ],
     "misconceptionTraps": [
-      "MC-EOL-01"
+      "MC-WHB-01"
     ],
     "difficultyTier": "hard"
   },
@@ -733,24 +764,69 @@
     "id": "q:sm:L6:0003",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Which fraction has the same value as 3/6?",
+      "text": "Match the fractions by dragging equal pairs together.",
       "ttsKey": "tts.sm.l6.0003"
     },
     "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
+          "id": "a",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.667
+          "id": "b",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
+          "id": "c",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "f"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "d"
+        ]
       ]
     },
     "correctAnswer": 0.5,
@@ -760,7 +836,7 @@
       "SK-20"
     ],
     "misconceptionTraps": [
-      "MC-WHB-01"
+      "MC-EOL-01"
     ],
     "difficultyTier": "hard"
   },
@@ -768,33 +844,79 @@
     "id": "q:sm:L6:0004",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Drag the fraction that matches 5/6.",
+      "text": "Snap each fraction card to its equal partner on the other side.",
       "ttsKey": "tts.sm.l6.0004"
     },
     "payload": {
-      "sourceFractionId": "frac:5/6",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.667
+          "id": "a",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.667
+          "id": "c",
+          "label": "5/6",
+          "numerator": 5,
+          "denominator": 6
         }
+      ],
+      "rightItems": [
+        {
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
+        },
+        {
+          "id": "f",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
+        },
+        {
+          "id": "g",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
+        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "d"
+        ],
+        [
+          "b",
+          "e"
+        ],
+        [
+          "c",
+          "f"
+        ]
       ]
     },
-    "correctAnswer": 0.833,
+    "correctAnswer": 0.3333,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
       "SK-19",
       "SK-21"
     ],
     "misconceptionTraps": [
+      "MC-WHB-01",
       "MC-EOL-01"
     ],
     "difficultyTier": "hard"
@@ -803,205 +925,75 @@
     "id": "q:sm:L6:0005",
     "archetype": "snap_match",
     "prompt": {
-      "text": "Find the equal fraction and snap it into place for 1/3.",
+      "text": "Find and drag equal fraction pairs to connect them together.",
       "ttsKey": "tts.sm.l6.0005"
     },
     "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
+      "leftItems": [
         {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333
+          "id": "a",
+          "label": "1/6",
+          "numerator": 1,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "b",
+          "label": "3/6",
+          "numerator": 3,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:1/6",
-          "targetDecimal": 0.167
+          "id": "c",
+          "label": "2/3",
+          "numerator": 2,
+          "denominator": 3
         }
-      ]
-    },
-    "correctAnswer": 0.333,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "hard"
-  },
-  {
-    "id": "q:sm:L6:0006",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 4/6?",
-      "ttsKey": "tts.sm.l6.0006"
-    },
-    "payload": {
-      "sourceFractionId": "frac:4/6",
-      "snapTargets": [
+      ],
+      "rightItems": [
         {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.667
+          "id": "d",
+          "label": "1/3",
+          "numerator": 1,
+          "denominator": 3
         },
         {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
+          "id": "e",
+          "label": "4/6",
+          "numerator": 4,
+          "denominator": 6
         },
         {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
+          "id": "f",
+          "label": "1/2",
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "id": "g",
+          "label": "2/6",
+          "numerator": 2,
+          "denominator": 6
         }
-      ]
-    },
-    "correctAnswer": 0.667,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "hard"
-  },
-  {
-    "id": "q:sm:L6:0007",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Drag the fraction that matches 2/3.",
-      "ttsKey": "tts.sm.l6.0007"
-    },
-    "payload": {
-      "sourceFractionId": "frac:2/3",
-      "snapTargets": [
-        {
-          "fractionId": "frac:4/6",
-          "targetDecimal": 0.667
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
-        }
-      ]
-    },
-    "correctAnswer": 0.667,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-18",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "hard"
-  },
-  {
-    "id": "q:sm:L6:0008",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Find the equal fraction and snap it into place for 3/6.",
-      "ttsKey": "tts.sm.l6.0008"
-    },
-    "payload": {
-      "sourceFractionId": "frac:3/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:1/2",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:2/3",
-          "targetDecimal": 0.667
-        },
-        {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
-        }
+      ],
+      "expectedPairs": [
+        [
+          "a",
+          "g"
+        ],
+        [
+          "b",
+          "f"
+        ],
+        [
+          "c",
+          "e"
+        ]
       ]
     },
     "correctAnswer": 0.5,
     "validatorId": "validator.snap_match.equivalence",
     "skillIds": [
-      "SK-19",
-      "SK-21"
-    ],
-    "misconceptionTraps": [
-      "MC-EOL-01"
-    ],
-    "difficultyTier": "hard"
-  },
-  {
-    "id": "q:sm:L6:0009",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Which fraction has the same value as 1/6?",
-      "ttsKey": "tts.sm.l6.0009"
-    },
-    "payload": {
-      "sourceFractionId": "frac:1/6",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:1/3",
-          "targetDecimal": 0.333
-        }
-      ]
-    },
-    "correctAnswer": 0.167,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
       "SK-18",
-      "SK-20"
-    ],
-    "misconceptionTraps": [
-      "MC-WHB-01"
-    ],
-    "difficultyTier": "hard"
-  },
-  {
-    "id": "q:sm:L6:0010",
-    "archetype": "snap_match",
-    "prompt": {
-      "text": "Drag the fraction that matches 1/3.",
-      "ttsKey": "tts.sm.l6.0010"
-    },
-    "payload": {
-      "sourceFractionId": "frac:1/3",
-      "snapTargets": [
-        {
-          "fractionId": "frac:2/6",
-          "targetDecimal": 0.333
-        },
-        {
-          "fractionId": "frac:3/6",
-          "targetDecimal": 0.5
-        },
-        {
-          "fractionId": "frac:1/6",
-          "targetDecimal": 0.167
-        }
-      ]
-    },
-    "correctAnswer": 0.333,
-    "validatorId": "validator.snap_match.equivalence",
-    "skillIds": [
-      "SK-19",
       "SK-21"
     ],
     "misconceptionTraps": [

@@ -88,7 +88,7 @@ function writePerLevelFiles(outDir, levels, generatedAt) {
   console.log(`[build-curriculum] Per-level files and index.json written to public/curriculum/`);
 }
 
-/** Archetypes allowed per level — matches architecture spec exactly. */
+/** Archetypes allowed per level — must match pipeline/level_archetypes.py exactly. */
 const LEVEL_ARCHETYPES = {
   '01': ['partition', 'identify'],
   '02': ['identify', 'label'],
