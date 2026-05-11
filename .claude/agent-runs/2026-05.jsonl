@@ -1,0 +1,1 @@
+{"ts": "2026-05-11T15:47:12.998459Z", "workflow": "ci-fix", "sha": "50755e9043f3e6ec4d49bca024ec3278a523548f", "pr_number": "118", "failing_step": "E2E tests", "outcome": "failed", "fix_branch": "claude-fix/50755e90-e2e-tests"}
