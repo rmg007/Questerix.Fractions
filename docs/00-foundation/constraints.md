@@ -61,20 +61,25 @@ These are locked in until 2029-01-01 unless explicitly revised here.
 
 ---
 
-## C4 — Tech Stack: Phaser 4 + TypeScript + Vite + Dexie.js
+## C4 — Tech Stack: React + TypeScript + Vite + PixiJS + Dexie.js
 
-**Rule:** No tech stack changes. Build on what already exists.
+**Rule:** React for the app shell and non-canvas UI; PixiJS for canvas-based interaction rendering. No further tech stack changes.
 
-**Why:** The current `src/` is a working Phaser prototype. Switching to React, Unity, or any other engine throws away working code and resets the timeline. Phaser handles drag/snap, animations, and procedural shape rendering exactly as needed.
+**Status:** Revised 2026-05-10 per D-32 (decision-log.md). Previous Phaser 4-only constraint is superseded.
+
+**Why:** MVP validation is functionally complete (persistence, resumption, backup). Validation phase demands agent-friendly code (React's JSX trees vs Phaser's scene graphs) and iteration speed on pedagogy without code-simulation overhead. Bundle math (350 KB Phaser → 140 KB React+Pixi, net ~210 KB savings) makes the swap viable within the 1 MB gzipped budget.
 
 **How to apply:**
 
-- Phaser 4 for all game scenes
+- `react@^19` + `react-dom@^19` for the app shell (menus, routing, settings, overlays, hint ladders)
+- `pixi.js@^8` for canvas-based interaction rendering (archetype renderers)
+- `@pixi/react@^8` as the React-to-Pixi bridge (or naked `useRef` + manual Pixi lifecycle if bridge cost exceeds 20 KB gzipped)
+- `wouter` (~2 KB) for routing — React Router excluded as overkill for ~5 routes
 - TypeScript strict mode
 - Vite for dev server and production build
-- Tailwind CSS v4 for any non-game UI (menus, settings, modals)
 - Dexie.js for IndexedDB persistence
-- No Redux, no Zustand, no React, no Next.js, no backend frameworks
+- **No Redux, no Zustand, no Next.js, no backend frameworks, no other state libraries**
+- Tween animation: `requestAnimationFrame` + token-based easings from `src/scenes/utils/easings.ts`; external tween libraries (GSAP, popmotion) not imported without explicit measured justification
 
 ---
 

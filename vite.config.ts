@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -19,8 +20,11 @@ const buildTime = new Date().toISOString();
 // PWA enabled in production by default (Phase 8)
 const enablePWA = process.env['NODE_ENV'] === 'production' || process.env['PWA'] === '1';
 
+// Phase 1: spike mode uses React entry point; production uses Phaser
+const isSpikeMode = process.env['VITE_SPIKE'] === '1';
+
 export default defineConfig(async () => {
-  const plugins: any[] = [tailwindcss()];
+  const plugins: any[] = [tailwindcss(), react()];
 
   if (enablePWA) {
     const { VitePWA } = await import('vite-plugin-pwa');
@@ -164,12 +168,15 @@ export default defineConfig(async () => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
+        '@app': path.resolve(__dirname, 'src/app'),
+        '@interactions': path.resolve(__dirname, 'src/interactions'),
       },
     },
     server: {
       port: DEV_PORT,
       host: '0.0.0.0',
       allowedHosts: true,
+      middlewareMode: false,
       watch: {
         // Ignore non-source directories to prevent spurious HMR reloads
         ignored: [
@@ -184,6 +191,7 @@ export default defineConfig(async () => {
         ],
       },
     },
+    appType: isSpikeMode ? 'spa' : 'mpa',
     build: {
       target: 'es2022',
       outDir: 'dist',
@@ -191,6 +199,9 @@ export default defineConfig(async () => {
       assetsInlineLimit: 0,
       chunkSizeWarningLimit: 1400,
       rollupOptions: {
+        input: isSpikeMode
+          ? path.resolve(__dirname, 'spike.html')
+          : path.resolve(__dirname, 'index.html'),
         output: {
           manualChunks: (id: string) => {
             if (id.includes('node_modules/phaser')) return 'phaser';
