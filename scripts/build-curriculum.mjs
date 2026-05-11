@@ -94,7 +94,7 @@ const LEVEL_ARCHETYPES = {
   '02': ['identify', 'label'],
   '03': ['identify', 'label'],
   '04': ['make', 'partition'],
-  '05': ['make', 'partition'],
+  '05': ['make', 'partition', 'snap_match'],
   '06': ['compare', 'snap_match'],
   '07': ['compare', 'label'],
   '08': ['benchmark', 'placement'],
