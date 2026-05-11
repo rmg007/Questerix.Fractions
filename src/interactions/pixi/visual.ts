@@ -4,7 +4,7 @@
  * Per React+PixiJS migration plan §5
  */
 
-import * as PIXI from 'pixi.js';
+import { Graphics, Container, Text, TextStyle } from 'pixi.js';
 import { COLORS, STROKE, TYPOGRAPHY, RADIUS } from './tokens';
 import { checkReduceMotion } from '@/lib/preferences';
 
@@ -18,8 +18,8 @@ export function createRect(
   stroke: number = COLORS.border,
   strokeWidth: number = STROKE.thin,
   borderRadius: number = RADIUS.sm
-): PIXI.Graphics {
-  const rect = new PIXI.Graphics();
+): Graphics {
+  const rect = new Graphics();
   rect.beginFill(fill);
   if (strokeWidth > 0) {
     rect.lineStyle(strokeWidth, stroke);
@@ -38,8 +38,8 @@ export function createCircle(
   fill: number = COLORS.primary,
   stroke: number = COLORS.border,
   strokeWidth: number = STROKE.thin
-): PIXI.Graphics {
-  const circle = new PIXI.Graphics();
+): Graphics {
+  const circle = new Graphics();
   circle.beginFill(fill);
   if (strokeWidth > 0) {
     circle.lineStyle(strokeWidth, stroke);
@@ -57,14 +57,14 @@ export function createText(
   size: number = TYPOGRAPHY.normal,
   fill: number = COLORS.textPrimary,
   fontFamily: string = 'Arial'
-): PIXI.Text {
-  const style = new PIXI.TextStyle({
+): Text {
+  const style = new TextStyle({
     fontFamily,
     fontSize: size,
     fill,
     align: 'center',
   });
-  const text = new PIXI.Text({ text: content, style });
+  const text = new Text({ text: content, style });
   return text;
 }
 
@@ -85,7 +85,7 @@ export interface ButtonConfig {
  * Create an interactive button with text.
  * Must be added to a container with interactiveChildren enabled.
  */
-export function createButton(config: ButtonConfig): PIXI.Container {
+export function createButton(config: ButtonConfig): Container {
   const {
     width,
     height,
@@ -99,7 +99,7 @@ export function createButton(config: ButtonConfig): PIXI.Container {
     id,
   } = config;
 
-  const container = new PIXI.Container();
+  const container = new Container();
   container.eventMode = 'static';
   container.cursor = 'pointer';
 
@@ -150,12 +150,9 @@ export function createButton(config: ButtonConfig): PIXI.Container {
 /**
  * Create a visual feedback marker (e.g., checkmark, X).
  */
-export function createFeedbackMarker(
-  type: 'correct' | 'incorrect',
-  size: number = 32
-): PIXI.Graphics {
+export function createFeedbackMarker(type: 'correct' | 'incorrect', size: number = 32): Graphics {
   const color = type === 'correct' ? COLORS.correct : COLORS.incorrect;
-  const marker = new PIXI.Graphics();
+  const marker = new Graphics();
   marker.lineStyle(STROKE.medium, color);
 
   if (type === 'correct') {
@@ -185,8 +182,8 @@ export function createProgressBar(
   progress: number, // 0..1
   fillColor: number = COLORS.primary,
   backgroundColor: number = COLORS.backgroundDark
-): PIXI.Container {
-  const container = new PIXI.Container();
+): Container {
+  const container = new Container();
 
   // Background
   const bg = createRect(width, height, backgroundColor, COLORS.border, STROKE.thin);
@@ -209,8 +206,8 @@ export function createLine(
   y2: number,
   color: number = COLORS.border,
   thickness: number = STROKE.thin
-): PIXI.Graphics {
-  const line = new PIXI.Graphics();
+): Graphics {
+  const line = new Graphics();
   line.lineStyle(thickness, color);
   line.moveTo(x1, y1);
   line.lineTo(x2, y2);
@@ -221,7 +218,7 @@ export function createLine(
  * Tween a container's alpha (fade in/out).
  */
 export function tweenAlpha(
-  container: PIXI.Container,
+  container: Container,
   targetAlpha: number,
   duration: number,
   onComplete?: () => void
@@ -255,7 +252,7 @@ export function tweenAlpha(
  * Tween a container's position.
  */
 export function tweenPosition(
-  container: PIXI.Container,
+  container: Container,
   targetX: number,
   targetY: number,
   duration: number,

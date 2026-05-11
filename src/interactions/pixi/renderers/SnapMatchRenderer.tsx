@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application, Graphics } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
@@ -43,7 +43,7 @@ export function SnapMatchRenderer({
   width = 500,
   height = 300,
 }: SnapMatchRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<SnapMatchState>(model.initialize(question));
@@ -177,7 +177,7 @@ export function SnapMatchRenderer({
   };
 
   const renderBarModelFn = (
-    gfx: PIXI.Graphics,
+    gfx: Graphics,
     x: number,
     y: number,
     numerator: number,
@@ -201,7 +201,7 @@ export function SnapMatchRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: SnapMatchState): void => {
+  const renderStage = (app: Application, state: SnapMatchState): void => {
     app.stage.removeChildren();
 
     const leftItems = state.leftItems ?? [];
@@ -263,7 +263,7 @@ export function SnapMatchRenderer({
       app.stage.addChild(slotBg);
 
       if (item.numerator !== undefined && item.denominator !== undefined) {
-        const barGfx = new PIXI.Graphics();
+        const barGfx = new Graphics();
         renderBarModelFn(
           barGfx,
           width * 0.7 - itemW / 2 + 10,
@@ -377,7 +377,7 @@ export function SnapMatchRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };
