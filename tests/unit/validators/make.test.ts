@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { makeFoldAndShade, makeHalvingByLine } from '@/validators/make';
+import { makeFoldAlignment, makeHalvingByLine } from '@/validators/make';
 
-describe('validator.make.foldAndShade', () => {
-  const fn = makeFoldAndShade.fn.bind(makeFoldAndShade);
+describe('validator.make.foldAlignment', () => {
+  const fn = makeFoldAlignment.fn.bind(makeFoldAlignment);
   const expected = { targetPartitions: 2, areaTolerance: 0.05, targetNumerator: 1 };
 
   it('returns correct for equal halves + correct shade count', () => {
