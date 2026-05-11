@@ -4,6 +4,7 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager, type PointerEvent } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
 import { createText, createRect, createLine } from '../visual';
+import type { InteractionModel } from '../../model/types';
 import { SPACING, COLORS, TYPOGRAPHY, STROKE } from '../tokens';
 import type {
   PlacementQuestion,

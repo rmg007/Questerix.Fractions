@@ -10,6 +10,7 @@ import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
 import { createButton, createText } from '../visual';
+import type { InteractionModel } from '../../model/types';
 import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY } from '../tokens';
 import type {
   EqualOrNotQuestion,
