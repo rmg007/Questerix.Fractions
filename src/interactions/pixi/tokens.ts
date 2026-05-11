@@ -21,7 +21,7 @@ export const COLORS = {
 
   // UI elements
   buttonActive: 0x2196f3,
-  buttonInactive: 0xbdbdbd,
+  buttonInactive: 0xa0a0a0,
   buttonHover: 0x1976d2,
 
   // Text & backgrounds
@@ -72,7 +72,7 @@ export const TYPOGRAPHY = {
 export const TOUCH_TARGETS = {
   minimum: 44,
   button: 48,
-  smallButton: 40,
+  smallButton: 44,
   sliderTrack: 50,
 } as const;
 

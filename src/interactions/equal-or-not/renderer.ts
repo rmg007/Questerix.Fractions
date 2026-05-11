@@ -19,6 +19,11 @@ export function createEqualOrNotCanvas(
   const canvas = document.createElement('canvas');
   canvas.width = container.clientWidth || 500;
   canvas.height = container.clientHeight || 400;
+  // Ensure the host can position the DOM-mirror buttons absolutely over the canvas.
+  const previousPosition = container.style.position;
+  if (!previousPosition || previousPosition === 'static') {
+    container.style.position = 'relative';
+  }
   container.appendChild(canvas);
 
   // Create a Pixi Application
@@ -44,27 +49,44 @@ export function createEqualOrNotCanvas(
   rightText.position.set(300, 150);
   app.stage.addChild(rightText);
 
+  // Track DOM mirror buttons so cleanup can remove them.
+  const mirrors: HTMLButtonElement[] = [];
+
   // Create buttons for equal/not equal
-  const equalButton = createButton('Equal', 100, 300, () => {
+  const equalButton = createButton(container, mirrors, 'Equal', 100, 300, () => {
     onAnswer({ choice: 'equal' });
   });
   app.stage.addChild(equalButton);
 
-  const notEqualButton = createButton('Not Equal', 300, 300, () => {
+  const notEqualButton = createButton(container, mirrors, 'Not Equal', 300, 300, () => {
     onAnswer({ choice: 'not_equal' });
   });
   app.stage.addChild(notEqualButton);
 
   // Cleanup function
   const cleanup = () => {
+    for (const mirror of mirrors) {
+      if (mirror.parentNode) {
+        mirror.parentNode.removeChild(mirror);
+      }
+    }
+    mirrors.length = 0;
     app.destroy(true);
     container.removeChild(canvas);
+    container.style.position = previousPosition;
   };
 
   return { cleanup };
 }
 
-function createButton(label: string, x: number, y: number, onClick: () => void) {
+function createButton(
+  host: HTMLElement,
+  mirrors: HTMLButtonElement[],
+  label: string,
+  x: number,
+  y: number,
+  onClick: () => void
+) {
   const button = new PIXI.Container();
   button.position.set(x, y);
   button.interactive = true;
@@ -79,6 +101,44 @@ function createButton(label: string, x: number, y: number, onClick: () => void) 
   const text = new PIXI.Text(label, { fontSize: 16, fill: 0xffffff });
   text.position.set(10, 15);
   button.addChild(text);
+
+  // DOM-mirror button: gives the Pixi control a real keyboard- and AT-accessible
+  // sibling that lives in document tab order. Positioned over the Pixi hit area.
+  const mirror = document.createElement('button');
+  mirror.type = 'button';
+  mirror.textContent = label;
+  mirror.setAttribute('aria-label', label);
+  mirror.style.position = 'absolute';
+  mirror.style.left = `${x}px`;
+  mirror.style.top = `${y}px`;
+  mirror.style.width = '120px';
+  mirror.style.height = '50px';
+  mirror.style.margin = '0';
+  mirror.style.padding = '0';
+  mirror.style.background = 'transparent';
+  mirror.style.color = 'transparent';
+  mirror.style.border = '0';
+  mirror.style.cursor = 'pointer';
+  mirror.style.font = 'inherit';
+  // Visible focus indicator for keyboard users.
+  mirror.addEventListener('focus', () => {
+    mirror.style.outline = '3px solid #ffbf00';
+    mirror.style.outlineOffset = '2px';
+  });
+  mirror.addEventListener('blur', () => {
+    mirror.style.outline = 'none';
+  });
+  mirror.addEventListener('click', () => {
+    onClick();
+  });
+  mirror.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      onClick();
+    }
+  });
+  host.appendChild(mirror);
+  mirrors.push(mirror);
 
   return button;
 }
