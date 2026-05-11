@@ -4,7 +4,7 @@
  * Per React+PixiJS migration plan §5
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { BREAKPOINTS } from './tokens';
 
