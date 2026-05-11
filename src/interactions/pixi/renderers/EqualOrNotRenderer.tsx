@@ -44,7 +44,6 @@ export function EqualOrNotRenderer({
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<EqualOrNotState>(model.initialize(question));
-  const [isAnswered, setIsAnswered] = useState(false);
 
   useEffect(() => {
     // Initialize pointer and keyboard managers
@@ -96,11 +95,8 @@ export function EqualOrNotRenderer({
     }
 
     const answer = model.toAnswer(newState);
-    if (answer) {
-      setIsAnswered(true);
-      if (onAnswer) {
-        onAnswer(answer);
-      }
+    if (answer && onAnswer) {
+      onAnswer(answer);
     }
 
     // Re-render Pixi stage
@@ -145,7 +141,7 @@ export function EqualOrNotRenderer({
       width: TOUCH_TARGETS.button,
       height: TOUCH_TARGETS.button,
       text: 'Not Equal',
-      fill: state.selectedChoice === 'not-equal' ? COLORS.buttonActive : COLORS.buttonInactive,
+      fill: state.selectedChoice === 'not_equal' ? COLORS.buttonActive : COLORS.buttonInactive,
       fillActive: COLORS.buttonActive,
       textColor: COLORS.textPrimary,
       fontSize: 16,

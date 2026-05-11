@@ -70,7 +70,6 @@ export function PixiStage({
 }: PixiStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
   // Initialize Pixi application
   useEffect(() => {
@@ -94,7 +93,6 @@ export function PixiStage({
     app.canvas.setAttribute('aria-label', ariaLabel);
 
     appRef.current = app;
-    setIsReady(true);
 
     if (onReady) {
       onReady(app);
