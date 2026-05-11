@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager, type PointerEvent } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
@@ -36,7 +36,7 @@ export function ExplainYourOrderRenderer({
   width = 500,
   height = 500,
 }: ExplainYourOrderRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<ExplainYourOrderState>(model.initialize(question));
@@ -122,7 +122,7 @@ export function ExplainYourOrderRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: ExplainYourOrderState): void => {
+  const renderStage = (app: Application, state: ExplainYourOrderState): void => {
     app.stage.removeChildren();
     slotsRef.current = [];
 
@@ -281,7 +281,7 @@ export function ExplainYourOrderRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };

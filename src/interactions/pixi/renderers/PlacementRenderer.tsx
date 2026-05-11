@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application, Graphics } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager, type PointerEvent } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
@@ -40,7 +40,7 @@ export function PlacementRenderer({
   width = 500,
   height = 400,
 }: PlacementRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<PlacementState>(model.initialize(question));
@@ -121,7 +121,7 @@ export function PlacementRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: PlacementState): void => {
+  const renderStage = (app: Application, state: PlacementState): void => {
     app.stage.removeChildren();
 
     // Layout calculations
@@ -226,7 +226,7 @@ export function PlacementRenderer({
     // Marker (draggable circle)
     const markerPosition = state.position ?? 0.5;
     const markerX = lineX + markerPosition * lineLength;
-    const markerCircle = new PIXI.Graphics();
+    const markerCircle = new Graphics();
     markerCircle.beginFill(COLORS.buttonActive);
     markerCircle.lineStyle(STROKE.normal, COLORS.border);
     markerCircle.drawCircle(0, 0, markerRadius);
@@ -266,7 +266,7 @@ export function PlacementRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application, Graphics } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
@@ -34,7 +34,7 @@ export function MakeRenderer({
   width = 500,
   height = 300,
 }: MakeRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<MakeState>(model.initialize(question));
@@ -152,7 +152,7 @@ export function MakeRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: MakeState): void => {
+  const renderStage = (app: Application, state: MakeState): void => {
     app.stage.removeChildren();
 
     const shapeW = 280;
@@ -168,7 +168,7 @@ export function MakeRenderer({
     const foldX = minX + foldProgress * shapeW;
 
     // Draw shape background
-    const shapeGfx = new PIXI.Graphics();
+    const shapeGfx = new Graphics();
     shapeGfx.beginFill(COLORS.backgroundLight);
     shapeGfx.lineStyle(STROKE.normal, COLORS.border);
     shapeGfx.drawRect(minX, centerY - shapeH / 2, shapeW, shapeH);
@@ -177,7 +177,7 @@ export function MakeRenderer({
     app.stage.addChild(shapeGfx);
 
     // Draw fold line (dashed)
-    const foldLineGfx = new PIXI.Graphics();
+    const foldLineGfx = new Graphics();
     foldLineGfx.lineStyle(STROKE.normal, COLORS.primary);
     const topY = centerY - shapeH / 2;
     const bottomY = centerY + shapeH / 2;
@@ -197,7 +197,7 @@ export function MakeRenderer({
 
     // Draw fold handle (draggable)
     const handleSize = TOUCH_TARGETS.minimum;
-    const handleGfx = new PIXI.Graphics();
+    const handleGfx = new Graphics();
     const actualFoldX = dragState.isDragging ? dragState.currentX : foldX;
     handleGfx.beginFill(COLORS.buttonActive);
     handleGfx.lineStyle(STROKE.normal, COLORS.primary);
@@ -217,7 +217,7 @@ export function MakeRenderer({
     // Render regions (left and right of fold line)
     if (state.phase === 'shade') {
       const regionW = actualFoldX - minX;
-      const leftRegionGfx = new PIXI.Graphics();
+      const leftRegionGfx = new Graphics();
       leftRegionGfx.beginFill(
         state.shadedRegions?.includes('left') ? COLORS.correct : COLORS.backgroundDark,
         0.4
@@ -230,7 +230,7 @@ export function MakeRenderer({
       (leftRegionGfx as unknown as { id: string }).id = 'region-left';
       app.stage.addChild(leftRegionGfx);
 
-      const rightRegionGfx = new PIXI.Graphics();
+      const rightRegionGfx = new Graphics();
       const rightRegionW = maxX - actualFoldX;
       rightRegionGfx.beginFill(
         state.shadedRegions?.includes('right') ? COLORS.correct : COLORS.backgroundDark,
@@ -298,7 +298,7 @@ export function MakeRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };

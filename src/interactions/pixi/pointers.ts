@@ -1,10 +1,10 @@
 /**
  * Pointer event utilities for Pixi interactions.
- * Translates Pixi PIXI.FederatedPointerEvent to normalized events (tap, drag, drop, snap).
+ * Translates Pixi FederatedPointerEvent to normalized events (tap, drag, drop, snap).
  * Per React+PixiJS migration plan §5
  */
 
-import * as PIXI from 'pixi.js';
+import { Container, FederatedPointerEvent, Point } from 'pixi.js';
 
 export interface PointerDown {
   type: 'pointerdown';
@@ -115,18 +115,14 @@ export class PointerManager {
    * Attach pointer listeners to a Pixi container.
    * Container must have interactiveChildren enabled.
    */
-  attach(container: PIXI.Container): void {
-    container.addEventListener('pointerdown', (e: PIXI.FederatedPointerEvent) =>
-      this.onPointerDown(e)
-    );
-    container.addEventListener('pointermove', (e: PIXI.FederatedPointerEvent) =>
-      this.onPointerMove(e)
-    );
-    container.addEventListener('pointerup', (e: PIXI.FederatedPointerEvent) => this.onPointerUp(e));
-    container.addEventListener('pointerupoutside', (e: PIXI.FederatedPointerEvent) =>
+  attach(container: Container): void {
+    container.addEventListener('pointerdown', (e: FederatedPointerEvent) => this.onPointerDown(e));
+    container.addEventListener('pointermove', (e: FederatedPointerEvent) => this.onPointerMove(e));
+    container.addEventListener('pointerup', (e: FederatedPointerEvent) => this.onPointerUp(e));
+    container.addEventListener('pointerupoutside', (e: FederatedPointerEvent) =>
       this.onPointerUp(e)
     );
-    container.addEventListener('pointercancel', (e: PIXI.FederatedPointerEvent) =>
+    container.addEventListener('pointercancel', (e: FederatedPointerEvent) =>
       this.onPointerCancel(e)
     );
   }
@@ -143,7 +139,7 @@ export class PointerManager {
   /**
    * Handle pointer down: start tracking.
    */
-  private onPointerDown(e: PIXI.FederatedPointerEvent): void {
+  private onPointerDown(e: FederatedPointerEvent): void {
     const pointerId = e.pointerId ?? 0;
     const targetId = (e.target as unknown as { id?: string })?.id;
     const state = new PointerState(pointerId, e.clientX, e.clientY, targetId);
@@ -161,7 +157,7 @@ export class PointerManager {
   /**
    * Handle pointer move: detect drag or emit move events.
    */
-  private onPointerMove(e: PIXI.FederatedPointerEvent): void {
+  private onPointerMove(e: FederatedPointerEvent): void {
     const pointerId = e.pointerId ?? 0;
     const state = this.pointers.get(pointerId);
     if (!state) return;
@@ -203,7 +199,7 @@ export class PointerManager {
   /**
    * Handle pointer up: end tap or drag.
    */
-  private onPointerUp(e: PIXI.FederatedPointerEvent): void {
+  private onPointerUp(e: FederatedPointerEvent): void {
     const pointerId = e.pointerId ?? 0;
     const state = this.pointers.get(pointerId);
     if (!state) return;
@@ -224,7 +220,7 @@ export class PointerManager {
   /**
    * Handle pointer cancel: abort gesture.
    */
-  private onPointerCancel(e: PIXI.FederatedPointerEvent): void {
+  private onPointerCancel(e: FederatedPointerEvent): void {
     const pointerId = e.pointerId ?? 0;
     const state = this.pointers.get(pointerId);
     if (!state) return;
@@ -243,8 +239,8 @@ export class PointerManager {
   /**
    * Check if a point is inside a Pixi container (for drop detection).
    */
-  static pointInContainer(container: PIXI.Container, x: number, y: number): boolean {
-    const local = container.toLocal(new PIXI.Point(x, y));
+  static pointInContainer(container: Container, x: number, y: number): boolean {
+    const local = container.toLocal(new Point(x, y));
     return (
       local.x >= 0 && local.x <= container.width && local.y >= 0 && local.y <= container.height
     );

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager, type PointerEvent } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
@@ -32,7 +32,7 @@ export function BenchmarkRenderer({
   width = 500,
   height = 400,
 }: BenchmarkRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<BenchmarkState>(model.initialize(question));
@@ -95,7 +95,7 @@ export function BenchmarkRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: BenchmarkState): void => {
+  const renderStage = (app: Application, state: BenchmarkState): void => {
     app.stage.removeChildren();
 
     // Instruction
@@ -238,7 +238,7 @@ export function BenchmarkRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };
