@@ -80,23 +80,36 @@ export function PixiStage({
     const canvasWidth = width || rect.width || BREAKPOINTS.mobile;
     const canvasHeight = height || rect.height || 400;
 
-    const app = new PIXI.Application({
-      width: canvasWidth,
-      height: canvasHeight,
-      backgroundColor,
-      antialias: true,
-      resolution: window.devicePixelRatio || 1,
-    });
+    let isMounted = true;
+    const initializeApp = async () => {
+      const app = new PIXI.Application();
+      await app.init({
+        width: canvasWidth,
+        height: canvasHeight,
+        backgroundColor,
+        antialias: true,
+        resolution: window.devicePixelRatio || 1,
+      });
 
-    // Append canvas to container
-    container.appendChild(app.canvas);
-    app.canvas.setAttribute('aria-label', ariaLabel);
+      if (!isMounted) {
+        app.destroy(true);
+        return;
+      }
 
-    appRef.current = app;
+      // Append canvas to container
+      container.appendChild(app.canvas);
+      app.canvas.setAttribute('aria-label', ariaLabel);
+      app.canvas.setAttribute('role', 'application');
+      app.canvas.setAttribute('tabindex', '0');
 
-    if (onReady) {
-      onReady(app);
-    }
+      appRef.current = app;
+
+      if (onReady) {
+        onReady(app);
+      }
+    };
+
+    initializeApp();
 
     // Handle window resize
     const handleResize = () => {
@@ -117,6 +130,7 @@ export function PixiStage({
 
     // Cleanup
     return () => {
+      isMounted = false;
       window.removeEventListener('resize', handleResize);
 
       if (onCleanup) {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type CSSProperties } from 'react';
 import { useRoute } from 'wouter';
 import { EqualOrNotRenderer } from '@interactions/equal-or-not/EqualOrNotRenderer';
 import { useCurriculum } from '../hooks/useCurriculum';
@@ -10,6 +10,13 @@ interface LevelScreenProps {
 interface AnswerPayload {
   choice: 'equal' | 'not_equal';
 }
+
+// 44×44 minimum tap target (WCAG 2.1 AA / project a11y rule).
+const buttonStyle: CSSProperties = {
+  minWidth: 44,
+  minHeight: 44,
+  padding: '8px 16px',
+};
 
 export function LevelScreen({ params }: LevelScreenProps) {
   useRoute('/level/:levelId');
@@ -63,6 +70,12 @@ export function LevelScreen({ params }: LevelScreenProps) {
 
   return (
     <div className="level-screen">
+      <style>{`
+        .level-screen button:focus-visible {
+          outline: 3px solid #2563eb;
+          outline-offset: 2px;
+        }
+      `}</style>
       <h2>
         Level {levelId} - Question {questionIndex + 1} of {questionsForLevel.length}
       </h2>
@@ -73,7 +86,9 @@ export function LevelScreen({ params }: LevelScreenProps) {
         <div className="feedback">
           <p>Choice: {answer.choice}</p>
           {questionIndex < questionsForLevel.length - 1 && (
-            <button onClick={handleNext}>Next Question</button>
+            <button style={buttonStyle} onClick={handleNext}>
+              Next Question
+            </button>
           )}
         </div>
       )}

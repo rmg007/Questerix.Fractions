@@ -6,6 +6,7 @@
 
 import * as PIXI from 'pixi.js';
 import { COLORS, STROKE, TYPOGRAPHY, RADIUS } from './tokens';
+import { checkReduceMotion } from '@/lib/preferences';
 
 /**
  * Create a filled rectangle with optional stroke.
@@ -57,12 +58,13 @@ export function createText(
   fill: number = COLORS.textPrimary,
   fontFamily: string = 'Arial'
 ): PIXI.Text {
-  const text = new PIXI.Text(content, {
+  const style = new PIXI.TextStyle({
     fontFamily,
     fontSize: size,
     fill,
     align: 'center',
   });
+  const text = new PIXI.Text({ text: content, style });
   return text;
 }
 
@@ -224,6 +226,13 @@ export function tweenAlpha(
   duration: number,
   onComplete?: () => void
 ): void {
+  // WCAG 2.3.3 — respect prefers-reduced-motion by jumping to the final value.
+  if (checkReduceMotion()) {
+    container.alpha = targetAlpha;
+    if (onComplete) onComplete();
+    return;
+  }
+
   const startAlpha = container.alpha;
   const startTime = Date.now();
 
@@ -252,6 +261,14 @@ export function tweenPosition(
   duration: number,
   onComplete?: () => void
 ): void {
+  // WCAG 2.3.3 — respect prefers-reduced-motion by jumping to the final value.
+  if (checkReduceMotion()) {
+    container.x = targetX;
+    container.y = targetY;
+    if (onComplete) onComplete();
+    return;
+  }
+
   const startX = container.x;
   const startY = container.y;
   const startTime = Date.now();
