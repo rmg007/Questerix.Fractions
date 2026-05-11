@@ -1,4 +1,3 @@
-import React from 'react';
 import { Router, Route } from 'wouter';
 import { MenuScreen } from './screens/MenuScreen';
 import { LevelMapScreen } from './screens/LevelMapScreen';

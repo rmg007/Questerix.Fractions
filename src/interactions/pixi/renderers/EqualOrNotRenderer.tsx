@@ -63,7 +63,7 @@ export function EqualOrNotRenderer({
     };
   }, []);
 
-  const handlePointerEvent = (event: any): void => {
+  const handlePointerEvent = (event: { type: string; targetId?: string }): void => {
     if (event.type === 'tap') {
       const targetId = event.targetId;
       if (targetId === 'equal-btn') {
@@ -74,7 +74,7 @@ export function EqualOrNotRenderer({
     }
   };
 
-  const handleKeyboardEvent = (event: any): void => {
+  const handleKeyboardEvent = (event: { type: string; key: string }): void => {
     if (event.type === 'keydown') {
       if (isConfirmationKey(event.key)) {
         // On Enter/Space, select the focused button (default to Equal)

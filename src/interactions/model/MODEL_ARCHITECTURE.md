@@ -39,6 +39,7 @@ interface InteractionModel<TQuestion, TState, TEvent, TAnswer> {
 The answer returned by `toAnswer()` must match the validator's `TInput` shape. For example:
 
 **equal_or_not:**
+
 ```ts
 // validator contract
 export interface EqualOrNotInput {
@@ -49,6 +50,7 @@ export interface EqualOrNotInput {
 ```
 
 **identify:**
+
 ```ts
 // validator contract
 export interface IdentifyInput {
@@ -108,11 +110,11 @@ Every model exposes a list of `A11yAction[]` for each state. This allows the DOM
 
 ```ts
 interface A11yAction {
-  role: string;        // 'button', 'radio', 'slider', 'spinbutton', etc.
-  label: string;       // human-readable
-  key: string;         // unique identifier for event dispatch
+  role: string; // 'button', 'radio', 'slider', 'spinbutton', etc.
+  label: string; // human-readable
+  key: string; // unique identifier for event dispatch
   description?: string; // optional screen-reader hint
-  enabled?: boolean;    // whether this action is currently clickable
+  enabled?: boolean; // whether this action is currently clickable
 }
 ```
 
@@ -140,6 +142,7 @@ getA11y(state: EqualOrNotState): A11yAction[] {
 ```
 
 The DOM action layer:
+
 1. Reads the actions from `getA11y()`.
 2. Creates focusable `<button>` elements with the labels and descriptions.
 3. Wires keyboard event listeners that dispatch `{ type: 'select-equal' }` events to the reducer.
@@ -188,9 +191,7 @@ describe('equal_or_not reducer', () => {
   };
 
   it('selects equal when user taps equal button', () => {
-    const state = applyEvents(equalOrNotModel, question, [
-      { type: 'select-equal' },
-    ]);
+    const state = applyEvents(equalOrNotModel, question, [{ type: 'select-equal' }]);
     const answer = expectAnswered(equalOrNotModel, state);
     expect(answer.studentAnswer).toBe(true);
   });
@@ -242,6 +243,7 @@ If a test reveals a misconception in the original validator, document it and fil
 ## Anti-Patterns
 
 ❌ **Do NOT:**
+
 - Import React, Phaser, Pixi, or any DOM APIs.
 - Call `Math.random()` or `Date.now()` directly (route through `src/engine/ports.ts` if needed).
 - Mutate input state in the reducer.
@@ -250,6 +252,7 @@ If a test reveals a misconception in the original validator, document it and fil
 - Emit answer payloads that don't match the validator contract.
 
 ✅ **Do:**
+
 - Keep the model pure and deterministic.
 - Test without a browser.
 - Document event types with JSDoc.

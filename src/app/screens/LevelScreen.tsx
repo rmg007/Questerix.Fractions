@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRoute } from 'wouter';
 import { EqualOrNotRenderer } from '@interactions/equal-or-not/EqualOrNotRenderer';
 import { useCurriculum } from '../hooks/useCurriculum';
@@ -12,7 +12,7 @@ interface AnswerPayload {
 }
 
 export function LevelScreen({ params }: LevelScreenProps) {
-  const [isActive] = useRoute('/level/:levelId');
+  useRoute('/level/:levelId');
   const levelId = params?.levelId;
   const [answer, setAnswer] = useState<AnswerPayload | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -32,7 +32,11 @@ export function LevelScreen({ params }: LevelScreenProps) {
   }
 
   if (loading) {
-    return <div className="level-screen"><p>Loading...</p></div>;
+    return (
+      <div className="level-screen">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   if (!currentQuestion) {
@@ -59,7 +63,9 @@ export function LevelScreen({ params }: LevelScreenProps) {
 
   return (
     <div className="level-screen">
-      <h2>Level {levelId} - Question {questionIndex + 1} of {questionsForLevel.length}</h2>
+      <h2>
+        Level {levelId} - Question {questionIndex + 1} of {questionsForLevel.length}
+      </h2>
       <div id="interaction-canvas">
         <EqualOrNotRenderer question={currentQuestion.payload as any} onAnswer={handleAnswer} />
       </div>

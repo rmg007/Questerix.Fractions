@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation } from 'wouter';
 
 export function MenuScreen() {
@@ -10,13 +9,9 @@ export function MenuScreen() {
       <p>Welcome! Choose a student or create a new one.</p>
 
       {/* Phase 1 sketch: button to navigate to level map */}
-      <button onClick={() => setLocation('/levels')}>
-        Start Playing
-      </button>
+      <button onClick={() => setLocation('/levels')}>Start Playing</button>
 
-      <button onClick={() => setLocation('/settings')}>
-        Settings
-      </button>
+      <button onClick={() => setLocation('/settings')}>Settings</button>
     </div>
   );
 }
