@@ -30,7 +30,9 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@app/*": ["src/app/*"],
+      "@interactions/*": ["src/interactions/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "tests/**/*.ts"],
