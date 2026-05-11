@@ -192,6 +192,13 @@ label_match_target = ValidatorRegistration(
     fn=_label_exact_match,
 )
 
+label_exact_match = ValidatorRegistration(
+    id="validator.label.exactMatch",
+    archetype="label",
+    variant="exactMatch",
+    fn=_label_exact_match,
+)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. make  (mirrors src/validators/make.ts)
@@ -642,6 +649,7 @@ VALIDATOR_REGISTRY: dict[str, ValidatorRegistration] = {
         partition_equal_count,
         identify_exact_index,
         label_match_target,
+        label_exact_match,
         make_fold_and_shade,
         make_halving_by_line,
         compare_greater_than,
