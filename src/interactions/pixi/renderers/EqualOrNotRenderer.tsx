@@ -112,12 +112,13 @@ export function EqualOrNotRenderer({
     app.stage.removeChildren();
 
     // Title/question text
-    const titleText = new PIXI.Text('Are these fractions equal?', {
+    const titleStyle = new PIXI.TextStyle({
       fontFamily: 'Arial',
       fontSize: 24,
       fill: COLORS.textPrimary,
       align: 'center',
     });
+    const titleText = new PIXI.Text({ text: 'Are these fractions equal?', style: titleStyle });
     titleText.anchor.set(0.5);
     titleText.x = width / 2;
     titleText.y = SPACING.xl;

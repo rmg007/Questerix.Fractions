@@ -57,12 +57,13 @@ export function createText(
   fill: number = COLORS.textPrimary,
   fontFamily: string = 'Arial'
 ): PIXI.Text {
-  const text = new PIXI.Text(content, {
+  const style = new PIXI.TextStyle({
     fontFamily,
     fontSize: size,
     fill,
     align: 'center',
   });
+  const text = new PIXI.Text({ text: content, style });
   return text;
 }
 
