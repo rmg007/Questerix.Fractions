@@ -176,6 +176,7 @@ export default defineConfig(async () => {
       port: DEV_PORT,
       host: '0.0.0.0',
       allowedHosts: true,
+      middlewareMode: false,
       watch: {
         // Ignore non-source directories to prevent spurious HMR reloads
         ignored: [
@@ -190,6 +191,7 @@ export default defineConfig(async () => {
         ],
       },
     },
+    appType: isSpikeMode ? 'spa' : 'mpa',
     build: {
       target: 'es2022',
       outDir: 'dist',
@@ -198,7 +200,7 @@ export default defineConfig(async () => {
       chunkSizeWarningLimit: 1400,
       rollupOptions: {
         input: isSpikeMode
-          ? path.resolve(__dirname, 'src/app/main.tsx')
+          ? path.resolve(__dirname, 'spike.html')
           : path.resolve(__dirname, 'index.html'),
         output: {
           manualChunks: (id: string) => {
