@@ -11,6 +11,53 @@ interface AnswerPayload {
   choice: 'equal' | 'not_equal';
 }
 
+// Type-safe validation for EqualOrNotQuestion payload
+interface EqualOrNotQuestion {
+  id: string;
+  leftFraction: { numerator: number; denominator: number };
+  rightFraction: { numerator: number; denominator: number };
+}
+
+/**
+ * Runtime guard: validate that the payload is a valid EqualOrNotQuestion.
+ * Checks shape, numeric bounds, and property existence.
+ */
+function isValidEqualOrNotQuestion(payload: unknown): payload is EqualOrNotQuestion {
+  if (!payload || typeof payload !== 'object') return false;
+  const p = payload as Record<string, unknown>;
+
+  // Validate required properties exist
+  if (typeof p.id !== 'string' || !p.id.trim()) return false;
+
+  // Validate leftFraction
+  if (!p.leftFraction || typeof p.leftFraction !== 'object') return false;
+  const lf = p.leftFraction as Record<string, unknown>;
+  if (
+    typeof lf.numerator !== 'number' ||
+    typeof lf.denominator !== 'number' ||
+    !Number.isFinite(lf.numerator) ||
+    !Number.isFinite(lf.denominator) ||
+    lf.denominator <= 0
+  ) {
+    return false;
+  }
+
+  // Validate rightFraction
+  if (!p.rightFraction || typeof p.rightFraction !== 'object') return false;
+  const rf = p.rightFraction as Record<string, unknown>;
+  if (
+    typeof rf.numerator !== 'number' ||
+    typeof rf.denominator !== 'number' ||
+    !Number.isFinite(rf.numerator) ||
+    !Number.isFinite(rf.denominator) ||
+    rf.denominator <= 0
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 // 44×44 minimum tap target (WCAG 2.1 AA / project a11y rule).
 const buttonStyle: CSSProperties = {
   minWidth: 44,
@@ -55,6 +102,16 @@ export function LevelScreen({ params }: LevelScreenProps) {
     );
   }
 
+  // Validate payload shape at runtime before rendering
+  if (!isValidEqualOrNotQuestion(currentQuestion.payload)) {
+    return (
+      <div className="level-screen">
+        <h2>Level {levelId}</h2>
+        <p>Error: Invalid question format. The question data is malformed.</p>
+      </div>
+    );
+  }
+
   const handleAnswer = (payload: AnswerPayload) => {
     setAnswer(payload);
     // Phase 2: Call validator and update progression
@@ -79,7 +136,7 @@ export function LevelScreen({ params }: LevelScreenProps) {
         Level {levelId} - Question {questionIndex + 1} of {questionsForLevel.length}
       </h2>
       <div id="interaction-canvas">
-        <EqualOrNotRenderer question={currentQuestion.payload as any} onAnswer={handleAnswer} />
+        <EqualOrNotRenderer question={currentQuestion.payload} onAnswer={handleAnswer} />
       </div>
       {answer && (
         <div className="feedback">
