@@ -9,8 +9,8 @@ import * as PIXI from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
-import { createButton } from '../visual';
-import { SPACING, TOUCH_TARGETS, COLORS } from '../tokens';
+import { createButton, createText } from '../visual';
+import { SPACING, TOUCH_TARGETS, COLORS, TYPOGRAPHY } from '../tokens';
 import type { InteractionModel } from '../../model/types';
 import type {
   EqualOrNotQuestion,
@@ -110,12 +110,11 @@ export function EqualOrNotRenderer({
     app.stage.removeChildren();
 
     // Title/question text
-    const titleText = new PIXI.Text('Are these fractions equal?', {
-      fontFamily: 'Arial',
-      fontSize: 24,
-      fill: COLORS.textPrimary,
-      align: 'center',
-    });
+    const titleText = createText(
+      'Are these fractions equal?',
+      TYPOGRAPHY.title,
+      COLORS.textPrimary
+    );
     titleText.anchor.set(0.5);
     titleText.x = width / 2;
     titleText.y = SPACING.xl;
