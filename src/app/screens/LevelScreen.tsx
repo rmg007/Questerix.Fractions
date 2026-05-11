@@ -57,7 +57,6 @@ export function LevelScreen({ params }: LevelScreenProps) {
 
   const handleAnswer = (payload: AnswerPayload) => {
     setAnswer(payload);
-    console.log('Answer:', payload);
     // Phase 2: Call validator and update progression
   };
 
