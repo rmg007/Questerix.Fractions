@@ -1,0 +1,72 @@
+
+> questerix-fractions@1.0.0 measure-bundle
+> node scripts/measure-bundle.mjs
+
+
+Bundle composition (dist/assets/*.js):
+
+  A11yLayer-BStrRhjk.js                          2924 raw  /      1199 gz  /       982 br
+  AccessibilityAnnouncer-9OL6UaTq.js              599 raw  /       381 gz  /       271 br
+  BenchmarkInteraction-DVnN3t6s.js               2387 raw  /      1284 gz  /      1127 br
+  CompareInteraction-BUX-fqZC.js                 3588 raw  /      1710 gz  /      1522 br
+  DragHandle-BbEpQRAR.js                         4228 raw  /      1545 gz  /      1424 br
+  EqualOrNotInteraction-CF8IDOi0.js              2504 raw  /      1328 gz  /      1189 br
+  ExplainYourOrderInteraction-9UBb1P4F.js        4647 raw  /      1912 gz  /      1692 br
+  IdentifyInteraction-OP43o9Dp.js                4671 raw  /      1991 gz  /      1783 br
+  LabelInteraction-BQ3P07BY.js                   3468 raw  /      1552 gz  /      1375 br
+  MakeInteraction-DES-cKXb.js                    3645 raw  /      1554 gz  /      1398 br
+  OrderInteraction-Drj3pbG5.js                   3209 raw  /      1621 gz  /      1455 br
+  PartitionInteraction-DdIKSUsU.js              10607 raw  /      3686 gz  /      3306 br
+  PlacementInteraction-CMKD07QO.js               1726 raw  /       991 gz  /       862 br
+  QuestCompleteOverlay-B6lZbHZr.js               4305 raw  /      1759 gz  /      1570 br
+  SFXService-Ba32ARkp.js                         1583 raw  /       718 gz  /       635 br
+  SnapMatchInteraction-C2HTu_te.js               3409 raw  /      1586 gz  /      1432 br
+  TestHooks-Cl-qaX81.js                          2306 raw  /      1086 gz  /       882 br
+  UpdateBanner-fqjTfStP.js                       1519 raw  /       801 gz  /       692 br
+  adapters-BiHSImM-.js                            495 raw  /       290 gz  /       248 br
+  attempt-CPYVzUjs.js                            1217 raw  /       541 gz  /       466 br
+  bkt-Br-nrF4g.js                                1238 raw  /       602 gz  /       523 br
+  branded-CFb0H66F.js                             523 raw  /       287 gz  /       240 br
+  colors-5TtiiF-g.js                              945 raw  /       446 gz  /       368 br
+  deviceMeta-IHyEcFgx.js                         1761 raw  /       776 gz  /       668 br
+  dexie-CEiZsXz7.js                             95088 raw  /     30979 gz  /     27440 br
+  hintEvent-CUXz5XJs.js                           668 raw  /       404 gz  /       350 br
+  index-Bryjvoha.js                             27856 raw  /      9501 gz  /      8273 br
+  lastUsedStudent-D89egfJj.js                     303 raw  /       211 gz  /       181 br
+  levelProgression-ClBENTnG.js                   1953 raw  /       657 gz  /       587 br
+  levelTheme-CHv_fGcF.js                         3202 raw  /      1490 gz  /      1275 br
+  masteryTransitionHook-BWJ5kgmV.js              1100 raw  /       567 gz  /       500 br
+  misconceptionDetectors-ClZYsgEu.js             8285 raw  /      2221 gz  /      1994 br
+  misconceptionFlag-DA6HZxeM.js                  1029 raw  /       435 gz  /       390 br
+  motion-B2ywbYBk.js                              519 raw  /       367 gz  /       324 br
+  observability-B7hhsI_t.js                     30181 raw  /      8364 gz  /      7485 br
+  partition-BaMNaHai.js                          1369 raw  /       598 gz  /       527 br
+  phaser-DM3nDuma.js                          1353312 raw  /    350315 gz  /    279248 br
+  phaserInstrumentation-By9JnuA5.js               910 raw  /       457 gz  /       383 br
+  preferences-_VRUqIeE.js                        1498 raw  /       574 gz  /       513 br
+  preload-helper-rov5CBGT.js                     1193 raw  /       681 gz  /       563 br
+  progressionStat-BA3Fctnr.js                     603 raw  /       347 gz  /       312 br
+  questionTemplate-GC_NVtoZ.js                    941 raw  /       541 gz  /       449 br
+  registry-D9knjQ2z.js                           6536 raw  /      1956 gz  /      1750 br
+  reviewSchedule-B6R041lP.js                      471 raw  /       245 gz  /       210 br
+  reviewScheduler-BbYHFXQE.js                     435 raw  /       337 gz  /       290 br
+  rolldown-runtime-S-ySWqyJ.js                    694 raw  /       422 gz  /       373 br
+  router-Dx28BQKN.js                              407 raw  /       303 gz  /       265 br
+  scenes-ByGsvapD.js                           415501 raw  /     91815 gz  /     74725 br
+  session-BMS09iu9.js                             707 raw  /       399 gz  /       343 br
+  skillMastery-CLOYyDjm.js                       3090 raw  /      1432 gz  /      1309 br
+  streak-LCAEL6rT.js                              970 raw  /       475 gz  /       408 br
+  student-veLApIVU.js                            1880 raw  /       715 gz  /       620 br
+  unlockGate-znCcE9Cj.js                          893 raw  /       440 gz  /       367 br
+  utils-nDMN1rsM.js                              3684 raw  /      1601 gz  /      1446 br
+
+Total gzipped JS : 538495 bytes (525.9 KB)
+Total brotli JS  : 439010 bytes (428.7 KB)
+Budget (1 MB)    : 1048576 bytes
+Budget used      : 51.4%  [PASS]
+
+Per-chunk budgets (gzipped):
+  phaser          :  342.1 KB / 380 KB (90.0%) [PASS]
+  scenes          :   89.7 KB / 100 KB (89.7%) [PASS]
+  observability   :    8.2 KB / 12 KB (68.1%) [PASS]
+  dexie           :   30.3 KB / 35 KB (86.4%) [PASS]

@@ -24,6 +24,42 @@ Decisions are ordered chronologically. **Newest at the top.**
 
 ---
 
+## D-32 — 2026-05-10 — Runtime migration: Phaser 4 → React + PixiJS; C4 revised
+
+**Decision:** Approved the migration from Phaser 4 to React + PixiJS as the new official runtime, superseding C4 ("Phaser 4 + TS + Vite + Dexie; no React/Redux/new frameworks"). 
+
+Specific commitments:
+- `react@^19` + `react-dom@^19` for the app shell (menus, routing, settings, overlays).
+- `pixi.js@^8` for canvas-based interaction rendering (saves ~30% bundle vs v7).
+- `@pixi/react@^8` as the React-to-Pixi bridge for archetype renderers (fallback to naked useRef if bridge cost exceeds 20 KB gzipped).
+- `wouter` (~2 KB) for routing — React Router would be overkill for ~5 routes.
+- No state library (Zustand/Redux excluded); service singletons + `useSyncExternalStore` for shared reactivity.
+
+**Why:**
+1. **Agent-friendliness.** React components expose JSX trees that agents can reason about and edit via prop-level diffs, without simulating a Phaser scene graph. This is force-multiplying for validation-phase iteration.
+2. **DOM-first non-canvas UI.** Menus, settings, hint ladders, and overlays become native browser controls with automatic focus, IME, and screen-reader support — reducing custom-UI surface area.
+3. **Bundle math works.** Current Phaser 4 stack: 525.9 KB gzipped. Phaser slice: 350.3 KB. React+Pixi projected: ~140 KB. Net savings: ~210 KB, even in pessimistic case where Pixi visual primitives recapture ~50 KB of that delta. Headroom remains comfortable.
+4. **Validation needs agility over stability.** MVP gates are locked. Validation MVP asks "do the interactions work at scale?" not "is the runtime perfect?" React's ecosystem and developer ergonomics are a net gain for rapid iteration on pedagogy and interaction design.
+
+**Alternatives considered:**
+- *Keep Phaser 4, improve agent tooling within the runtime (Appendix A)*: rejected. Phaser's scene graph is fundamentally harder to reason about statically. The agent-friendliness gains from React are too large to forego if bundle math is viable.
+- *Wait for a full spike (Path B) before committing*: rejected by user decision (D-32 represents the user's Path C authorization, skipping the spike gate). Risk accepted: if bundle math is worse than projected, we continue anyway. Mitigation: Phase 1 (equal_or_not spike) ships quickly and will surface real numbers within 1–2 weeks.
+
+**Consequences:**
+- Bundle budget resets to ~360 KB gzipped initial transfer (assuming 525.9 - 350.3 + 140 + marginal overhead).
+- C4 is revised to: "React + TypeScript + Vite + PixiJS + Dexie; no Redux, no Zustand, no Next.js, no backend framework."
+- C1-C3, C5-C10 remain unchanged.
+- New surface: `src/app/` (React app shell, routes, screens, hooks); old `src/scenes/` decommissioned at Phase 9.
+- `A11yLayer.ts` replaced by DOM-first shell + per-archetype action overlay.
+- Tween animation strategy: `requestAnimationFrame` + token easings from `src/scenes/utils/easings.ts`; GSAP/popmotion not imported without explicit measurement and justification.
+- Engine, validators, persistence, curriculum, and audio TTS are preserved unchanged.
+
+**Rollback:** If post-cutover regressions exceed thresholds in the Regrettability Window (Phase 8.5), revert to the pre-cutover commit and reopen Appendix A (Phaser-first agent-friendliness).
+
+**Source:** `PLANS/2026-05-10-react-pixijs-migration.md`, bundle measurement 2026-05-10, Phase 0 decision gates.
+
+---
+
 ## D-31 — 2026-05-02 — Post-MVP scope expanded to Grade 1–7; C3 staged for retirement
 
 **Decision:** The product vision extends Questerix Fractions from a K–2 MVP to a full Grade 1–7 fraction curriculum. Constraint C3 ("Levels 1–9 only — no Grade 3+ content") remains in force for the MVP but is explicitly staged for retirement at the start of the Grade 3 build phase (post-validation).
