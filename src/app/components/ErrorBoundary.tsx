@@ -95,7 +95,8 @@ export class ErrorBoundary extends Component<Props, State> {
               Oops! Something went wrong
             </h1>
             <p style={{ color: '#6b7280', marginBottom: '24px', lineHeight: '1.5' }}>
-              We encountered an unexpected error. Your progress is saved safely. Please try again by reloading the page.
+              We encountered an unexpected error. Your progress is saved safely. Please try again by
+              reloading the page.
             </p>
 
             {/* Error details for debugging (visible in dev mode) */}
