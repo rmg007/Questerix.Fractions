@@ -174,6 +174,7 @@ export default defineConfig(async () => {
     },
     server: {
       port: DEV_PORT,
+      strictPort: true,
       host: '0.0.0.0',
       allowedHosts: true,
       middlewareMode: false,
