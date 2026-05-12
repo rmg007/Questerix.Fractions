@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey } from '../keyboard';
@@ -34,12 +34,12 @@ export function PartitionRenderer({
   width = 500,
   height = 400,
 }: PartitionRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<PartitionState>(model.initialize(question));
-  const shapeContainerRef = useRef<PIXI.Container | null>(null);
-  const dividerRef = useRef<PIXI.Graphics | null>(null);
+  const shapeContainerRef = useRef<Container | null>(null);
+  const dividerRef = useRef<Graphics | null>(null);
   const isInteractingRef = useRef(false);
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export function PartitionRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: PartitionState): void => {
+  const renderStage = (app: Application, state: PartitionState): void => {
     app.stage.removeChildren();
 
     const centerX = width / 2;
@@ -121,13 +121,13 @@ export function PartitionRenderer({
     app.stage.addChild(title);
 
     // Shape container (rectangle partition)
-    const shapeContainer = new PIXI.Container();
+    const shapeContainer = new Container();
     shapeContainer.x = centerX;
     shapeContainer.y = shapeY;
     shapeContainerRef.current = shapeContainer;
 
     // Draw the shape (rectangle)
-    const shapeGraphics = new PIXI.Graphics();
+    const shapeGraphics = new Graphics();
     shapeGraphics.beginFill(COLORS.backgroundDark);
     shapeGraphics.lineStyle(STROKE.medium, COLORS.textPrimary);
     shapeGraphics.drawRect(-SHAPE_WIDTH / 2, -SHAPE_HEIGHT / 2, SHAPE_WIDTH, SHAPE_HEIGHT);
@@ -135,7 +135,7 @@ export function PartitionRenderer({
     shapeContainer.addChild(shapeGraphics);
 
     // Draw divider line
-    const dividerGraphics = new PIXI.Graphics();
+    const dividerGraphics = new Graphics();
     dividerGraphics.lineStyle(DIVIDER_STROKE, COLORS.primary);
     const dividerLocalX = (state.dividerX ?? centerX) - centerX;
     dividerGraphics.moveTo(dividerLocalX, -SHAPE_HEIGHT / 2);
@@ -145,7 +145,7 @@ export function PartitionRenderer({
 
     // Draggable divider handle
     const handleSize = TOUCH_TARGETS.minimum;
-    const dividerHandle = new PIXI.Graphics();
+    const dividerHandle = new Graphics();
     dividerHandle.beginFill(COLORS.primary);
     dividerHandle.drawRect(dividerLocalX - handleSize / 2, -handleSize / 2, handleSize, handleSize);
     dividerHandle.endFill();
@@ -178,7 +178,7 @@ export function PartitionRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };

@@ -12,6 +12,35 @@ interface HeapSample {
   sceneKey: string | undefined;
 }
 
+/**
+ * Performance.memory API (Chromium-specific).
+ * Not part of standard Performance interface, hence custom typing.
+ */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+/**
+ * Type guard: check if performance.memory API is available and valid.
+ */
+function hasMemoryAPI(perf: Performance): perf is Performance & { memory: PerformanceMemory } {
+  if (typeof perf !== 'object' || !perf) return false;
+  const mem = (perf as unknown as Record<string, unknown>).memory;
+  if (typeof mem !== 'object' || !mem) return false;
+
+  const m = mem as Record<string, unknown>;
+  return (
+    typeof m.usedJSHeapSize === 'number' &&
+    Number.isFinite(m.usedJSHeapSize) &&
+    typeof m.totalJSHeapSize === 'number' &&
+    Number.isFinite(m.totalJSHeapSize) &&
+    typeof m.jsHeapSizeLimit === 'number' &&
+    Number.isFinite(m.jsHeapSizeLimit)
+  );
+}
+
 interface HeapDeltaStats {
   startHeap: number;
   endHeap: number;
@@ -29,14 +58,19 @@ let heapSamples: HeapSample[] = [];
 export function recordHeapSample(sceneKey?: string): void {
   if (!import.meta.env.DEV) return;
 
-  // Only available in Chromium
-  if (typeof window !== 'undefined' && 'performance' in window && 'memory' in window.performance) {
-    const memory = (window.performance as any).memory;
+  // Only available in Chromium — validate shape before use
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.performance === 'object' &&
+    hasMemoryAPI(window.performance)
+  ) {
+    const { usedJSHeapSize, totalJSHeapSize, jsHeapSizeLimit } = window.performance.memory;
+
     const sample: HeapSample = {
       timestamp: performance.now(),
-      usedJSHeapSize: (memory.usedJSHeapSize as number | undefined) || 0,
-      totalJSHeapSize: (memory.totalJSHeapSize as number | undefined) || 0,
-      jsHeapSizeLimit: (memory.jsHeapSizeLimit as number | undefined) || 0,
+      usedJSHeapSize: usedJSHeapSize || 0,
+      totalJSHeapSize: totalJSHeapSize || 0,
+      jsHeapSizeLimit: jsHeapSizeLimit || 0,
       sceneKey: sceneKey ?? undefined,
     };
 

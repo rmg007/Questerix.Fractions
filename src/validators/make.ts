@@ -19,12 +19,12 @@ export interface MakeExpected extends PartitionPayload {
 /**
  * Checks partition equality first, then shaded region count.
  * Delegates to partitionEqualAreas per the archetype doc pseudocode.
- * per activity-archetypes.md §4 validator pseudocode (foldAndShade)
+ * per activity-archetypes.md §4 validator pseudocode (foldAlignment)
  */
-export const makeFoldAndShade: ValidatorRegistration<MakeInput, MakeExpected> = {
-  id: 'validator.make.foldAndShade',
+export const makeFoldAlignment: ValidatorRegistration<MakeInput, MakeExpected> = {
+  id: 'validator.make.foldAlignment',
   archetype: 'make',
-  variant: 'foldAndShade',
+  variant: 'foldAlignment',
   fn(input, expected): ValidatorResult {
     const partResult = partitionEqualAreas.fn(
       { regionAreas: input.regionAreas },
@@ -64,4 +64,4 @@ export const makeHalvingByLine: ValidatorRegistration<HalvingInput, HalvingExpec
   },
 };
 
-export default [makeFoldAndShade, makeHalvingByLine];
+export default [makeFoldAlignment, makeHalvingByLine];

@@ -5,8 +5,8 @@
   "description": "Phaser 4 + TypeScript educational game for K-2 fraction concepts. Validation-stage MVP.",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "dev:app": "vite",
+    "dev": "npm run dev:app",
+    "dev:app": "node scripts/dev-app.mjs",
     "build:curriculum": "node scripts/build-curriculum.mjs",
     "prebuild": "npm run build:curriculum",
     "build": "tsc && vite build",

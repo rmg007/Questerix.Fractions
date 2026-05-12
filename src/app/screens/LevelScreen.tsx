@@ -7,8 +7,65 @@ interface LevelScreenProps {
   params: { levelId: string };
 }
 
+/**
+ * Validate level ID from route parameter.
+ * Valid level IDs are 1-9 (Grades K-2).
+ */
+function isValidLevelId(levelId: unknown): levelId is string {
+  if (typeof levelId !== 'string' || !levelId.trim()) return false;
+  const num = Number.parseInt(levelId, 10);
+  return Number.isFinite(num) && Number.isInteger(num) && num >= 1 && num <= 9;
+}
+
 interface AnswerPayload {
   choice: 'equal' | 'not_equal';
+}
+
+// Type-safe validation for EqualOrNotQuestion payload
+interface EqualOrNotQuestion {
+  id: string;
+  leftFraction: { numerator: number; denominator: number };
+  rightFraction: { numerator: number; denominator: number };
+}
+
+/**
+ * Runtime guard: validate that the payload is a valid EqualOrNotQuestion.
+ * Checks shape, numeric bounds, and property existence.
+ */
+function isValidEqualOrNotQuestion(payload: unknown): payload is EqualOrNotQuestion {
+  if (!payload || typeof payload !== 'object') return false;
+  const p = payload as Record<string, unknown>;
+
+  // Validate required properties exist
+  if (typeof p.id !== 'string' || !p.id.trim()) return false;
+
+  // Validate leftFraction
+  if (!p.leftFraction || typeof p.leftFraction !== 'object') return false;
+  const lf = p.leftFraction as Record<string, unknown>;
+  if (
+    typeof lf.numerator !== 'number' ||
+    typeof lf.denominator !== 'number' ||
+    !Number.isFinite(lf.numerator) ||
+    !Number.isFinite(lf.denominator) ||
+    lf.denominator <= 0
+  ) {
+    return false;
+  }
+
+  // Validate rightFraction
+  if (!p.rightFraction || typeof p.rightFraction !== 'object') return false;
+  const rf = p.rightFraction as Record<string, unknown>;
+  if (
+    typeof rf.numerator !== 'number' ||
+    typeof rf.denominator !== 'number' ||
+    !Number.isFinite(rf.numerator) ||
+    !Number.isFinite(rf.denominator) ||
+    rf.denominator <= 0
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 // 44×44 minimum tap target (WCAG 2.1 AA / project a11y rule).
@@ -26,6 +83,16 @@ export function LevelScreen({ params }: LevelScreenProps) {
 
   const { loading, templatesByArchetype } = useCurriculum();
 
+  // Validate level ID from route parameters
+  if (!isValidLevelId(levelId)) {
+    return (
+      <div className="level-screen">
+        <h2>Invalid Level</h2>
+        <p>The requested level ID is invalid. Valid levels are 1-9.</p>
+      </div>
+    );
+  }
+
   // Get all equal_or_not questions for this level
   const questionsForLevel = useMemo(() => {
     const allEqualOrNot = templatesByArchetype('equal_or_not');
@@ -33,10 +100,6 @@ export function LevelScreen({ params }: LevelScreenProps) {
   }, [levelId, templatesByArchetype]);
 
   const currentQuestion = questionsForLevel[questionIndex];
-
-  if (!levelId) {
-    return <div>No level selected</div>;
-  }
 
   if (loading) {
     return (
@@ -55,9 +118,18 @@ export function LevelScreen({ params }: LevelScreenProps) {
     );
   }
 
+  // Validate payload shape at runtime before rendering
+  if (!isValidEqualOrNotQuestion(currentQuestion.payload)) {
+    return (
+      <div className="level-screen">
+        <h2>Level {levelId}</h2>
+        <p>Error: Invalid question format. The question data is malformed.</p>
+      </div>
+    );
+  }
+
   const handleAnswer = (payload: AnswerPayload) => {
     setAnswer(payload);
-    console.log('Answer:', payload);
     // Phase 2: Call validator and update progression
   };
 
@@ -80,7 +152,7 @@ export function LevelScreen({ params }: LevelScreenProps) {
         Level {levelId} - Question {questionIndex + 1} of {questionsForLevel.length}
       </h2>
       <div id="interaction-canvas">
-        <EqualOrNotRenderer question={currentQuestion.payload as any} onAnswer={handleAnswer} />
+        <EqualOrNotRenderer question={currentQuestion.payload} onAnswer={handleAnswer} />
       </div>
       {answer && (
         <div className="feedback">

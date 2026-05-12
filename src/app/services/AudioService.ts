@@ -16,11 +16,10 @@ class AudioServiceImpl {
     return { isPlaying: this.isPlaying };
   }
 
-  play(soundKey: string) {
+  play(_soundKey: string) {
     this.isPlaying = true;
     this.notifyListeners();
-    // Phase 2: integrate with actual audio system
-    console.log(`[Audio] Playing: ${soundKey}`);
+    // Phase 2: integrate with actual audio system with sound key parameter
   }
 
   stop() {

@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
@@ -40,7 +40,7 @@ export function EqualOrNotRenderer({
   width = 500,
   height = 300,
 }: EqualOrNotRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<EqualOrNotState>(model.initialize(question));
@@ -105,7 +105,7 @@ export function EqualOrNotRenderer({
     }
   };
 
-  const renderStage = (app: PIXI.Application, state: EqualOrNotState): void => {
+  const renderStage = (app: Application, state: EqualOrNotState): void => {
     // Clear stage
     app.stage.removeChildren();
 
@@ -156,7 +156,7 @@ export function EqualOrNotRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStage(app, stateRef.current);
   };

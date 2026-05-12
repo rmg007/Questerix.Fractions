@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application, Graphics } from 'pixi.js';
 import { PixiStage } from '../PixiStage';
 import { PointerManager } from '../pointers';
 import { KeyboardManager, isConfirmationKey, isCancelKey } from '../keyboard';
@@ -30,7 +30,7 @@ export function CompareRenderer({
   width = 500,
   height = 300,
 }: CompareRendererProps) {
-  const stageRef = useRef<PIXI.Application | null>(null);
+  const stageRef = useRef<Application | null>(null);
   const pointerMgrRef = useRef<PointerManager | null>(null);
   const keyboardMgrRef = useRef<KeyboardManager | null>(null);
   const stateRef = useRef<CompareState>(model.initialize(question));
@@ -96,7 +96,7 @@ export function CompareRenderer({
   };
 
   const renderBarModel = (
-    gfx: PIXI.Graphics,
+    gfx: Graphics,
     x: number,
     y: number,
     numerator: number,
@@ -120,7 +120,7 @@ export function CompareRenderer({
     }
   };
 
-  const renderStageContent = (app: PIXI.Application, state: CompareState): void => {
+  const renderStageContent = (app: Application, state: CompareState): void => {
     const centerX = width / 2;
     const startY = 50;
     const barW = 180;
@@ -138,7 +138,7 @@ export function CompareRenderer({
     titleText.zIndex = Z_INDEX.base;
     app.stage.addChild(titleText);
 
-    const leftBarGfx = new PIXI.Graphics();
+    const leftBarGfx = new Graphics();
     renderBarModel(
       leftBarGfx,
       centerX - barW / 2,
@@ -163,7 +163,7 @@ export function CompareRenderer({
     leftLabelText.zIndex = Z_INDEX.base;
     app.stage.addChild(leftLabelText);
 
-    const rightBarGfx = new PIXI.Graphics();
+    const rightBarGfx = new Graphics();
     renderBarModel(
       rightBarGfx,
       centerX - barW / 2,
@@ -227,7 +227,7 @@ export function CompareRenderer({
     }
   };
 
-  const handleReady = (app: PIXI.Application): void => {
+  const handleReady = (app: Application): void => {
     stageRef.current = app;
     renderStageContent(app, stateRef.current);
   };

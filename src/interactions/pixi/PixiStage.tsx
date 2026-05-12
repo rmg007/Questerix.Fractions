@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
+import { Application } from 'pixi.js';
 import { BREAKPOINTS } from './tokens';
 
 interface PixiStageProps {
@@ -24,7 +24,7 @@ interface PixiStageProps {
   /**
    * Callback when Pixi app is ready. Receives the PIXI.Application instance.
    */
-  onReady?: (app: PIXI.Application) => void;
+  onReady?: (app: Application) => void;
   /**
    * Callback when canvas resizes.
    */
@@ -69,7 +69,7 @@ export function PixiStage({
   ariaLabel = 'Interactive canvas',
 }: PixiStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const appRef = useRef<PIXI.Application | null>(null);
+  const appRef = useRef<Application | null>(null);
 
   // Initialize Pixi application
   useEffect(() => {
@@ -82,7 +82,7 @@ export function PixiStage({
 
     let isMounted = true;
     const initializeApp = async () => {
-      const app = new PIXI.Application();
+      const app = new Application();
       await app.init({
         width: canvasWidth,
         height: canvasHeight,
